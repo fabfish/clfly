@@ -1,0 +1,64 @@
+cff-version: 1.2.0
+title: "clfly: continual learning on the Drosophila whole-brain connectome"
+message: "If you use this software, please cite it and the FlyWire connectome papers below."
+type: software
+license: Apache-2.0
+repository-code: "https://github.com/fabfish/clfly"
+keywords:
+  - continual learning
+  - catastrophic forgetting
+  - connectome
+  - Drosophila
+  - elastic weight consolidation
+abstract: >
+  A research codebase that treats the FlyWire adult fruit fly connectome as a
+  fixed-topology, weight-trainable substrate for sequential task learning, and
+  asks which Fisher anchoring basis minimises forgetting.
+authors:
+  - alias: fabfish
+    affiliation: "independent"
+
+preferred-citation:
+  type: article
+  title: "LGCL: Linear-Gaussian Continual Learning as a minimal solvable model"
+  authors:
+    - alias: fabfish
+  year: 2026
+  notes: >
+    Manuscript drafts v2-v8 and the technical memo are archived in
+    reference/lgcl_source/ within the repository.
+
+references:
+  - type: article
+    title: "Neuronal wiring diagram of an adult brain"
+    authors:
+      - name: "Dorkenwald, Sven"
+      - name: "FlyWire Consortium"
+    journal: Nature
+    volume: 634
+    start: 124
+    year: 2024
+    doi: 10.1038/s41586-024-07558-y
+    notes: "FlyWire FAFB v783 connectome. Data licensed CC BY-NC 4.0."
+
+  - type: article
+    title: "Whole-brain annotation and multi-connectome cell typing of Drosophila"
+    authors:
+      - name: "Schlegel, Philipp"
+    journal: Nature
+    volume: 634
+    start: 139
+    year: 2024
+    doi: 10.1038/s41586-024-07686-5
+    notes: "Cell type / cell class / hemilineage annotations used to build the candidate basis ladder."
+
+  - type: article
+    title: "Overcoming catastrophic forgetting in neural networks"
+    authors:
+      - name: "Kirkpatrick, James"
+    journal: "Proceedings of the National Academy of Sciences"
+    volume: 114
+    start: 3521
+    year: 2017
+    doi: 10.1073/pnas.1611835114
+    notes: "EWC, the method whose anchoring basis this project studies."

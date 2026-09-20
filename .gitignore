@@ -1,0 +1,26 @@
+# downloaded connectome data — never redistributed, see fetch scripts
+data/
+*.parquet
+*.feather
+*.npy
+*.csv.gz
+
+# experiment output
+runs/
+autoresearch/
+*.log
+
+# python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# editors / os
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

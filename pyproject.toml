@@ -1,0 +1,38 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "clfly"
+version = "0.1.0"
+description = "Continual learning on the Drosophila whole-brain connectome"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+authors = [{ name = "fabfish" }]
+keywords = ["continual-learning", "connectome", "drosophila", "EWC", "catastrophic-forgetting"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: Apache Software License",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+dependencies = ["numpy>=1.26", "scipy>=1.11"]
+
+[project.optional-dependencies]
+# Phase 1: reproducing the LGCL reference numbers
+plots = ["matplotlib>=3.8"]
+dev = ["pytest>=8.0", "matplotlib>=3.8"]
+# Phase 2+: the FlyWire substrate
+connectome = ["pandas>=2.1", "pyarrow>=15.0", "networkx>=3.2"]
+torch = ["torch>=2.7"]
+
+[project.urls]
+Repository = "https://github.com/fabfish/clfly"
+
+[tool.hatch.build.targets.wheel]
+packages = ["clfly"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

@@ -1,0 +1,9 @@
+# keep LF in the repository regardless of the authoring platform
+* text=auto eol=lf
+
+# binary
+*.png binary
+*.jpg binary
+*.parquet binary
+*.feather binary
+*.npy binary

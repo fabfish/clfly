@@ -1,0 +1,194 @@
+# Research plan
+
+## The question
+
+EWC anchors its Fisher matrix in the **neuron coordinate basis** — that is what
+"diagonal Fisher" means. LGCL makes the consequence exact: EWC *is* a Kalman
+filter whose posterior covariance is projected onto the coordinate basis at every
+step, so the diagonal is not a computational shortcut, it is the entire
+approximation.
+
+Which raises a question nobody has asked systematically:
+
+> If you are going to project the posterior covariance onto some structure, why
+> that structure?
+
+The literature is thin. One 2018 paper (*Rotate your Networks*) rotates weights
+to improve the diagonal Fisher. There is no matched-budget comparison of
+parameter / eigen / neuron / module / cell-type bases. And there is no work at
+all applying continual learning to a connectome-constrained network — full-text
+searches for `connectome AND continual learning` and `connectome AND catastrophic
+forgetting` both return nothing.
+
+The reason the question has gone unasked is in the Phase-1 findings: in synthetic
+tasks with random rotations the diagonal projection is **nearly lossless** (<1%
+excess), so there was nothing to notice. But that flatness is a property of random
+task geometry, not a law. Our probe (`docs/findings/2026-09-20-phase1-lgcl-port.md`
+§3.2) shows the penalty is governed by task **anisotropy and low effective rank**,
+rising ~500× as the spectrum steepens. And a real network's task geometry is
+extremely anisotropic — LGCL v7 measured effective rank ≈ 2.0 in a trained MLP's
+feature Gram.
+
+So the substrate choice is not decorative. It decides whether the question has an
+answer.
+
+## The substrate
+
+FlyWire adult brain, public release 783: 139,255 neurons, ~3.7M proofread
+connections, with a systematic annotation table giving **flow, superclass, cell
+class, nerve, lineage, side, morphology group, neurotransmitter** for most
+neurons.
+
+Wiring is frozen (a fixed sparse mask from the connectome); synaptic weights are
+learned. That is the standard connectome-constrained regime, and it is what makes
+the basis question well-posed: the neurons, and every biological grouping of them,
+are given, so "anchor here or there" is a fair choice rather than a modelling
+artefact.
+
+Why not the alternatives:
+
+- **`flyvis`** (Turaga lab) is genuinely trainable and pip-installable, but covers
+  only the optic lobe. No mushroom body, no central complex — which kills C3 and
+  C4 below. Kept as an optional integration.
+- **The Shiu/Eon whole-brain LIF model** has no plasticity at all: weights are
+  fixed and only activation/silencing are supported. Nothing to train, so nothing
+  to forget.
+- **Codex / neuPrint APIs** now require Google sign-in or tokens. The Zenodo dumps
+  and two GitHub mirrors are open, so we use those.
+
+## Claims
+
+Stated so they can fail.
+
+### C1 — Substrate effect
+
+The EWC↔Kalman gap is **substantially larger** on the connectome topology than on
+controls with matched degree sequence, matched edge count, and matched spectrum.
+
+*Mechanism:* LGCL finding 1's near-losslessness is a measure-concentration result
+about random rotations. The connectome is sparse, modular and heavy-tailed, so
+the off-diagonal information does not get washed out.
+
+*Controls (all three required, or the claim is uninterpretable):* degree-preserving
+rewiring, Erdős–Rényi at matched density, and a matched-spectrum random graph.
+
+### C2 — Basis selection *(the core contribution)*
+
+The best anchoring basis is a **biological module basis** — cell class, cell type,
+hemilineage, or nerve — and it beats the neuron basis by more than
+capacity-matched random partitions do.
+
+*Predictive machinery:* LGCL v8 showed the diagonalisation penalty is a geometric
+resonance requiring the anchoring basis to align with the task's precision basis.
+Generalising that to a partition gives a concrete scalar — the principal angles
+between the partition's indicator span and the task's dominant precision subspace.
+**The prediction is that this scalar ranks the candidate bases.** If it does not,
+the mechanism story is wrong and we say so.
+
+*Anti-p-hacking:* every comparison is at matched `n_parameters`, and the primary
+control is a group-size-matched random permutation of the labels — identical group
+sizes, identical parameter count, no biology. If cell types win, they win on
+structure.
+
+*Honest accounting:* `RotatedDiagonal` bases must carry `d(d-1)/2` rotation
+parameters, so unless the rotation is shared across tasks a "rotated basis EWC" is
+not a compression. Baselines rarely mention this; `bases.py` tracks it in
+`n_shared_parameters`.
+
+### C3 — Modularity is itself a continual-learning mechanism
+
+Interpolating the connectome toward a random graph by densifying **cross-module**
+edges increases forgetting monotonically, and re-partitioning the same graph into
+non-biological modules removes the benefit.
+
+*De-risking:* "modular networks forget less" is folk wisdom (PathNet and friends),
+so the claim must not be that. It must be the **quantitative interpolation curve
+plus the mechanism link to C2** — that the reason modularity helps is that it makes
+the module basis the aligned basis. The non-biological re-partition is the arm that
+separates the two stories.
+
+### C4 — Circuit overlap predicts interference
+
+FlyCL tasks engage different circuits (olfaction → mushroom body, vision → optic
+lobe, navigation → central complex). Each task is therefore naturally **partially
+observed**, which by LGCL finding 4 puts the benchmark in the memory-dominated
+regime. The prediction: **circuit overlap between two tasks predicts the
+interference between them.**
+
+This would give the benchmark a property no existing CL suite has — a
+biology-derived task-interference prior — and it is directly testable against the
+measured interference matrix.
+
+## The benchmark — FlyCL v0
+
+Five sequential tasks, each landing on a distinct circuit, driven through the
+connectome:
+
+1. **Olfaction** — combinatorial odour coding through OSN → AL → KC → MBON
+2. **Visual motion** — direction discrimination, optic lobe → LPTC
+3. **Heading / navigation** — landmark-guided turning, central complex
+4. **Looming / escape** — LC4 pathway
+5. **Motor pattern** — descending neurons → VNC targets
+
+Metrics: average accuracy; **decomposed forgetting** — irreducible drift term
+separated from estimation degradation, as LGCL §5 recommends, because the
+conventional forgetting metric rewards shrinkage and can be gamed; backward
+transfer; the per-task observability spectrum; and pairwise task principal angles.
+
+Baselines: Naive, EWC (neuron basis), EWC in each biological basis, Online-EWC,
+SI, MAS, capacity-matched replay, joint-training upper bound, the Kalman oracle on
+a low-rank linearisation, and a frozen-random control.
+
+Reference framework: `clfly/bench/` with fixed task orders and seeds, so numbers
+are comparable across methods — a shared protocol that CL-for-SNN work currently
+lacks.
+
+## Experimental programme
+
+| Script | Claim | Deliverable |
+|---|---|---|
+| `e2_topology_gap.py` | C1 | gap vs topology, four arms |
+| `e3_basis_selection.py` | C2 | basis ranking, predicted vs measured |
+| `e4_modularity.py` | C3 | interpolated cross-module density vs forgetting |
+| `interference.py` | C4 | circuit overlap vs measured interference |
+| `e5_observability.py` | — | full vs partial regime, against LGCL's 12.7× |
+
+Every figure carries its control arm. The prediction scoreboard, including
+failures, goes in `docs/findings/`.
+
+## Method
+
+Research here runs as a bounded, measured loop: one metric, constrained scope,
+automatic rollback, git as the record. Phase 1's gate was `repro_max_abs_err`,
+now closed at 4.7e-5. Phase 3–4's gate is the basis-anchoring benefit under a
+matched budget.
+
+Two rules that keep the loop honest:
+
+1. **The oracle stays in.** Every experiment keeps the Kalman/RTS reference line,
+   so "better than the baseline" can always be read as a fraction of the gap that
+   actually exists.
+2. **Failures ship.** The Phase-1 negative result (no unimodal peak in the
+   coordinate basis) is in the findings log with the same prominence as the
+   successes, because it is what redirected the programme.
+
+## Related work to differentiate against
+
+Four papers are close enough to require explicit positioning — all use fly
+*biology* to inspire a learning rule, none uses a connectome-constrained network
+as a CL substrate:
+
+- Shen, Dasgupta & Navlakha, *Neural Computation* 35(11):1797, 2023 — associative
+  learning in the fly olfactory circuit reduces forgetting.
+- Robinson et al., bioRxiv 2023, doi:10.1101/2023.01.18.524467 — long-term memory
+  formation inspires generative replay.
+- Norman-Tenazas et al., GECCO 2023, doi:10.1145/3589737.3605985 — local learning
+  for replay with a recurrent model of the insect memory centre.
+- Max, Shen et al., *Neuromorphic Computing and Engineering*, 2026,
+  doi:10.1088/2634-4386/ae9177 — few-shot continual learning for spiking
+  neuromorphic olfaction.
+
+Crowded areas to avoid claiming novelty in: SNN continual learning by
+regularisation / replay / structural growth; gradient-subspace and null-space
+projection CL (GPM, InfLoRA); K-FAC and structured Laplace; statistical-physics
+theories of task similarity; CW10/CW20-style CL-RL benchmarks.
