@@ -59,7 +59,8 @@ working paper draft consolidating them is in **`docs/paper/clfly-v1.md`**.
 | 4a | `e3` anchoring-basis selection, matched capacity | done |
 | 4b | `e2` topology contrast along a swap family | done |
 | 4c | `e5`/`e6` anisotropy axis and predictor validation | done |
-| 4d | rate-network task suite (`FlyCL`), the non-linear substrate | **not started** |
+| 4d | rate-network task suite, the non-linear substrate | done |
+| 4e | basis comparison *inside* the rate network | next |
 | 5 | write-up | draft v1 |
 
 ### What the results say
@@ -84,6 +85,12 @@ working paper draft consolidating them is in **`docs/paper/clfly-v1.md`**.
   its own mean, and ±0.04 swings from a 1e-15 relative parameter change. Replaced by
   an exact analytic expected error at ~8× better precision for the same compute. Two
   of our own earlier conclusions were retracted as artefacts of it.
+- **A rate-network benchmark now exists** (the non-linear substrate, not the
+  linear-Gaussian reduction). Three behavioural tasks on distinct circuits, ~0.92
+  accuracy against 0.25 chance, and sequential training forgets. **Replay cuts
+  forgetting ~4× (4.5σ); diagonal-Fisher EWC does nothing at any λ from 0.01 to 100**
+  — which is what the theory predicts, since EWC's whole mechanism is the projection
+  measured to cost +33% excess error on this connectome.
 
 `docs/findings/` holds the dated logs, negative results included — those are the
 useful kind, and there are several:

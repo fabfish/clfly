@@ -1,0 +1,123 @@
+"""Behavioural task suite for the connectome-constrained rate network.
+
+Each task is a **classification problem delivered to a circuit**: a stimulus is
+injected into a task's input population as a sustained drive, the network runs its
+recurrent dynamics, and a linear decoder reads out a task-specific output population.
+Class identity is carried by a per-class input template plus noise, which is the
+minimal object that gives a task learnable structure without hand-designing features.
+
+Three design choices that matter for the continual-learning question.
+
+**The stimulus lives over the whole neuron index**, nonzero only on the input
+population, so there is no separate input projection to absorb task structure.  The
+project's question concerns the recurrent wiring, and an input pathway with its own
+free parameters would confound it.
+
+**Read-out populations are distinct per task** (MBONs for odour identity, central
+complex output for heading, Kenyon cells for odour input).  That mirrors the
+connectome's own separation and gives the interference question somewhere to live.
+
+**Templates are held fixed across tasks**, drawn from one seed, so differences between
+tasks are architectural rather than a matter of how lucky a draw was.
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+
+import numpy as np
+
+from ..connectome.circuits import Circuit
+
+
+@dataclass
+class RateTask:
+    """One classification task: where the stimulus enters, where it is read out."""
+
+    name: str
+    input_neurons: np.ndarray
+    readout_neurons: np.ndarray
+    n_classes: int
+    n_neurons: int
+    tau: int
+    u_train: np.ndarray        # (n_train, tau, n_neurons)
+    y_train: np.ndarray        # (n_train,)
+    u_test: np.ndarray
+    y_test: np.ndarray
+
+    @property
+    def n_input(self) -> int:
+        return len(self.input_neurons)
+
+    @property
+    def n_readout(self) -> int:
+        return len(self.readout_neurons)
+
+    def summary(self) -> dict:
+        return {"name": self.name, "n_classes": self.n_classes,
+                "n_input": self.n_input, "n_readout": self.n_readout,
+                "n_train": len(self.y_train), "n_test": len(self.y_test)}
+
+
+def _population(circ: Circuit, column: str, prefixes: tuple[str, ...],
+                cap: int | None = None, seed: int = 0) -> np.ndarray:
+    """Indices of neurons whose group name starts with any of ``prefixes``."""
+    names = circ.neuron_names(column)
+    matched = np.array([any(n.startswith(p) for p in prefixes) for n in names])
+    idx = np.flatnonzero(matched)
+    if len(idx) == 0:
+        raise ValueError(f"no neurons matched {prefixes} in {column!r}")
+    if cap is not None and len(idx) > cap:
+        idx = np.sort(np.random.default_rng(seed).choice(idx, size=cap, replace=False))
+    return idx
+
+
+def make_task(circ: Circuit, name: str, input_spec: tuple[str, tuple[str, ...]],
+              readout_spec: tuple[str, tuple[str, ...]], n_classes: int = 4,
+              n_train: int = 96, n_test: int = 48, tau: int = 12,
+              noise: float = 1.0, cap: int = 220, seed: int = 0) -> RateTask:
+    """Build one task: fixed class templates, injected over ``tau`` timesteps.
+
+    The stimulus is sustained rather than instantaneous, so the network's recurrent
+    dynamics have time to propagate it from the input population to the readout —
+    which is the whole point of using the connectome as the substrate rather than a
+    feedforward readout.
+    """
+    rng = np.random.default_rng(seed)
+    n = circ.n_neurons
+    cols_in, vals_in = input_spec
+    cols_out, vals_out = readout_spec
+    inp = _population(circ, cols_in, vals_in, cap=cap, seed=seed)
+    out = _population(circ, cols_out, vals_out, cap=cap, seed=seed + 1)
+
+    templates = rng.standard_normal((n_classes, len(inp)))
+
+    def make(count: int, seed_off: int):
+        r = np.random.default_rng(seed + 1000 + seed_off)
+        y = r.integers(0, n_classes, size=count)
+        u = np.zeros((count, tau, n))
+        stim = templates[y] + noise * r.standard_normal((count, len(inp)))
+        u[:, :, inp] = stim[:, None, :]
+        return u, y
+
+    u_tr, y_tr = make(n_train, 0)
+    u_te, y_te = make(n_test, 1)
+    return RateTask(name=name, input_neurons=inp, readout_neurons=out,
+                    n_classes=n_classes, n_neurons=n, tau=tau,
+                    u_train=u_tr, y_train=y_tr, u_test=u_te, y_test=y_te)
+
+
+#: The default suite.  Three tasks on distinct circuits, so the interference question
+#: has structure to find and the runtime stays tractable.
+SUITE_SPECS = (
+    ("odour_identity", ("cell_type", ("KC",)), ("cell_class", ("MBON",))),
+    ("heading", ("cell_type", ("EPG", "PFN", "PEN", "ER", "PB")),
+     ("cell_class", ("CX",))),
+    ("odour_input", ("cell_class", ("ALPN", "ALLN")), ("cell_type", ("KC",))),
+)
+
+
+def make_suite(circ: Circuit, specs=SUITE_SPECS, **kwargs) -> list[RateTask]:
+    """Build the default behavioural suite against a circuit."""
+    return [make_task(circ, name, inspec, outspec, seed=i, **kwargs)
+            for i, (name, inspec, outspec) in enumerate(specs)]
