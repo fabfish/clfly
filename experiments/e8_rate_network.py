@@ -33,13 +33,14 @@ import numpy as np
 
 from clfly.connectome import annotate, circuits, graph
 from clfly.network import tasks as rate_tasks
+from clfly.network.fisher import SynapsePartition
 from clfly.network.model import RateConfig, build_net
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
 
 def train_task(model, heads, suite, k: int, iters: int, lr: float, batch: int,
-               seed: int, ewc=None, replay: list | None = None,
+               seed: int, ewc=None, block_ewc=None, replay: list | None = None,
                replay_batch: int = 16):
     """Train on task ``k``; optionally with an EWC penalty or a replay buffer.
 
@@ -73,6 +74,9 @@ def train_task(model, heads, suite, k: int, iters: int, lr: float, batch: int,
             fisher, anchor, lam = ewc
             loss = loss + 0.5 * lam * torch.sum(
                 torch.from_numpy(fisher).float() * (model.theta - anchor) ** 2)
+        if block_ewc is not None:
+            part, blocks, anchor_b, lam_b = block_ewc
+            loss = loss + part.penalty_tensor(blocks, model.theta, anchor_b, lam_b, torch)
         if replay:
             n = min(replay_batch, len(replay))
             pick = rng.integers(0, len(replay), size=n)
@@ -138,7 +142,38 @@ def diagonal_fisher(model, readout, task, n_batches: int = 8, seed: int = 0) -> 
     return (fisher / n_batches).cpu().numpy()
 
 
-def run_method(conn_net, suite, method: str, args, seed: int) -> dict:
+def block_fisher(model, heads, suite, k: int, part, n_batches: int = 8,
+                 seed: int = 0) -> np.ndarray:
+    """Block-diagonal Fisher over a synapse partition, accumulated on task ``k``.
+
+    The within-group second moments ``E[g_g g_g^T]``, stored densely per group.  This is
+    the network analogue of ``Partition.project`` keeping within-group covariance: it
+    retains strictly more than the diagonal does, and only the *between*-group
+    structure is discarded.
+    """
+    import torch
+
+    task = suite[k]
+    readout = heads[k]
+    rng = np.random.default_rng(seed)
+    U = torch.from_numpy(task.u_train).float()
+    Y = torch.from_numpy(task.y_train).long()
+    lossf = torch.nn.CrossEntropyLoss()
+    blocks = part.new_blocks()
+    for _ in range(n_batches):
+        idx = rng.integers(0, len(Y), size=min(32, len(Y)))
+        traj = model(U[idx], None)
+        loss = lossf(readout(traj[:, -1, :][:, task.readout_neurons]), Y[idx])
+        model.zero_grad()
+        loss.backward()
+        if model.theta.grad is not None:
+            part.accumulate(blocks, model.theta.grad.detach().cpu().numpy().astype(np.float64))
+    model.zero_grad()
+    return blocks / n_batches
+
+
+def run_method(conn_net, suite, method: str, args, seed: int,
+               partitions: dict | None = None) -> dict:
     """Train sequentially and record the full retention matrix.
 
     ``R[k, j]`` = accuracy on task ``j`` after training through task ``k``, so the
@@ -151,21 +186,39 @@ def run_method(conn_net, suite, method: str, args, seed: int) -> dict:
     """
     import torch
 
+    # Seed torch's *global* RNG.  The recurrent weights come from the connectome and
+    # the bias is zeros, both deterministic -- but `nn.Linear` initialises from the
+    # global torch RNG, which is otherwise seeded from entropy at process start.  That
+    # made the whole benchmark non-reproducible: identical commands gave different
+    # readout initialisations, and therefore different forgetting, with no way to tell
+    # that from a real effect.  The earlier `eigs`-with-a-random-start bug was the same
+    # class of failure in a different library.
+    torch.manual_seed(seed)
+
     model = conn_net.torch_model()
     heads = [torch.nn.Linear(t.n_readout, t.n_classes) for t in suite]
     fisher = None
     anchor = None
+    blocks = None
+    anchor_b = None
+    part = None
+    if partitions:
+        key = "rand" if method.endswith("-rand") else "bio"
+        part = partitions[key]
     replay: list = []
     T = len(suite)
     R = np.full((T, T), np.nan)
     losses = []
 
     for k, task in enumerate(suite):
-        losses.append(train_task(model, heads, suite, k, iters=args.iters, lr=args.lr,
-                                 batch=args.batch, seed=seed + k,
-                                 ewc=(fisher, anchor, args.lam) if (
-                                     method == "ewc" and fisher is not None) else None,
-                                 replay=(replay if method == "replay" else None)))
+        losses.append(train_task(
+            model, heads, suite, k, iters=args.iters, lr=args.lr,
+            batch=args.batch, seed=seed + k,
+            ewc=(fisher, anchor, args.lam) if (
+                method == "ewc" and fisher is not None) else None,
+            block_ewc=(part, blocks, anchor_b, args.lam) if (
+                method.startswith("ewc-block") and blocks is not None) else None,
+            replay=(replay if method == "replay" else None)))
         for j in range(k + 1):
             R[k, j] = evaluate(model, heads[j], suite[j])
 
@@ -173,6 +226,12 @@ def run_method(conn_net, suite, method: str, args, seed: int) -> dict:
             f = diagonal_fisher(model, heads[k], task, seed=seed + k)
             fisher = f if fisher is None else fisher + f
             anchor = model.theta.detach().clone()
+        if method.startswith("ewc-block"):
+            b = block_fisher(model, heads, suite, k, part, seed=seed + k)
+            if args.normalise_fisher:
+                b = part.trace_normalise(b)
+            blocks = b if blocks is None else blocks + b
+            anchor_b = model.theta.detach().clone()
         if method == "replay":
             n = min(args.replay_per_task, len(task.y_train))
             idx = np.random.default_rng(seed + k).choice(len(task.y_train),
@@ -209,6 +268,14 @@ def main(argv=None) -> int:
     p.add_argument("--train", type=int, default=96)
     p.add_argument("--test", type=int, default=48)
     p.add_argument("--seed0", type=int, default=0)
+    p.add_argument("--basis", default="cell_class",
+                   help="annotation column for the synapse partition")
+    p.add_argument("--normalise-fisher", action="store_true", default=True,
+                   help="rescale block Fishers so lambda is comparable across "
+                        "partitions; without it coarse partitions get a larger "
+                        "penalty at the same lambda")
+    p.add_argument("--pool-below", type=int, default=0,
+                   help="merge annotation labels appearing in fewer than N neurons")
     p.add_argument("--repeats", type=int, default=1,
                    help="independent training runs per method, for a standard error")
     p.add_argument("--json-out", type=Path, default=None)
@@ -221,6 +288,20 @@ def main(argv=None) -> int:
     suite = rate_tasks.make_suite(circ, n_train=args.train, n_test=args.test)
     net = build_net(circ, RateConfig(seed=args.seed0))
 
+    # Synapse partitions for the block-EWC variants, plus the matched random control.
+    partitions = None
+    pre, post = net.synapse_endpoints()
+    if any(m.startswith("ewc-block") for m in args.methods.split(",")):
+        labels = circ.labels[args.basis]
+        bio = SynapsePartition.from_labels(labels, pre, post, name=args.basis,
+                                           pool_below=args.pool_below)
+        partitions = {"bio": bio,
+                      "rand": SynapsePartition.random_matched(
+                          bio, np.random.default_rng(args.seed0))}
+        print(f"  block partition ({args.basis}): {bio.n_groups} groups, "
+              f"{bio.n_entries:,} block entries ({bio.describe()['block_gb']:.2f} GB), "
+              f"constrained {bio.constrained_fraction():.4f}")
+
     print(f"circuit {circ.name}: {circ.n_neurons} neurons, "
           f"{net.n_params:,} trainable recurrent weights")
     for t in suite:
@@ -230,7 +311,8 @@ def main(argv=None) -> int:
     out = {"config": vars(args), "circuit": circ.name, "n_params": net.n_params,
            "tasks": [t.summary() for t in suite], "methods": {}}
     for method in args.methods.split(","):
-        reps = [run_method(net, suite, method, args, seed=args.seed0 + 100 * r)
+        reps = [run_method(net, suite, method, args, seed=args.seed0 + 100 * r,
+                           partitions=partitions)
                 for r in range(args.repeats)]
         agg = {
             "mean_forgetting": float(np.mean([x["mean_forgetting"] for x in reps])),

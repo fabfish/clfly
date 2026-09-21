@@ -83,6 +83,16 @@ class ConnectomeNet:
     def n_params(self) -> int:
         return int(self.mask.nnz)
 
+    def synapse_endpoints(self) -> tuple[np.ndarray, np.ndarray]:
+        """``(pre, post)`` neuron indices of each entry of ``theta``, in its order.
+
+        Needed to build a :class:`~clfly.network.fisher.SynapsePartition`: a partition
+        of the *synapses* is defined by a partition of the *neurons* at each end, so the
+        mapping from annotation to parameter index runs through these.
+        """
+        rows, cols = self.mask.nonzero()
+        return rows.astype(np.int64), cols.astype(np.int64)
+
     def torch_model(self, device: str = "cpu"):
         """Materialise the learnable module.  Imports torch lazily."""
         return _materialise(self, device=device)
