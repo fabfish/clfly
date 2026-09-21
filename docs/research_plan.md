@@ -134,11 +134,32 @@ of that, at 3 of 5 rungs.
 *Predictive machinery:* LGCL v8 showed the diagonalisation penalty is a geometric
 resonance requiring the anchoring basis to align with the task's precision basis.
 The principal-angle scalar **fails** — raw alignment is anti-correlated with the
-benefit, and adding an empirical chance level recovers only 3 of 5 orderings.
-Spectrally truncating the task subspace (fixing a genuine range-space degeneracy)
-does not improve it. It agrees on the top two and bottom one and misses in the
-middle, where the differences are only 1–2σ, so re-testing it against the now-resolved
-ordering is the next step rather than writing it off.
+benefit, and adding an empirical chance level recovers only 3 of 5 orderings, with or
+without spectral truncation.
+
+**It has been replaced by a working predictor.**
+`clfly.bench.analytic.projection_pressure` runs the **exact** filter — whose prior
+trajectory is basis-independent, so the number is available before any anchored filter
+exists — and measures how much of each predicted prior the basis would discard,
+weighted by the task's measurement information:
+
+    pressure = sum_k || J_k^{1/2} disc_k J_k^{1/2} ||_F^2 / || J_k^{1/2} P_pred,k J_k^{1/2} ||_F^2
+
+The weighting is what makes it more than a restatement of `constrained_fraction`.
+On the real connectome it ranks 11 bases against the analytic excess at Spearman
+**+0.991** and gets the sign right at all five matched bio/random pairs — including
+the one where biology loses. Out of sample, across task width, drift rate, topology
+and circuit size, it holds at **mean Spearman +0.982 and 24/25 matched-pair signs**
+(`experiments/e6_predictor.py`). The sign test is the decisive one: a predictor that
+only recovered `constrained_fraction` would score 0/25, because matched pairs share
+it exactly.
+
+Two honest limits. It is a **ranking** predictor, not a calibrated one — its dynamic
+range varies by more than an order of magnitude across conditions while the
+corresponding excess deltas stay of order 0.003–0.010. And it has one confident
+failure: on heavily rewired wiring the `cell_class` pair is called the wrong way with
+a large margin. One failure in 25 is a working predictor with a known failure mode,
+not a law.
 
 *Anti-p-hacking:* every comparison is at matched `n_parameters`, and the primary
 control is a group-size-matched random permutation of the labels — identical group

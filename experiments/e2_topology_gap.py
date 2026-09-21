@@ -44,6 +44,7 @@ from pathlib import Path
 
 import numpy as np
 
+from clfly.bench.analytic import analytic_excess
 from clfly.bench.oracle import paired_excess, task_geometry
 from clfly.connectome import annotate, circuits, graph, rewiring, tasks
 from clfly.lgcl.bases import Diagonal, Partition, random_partition
@@ -91,7 +92,8 @@ def run(args) -> dict:
                                               for s, r in zip(seqs, ranks)]))
                             for k in task_geometry(seqs[0], ranks[0])}}
         for name, b in bases.items():
-            agg[name] = paired_excess(seqs, b)
+            agg[name] = {"realized": paired_excess(seqs, b),
+                         "analytic": analytic_excess(seqs, b)}
         out["topologies"][topology] = agg
 
     out["timing_s"] = time.time() - t0
@@ -100,39 +102,51 @@ def run(args) -> dict:
 
 def report(results: dict) -> None:
     order = [t for t in TOPOLOGY_ORDER if t in results["topologies"]]
-    print(f"\n{'topology':14} {'overlap':>8} {'over/ch':>8} {'flatten':>8} "
-          f"{'excess:EWC':>11} {'sem':>8} {'gap(sd)':>13} {'bio-rand':>10} {'sem':>8}")
-    print("-" * 100)
+    print(f"\n{'topology':14} {'overlap':>8} {'over/ch':>8} {'flatten':>8} | "
+          f"{'a:EWC':>9} {'a_sem':>8} | {'r:EWC':>9} {'r_sem':>8} | "
+          f"{'a:bio-rand':>11} {'sig':>6}")
+    print("-" * 116)
     for t in order:
         a = results["topologies"][t]
         g = a["geometry"]
-        bio, rnd = a["bio:cell_class"], a["rand:cell_class"]
-        delta = bio["excess_mean"] - rnd["excess_mean"]
-        sem = float(np.hypot(bio["excess_sem"], rnd["excess_sem"]))
+        ab, ar = a["bio:cell_class"]["analytic"], a["rand:cell_class"]["analytic"]
+        delta = ab["excess_mean"] - ar["excess_mean"]
+        sem = float(np.hypot(ab["excess_sem"], ar["excess_sem"]))
         print(f"{t:14} {g['consecutive_alignment']:8.4f} "
               f"{g['consecutive_alignment']/g['chance_alignment']:8.3f} "
-              f"{g['flattening']:8.3f} {a['diagonal(EWC)']['excess_mean']:+11.5f} "
-              f"{a['diagonal(EWC)']['excess_sem']:8.5f} "
-              f"{a['diagonal(EWC)']['gap_mean']:+7.3f}"
-              f"({a['diagonal(EWC)']['gap_sd']:.3f}) "
-              f"{delta:+10.5f} {sem:8.5f}")
+              f"{g['flattening']:8.3f} | "
+              f"{a['diagonal(EWC)']['analytic']['excess_mean']:+9.5f} "
+              f"{a['diagonal(EWC)']['analytic']['excess_sem']:8.5f} | "
+              f"{a['diagonal(EWC)']['realized']['excess_mean']:+9.5f} "
+              f"{a['diagonal(EWC)']['realized']['excess_sem']:8.5f} | "
+              f"{delta:+11.5f} {abs(delta)/sem if sem else float('inf'):6.2f}")
 
     print("\nmonotonicity along the null order (real -> erdos_renyi):")
     readings = (
         ("task overlap", lambda a: a["geometry"]["consecutive_alignment"]),
         ("overlap/chance", lambda a: a["geometry"]["consecutive_alignment"]
             / a["geometry"]["chance_alignment"]),
-        ("EWC excess", lambda a: a["diagonal(EWC)"]["excess_mean"]),
-        ("bio - rand", lambda a: a["bio:cell_class"]["excess_mean"]
-            - a["rand:cell_class"]["excess_mean"]),
+        ("EWC excess (analytic)", lambda a: a["diagonal(EWC)"]["analytic"]["excess_mean"]),
+        ("EWC excess (realized)", lambda a: a["diagonal(EWC)"]["realized"]["excess_mean"]),
+        ("bio-rand (analytic)", lambda a: a["bio:cell_class"]["analytic"]["excess_mean"]
+            - a["rand:cell_class"]["analytic"]["excess_mean"]),
     )
     for label, getter in readings:
         vals = [getter(results["topologies"][t]) for t in order]
         rising = all(b >= a - 1e-9 for a, b in zip(vals, vals[1:]))
         shown = "  ".join(f"{v:+.5f}" for v in vals)
-        print(f"  {label:16} {shown}   monotone={'YES' if rising else 'no'}")
-    print("  (monotone over 5 points on a chaotic metric is weak evidence; read the")
-    print("   per-point standard errors before believing any trend)")
+        print(f"  {label:24} {shown}   monotone={'YES' if rising else 'no'}")
+    print("\n  adjacent-contrast significance (analytic excess, |delta| / sem):")
+    for label, getter in (("EWC excess", lambda a: a["diagonal(EWC)"]["analytic"]),
+                          ("bio-cell_class", lambda a: a["bio:cell_class"]["analytic"]),
+                          ("rand-cell_class", lambda a: a["rand:cell_class"]["analytic"])):
+        stats = [getter(results["topologies"][t]) for t in order]
+        parts = []
+        for i in range(len(stats) - 1):
+            d = stats[i + 1]["excess_mean"] - stats[i]["excess_mean"]
+            s = float(np.hypot(stats[i + 1]["excess_sem"], stats[i]["excess_sem"]))
+            parts.append(f"{order[i]}->{order[i+1]} {d:+.5f} ({abs(d)/s if s else float('inf'):.1f}s)")
+        print(f"  {label:16} " + "  ".join(parts))
 
 
 def main(argv=None) -> int:

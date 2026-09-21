@@ -154,6 +154,87 @@ def expected_oracle(seq, P0_scale: float = 1.0) -> dict:
     return summarize_expected(expected_error_matrix(seq, None, P0_scale))
 
 
+def projection_pressure(seq, basis: Basis | None = None, P0_scale: float = 1.0) -> float:
+    """How much of the *exact* filter's posterior trajectory the basis discards.
+
+    A candidate a-priori predictor for the anchoring benefit, and the most direct
+    formalisation of LGCL's mechanism: the penalty is the off-structure covariance
+    the projection removes.  Two design choices make it a fair candidate.
+
+    It runs the **full** filter, whose prior trajectory is basis-independent.  So
+    the number is a property of (partition, tasks) alone and can be computed before
+    any anchored filter is run — which is what "predictor" has to mean.
+
+    It weights the discarded part by the task's measurement information, in the
+    metric that makes it dimensionless::
+
+        pressure = sum_k  || J_k^{1/2} disc_k J_k^{1/2} ||_F^2
+                        / || J_k^{1/2} P_pred,k J_k^{1/2} ||_F^2
+
+    without the weighting it would merely re-derive ``constrained_fraction``, which
+    is already known to order the rungs — so the weighting is what gives it a chance
+    of also separating a biological partition from a size-matched random one, where
+    ``constrained_fraction`` is identical by construction.
+    """
+    d = seq.d
+    P = P0_scale * np.eye(d)
+    total = 0.0
+    for k in range(seq.T):
+        P_pred = P + seq.q * np.eye(d)
+        disc = P_pred - (basis.project(P_pred) if basis is not None else P_pred)
+        J = seq.J[k]
+        Js = _psd_sqrt(J)
+        num = float(np.sum((Js @ disc @ Js) ** 2))
+        den = float(np.sum((Js @ P_pred @ Js) ** 2))
+        if den > 0:
+            total += num / den
+        # advance the exact filter (basis-independent)
+        Pn = symmetric_inverse(symmetric_inverse(P_pred) + J)
+        P = Pn
+    return total
+
+
+def _psd_sqrt(M: np.ndarray, tol: float = 1e-12) -> np.ndarray:
+    """Symmetric PSD square root, truncating non-positive eigenvalues to zero."""
+    w, V = np.linalg.eigh((M + M.T) * 0.5)
+    w = np.clip(w, 0.0, None)
+    keep = w > tol * max(1.0, float(w.max())) if w.size else w
+    if not keep.any():
+        return np.zeros_like(M)
+    return (V[:, keep] * np.sqrt(w[keep])) @ V[:, keep].T
+
+
+def predictor_table(sequences, basis_factory) -> list[dict]:
+    """Evaluate candidate predictors against the analytic excess, per basis.
+
+    ``basis_factory`` is called with an index to give each replicate its own random
+    control.  Returns one row per basis with the analytic excess, the projection
+    pressure, and the principal-angle alignment excess, so the three can be ranked
+    against each other.
+    """
+    rows = []
+    for i, basis in enumerate(basis_factory()):
+        ex = analytic_excess(sequences, basis)
+        press = float(np.mean([projection_pressure(s, basis) for s in sequences]))
+        rows.append({"basis": getattr(basis, "name", f"basis{i}"),
+                     "excess": ex["excess_mean"], "excess_sem": ex["excess_sem"],
+                     "pressure": press})
+    return rows
+
+
+def spearman(x, y) -> float:
+    """Rank correlation, with ties averaged."""
+    x, y = np.asarray(x, float), np.asarray(y, float)
+
+    def rank(v):
+        order = np.argsort(np.argsort(v, kind="stable"), kind="stable")
+        return order.astype(float)
+
+    rx, ry = rank(x) - rank(x).mean(), rank(y) - rank(y).mean()
+    denom = np.sqrt((rx ** 2).sum() * (ry ** 2).sum())
+    return float((rx * ry).sum() / denom) if denom else float("nan")
+
+
 def analytic_excess(sequences, basis: Basis | None = None,
                     P0_scale: float = 1.0) -> dict:
     """Pooled excess error over a list of task sequences, with no sampling noise.
