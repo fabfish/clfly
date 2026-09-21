@@ -44,11 +44,10 @@ from pathlib import Path
 
 import numpy as np
 
+from clfly.bench.oracle import gap_vs_oracle as _gap
+from clfly.bench.oracle import task_geometry
 from clfly.connectome import annotate, circuits, graph, rewiring, tasks
-from clfly.lgcl.bases import Diagonal, Full, Partition, alignment_score, random_partition
-from clfly.lgcl.kalman import filter_sequence
-from clfly.lgcl.methods import AnchoredFilter
-from clfly.lgcl.model import error_tensor, summarize
+from clfly.lgcl.bases import Diagonal, Partition, random_partition
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
@@ -56,63 +55,14 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 TOPOLOGY_ORDER = rewiring.null_names()
 
 
-def task_subspaces(seq, ranks):
-    """The leading precision subspace of each task, strongest directions first."""
-    out = []
-    for k in range(seq.T):
-        w, V = np.linalg.eigh(seq.J[k])
-        out.append(V[:, np.argsort(w)[::-1][: ranks[k]]])
-    return out
+def gap_vs_oracle(seq, basis) -> float:
+    """Excess final error of a basis-anchored filter over the exact oracle."""
+    return float(_gap(seq, basis, keys=("final_avg_error",)))
 
 
 def geometry(seq, ranks) -> dict:
-    """Summarise the task geometry -- the quantity the null should move.
-
-    Four readings, because "interference" is easy to assert and hard to pin down,
-    and because Phase 1 identified a *different* driver than overlap:
-
-    ``consecutive_alignment`` / ``all_pairs_alignment``  mean ``cos^2`` between
-        task precision subspaces.  High means tasks live where the last one did.
-    ``effective_rank``  participation ratio ``1 / sum(w_i^2)`` of each task's
-        normalised precision spectrum, averaged.  Equals the support size when the
-        spectrum is flat and falls toward 1 as it concentrates, so
-        ``flattening = effective_rank / rank`` measures how anisotropic a task is
-        -- the variable Phase 1 found governs the diagonalisation penalty.
-    ``top_eig_share``  share of each task's precision carried by its single
-        strongest direction, the crudest anisotropy reading.
-    """
-    V = task_subspaces(seq, ranks)
-    consec = [alignment_score(V[k], V[k + 1]) for k in range(len(V) - 1)]
-    pairs = [alignment_score(V[j], V[k])
-             for j in range(len(V)) for k in range(j + 1, len(V))]
-
-    eff, top = [], []
-    for k in range(seq.T):
-        w = np.linalg.eigvalsh(seq.J[k])
-        w = w[w > 1e-12 * max(1.0, float(w.max()))]
-        if w.size == 0:
-            continue
-        w = w / w.sum()
-        eff.append(1.0 / float(np.sum(w ** 2)))
-        top.append(float(w.max()))
-    mean_rank = float(np.mean(ranks))
-    return {
-        "consecutive_alignment": float(np.mean(consec)) if consec else float("nan"),
-        "all_pairs_alignment": float(np.mean(pairs)) if pairs else float("nan"),
-        "mean_rank": mean_rank,
-        "mean_rank_fraction": mean_rank / seq.d,
-        "effective_rank": float(np.mean(eff)) if eff else float("nan"),
-        "flattening": float(np.mean(eff)) / mean_rank if eff and mean_rank else float("nan"),
-        "top_eig_share": float(np.mean(top)) if top else float("nan"),
-        "chance_alignment": mean_rank / seq.d,
-    }
-
-
-def gap_vs_oracle(seq, basis) -> float:
-    oracle = summarize(error_tensor(filter_sequence(seq, Full(seq.d))[0], seq))
-    got = summarize(error_tensor(AnchoredFilter(basis).run(seq), seq))
-    ref = oracle["final_avg_error"]
-    return (got["final_avg_error"] - ref) / ref if ref else float("nan")
+    """Task-geometry readings -- see :func:`clfly.bench.oracle.task_geometry`."""
+    return task_geometry(seq, ranks)
 
 
 def run(args) -> dict:

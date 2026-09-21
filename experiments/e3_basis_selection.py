@@ -32,17 +32,15 @@ from pathlib import Path
 
 import numpy as np
 
+from clfly.bench.oracle import gap_vs_oracle as _gap
+from clfly.bench.oracle import oracle_errors
 from clfly.connectome import annotate, circuits, graph, rewiring, tasks
 from clfly.lgcl.bases import (
     Diagonal,
-    Full,
     Partition,
     alignment_score,
     random_partition,
 )
-from clfly.lgcl.kalman import filter_sequence
-from clfly.lgcl.methods import AnchoredFilter
-from clfly.lgcl.model import error_tensor, summarize
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 OUT_DIR = REPO_ROOT / "runs"
@@ -54,19 +52,13 @@ BIOLOGICAL_BASES = ("side", "cell_class", "cell_type", "ito_lee_hemilineage", "s
 def gap_vs_oracle(seq, basis) -> dict:
     """Excess error of the basis-anchored filter over the exact oracle.
 
-    The oracle is recomputed per call rather than cached, because it depends on
-    nothing but ``seq`` and the call pattern is small; keeping it here makes the
-    reference line impossible to forget.
+    Wraps :func:`clfly.bench.oracle.gap_vs_oracle` and adds the matching variable:
+    the share of the covariance the projection zeroes.  NOT
+    ``discarded_fraction(eye)``, which is always zero -- the identity is already
+    within-group, so probing the projection with it measures nothing.
     """
-    oracle = summarize(error_tensor(filter_sequence(seq, Full(seq.d))[0], seq))
-    got = summarize(error_tensor(AnchoredFilter(basis).run(seq), seq))
-    out = {}
-    for key in ("final_avg_error", "forgetting"):
-        ref = oracle[key]
-        out[f"gap_{key}"] = (got[key] - ref) / ref if ref else float("nan")
-    # The matching variable: share of the covariance the projection zeroes.
-    # NOT `discarded_fraction(eye)`, which is always zero -- the identity is
-    # already within-group, so probing the projection with it measures nothing.
+    raw = _gap(seq, basis, keys=("final_avg_error", "forgetting"))
+    out = {f"gap_{k}": v for k, v in raw.items()}
     total = seq.d * (seq.d + 1) // 2
     out["constrained_fraction"] = 1.0 - basis.n_parameters / total
     out["n_parameters"] = basis.n_parameters
@@ -159,7 +151,7 @@ def run(args) -> dict:
                 row[name] = g
             # absolute levels, so a ratio against a near-zero oracle cannot
             # masquerade as a large effect
-            oracle = summarize(error_tensor(filter_sequence(seq, Full(seq.d))[0], seq))
+            oracle = oracle_errors(seq)
             row["_abs"] = {
                 "oracle_final": oracle["final_avg_error"],
                 "oracle_forgetting": oracle["forgetting"],

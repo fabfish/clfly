@@ -160,7 +160,8 @@ def propagator_solver(W: sp.spmatrix):
 
 def assembly_support(circ: Circuit, assembly: Assembly,
                      support_size: int | None, sparsity: float | None,
-                     rng: np.random.Generator, min_support: int = 8):
+                     rng: np.random.Generator,
+                     weight_concentration: float | None = None):
     """Neurons driven by an assembly, and their sparse drive weights.
 
     Prefix-matches ``assembly.values`` against the circuit's per-neuron group
@@ -172,6 +173,15 @@ def assembly_support(circ: Circuit, assembly: Assembly,
     on top of an already-subsampled circuit compounds, and small assemblies
     (mushroom body output neurons, ring neurons) collapse to a handful of neurons
     -- tasks too thin to be read as tasks at all.
+
+    ``weight_concentration`` controls the *shape* of the drive, and exists to
+    decouple an axis that is otherwise confounded.  ``None`` draws
+    ``Uniform(0.5, 1.5)`` (the original behaviour, kept bit-identical so recorded
+    runs stay valid).  A float draws ``exp(kappa * z)`` for ``z ~ N(0, 1)``,
+    normalised to mean one: at ``kappa = 0`` all neurons are driven equally, and
+    large ``kappa`` concentrates the drive on a few.  Because every ``kappa``
+    reuses the same ``z``, the sweep varies the task's spectral richness at fixed
+    topology, fixed support size and fixed rank.
     """
     names = circ.neuron_names(assembly.column)
     matched = np.array([any(n.startswith(v) for v in assembly.values) for n in names])
@@ -193,7 +203,12 @@ def assembly_support(circ: Circuit, assembly: Assembly,
     if n_keep < len(idx):
         idx = np.sort(rng.choice(idx, size=n_keep, replace=False))
 
-    weights = rng.uniform(0.5, 1.5, size=len(idx))
+    if weight_concentration is None:
+        weights = rng.uniform(0.5, 1.5, size=len(idx))
+    else:
+        z = rng.standard_normal(len(idx))
+        weights = np.exp(weight_concentration * z)
+        weights = weights / weights.mean()
     return idx, weights
 
 
@@ -226,6 +241,7 @@ def build_tasks(
     measurement_strength: float = 1.0,
     q: float = 0.02,
     seed: int = 0,
+    weight_concentration: float | None = None,
     verbose: bool = False,
 ) -> WiringTasks:
     """Assemble a :class:`Sequence` whose tasks are propagated through the wiring.
@@ -243,7 +259,8 @@ def build_tasks(
 
     Sigmas, Js, supports, ranks = [], [], [], []
     for asm in assemblies:
-        support, weights = assembly_support(circ, asm, support_size, sparsity, rng)
+        support, weights = assembly_support(circ, asm, support_size, sparsity, rng,
+                                           weight_concentration=weight_concentration)
         S = task_covariance(solver, support, weights)
         Sigmas.append(S)
         Js.append(measurement_strength * n * S)
