@@ -37,6 +37,13 @@ class Sequence:
     y : ``(T, d)`` sufficient statistic (the OLS estimate) for each task.
     U : ``(T, d, d)`` eigenbases of the task covariances, when the generator
         is geometric rather than random.
+    drifted : whether the true parameter actually performed the ``q``-random-walk
+        between tasks.  The filter *always* believes it did (that is what makes the
+        stability/plasticity trade-off), but the reference ``sample_partial`` family
+        holds ``theta`` fixed while varying only the observed subspace, so its
+        trajectory covariance is ``P0 I`` and not ``P0 + min(j,l) q``.  Anything
+        computing an *expected* error needs to know which, so it is recorded rather
+        than inferred.
     """
 
     d: int
@@ -46,6 +53,7 @@ class Sequence:
     Sigma: np.ndarray
     y: np.ndarray
     U: np.ndarray | None = None
+    drifted: bool = True
 
     def __len__(self) -> int:
         return len(self.J)
@@ -219,7 +227,7 @@ def sample_partial(d, T, n, sigma2, q, rng, *, obs_dim) -> Sequence:
         Uo = V[:, idx]
         hats.append(theta + Uo @ (rng.standard_normal(obs_dim) / np.sqrt(n / sigma2)))
     return Sequence(d=d, q=q, theta=thetas, J=J, Sigma=Sigma,
-                    y=np.stack(hats), U=U)
+                    y=np.stack(hats), U=U, drifted=False)
 
 
 def error_tensor(ests: np.ndarray, seq: Sequence) -> np.ndarray:

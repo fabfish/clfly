@@ -101,34 +101,44 @@ The best anchoring basis is a **biological module basis** — cell class, cell t
 hemilineage, or nerve — and it beats the neuron basis by more than
 capacity-matched random partitions do.
 
-*Status after the stable-scale recheck: a consistent direction, no statistical
-resolution.* At matched capacity the biological-minus-random delta is negative at 4
-of 5 rungs (`side` −0.0054, `cell_class` −0.0044, `hemilineage` −0.0036,
-`supertype` −0.0021, `cell_type` +0.0004) and **monotone across all five wiring
-nulls** in `e2` (1-in-120 under a random ordering) — but every comparison sits at
-about **1.3 standard errors** at 5 seeds, and the `e2` sign flip spans 0.0147
-against standard errors of ~0.023. Resolving at 2σ needs ~12 seeds for `e3` and
-~29 per topology for `e2`.
+*Status after the analytic effect size: **resolved at 3 of 5 rungs.*** The earlier
+"consistent direction, ~1.3σ" reading was limited by the realized-error metric, not
+by the effect. Measured on the **analytic expected error** (exact, no sampling noise
+— see `docs/findings/2026-09-22-analytic-expected-error.md`), the
+biological-minus-matched-random delta is:
 
-So the claim is **not established**, and the earlier "4 of 5 rungs beat their
-matched control" was an artefact of a metric that manufactured differences (see
-`docs/findings/2026-09-22-metric-instability.md`). It is not refuted either: the
-direction is consistent across two independent experiments and two null families.
+| rung | delta | σ |
+|---|---|---|
+| `side` | −0.00480 | **12.93** |
+| `cell_class` | −0.00307 | **3.68** |
+| `ito_lee_hemilineage` | −0.00280 | **2.61** |
+| `supertype` | −0.00146 | 1.23 |
+| `cell_type` | +0.00026 | 0.22 |
 
-*What is resolved instead:* **granularity beats biology.** The excess error is
-monotone in `constrained_fraction` (0.004 at 0.50 → 0.019 at 0.999), and the
-coarsest-versus-diagonal comparison is resolved at 2.1σ. The reliably useful thing
-is anchoring in *broader* groups, and the annotation ladder happens to supply its
-best rungs at the coarse end. That is the claim to lead with until a predictor or a
-larger budget says otherwise.
+The deltas agree in magnitude with the realized-error estimates, so the analytic
+estimator measures the same effect with ~8× smaller standard errors. **The fly's own
+groupings do beat size-matched random partitions, at three rungs, up to 12.9σ** —
+and the two rungs that show nothing are the two the granularity result predicts
+should show nothing (`supertype` and `cell_type` are ≥0.97 constrained, i.e. nearly
+the diagonal).
+
+The strongest basis in the ladder is `side`: four left/right/centre groups beat a
+random 4-group partition of identical sizes at 12.9σ. The coarsest structural split
+in the annotation table is the most valuable anchoring basis in it.
+
+*What is also resolved:* **granularity beats biology as the headline.** The excess
+is monotone in `constrained_fraction` (0.004 at 0.50 → 0.017 at 0.999), so the
+reliably useful thing is anchoring in *broader* groups. C2 says biology adds on top
+of that, at 3 of 5 rungs.
 
 *Predictive machinery:* LGCL v8 showed the diagonalisation penalty is a geometric
 resonance requiring the anchoring basis to align with the task's precision basis.
 The principal-angle scalar **fails** — raw alignment is anti-correlated with the
 benefit, and adding an empirical chance level recovers only 3 of 5 orderings.
-Truncating the task subspace spectrally (fixing a genuine range-space degeneracy
-identified later) does not improve it. **A working predictor is an open problem**,
-and it is the binding constraint on the claim.
+Spectrally truncating the task subspace (fixing a genuine range-space degeneracy)
+does not improve it. It agrees on the top two and bottom one and misses in the
+middle, where the differences are only 1–2σ, so re-testing it against the now-resolved
+ordering is the next step rather than writing it off.
 
 *Anti-p-hacking:* every comparison is at matched `n_parameters`, and the primary
 control is a group-size-matched random permutation of the labels — identical group

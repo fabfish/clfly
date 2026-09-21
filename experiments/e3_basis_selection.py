@@ -32,6 +32,7 @@ from pathlib import Path
 
 import numpy as np
 
+from clfly.bench.analytic import analytic_excess
 from clfly.bench.oracle import (
     oracle_errors,
     paired_excess,
@@ -145,7 +146,8 @@ def run(args) -> dict:
         rng = np.random.default_rng(args.seed0)
         agg = {}
         for name, basis in candidate_bases(circ, rng).items():
-            row = paired_excess(seqs, basis)
+            row = {"realized": paired_excess(seqs, basis),
+                   "analytic": analytic_excess(seqs, basis)}
             row["n_parameters"] = basis.n_parameters
             total = seqs[0].d * (seqs[0].d + 1) // 2
             row["constrained_fraction"] = 1.0 - basis.n_parameters / total
@@ -156,12 +158,14 @@ def run(args) -> dict:
                 row.update(alignment_of(basis, seqs[0], rank_ref, rng,
                                         top=args.align_top))
             agg[name] = row
-            print(f"    {name:26} excess={row['excess_mean']:+.5f}"
-                  f"+-{row['excess_sem']:.5f}  gap(sd)={row['gap_mean']:+.3f}"
-                  f"({row['gap_sd']:.3f})  ({time.time()-t0:.0f}s)")
+            print(f"    {name:26} analytic={row['analytic']['excess_mean']:+.5f}"
+                  f"+-{row['analytic']['excess_sem']:.5f}  "
+                  f"realized={row['realized']['excess_mean']:+.5f}"
+                  f"+-{row['realized']['excess_sem']:.5f}  ({time.time()-t0:.0f}s)")
 
         agg["_abs"] = {
             "oracle_final": float(np.mean([oracle_errors(s)["final_avg_error"] for s in seqs])),
+            "oracle_final_analytic": agg["diagonal(EWC)"]["analytic"]["oracle_mean"],
             "d": seqs[0].d,
             "n_seeds": len(seqs),
         }
@@ -178,36 +182,43 @@ def report(results: dict) -> None:
         absl = agg.get("_abs", {})
         print(f"\n=== topology: {topology} ===")
         print(f"d={absl.get('d', '?')}  seeds={absl.get('n_seeds', '?')}  "
-              f"oracle final={absl.get('oracle_final', float('nan')):.5f}")
-        print(f"{'basis':26} {'n_params':>10} {'constr':>7} {'excess':>10} {'sem':>9} "
-              f"{'gap_mean':>9} {'gap_sd':>8} {'align':>7} {'excess_al':>9}")
-        print("-" * 104)
+              f"oracle: realized {absl.get('oracle_final', float('nan')):.5f}  "
+              f"analytic {absl.get('oracle_final_analytic', float('nan')):.5f}")
+        print(f"{'basis':26} {'constr':>7} | {'a_excess':>10} {'a_sem':>8} "
+              f"{'a_sd':>8} | {'r_excess':>10} {'r_sem':>8}")
+        print("-" * 92)
         for name in sorted(agg):
             if name.startswith("_"):
                 continue
             d = agg[name]
-            print(f"{name:26} {d.get('n_parameters', 0):10,.0f} "
-                  f"{d['constrained_fraction']:7.4f} {d['excess_mean']:+10.5f} "
-                  f"{d['excess_sem']:9.5f} {d['gap_mean']:+9.4f} {d['gap_sd']:8.4f} "
-                  f"{d.get('alignment', float('nan')):7.4f} "
-                  f"{d.get('excess', float('nan')):9.3f}")
+            a, r = d["analytic"], d["realized"]
+            print(f"{name:26} {d['constrained_fraction']:7.4f} | "
+                  f"{a['excess_mean']:+10.5f} {a['excess_sem']:8.5f} {a['excess_sd']:8.5f} | "
+                  f"{r['excess_mean']:+10.5f} {r['excess_sem']:8.5f}")
 
-        print("\n  paired contrast (biological minus size-matched random), excess error:")
-        wins = 0
+        print("\n  paired contrast (biological minus size-matched random):")
+        print(f"  {'rung':24} {'analytic delta':>15} {'sigma':>7} | "
+              f"{'realized delta':>15} {'sigma':>7}")
+        wins_a = wins_r = 0
         for col in BIOLOGICAL_BASES:
             b, r = agg.get(f"bio:{col}"), agg.get(f"rand:{col}")
             if not b or not r:
                 continue
-            delta = b["excess_mean"] - r["excess_mean"]
-            sem = float(np.hypot(b["excess_sem"], r["excess_sem"]))
-            resolvable = abs(delta) > 2 * sem
-            wins += bool(delta < 0 and resolvable)
-            verdict = ("bio better" if delta < 0 else "bio worse") if resolvable \
-                else "not resolvable"
-            print(f"    {col:24} bio {b['excess_mean']:+.5f}  rand {r['excess_mean']:+.5f}  "
-                  f"delta {delta:+.5f} +- {sem:.5f}  {verdict}")
-        print(f"    -> {wins} of {len(BIOLOGICAL_BASES)} rungs resolved in biology's favour")
-        print("  (a delta smaller than twice its standard error is not a result)")
+            da = b["analytic"]["excess_mean"] - r["analytic"]["excess_mean"]
+            sa = float(np.hypot(b["analytic"]["excess_sem"], r["analytic"]["excess_sem"]))
+            dr = b["realized"]["excess_mean"] - r["realized"]["excess_mean"]
+            sr = float(np.hypot(b["realized"]["excess_sem"], r["realized"]["excess_sem"]))
+            za = abs(da) / sa if sa else float("inf")
+            zr = abs(dr) / sr if sr else float("inf")
+            wins_a += bool(da < 0 and za > 2)
+            wins_r += bool(dr < 0 and zr > 2)
+            print(f"  {col:24} {da:+15.5f} {za:7.2f} | {dr:+15.5f} {zr:7.2f}")
+        print(f"  -> resolved (>2 sigma, biology better): "
+              f"analytic {wins_a}/{len(BIOLOGICAL_BASES)}, "
+              f"realized {wins_r}/{len(BIOLOGICAL_BASES)}")
+        print("  (the analytic column is the expected error, so its spread is task "
+              "geometry alone;\n   the realized column also carries sampling noise, "
+              "which is what made e3 unresolvable)")
 
 
 def main(argv=None) -> int:
