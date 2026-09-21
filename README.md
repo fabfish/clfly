@@ -46,20 +46,47 @@ that make the answer mean something.
 
 ## Status
 
-Early. Phase 0 (toolchain) and Phase 1 (LGCL port) are in progress; the
-connectome substrate is next. Nothing here is a result yet.
+Phase 0 (toolchain), Phase 1 (LGCL port) and Phase 2 (connectome substrate) are
+done. The first real experiment — basis selection — is next.
 
 | Phase | What | State |
 |---|---|---|
 | 0 | toolchain, repo skeleton | done |
-| 1 | LGCL port + reproduction of published numbers | in progress |
-| 2 | FlyWire v783 graph, annotations, rewiring controls | pending |
-| 3 | FlyCL-v0 benchmark (5 sequential circuit tasks) | pending |
+| 1 | LGCL port + exact reproduction of published numbers | done |
+| 2 | FlyWire v783 graph, annotation ladder, circuit extraction | done |
+| 3 | task definitions + FlyCL-v0 | next |
 | 4 | experiments: topology effect, basis selection, modularity | pending |
 | 5 | write-up | pending |
 
 See `docs/research_plan.md` for the claims and `docs/findings/` for dated
-experiment logs — including negative results, which are the useful kind.
+experiment logs — including negative results, which are the useful kind. Two are
+already recorded:
+
+- **`2026-09-20`** — the published unimodal misalignment peak does **not** appear
+  in the coordinate basis. The penalty turns out to be governed by task
+  *anisotropy*, not rotation angle (~500× larger for a steep spectrum), which is
+  what a real connectome supplies and a random synthetic task does not.
+- **`2026-09-22`** — most of the annotation ladder is unusable as a full-brain
+  basis (coverage 7–27% for hemilineage/supertype/nerve), and a near-singleton
+  partition *is* plain EWC. Requires `constrained_fraction` as the matching
+  variable, and a circuit-level reduction because a whole-brain covariance would
+  be 152 GB.
+
+## Reproduce the LGCL numbers
+
+```bash
+python -m clfly.lgcl.repro            # all published anchors
+python -m clfly.lgcl.repro --json     # machine-readable, for the metric loop
+python -m clfly.lgcl.probes           # mechanism experiments
+pytest -q                             # regression gate (connectome tests skip without data)
+```
+
+Fetch the connectome (420 MB, gitignored, never redistributed):
+
+```bash
+python -m clfly.connectome.fetch
+python -m clfly.connectome.fetch --check   # status only
+```
 
 ## Install
 

@@ -31,6 +31,8 @@ from dataclasses import dataclass, field
 
 import numpy as np
 
+from .linalg import symmetric_inverse
+
 
 # --------------------------------------------------------------------------
 # projections on the space of symmetric matrices
@@ -296,8 +298,8 @@ def gain_mismatch_cost(P_prior: np.ndarray, J: np.ndarray, K_hat: np.ndarray) ->
     so *any* covariance-compression scheme is analysable as a gain error.  The
     optimal gain here is ``K* = P_prior (P_prior + J^{-1})^{-1}``.
     """
-    R = np.linalg.inv(J)
+    R = np.linalg.pinv(J)
     S = P_prior + R
-    K_opt = P_prior @ np.linalg.inv(S)
+    K_opt = P_prior @ symmetric_inverse(S)
     dK = K_hat - K_opt
     return float(np.trace(J @ dK @ S @ dK.T))

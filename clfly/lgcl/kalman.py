@@ -19,6 +19,7 @@ from __future__ import annotations
 import numpy as np
 
 from .bases import Basis
+from .linalg import symmetric_inverse
 
 
 def kalman_update(theta, P, J, y, basis: Basis | None = None):
@@ -29,8 +30,8 @@ def kalman_update(theta, P, J, y, basis: Basis | None = None):
     covariance only — the mean is left alone, matching the reference
     implementation and the "EWC = diagonalised covariance" reading.
     """
-    Pinv = np.linalg.pinv(P)
-    Pn = np.linalg.pinv(Pinv + J)
+    Pinv = symmetric_inverse(P)
+    Pn = symmetric_inverse(Pinv + J)
     thn = Pn @ (Pinv @ theta + J @ y)
     if basis is not None:
         Pn = basis.project(Pn)
@@ -82,7 +83,7 @@ def rts_smoother(seq, P0_scale: float = 1.0):
     theta_s = theta_f.copy()
     P_s = P_f.copy()
     for k in range(T - 2, -1, -1):
-        C = P_f[k] @ np.linalg.inv(P_pred[k + 1])
+        C = P_f[k] @ symmetric_inverse(P_pred[k + 1])
         theta_s[k] = theta_f[k] + C @ (theta_s[k + 1] - theta_pred[k + 1])
         P_s[k] = P_f[k] + C @ (P_s[k + 1] - P_pred[k + 1]) @ C.T
     return theta_s, P_s
@@ -114,9 +115,9 @@ def gain_mismatch_excess(seq, basis: Basis, P0_scale: float = 1.0) -> np.ndarray
         P = P + seq.q * np.eye(d)
         R = np.linalg.pinv(seq.J[k])
         S = P + R
-        K_opt = P @ np.linalg.inv(S)
+        K_opt = P @ symmetric_inverse(S)
         P_hat = basis.project(P)
-        K_basis = P_hat @ np.linalg.inv(P_hat + R)
+        K_basis = P_hat @ symmetric_inverse(P_hat + R)
         dK = K_basis - K_opt
         out.append(float(np.trace(seq.J[k] @ dK @ S @ dK.T)))
         _, P = kalman_update(np.zeros(d), P, seq.J[k], seq.y[k], basis)
