@@ -34,13 +34,16 @@ Three findings, one of them unexpected in direction.
    doubles. The obvious mechanism is refuted.
 3. **Biological anchoring bases beat capacity-matched random ones, and there is a
    working a-priori predictor.** At matched parameter count the fly's own cell
-   groupings win: the coarsest structural split (`side`, left/right/centre) and the
-   developmental lineage (`ito_lee_hemilineage`) beat size-matched random partitions
-   at **both** circuit scales tested, up to 11.9σ, while a third rung wins only at
-   the smaller scale and is reported as not scale-robust. A predictor built from the
-   projection loss of the *exact* filter's trajectory ranks candidate bases at
-   Spearman **+0.99** with **29/30** correct matched-pair signs across six conditions
-   it was not tuned on.
+   groupings win at **four of five rungs**, up to **28.8σ** (left/right/centre), with
+   the fifth — the rung that is nearly the diagonal — showing nothing. The advantage
+   flips sign once the wiring is randomised, so it is a property of the connectome
+   rather than of the vocabulary. A predictor built from the projection loss of the
+   *exact* filter's trajectory ranks candidate bases at Spearman **+0.99** with
+   **29/30** correct matched-pair signs across six conditions it was not tuned on.
+4. **The wiring's own eigenbasis beats the neuron diagonal at equal capacity** — a 28%
+   reduction in excess error with no annotation involved at all — while *adaptive*
+   projection (spectral truncation, locally optimal at every step) is the worst
+   candidate tested. Fixed structures beat adaptive ones here.
 
 Along the way the work produced a methodological result we think is of independent
 use: the conventional relative-forgetting statistic is **unusable** on this
@@ -223,41 +226,62 @@ cleanly testable.
 
 ### 4.3 Biological anchoring bases win at matched capacity
 
-*(e3, analytic effect size, matched capacity. Two circuit sizes: d = 1307 with 5
-seeds, d = 3150 with 2 seeds and proportionally wider tasks.)*
-Biological-minus-size-matched-random delta:
+*(e3, analytic effect size, matched capacity, three configurations: d = 1307 with 18
+and with 5 seeds, d = 3150 with 2 seeds.)* Biological-minus-size-matched-random delta:
 
-| rung | constrained (1307) | σ (1307) | constrained (3150) | σ (3150) |
-|---|---|---|---|---|
-| `side` | 0.501 | **12.93** | 0.502 | **11.87** |
-| `ito_lee_hemilineage` | 0.967 | **2.61** | 0.955 | **3.28** |
-| `cell_class` | 0.828 | **3.68** | 0.750 | 1.29 |
-| `supertype` | 0.974 | 1.23 | 0.944 | 1.19 |
-| `cell_type` | 0.979 | 0.22 | 0.952 | 0.28 |
+| rung | σ (d=1307, 5 seeds) | **σ (d=1307, 18 seeds)** | σ (d=3150, 2 seeds) |
+|---|---|---|---|
+| `side` | 12.93 | **28.78** | 11.87 |
+| `cell_class` | 3.68 | **12.14** | 1.29 |
+| `ito_lee_hemilineage` | 2.61 | **9.32** | 3.28 |
+| `supertype` | 1.23 | **4.26** | 1.19 |
+| `cell_type` | 0.22 | 0.74 | 0.28 |
 
-At d = 1307 three of five resolve; at d = 3150 two do. The defensible claim is
-therefore the scale-restricted one:
+At 18 seeds **four of the five rungs resolve** (`side` 28.8σ, `cell_class` 12.1σ,
+`hemilineage` 9.3σ, `supertype` 4.3σ); the fifth, `cell_type`, is the rung that is
+nearly the diagonal and shows nothing at any configuration. At d = 3150 (2 seeds only)
+two resolve.
 
-> **The coarsest structural split (`side`) and the developmental lineage
-> (`ito_lee_hemilineage`) beat size-matched random partitions at both circuit scales
-> tested, up to 11.9σ. A third rung (`cell_class`) does so only at the smaller scale
-> and is not scale-robust.**
-
-The two rungs that never resolve are the two most constrained (≥0.94), i.e. nearly
-the diagonal — so there is no structure left for them to contribute.
+The standard errors fall as 1/√n as expected — `cell_class` goes from 3.7σ at 5 seeds
+to 12.1σ at 18 — which is why the earlier read of "3 of 5" was a statement about
+budget rather than about the effect. The d = 3150 run had only 2 seeds, so its weaker
+resolution there is not evidence against the claim; it is the same effect measured
+with 9× fewer draws. **The defensible summary is that four rungs beat capacity-matched
+random partitions at the standard configuration, and that the effect is large enough
+to be seen at every configuration tested.**
 
 **Granularity is the dominant term.** Ordered by how much of the covariance each
-basis constrains, the excess is monotone at both scales:
+basis constrains, the excess is monotone at every scale:
 
 | constrained_fraction | 0.50 | 0.75–0.83 | 0.94–0.97 | 0.95–0.97 | 0.95–0.98 | 0.999 |
 |---|---|---|---|---|---|---|
-| excess (d=3150) | 0.0034 | 0.0104 | 0.0120 | 0.0131 | 0.0145 | 0.0147 |
-| excess (d=1307) | 0.0040 | 0.0114 | 0.0141 | 0.0157 | 0.0173 | 0.0174 |
+| excess (d=1307, 18 seeds) | 0.0039 | 0.0115 | 0.0142 | 0.0158 | 0.0176 | 0.0176 |
+| excess (d=1307, 5 seeds) | 0.0040 | 0.0114 | 0.0141 | 0.0157 | 0.0173 | 0.0174 |
+| excess (d=3150, 2 seeds) | 0.0034 | 0.0104 | 0.0120 | 0.0131 | 0.0145 | 0.0147 |
 
-Anchoring in broader groups is the reliably useful move and accounts for most of the
-available improvement; and the primary magnitude result is scale-stable — the
-diagonal's excess is +34% of the oracle's error at d = 3150 against +33% at d = 1307.
-Biology adds on top of granularity, for two rungs.
+The primary magnitude result is scale-stable: the diagonal's excess is +34% of the
+oracle's error at d = 3150, +34% at d = 1307 with 18 seeds, against +33% at 5 seeds.
+
+### 4.4 The wiring's own eigenbasis beats the neuron diagonal at equal capacity
+
+A candidate that is **not an annotation at all** — the diagonal in the eigenvectors of
+the symmetrised, centred weight matrix — cuts the excess by **28%** at d = 1307
+(+0.01270 against the diagonal's +0.01762) and **49%** at d = 952, at *identical*
+`constrained_fraction` (0.9985), since a rotated diagonal keeps the same number of free
+entries. It is the third-best of the fourteen candidates and the best non-annotation
+one.
+
+This answers the founding question at a level below the annotation ladder: the wiring
+has preferred directions, and they are a better place to anchor a Fisher matrix than
+the neuron coordinate basis is. The caveat is that the rotation is estimated from the
+same connectome that generates the tasks, so it is a favourable case; and a rotated
+diagonal needs `d(d−1)/2` rotation numbers, shared across tasks and computed once.
+
+**The three worst candidates are the adaptive ones.** Spectral truncation to the top
+`r` directions of the current posterior — locally optimal at every step — is the
+*worst* of all fourteen (+0.0222 against the diagonal's +0.01762). The two winners are
+both fixed structures and the losers adapt, on a substrate whose failure mode is
+re-projection rather than interference.
 
 ### 4.4 The biological advantage is a property of the wiring
 

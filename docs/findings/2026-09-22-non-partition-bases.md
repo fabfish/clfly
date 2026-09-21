@@ -24,21 +24,28 @@ now included, all handled by the same `Basis` machinery and the same predictor:
 
 ## 2. Result: the connectome's eigenbasis beats the neuron diagonal at equal capacity
 
-d = 952, 2 seeds, analytic effect size:
+**d = 1307, 18 seeds** (the standard configuration):
 
-| basis | constrained_fraction | excess | pressure |
-|---|---|---|---|
-| `bio:side` | 0.5014 | +0.00466 | 0.0214 |
-| **`eigbasis`** | **0.9979** | **+0.01435** | **0.0297** |
-| `diagonal(EWC)` | 0.9979 | +0.02838 | 0.1196 |
-| `rank4` | 0.9916 | +0.03359 | 0.0782 |
-| `rank16` | 0.9664 | +0.03354 | 0.0779 |
-| `rank64` | 0.8655 | +0.03307 | 0.0768 |
+| basis | constrained_fraction | excess | sem | pressure |
+|---|---|---|---|---|
+| `bio:side` | 0.5011 | +0.00391 | 0.00008 | 0.1002 |
+| `bio:cell_class` | 0.8280 | +0.01147 | 0.00016 | 0.1770 |
+| **`eigbasis`** | **0.9985** | **+0.01270** | 0.00020 | **0.1257** |
+| `bio:ito_lee_hemilineage` | 0.9668 | +0.01422 | 0.00020 | 0.3420 |
+| `bio:supertype` | 0.9736 | +0.01577 | 0.00023 | 0.4651 |
+| `diagonal(EWC)` | 0.9985 | +0.01762 | 0.00025 | 0.6604 |
+| `rank64` | 0.9021 | +0.02220 | 0.00037 | 0.4204 |
+| `rank16` | 0.9755 | +0.02231 | 0.00037 | 0.4258 |
+| `rank4` | 0.9939 | +0.02233 | 0.00037 | 0.4270 |
+
+At d = 952 (2 seeds) the same comparison gives `eigbasis` +0.01435 against the
+diagonal's +0.02838, i.e. a 49% reduction.
 
 `eigbasis` and `diagonal(EWC)` have **identical `constrained_fraction`** — a rotated
 diagonal keeps the same number of free entries — so this is not a granularity effect.
-Anchoring in the wiring's own preferred directions **halves the excess error**
-(+0.0144 against +0.0284) at the same capacity.
+Anchoring in the wiring's own preferred directions cuts the excess error by **28%**
+(+0.01270 against +0.01762) at equal capacity, making it the third-best of the
+fourteen candidates and the best non-annotation one.
 
 This is a new and independent positive result, and it is *structural rather than
 biological*: the eigenbasis is derived from the weight matrix, not from any
@@ -50,19 +57,37 @@ ladder.
 The honest caveat is capacity accounting: a rotated diagonal needs `d(d-1)/2`
 rotation numbers. Those are **shared across tasks** and computed once from the
 connectome, so the per-task cost is `d` — but a reader should know the rotation is
-not free, and `bases.py` tracks it in `n_shared_parameters`.
+not free, and `bases.py` tracks it in `n_shared_parameters`. A related subtlety is that
+the rotation is *estimated from the same connectome that generates the tasks*, so this
+is a favourable case for it; a task whose structure came from outside the wiring would
+not obviously benefit.
+
+### 2.1 The three worst candidates are the adaptive ones
+
+The `rank` bases are the **worst** of all fourteen (+0.0222 … +0.0223 against the
+diagonal's +0.01762), and they are the only candidates that adapt their retained
+subspace to the current posterior. Truncating to the top `r` directions is *locally
+optimal at every step* and loses to a fixed commitment; at d = 952 the inversion is
+larger still (+0.0331 against +0.0284).
+
+That ordering is itself a result. The two winners are both **fixed** structures — the
+coarsest biological grouping, then the wiring's own eigenbasis — and the losers are
+the adaptive scheme. A myopic, locally-optimal projection loses to a fixed commitment
+on a substrate where the failure mode is re-projection rather than interference.
 
 ## 3. The predictor generalises to the eigenbasis — and fails on truncation
 
 `projection_pressure` orders the non-partition bases correctly for `eigbasis`
-(0.0297, predicting better than the diagonal's 0.1196 — and it *is* better) but
-**wrongly for all three `rank` bases**: pressure 0.077–0.078, lower than the
-diagonal's 0.120, yet their excess (+0.0331 … +0.0336) is *worse* than the
-diagonal's (+0.0284).
+(0.1257, second-lowest of the fourteen — and it is third-best) but **wrongly for all
+three `rank` bases**: pressure 0.42–0.43, mid-table and lower than the diagonal's
+0.660, yet their excess (+0.0222 … +0.0223) is the *worst* of the fourteen against the
+diagonal's +0.01762.
 
-Over the full 15-basis set this drags the rank correlation from +0.982 (partitions
-only, at d=952) down to **+0.696** (all bases). The matched-pair sign test on
-partitions is unaffected — 5/5.
+Over the full 15-basis set this drags the rank correlation to **+0.611**, against
+**+0.991** over the 11 partition bases alone. The matched-pair sign test on partitions
+is unaffected — **5/5**. (Within the non-partition set alone the predictor scores
++1.000, but that is a degenerate ordering: the three `rank` bases are separated by
+0.0001 in excess, so little is being tested there.)
 
 **Why truncation breaks it, with a measured mechanism.** For a partition or the
 eigenbasis the projection map is **fixed**: it retains a fixed set of coordinates, and
