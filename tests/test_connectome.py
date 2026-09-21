@@ -141,6 +141,45 @@ def test_weight_scales_keep_sign_and_compress_the_tail():
     np.testing.assert_allclose(C.weights("raw").toarray(), [[0, 1000, -1000]])
 
 
+def test_symmetrised_eigenbasis_is_orthonormal_and_ordered():
+    """The structural basis must be a genuine orthonormal frame, or the rotation
+    it defines is not a rotation."""
+    rng = np.random.default_rng(0)
+    n = 12
+    A = sp.csr_matrix((rng.random((n, n)) < 0.4) * rng.normal(size=(n, n)))
+    C = graph.Connectome(n_neurons=n, root_ids=np.arange(n), W=A)
+    V = C.symmetrised_eigenbasis()
+    assert V.shape == (n, n)
+    np.testing.assert_allclose(V.T @ V, np.eye(n), atol=1e-10)
+
+    # ordering is by |eigenvalue| of the centred symmetric part, descending
+    S = ((C.weights() + C.weights().T) * 0.5).toarray()
+    S = S - S.mean()
+    w = np.linalg.eigvalsh((S + S.T) * 0.5)
+    expected = np.abs(w)[np.argsort(np.abs(w))[::-1]]
+    got = np.abs(np.diag(V.T @ S @ V))
+    np.testing.assert_allclose(got, expected, atol=1e-8)
+
+
+def test_symmetrised_eigenbasis_defines_a_real_projection():
+    """`RotatedDiagonal(V)` must differ from the neuron diagonal when V is not the
+    identity -- otherwise the candidate basis would be a no-op."""
+    from clfly.lgcl.bases import Diagonal, RotatedDiagonal
+
+    rng = np.random.default_rng(1)
+    n = 10
+    A = sp.csr_matrix((rng.random((n, n)) < 0.5) * rng.normal(size=(n, n)))
+    C = graph.Connectome(n_neurons=n, root_ids=np.arange(n), W=A)
+    V = C.symmetrised_eigenbasis()
+    P = rng.standard_normal((n, n))
+    P = P @ P.T
+    rot = RotatedDiagonal(V).project(P)
+    diag = Diagonal(n).project(P)
+    assert not np.allclose(rot, diag)
+    assert RotatedDiagonal(V).n_parameters == Diagonal(n).n_parameters
+    assert RotatedDiagonal(V).n_shared_parameters == n * (n - 1) // 2
+
+
 # --------------------------------------------------------------------------
 # the real data
 # --------------------------------------------------------------------------

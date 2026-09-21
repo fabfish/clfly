@@ -165,6 +165,26 @@ class Connectome:
         counts = np.bincount(labels)
         return self.subgraph(np.flatnonzero(labels == counts.argmax()))
 
+    def symmetrised_eigenbasis(self, scale: str = WEIGHT_SCALE,
+                               centre: bool = True) -> np.ndarray:
+        """Eigenvectors of the symmetrised weight matrix, strongest first.
+
+        A **structural, non-partition** candidate anchoring basis: the wiring has its
+        own preferred directions, and anchoring the Fisher in *those* is a different
+        hypothesis from anchoring in cell types.  Including it turns the anchoring
+        question from "which partition?" into "which structure?".
+
+        Ordered by ``|eigenvalue|`` so the dominant structural directions come first,
+        and centred by default so the leading eigenvector is not simply the mean
+        degree pattern.
+        """
+        A = self.weights(scale)
+        S = ((A + A.T) * 0.5).toarray().astype(np.float64)
+        if centre:
+            S = S - S.mean()
+        w, V = np.linalg.eigh((S + S.T) * 0.5)
+        return V[:, np.argsort(np.abs(w))[::-1]]
+
 
 # --------------------------------------------------------------------------
 # loading

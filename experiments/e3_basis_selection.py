@@ -42,6 +42,8 @@ from clfly.connectome import annotate, circuits, graph, rewiring, tasks
 from clfly.lgcl.bases import (
     Diagonal,
     Partition,
+    Rank,
+    RotatedDiagonal,
     alignment_score,
     random_partition,
 )
@@ -53,8 +55,19 @@ OUT_DIR = REPO_ROOT / "runs"
 BIOLOGICAL_BASES = ("side", "cell_class", "cell_type", "ito_lee_hemilineage", "supertype")
 
 
-def candidate_bases(circ: circuits.Circuit, rng: np.random.Generator) -> dict:
-    """Every anchoring basis to be compared, biological and control."""
+def candidate_bases(circ: circuits.Circuit, rng: np.random.Generator,
+                    extras: bool = False) -> dict:
+    """Every anchoring basis to be compared, biological and control.
+
+    ``extras`` adds **non-partition** candidates, which turn the anchoring question
+    from "which partition?" into "which structure?": spectral truncation to the top
+    ``r`` directions of the posterior (state-dependent, so it re-picks its basis every
+    step), and the diagonal in the **connectome's own eigenbasis** (a fixed structural
+    rotation).  Both are handled by the same machinery, and
+    :func:`clfly.bench.analytic.projection_pressure` applies to them unchanged —
+    which is what lets one run test the predictor's generality alongside the
+    partition comparison.
+    """
     bases = {"diagonal(EWC)": Diagonal(circ.n_neurons)}
     for col in BIOLOGICAL_BASES:
         if col not in circ.labels:
@@ -62,6 +75,11 @@ def candidate_bases(circ: circuits.Circuit, rng: np.random.Generator) -> dict:
         lab = circ.labels[col]
         bases[f"bio:{col}"] = Partition(lab)
         bases[f"rand:{col}"] = random_partition(lab, rng)
+    if extras:
+        for r in (4, 16, 64):
+            if r < circ.n_neurons:
+                bases[f"rank{r}"] = Rank(circ.n_neurons, r)
+        bases["eigbasis"] = RotatedDiagonal(circ.net.symmetrised_eigenbasis())
     return bases
 
 
@@ -145,7 +163,7 @@ def run(args) -> dict:
 
         rng = np.random.default_rng(args.seed0)
         agg = {}
-        for name, basis in candidate_bases(circ, rng).items():
+        for name, basis in candidate_bases(circ, rng, extras=args.extra_bases).items():
             row = {"analytic": analytic_excess(seqs, basis)}
             if not args.no_realized:
                 row["realized"] = paired_excess(seqs, basis)
@@ -235,22 +253,36 @@ def report(results: dict) -> None:
               f"analytic {wins_a}/{len(BIOLOGICAL_BASES)}{extra}")
 
         # Does the a-priori predictor recover the ordering and the matched-pair signs?
+        # Reported separately for partitions and non-partition bases: the predictor
+        # was derived for a projection onto a fixed grouping and there is no reason
+        # to assume it transfers to a state-dependent truncation.
+        def group_of(n):
+            return "partition" if (n.startswith("bio:") or n.startswith("rand:")
+                                   or n.startswith("diagonal")) else "other"
+
         names = [n for n in sorted(agg) if not n.startswith("_")]
-        ex = [agg[n]["analytic"]["excess_mean"] for n in names]
-        pr = [agg[n].get("pressure", float("nan")) for n in names]
-        rho = spearman(pr, ex)
+        for grp in ("partition", "other", "all"):
+            sel = [n for n in names if grp == "all" or group_of(n) == grp]
+            if len(sel) < 3:
+                continue
+            ex = [agg[n]["analytic"]["excess_mean"] for n in sel]
+            pr = [agg[n].get("pressure", float("nan")) for n in sel]
+            print(f"\n  a-priori predictor over {grp} bases ({len(sel)}): "
+                  f"Spearman vs analytic excess = {spearman(pr, ex):+.3f}")
+            for n in sel:
+                print(f"      {n:26} excess={agg[n]['analytic']['excess_mean']:+.5f}  "
+                      f"pressure={agg[n].get('pressure', float('nan')):9.4f}")
         agree = tot = 0
         for col in BIOLOGICAL_BASES:
             b, r = f"bio:{col}", f"rand:{col}"
             if b not in names or r not in names:
                 continue
             ib, ir = names.index(b), names.index(r)
-            agrees = (ex[ib] - ex[ir] < 0) == (pr[ib] - pr[ir] < 0)
+            agrees = (agg[b]["analytic"]["excess_mean"] - agg[r]["analytic"]["excess_mean"] < 0) \
+                == (agg[b]["pressure"] - agg[r]["pressure"] < 0)
             agree += bool(agrees)
             tot += 1
-        print(f"\n  a-priori predictor (projection_pressure): "
-              f"Spearman vs analytic excess = {rho:+.3f}, "
-              f"matched-pair signs {agree}/{tot}")
+        print(f"\n  matched-pair signs (partition bases only): {agree}/{tot}")
         print("  (a predictor that only recovered constrained_fraction scores 0 here,")
         print("   since matched pairs share constrained_fraction exactly)")
 
@@ -267,6 +299,9 @@ def main(argv=None) -> int:
                    help="spectral truncation for the alignment predictor; the "
                         "numerical rank would return the degener"
                         "ate full range space")
+    p.add_argument("--extra-bases", action="store_true",
+                   help="also test non-partition candidates: spectral truncation "
+                        "and the connectome eigenbasis")
     p.add_argument("--json-out", type=Path, default=None)
     p.add_argument("--no-realized", action="store_true",
                    help="skip the realized-error arm; it is a cross-check already "
