@@ -190,9 +190,28 @@ observed**, which by LGCL finding 4 puts the benchmark in the memory-dominated
 regime. The prediction: **circuit overlap between two tasks predicts the
 interference between them.**
 
-This would give the benchmark a property no existing CL suite has — a
-biology-derived task-interference prior — and it is directly testable against the
-measured interference matrix.
+*Status after `e7`: refuted as stated, supported in a corrected form.* A controlled
+sweep with **exactly uniform** input-population overlap finds the opposite sign —
+`Spearman(overlap, mean interference) = −1.000`, perfectly monotone, and at full
+overlap adjacent tasks *help* (interference goes slightly negative). Sharing
+measurement directions lets the next task confirm rather than compete. This is the
+second independent refutation of the interference story, agreeing with `e2`.
+
+The correction is that "circuit overlap" was ambiguous, and the ambiguity is the
+whole finding. In the real circuit **all ten task pairs have exactly zero anatomical
+support overlap** — the assemblies recruit disjoint cell types, so anatomical overlap
+is not a variable there and +0.103 is noise around a constant. What *does* predict
+interference is the **propagated** representation: the alignment of the tasks'
+precision subspaces after the propagator mixes their disjoint inputs, at
+**ρ = +0.939**, leave-one-out range [+0.917, +0.983], and not a size artefact (size
+correlates +0.164 with interference).
+
+> **An interference prior for a connectome-constrained benchmark must be read from the
+> propagated representation, not from the anatomy.** Compute the task covariances,
+> measure their subspace alignment, and the prior is available before any training run.
+
+Limitation: ten pairs from five tasks. A benchmark with more tasks would test the
+prior on more pairs.
 
 ## The benchmark — FlyCL v0
 

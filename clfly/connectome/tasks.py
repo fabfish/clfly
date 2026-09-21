@@ -49,6 +49,53 @@ from .graph import Connectome
 
 
 @dataclass(frozen=True)
+class SupportAssembly:
+    """An assembly given by explicit neuron indices.
+
+    Needed for experiments that must *control* overlap between task populations,
+    which the annotation vocabulary cannot express.  ``Assembly`` names cell types;
+    this names neurons.
+    """
+
+    name: str
+    support: np.ndarray
+
+    def __post_init__(self):
+        object.__setattr__(self, "support", np.asarray(self.support, dtype=np.int64))
+
+
+def overlap_controlled_supports(n: int, T: int, size: int, overlap: float,
+                                rng: np.random.Generator) -> list[np.ndarray]:
+    """``T`` supports of ``size`` neurons with **exact, uniform** pairwise overlap.
+
+    Built from a shared pool plus disjoint private complements::
+
+        A_k = P  union  priv_k,      |P| = round(overlap * size)
+
+    so ``|A_j n A_k| / size = overlap`` for *every* pair, by construction rather
+    than in expectation.  A naive construction that draws each subsequent support
+    partly from the union of the previous ones gives pairwise overlaps that drift
+    and are correlated with task order, which would confound the thing being
+    measured.
+    """
+    if not 0.0 <= overlap <= 1.0:
+        raise ValueError("overlap must be in [0, 1]")
+    shared = int(round(overlap * size))
+    private = size - shared
+    need = shared + T * private
+    if need > n:
+        raise ValueError(
+            f"need {need} distinct neurons for T={T}, size={size}, overlap={overlap} "
+            f"on n={n}; lower the overlap, the size, or the task count"
+        )
+    perm = rng.permutation(n)[:need]
+    pool = perm[:shared]
+    return [np.sort(np.concatenate([pool, perm[shared + k * private:
+                                                shared + (k + 1) * private]]))
+            for k in range(T)]
+
+
+@dataclass(frozen=True)
 class Assembly:
     """An input population, named by the cell types that make it up."""
 
@@ -172,15 +219,17 @@ def propagator_solver(W: sp.spmatrix):
     return spla.splu(A)
 
 
-def assembly_support(circ: Circuit, assembly: Assembly,
-                     support_size: int | None, sparsity: float | None,
+def assembly_support(circ: Circuit, assembly, support_size: int | None,
+                     sparsity: float | None,
                      rng: np.random.Generator,
                      weight_concentration: float | None = None):
     """Neurons driven by an assembly, and their sparse drive weights.
 
-    Prefix-matches ``assembly.values`` against the circuit's per-neuron group
-    names, then keeps a random subset -- the sparse-coding step, since a fly does
-    not activate a whole cell type at once.
+    Accepts either an :class:`Assembly` (matched by cell-type prefix against the
+    circuit's annotations, then sparsely subsampled -- the sparse-coding step, since
+    a fly does not activate a whole cell type at once) or a
+    :class:`SupportAssembly` whose neurons are given explicitly, in which case no
+    matching or subsampling happens.
 
     Sizing is by **absolute count** (``support_size``) when given, and only falls
     back to a fraction (``sparsity``) otherwise.  That matters: a fraction applied
@@ -197,25 +246,29 @@ def assembly_support(circ: Circuit, assembly: Assembly,
     reuses the same ``z``, the sweep varies the task's spectral richness at fixed
     topology, fixed support size and fixed rank.
     """
-    names = circ.neuron_names(assembly.column)
-    matched = np.array([any(n.startswith(v) for v in assembly.values) for n in names])
-    idx = np.flatnonzero(matched)
-    if len(idx) == 0:
-        raise ValueError(
-            f"assembly {assembly.name!r} matched no neurons; "
-            f"values {assembly.values} not present in column {assembly.column!r}. "
-            f"available names: {sorted(set(names))[:12]}..."
-        )
-
-    if support_size is not None:
-        n_keep = min(len(idx), support_size)
-    elif sparsity is not None:
-        n_keep = max(1, int(round(len(idx) * sparsity)))
+    if isinstance(assembly, SupportAssembly):
+        idx = assembly.support
+        if len(idx) == 0:
+            raise ValueError(f"assembly {assembly.name!r} has an empty support")
     else:
-        n_keep = len(idx)
-    n_keep = min(n_keep, len(idx))
-    if n_keep < len(idx):
-        idx = np.sort(rng.choice(idx, size=n_keep, replace=False))
+        names = circ.neuron_names(assembly.column)
+        matched = np.array([any(n.startswith(v) for v in assembly.values) for n in names])
+        idx = np.flatnonzero(matched)
+        if len(idx) == 0:
+            raise ValueError(
+                f"assembly {assembly.name!r} matched no neurons; "
+                f"values {assembly.values} not present in column {assembly.column!r}. "
+                f"available names: {sorted(set(names))[:12]}..."
+            )
+        if support_size is not None:
+            n_keep = min(len(idx), support_size)
+        elif sparsity is not None:
+            n_keep = max(1, int(round(len(idx) * sparsity)))
+        else:
+            n_keep = len(idx)
+        n_keep = min(n_keep, len(idx))
+        if n_keep < len(idx):
+            idx = np.sort(rng.choice(idx, size=n_keep, replace=False))
 
     if weight_concentration is None:
         weights = rng.uniform(0.5, 1.5, size=len(idx))

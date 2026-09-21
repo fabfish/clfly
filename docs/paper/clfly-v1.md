@@ -301,6 +301,41 @@ objection that any meaningful partition would do as well as a biological one.
 
 ---
 
+### 4.5 A pairwise interference prior, and why it must be measured post-propagation
+
+*(e7.)* The natural benchmark-level claim is that tasks interfere in proportion to how
+much their circuits overlap — which, if true, gives a continual-learning benchmark a
+prior on its own interference matrix, readable before any training run. Interference
+is measured exactly as the marginal damage to task `j` from learning task `k`,
+`I[j,k] = E[k,j] − E[k−1,j]`, from the analytic error matrix.
+
+**The sign is wrong for anatomy.** A controlled sweep in which every pair has
+*exactly* the same input-population overlap gives
+`Spearman(overlap, mean interference) = −1.000` — perfectly monotone, with more
+overlap giving *less* interference, and at full overlap adjacent tasks slightly
+helping. Sharing measurement directions lets the next task confirm rather than
+compete; it is competing *directions*, not shared ones, that cost capacity under a
+diagonal projection.
+
+**And in the real circuit anatomy carries no signal at all.** All ten task pairs have
+exactly **zero** anatomical support overlap: the assemblies recruit disjoint cell
+types. So "circuit overlap" is not a variable there.
+
+**What does predict interference is the propagated representation** — the alignment of
+the tasks' precision subspaces after the propagator mixes their disjoint inputs — at
+**ρ = +0.939**, with a leave-one-out range of [+0.917, +0.983] (so no single pair
+carries it) and no meaningful size confound (+0.164).
+
+The benchmark-design conclusion is concrete:
+
+> An interference prior for a connectome-constrained benchmark must be read from the
+> **propagated representation**, not the anatomy — compute the task covariances,
+> measure their subspace alignment, and the prior is available before any training run.
+
+This is a better result than the original claim, because "circuit overlap" was
+ambiguous between the two readings and the ambiguity turned out to be the finding.
+The limitation is ten pairs from five tasks.
+
 ## 5. A working predictor
 
 LGCL's mechanism suggests the penalty is the covariance a projection discards. We
