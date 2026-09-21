@@ -1,23 +1,32 @@
-"""Null topologies: what the connectome must be compared against.
+"""Null topologies: a monotone family for "how much wiring structure is left?"
 
 A gap measured on the connectome means nothing without a null that keeps the
-things that are *not* under test.  Three are provided, and the claim each one
-licenses is different:
+things that are *not* under test.  The family here is deliberately built from
+**one operation applied at increasing strength**, so the contrast is monotone in a
+single interpretable quantity rather than being a comparison between unrelated
+constructions.
 
-``shuffle_targets``  keep every source neuron and the exact multiset of
-    post-synaptic targets, but permute which target each synapse lands on.
-    Out-degree is preserved exactly.  This is the cheapest and sharpest null for
-    "is *this* wiring special?" -- it keeps the degree sequence and destroys the
-    targeting.
-``degree_preserving_swap``  the standard configuration-model null via double-edge
-    swaps: both in- and out-degree exactly preserved, topology otherwise
-    randomised.  Slower, and needs many swaps to mix.
-``erdos_renyi``  matched edge count, no structure at all.  The furthest null.
+The operation is the classic **double-edge swap**: pick two edges ``(a,b)`` and
+``(c,d)`` and replace them with ``(a,d)`` and ``(c,b)``.  That preserves in-degree
+*and* out-degree exactly -- ``a`` and ``c`` each keep their outgoing count, ``b``
+and ``d`` each keep their incoming count -- while moving *who talks to whom*.  A
+duplicate guard rejects swaps that would collide with an existing edge, so the
+edge count is preserved exactly too.
 
-The distinction matters for the science.  If a result survives
-``degree_preserving_swap`` it is not about degrees; if it survives
-``erdos_renyi`` it is not about sparsity either.  Reporting only one would let a
-trivial explanation stand.
+``apply_null`` therefore takes::
+
+    real            the connectome, untouched
+    swap<f>         f x m double-edge swaps, m = edge count
+    erdos_renyi     matched edge count, no structure at all
+
+**Why not a target-column permutation.** An earlier version of this module
+randomised the post-synaptic target column globally.  That is a tempting null --
+out-degree exactly preserved, one line of code -- and it is wrong here: with
+86,443 edges over 1,307 neurons the permutation lands many synapses on pairs that
+already exist, and rebuilding the graph sums those duplicates.  The result lost
+**70% of the edges** (86,443 -> 25,594), so the "rewired" condition was also the
+"much sparser" condition and no gap difference could be attributed to topology.
+A collision-free swap does the same job without changing the graph's density.
 """
 
 from __future__ import annotations
@@ -28,60 +37,40 @@ import scipy.sparse as sp
 
 def _as_coo(W: sp.spmatrix):
     C = W.tocoo()
-    return C.row.astype(np.int64), C.col.astype(np.int64), C.data.astype(np.float64)
+    return (C.row.astype(np.int64).copy(), C.col.astype(np.int64).copy(),
+            C.data.astype(np.float64).copy())
 
 
-def _dedupe(rows, cols, data, n):
-    """Rebuild CSR, summing any duplicate (row, col) pairs a swap created."""
+def _rebuild(rows, cols, data, n):
+    """Assemble CSR, summing any duplicate (row, col) pairs that arose.
+
+    Swaps are duplicate-guarded so this should be a no-op; it is kept as a
+    safety net and its effect is asserted in the tests.
+    """
     M = sp.coo_matrix((data, (rows, cols)), shape=(n, n)).tocsr()
     M.sum_duplicates()
     return M
 
 
-def shuffle_targets(W: sp.spmatrix, rng: np.random.Generator) -> sp.csr_matrix:
-    """Permute post-synaptic targets, preserving out-degree exactly.
+def double_edge_swap(W: sp.spmatrix, n_swaps: int | None = None,
+                     rng: np.random.Generator | None = None,
+                     max_tries_factor: int = 20) -> sp.csr_matrix:
+    """``n_swaps`` double-edge swaps preserving in-degree, out-degree and edge count.
 
-    Sign and magnitude travel with the synapse, so the excitatory/inhibitory
-    balance and the weight distribution are untouched -- only *who talks to whom*
-    is randomised.
-
-    A global permutation can land two synapses on the same (source, target) pair;
-    those are summed, so the returned graph may have slightly fewer edges than the
-    input.  Callers should report the achieved edge count rather than assume it is
-    unchanged.
-    """
-    rows, cols, data = _as_coo(W)
-    new_cols = rng.permutation(cols)
-    self_loops = rows == new_cols
-    if self_loops.any():
-        # A self-loop is an artefact of the shuffle; retarget those at random.
-        new_cols[self_loops] = rng.integers(0, W.shape[0], size=int(self_loops.sum()))
-    return _dedupe(rows, new_cols, data, W.shape[0])
-
-
-def degree_preserving_swap(W: sp.spmatrix, n_swaps: int | None = None,
-                           rng: np.random.Generator | None = None,
-                           max_tries_factor: int = 20) -> sp.csr_matrix:
-    """Double-edge swaps preserving in- and out-degree exactly.
-
-    ``n_swaps`` defaults to the number of edges, which is the usual working
-    choice: enough to destroy the topology, not enough to guarantee full mixing.
-    Failed swaps (self-loops, duplicate edges) are skipped rather than retried
-    indefinitely, so the achieved swap count is reported implicitly by the fact
-    that degrees still match -- which is asserted in the tests.
+    ``n_swaps`` defaults to the edge count ``m``.  Failed swaps (self-loops,
+    duplicate edges) are skipped rather than retried indefinitely, so the achieved
+    count is at most ``n_swaps``; the caller should check how much actually moved
+    via :func:`swap_fraction` rather than assuming.
     """
     rng = rng or np.random.default_rng(0)
-    A = W.tocoo()
+    rows, cols, data = _as_coo(W)
     n = W.shape[0]
-    rows = A.row.astype(np.int64).copy()
-    cols = A.col.astype(np.int64).copy()
-    data = A.data.astype(np.float64).copy()
     m = len(rows)
     if m < 2:
         return W.tocsr()
-    n_swaps = n_swaps if n_swaps is not None else m
+    n_swaps = m if n_swaps is None else int(n_swaps)
 
-    present = {(int(r), int(c)) for r, c in zip(rows, cols)}
+    present = set(zip(rows.tolist(), cols.tolist()))
     done = 0
     for _ in range(n_swaps * max_tries_factor):
         if done >= n_swaps:
@@ -97,15 +86,14 @@ def degree_preserving_swap(W: sp.spmatrix, n_swaps: int | None = None,
         cols[i], cols[j] = d, b
         done += 1
 
-    # Carry the weight of the original edge onto the swapped edge.
-    return _dedupe(rows, cols, data, n)
+    return _rebuild(rows, cols, data, n)
 
 
 def erdos_renyi(n: int, n_edges: int, rng: np.random.Generator,
                 signed: bool = True) -> sp.csr_matrix:
     """Random graph with the same neuron count and edge count."""
     total = n * (n - 1)
-    n_edges = min(n_edges, total)
+    n_edges = min(int(n_edges), total)
     flat = rng.choice(total, size=n_edges, replace=False)
     rows = flat // (n - 1)
     cols = flat % (n - 1)
@@ -113,14 +101,14 @@ def erdos_renyi(n: int, n_edges: int, rng: np.random.Generator,
     data = np.ones(n_edges, dtype=np.float64)
     if signed:
         data = data * rng.choice([-1.0, 1.0], size=n_edges)
-    return _dedupe(rows, cols, data, n)
+    return _rebuild(rows, cols, data, n)
 
 
 def swap_fraction(W_before: sp.spmatrix, W_after: sp.spmatrix) -> float:
     """Share of edges that changed target -- how much a null actually moved.
 
-    Worth reporting for every null: a swap count is not a mixing guarantee, and a
-    null that barely moved would make the connectome look special for no reason.
+    Worth reporting for every null: a swap *count* is not a mixing guarantee, and
+    a null that barely moved would make the connectome look special for no reason.
     """
     A = W_before.tocoo()
     B = W_after.tocoo()
@@ -129,9 +117,28 @@ def swap_fraction(W_before: sp.spmatrix, W_after: sp.spmatrix) -> float:
     return 1.0 - len(before & after) / max(1, len(before))
 
 
-NULLS = {
-    "real": lambda W, rng: W.tocsr(),
-    "target_shuffle": shuffle_targets,
-    "degree_swap": degree_preserving_swap,
-    "erdos_renyi": None,  # needs the edge count, handled by the caller
-}
+#: Swap strengths, as multiples of the edge count.  Chosen to span "barely
+#: touched" to "thoroughly mixed" so a monotone response can actually be seen.
+SWAP_STRENGTHS = (0.1, 0.5, 2.0)
+
+
+def null_names(strengths=SWAP_STRENGTHS) -> tuple[str, ...]:
+    return ("real", *(f"swap{s:g}" for s in strengths), "erdos_renyi")
+
+
+def apply_null(W: sp.spmatrix, topology: str, rng: np.random.Generator) -> sp.csr_matrix:
+    """Apply a named null topology.
+
+    The single entry point for every topology contrast in the project, so an
+    experiment cannot accidentally use a different null than the one it names.
+    """
+    if topology == "real":
+        return W.tocsr()
+    if topology.startswith("swap"):
+        frac = float(topology[4:])
+        return double_edge_swap(W, n_swaps=int(round(frac * W.nnz)), rng=rng)
+    if topology == "erdos_renyi":
+        return erdos_renyi(W.shape[0], W.nnz, rng, signed=True)
+    raise ValueError(
+        f"unknown topology {topology!r}; expected 'real', 'swap<frac>' or 'erdos_renyi'"
+    )

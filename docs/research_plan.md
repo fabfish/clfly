@@ -65,12 +65,31 @@ Stated so they can fail.
 The EWC↔Kalman gap is **substantially larger** on the connectome topology than on
 controls with matched degree sequence, matched edge count, and matched spectrum.
 
-*Mechanism:* LGCL finding 1's near-losslessness is a measure-concentration result
-about random rotations. The connectome is sparse, modular and heavy-tailed, so
-the off-diagonal information does not get washed out.
+*Status after `e2`: the effect is real and large, the mechanism is not what we
+first said. The measured gap on wiring-derived tasks is +45–63% of the oracle's
+error against <1% in LGCL's random-rotation family.*
 
-*Controls (all three required, or the claim is uninterpretable):* degree-preserving
-rewiring, Erdős–Rényi at matched density, and a matched-spectrum random graph.
+*What is supported:* the connectome's task subspaces are **7× more orthogonal than
+chance**, and rewiring monotonically destroys that (up to 5× *more aligned* than
+chance at Erdős–Rényi). The geometry half of the claim holds cleanly.
+
+*What is refuted:* the gap does **not** track task overlap. Across the
+degree-preserving family the gap moves *opposite* to interference — overlap rises
+8× while the gap falls by two-thirds. The first mechanism story was wrong.
+
+*Replacement, to be tested properly:* the gap tracks the **spectral richness** of
+each task's precision within its observed subspace (~50 effective directions of
+~72 on the real connectome, collapsing to rank-1 as the wiring is randomised).
+This is consistent with Phase 1's "anisotropy governs the penalty" but on a
+different axis, and unifying the two is the main open theoretical question. The
+current evidence is four points with the axis confounded with swap strength, so
+this is a hypothesis, not a finding.
+
+*Controls (all required, or the claim is uninterpretable):* degree-preserving
+double-edge swaps at several strengths, Erdős–Rényi at matched density, and a
+matched-spectrum random graph. Note Erdős–Rényi is a **separate regime**, not the
+end of the swap axis: it also destroys the degree sequence and makes `(I − W)`
+near-singular, so the propagator conditioning changes too.
 
 ### C2 — Basis selection *(the core contribution)*
 
@@ -78,17 +97,32 @@ The best anchoring basis is a **biological module basis** — cell class, cell t
 hemilineage, or nerve — and it beats the neuron basis by more than
 capacity-matched random partitions do.
 
+*Status after `e3` and `e2`: supported, modestly, with the strongest evidence
+coming from the wiring contrast.* At matched capacity, biological partitions beat
+group-size-matched random ones at 4 of 5 rungs (side −0.121, cell_class −0.103,
+hemilineage −0.075, supertype −0.049, cell_type +0.004) — but they buy only about
+a quarter of the available improvement, and `cell_type` in particular buys
+nothing, because at 0.979 constrained it is nearly the diagonal.
+
+The decisive support is `e2`: the cell-class advantage over its matched control is
+**monotone in wiring randomisation and flips sign** — −0.175 on the real
+connectome, +0.078 on Erdős–Rényi. So the grouping is not intrinsically a good
+anchoring; it is good *because it matches the connectome*. That closes the
+obvious objection that any meaningful partition would do as well.
+
 *Predictive machinery:* LGCL v8 showed the diagonalisation penalty is a geometric
 resonance requiring the anchoring basis to align with the task's precision basis.
-Generalising that to a partition gives a concrete scalar — the principal angles
-between the partition's indicator span and the task's dominant precision subspace.
-**The prediction is that this scalar ranks the candidate bases.** If it does not,
-the mechanism story is wrong and we say so.
+The first attempt to generalise it — mean `cos²` of principal angles between a
+partition's indicator span and the task subspaces — **does not work**, and the
+failure is informative: raw alignment is anti-correlated with the gap (a finer
+partition has a larger span and overlaps everything for free), and adding an
+empirically measured chance level recovers only 3 of 5 orderings. `hemilineage` is
+aligned *below* chance yet still beats its control, so alignment is not what does
+the work there. **A replacement predictor is an open problem.**
 
 *Anti-p-hacking:* every comparison is at matched `n_parameters`, and the primary
 control is a group-size-matched random permutation of the labels — identical group
-sizes, identical parameter count, no biology. If cell types win, they win on
-structure.
+sizes, identical parameter count, no biology.
 
 *Honest accounting:* `RotatedDiagonal` bases must carry `d(d-1)/2` rotation
 parameters, so unless the rotation is shared across tasks a "rotated basis EWC" is
