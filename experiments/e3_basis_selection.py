@@ -32,8 +32,11 @@ from pathlib import Path
 
 import numpy as np
 
-from clfly.bench.oracle import gap_vs_oracle as _gap
-from clfly.bench.oracle import oracle_errors
+from clfly.bench.oracle import (
+    oracle_errors,
+    paired_excess,
+    task_subspaces,
+)
 from clfly.connectome import annotate, circuits, graph, rewiring, tasks
 from clfly.lgcl.bases import (
     Diagonal,
@@ -49,22 +52,6 @@ OUT_DIR = REPO_ROOT / "runs"
 BIOLOGICAL_BASES = ("side", "cell_class", "cell_type", "ito_lee_hemilineage", "supertype")
 
 
-def gap_vs_oracle(seq, basis) -> dict:
-    """Excess error of the basis-anchored filter over the exact oracle.
-
-    Wraps :func:`clfly.bench.oracle.gap_vs_oracle` and adds the matching variable:
-    the share of the covariance the projection zeroes.  NOT
-    ``discarded_fraction(eye)``, which is always zero -- the identity is already
-    within-group, so probing the projection with it measures nothing.
-    """
-    raw = _gap(seq, basis, keys=("final_avg_error", "forgetting"))
-    out = {f"gap_{k}": v for k, v in raw.items()}
-    total = seq.d * (seq.d + 1) // 2
-    out["constrained_fraction"] = 1.0 - basis.n_parameters / total
-    out["n_parameters"] = basis.n_parameters
-    return out
-
-
 def candidate_bases(circ: circuits.Circuit, rng: np.random.Generator) -> dict:
     """Every anchoring basis to be compared, biological and control."""
     bases = {"diagonal(EWC)": Diagonal(circ.n_neurons)}
@@ -78,7 +65,7 @@ def candidate_bases(circ: circuits.Circuit, rng: np.random.Generator) -> dict:
 
 
 def alignment_of(partition: Partition, seq, ranks, rng: np.random.Generator,
-                 n_null: int = 8) -> dict:
+                 n_null: int = 8, top: int | None = None) -> dict:
     """Alignment between a partition's indicator span and the task subspaces.
 
     Raw alignment is not interpretable on its own: a finer partition has a
@@ -91,18 +78,23 @@ def alignment_of(partition: Partition, seq, ranks, rng: np.random.Generator,
     level: the mean alignment this same partition achieves against random
     subspaces of the same dimension.  Measuring the null rather than deriving it
     keeps the comparison honest if the indicator spans are not generic.
+
+    ``top`` selects a spectrally *truncated* task subspace.  Without it the
+    subspace is the task's entire range space, which is set by support membership
+    alone and is bit-identical across large changes in drive strength -- so the
+    predictor cannot see the structure it is supposed to be testing.  This is the
+    most likely reason the untruncated version failed to rank the bases in e3.
     """
     Q = partition.indicator_span()
     p = Q.shape[1]
+    V = task_subspaces(seq, ranks, top=top)
     raw, chance = [], []
     for k in range(seq.T):
-        w, V = np.linalg.eigh(seq.J[k])
-        q = int(ranks[k])
-        U = V[:, np.argsort(w)[::-1][:q]]
+        U = V[k]
         raw.append(alignment_score(Q, U))
         nulls = []
         for _ in range(n_null):
-            Z = np.linalg.qr(rng.standard_normal((seq.d, q)))[0]
+            Z = np.linalg.qr(rng.standard_normal((seq.d, U.shape[1])))[0]
             nulls.append(alignment_score(Q, Z))
         chance.append(float(np.mean(nulls)))
     raw_m, chance_m = float(np.mean(raw)), float(np.mean(chance))
@@ -111,60 +103,69 @@ def alignment_of(partition: Partition, seq, ranks, rng: np.random.Generator,
         "alignment_chance": chance_m,
         "excess": raw_m / chance_m if chance_m > 0 else float("nan"),
         "span_dim": int(p),
+        "align_top": int(V[0].shape[1]),
     }
 
 
 def run(args) -> dict:
+    """Paired design: one set of task sequences per seed, every basis scored on all of them.
+
+    This is what makes the comparison interpretable.  Building tasks inside the
+    basis loop would give each basis its own task draw, so basis differences would
+    be contaminated by task differences -- and on this substrate the task-to-task
+    spread is larger than most of the effects (see the metric-instability findings).
+    """
     t0 = time.time()
     conn = graph.build()
     ann = annotate.load_annotations()
 
     results = {"config": vars(args), "topologies": {}, "timing": {}}
     for topology in args.topologies:
-        rng_top = np.random.default_rng(args.seed0)
         circ = circuits.extract(conn, ann, hops=0, max_neurons=args.circuit_size)
         if topology != "real":
-            rng = np.random.default_rng(args.seed0)
-            W = circ.net.weights()
-            if topology == "target_shuffle":
-                new = rewiring.shuffle_targets(W, rng)
-            elif topology == "degree_swap":
-                new = rewiring.degree_preserving_swap(W, rng)
-            elif topology == "erdos_renyi":
-                new = rewiring.erdos_renyi(circ.n_neurons, W.nnz, rng, signed=True)
-            else:
-                raise SystemExit(f"unknown topology {topology!r}")
-            circ.net = graph.Connectome(circ.net.n_neurons, circ.net.root_ids, new.tocsr())
-            results["topologies"].setdefault(topology, {})["swap_fraction"] = \
-                rewiring.swap_fraction(circ.net.weights(), new)
+            rng_top = np.random.default_rng(args.seed0)
+            W0 = circ.net.weights()
+            W = rewiring.apply_null(W0, topology, rng_top)
+            results.setdefault("topology_notes", {})[topology] = {
+                "edges_before": int(W0.nnz), "edges_after": int(W.nnz),
+                "swap_fraction": rewiring.swap_fraction(W0, W),
+            }
+            circ.net = graph.Connectome(circ.net.n_neurons, circ.net.root_ids, W.tocsr())
+            print(f"  topology {topology}: edges {W0.nnz:,} -> {W.nnz:,}")
 
-        per_seed = []
+        # scores: name -> metric -> value, pooled across seeds
+        seqs, ranks = [], []
         for seed in range(args.seed0, args.seed0 + args.seeds):
             wt = tasks.build_tasks(circ, support_size=args.support, q=args.q, seed=seed)
-            seq = wt.sequence
-            rng = np.random.default_rng(seed)
-            row = {"_abs": {}}
-            for name, basis in candidate_bases(circ, rng).items():
-                g = gap_vs_oracle(seq, basis)
-                if isinstance(basis, Partition):
-                    g.update(alignment_of(basis, seq, wt.ranks, rng))
-                row[name] = g
-            # absolute levels, so a ratio against a near-zero oracle cannot
-            # masquerade as a large effect
-            oracle = oracle_errors(seq)
-            row["_abs"] = {
-                "oracle_final": oracle["final_avg_error"],
-                "oracle_forgetting": oracle["forgetting"],
-                "d": seq.d,
-            }
-            per_seed.append(row)
-            print(f"    seed {seed} done ({time.time()-t0:.0f}s)  d={seq.d}")
+            seqs.append(wt.sequence)
+            ranks.append(wt.ranks)
+            print(f"    built tasks for seed {seed} ({time.time()-t0:.0f}s)  d={wt.sequence.d}")
+        rank_ref = ranks[0]
 
+        rng = np.random.default_rng(args.seed0)
         agg = {}
-        for name in per_seed[0]:
-            keys = per_seed[0][name]
-            agg[name] = {k: float(np.nanmean([r[name][k] for r in per_seed])) for k in keys}
-        results["topologies"].setdefault(topology, {}).update(agg)
+        for name, basis in candidate_bases(circ, rng).items():
+            row = paired_excess(seqs, basis)
+            row["n_parameters"] = basis.n_parameters
+            total = seqs[0].d * (seqs[0].d + 1) // 2
+            row["constrained_fraction"] = 1.0 - basis.n_parameters / total
+            if isinstance(basis, Partition):
+                # spectrally selected subspace, not the full range space: taking the
+                # numerical rank returns the whole range, which is blind to drive
+                # strength and cannot see the structure the predictor is about.
+                row.update(alignment_of(basis, seqs[0], rank_ref, rng,
+                                        top=args.align_top))
+            agg[name] = row
+            print(f"    {name:26} excess={row['excess_mean']:+.5f}"
+                  f"+-{row['excess_sem']:.5f}  gap(sd)={row['gap_mean']:+.3f}"
+                  f"({row['gap_sd']:.3f})  ({time.time()-t0:.0f}s)")
+
+        agg["_abs"] = {
+            "oracle_final": float(np.mean([oracle_errors(s)["final_avg_error"] for s in seqs])),
+            "d": seqs[0].d,
+            "n_seeds": len(seqs),
+        }
+        results["topologies"][topology] = agg
 
     results["timing"]["total_s"] = time.time() - t0
     return results
@@ -176,31 +177,37 @@ def report(results: dict) -> None:
             continue
         absl = agg.get("_abs", {})
         print(f"\n=== topology: {topology} ===")
-        print(f"d={absl.get('d', '?')}  oracle final={absl.get('oracle_final', float('nan')):.4f}"
-              f"  oracle forgetting={absl.get('oracle_forgetting', float('nan')):.5f}")
-        print(f"{'basis':26} {'n_params':>10} {'constr':>8} {'gap_final':>10} "
-              f"{'gap_forget':>11} {'align':>7} {'excess':>7}")
-        print("-" * 86)
+        print(f"d={absl.get('d', '?')}  seeds={absl.get('n_seeds', '?')}  "
+              f"oracle final={absl.get('oracle_final', float('nan')):.5f}")
+        print(f"{'basis':26} {'n_params':>10} {'constr':>7} {'excess':>10} {'sem':>9} "
+              f"{'gap_mean':>9} {'gap_sd':>8} {'align':>7} {'excess_al':>9}")
+        print("-" * 104)
         for name in sorted(agg):
             if name.startswith("_"):
                 continue
             d = agg[name]
-            line = (f"{name:26} {d.get('n_parameters', 0):10,.0f} "
-                    f"{d['constrained_fraction']:8.4f} {d['gap_final_avg_error']:+10.5f} "
-                    f"{d['gap_forgetting']:+11.4f} {d.get('alignment', float('nan')):7.4f} "
-                    f"{d.get('excess', float('nan')):7.3f}")
-            print(line)
+            print(f"{name:26} {d.get('n_parameters', 0):10,.0f} "
+                  f"{d['constrained_fraction']:7.4f} {d['excess_mean']:+10.5f} "
+                  f"{d['excess_sem']:9.5f} {d['gap_mean']:+9.4f} {d['gap_sd']:8.4f} "
+                  f"{d.get('alignment', float('nan')):7.4f} "
+                  f"{d.get('excess', float('nan')):9.3f}")
 
-        print("\n  paired contrast (biological minus size-matched random), gap_final:")
+        print("\n  paired contrast (biological minus size-matched random), excess error:")
+        wins = 0
         for col in BIOLOGICAL_BASES:
             b, r = agg.get(f"bio:{col}"), agg.get(f"rand:{col}")
             if not b or not r:
                 continue
-            delta = b["gap_final_avg_error"] - r["gap_final_avg_error"]
-            verdict = "bio better" if delta < 0 else "no gain"
-            print(f"    {col:24} bio {b['gap_final_avg_error']:+.5f}  "
-                  f"rand {r['gap_final_avg_error']:+.5f}  "
-                  f"delta {delta:+.5f}  {verdict}")
+            delta = b["excess_mean"] - r["excess_mean"]
+            sem = float(np.hypot(b["excess_sem"], r["excess_sem"]))
+            resolvable = abs(delta) > 2 * sem
+            wins += bool(delta < 0 and resolvable)
+            verdict = ("bio better" if delta < 0 else "bio worse") if resolvable \
+                else "not resolvable"
+            print(f"    {col:24} bio {b['excess_mean']:+.5f}  rand {r['excess_mean']:+.5f}  "
+                  f"delta {delta:+.5f} +- {sem:.5f}  {verdict}")
+        print(f"    -> {wins} of {len(BIOLOGICAL_BASES)} rungs resolved in biology's favour")
+        print("  (a delta smaller than twice its standard error is not a result)")
 
 
 def main(argv=None) -> int:
@@ -211,6 +218,10 @@ def main(argv=None) -> int:
     p.add_argument("--seed0", type=int, default=0)
     p.add_argument("--q", type=float, default=0.02)
     p.add_argument("--topologies", default="real")
+    p.add_argument("--align-top", type=int, default=16,
+                   help="spectral truncation for the alignment predictor; the "
+                        "numerical rank would return the degener"
+                        "ate full range space")
     p.add_argument("--json-out", type=Path, default=None)
     args = p.parse_args(argv)
     args.topologies = tuple(t for t in args.topologies.split(",") if t)

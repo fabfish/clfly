@@ -101,28 +101,34 @@ The best anchoring basis is a **biological module basis** — cell class, cell t
 hemilineage, or nerve — and it beats the neuron basis by more than
 capacity-matched random partitions do.
 
-*Status after `e3` and `e2`: supported, modestly, with the strongest evidence
-coming from the wiring contrast.* At matched capacity, biological partitions beat
-group-size-matched random ones at 4 of 5 rungs (side −0.121, cell_class −0.103,
-hemilineage −0.075, supertype −0.049, cell_type +0.004) — but they buy only about
-a quarter of the available improvement, and `cell_type` in particular buys
-nothing, because at 0.979 constrained it is nearly the diagonal.
+*Status after the stable-scale recheck: a consistent direction, no statistical
+resolution.* At matched capacity the biological-minus-random delta is negative at 4
+of 5 rungs (`side` −0.0054, `cell_class` −0.0044, `hemilineage` −0.0036,
+`supertype` −0.0021, `cell_type` +0.0004) and **monotone across all five wiring
+nulls** in `e2` (1-in-120 under a random ordering) — but every comparison sits at
+about **1.3 standard errors** at 5 seeds, and the `e2` sign flip spans 0.0147
+against standard errors of ~0.023. Resolving at 2σ needs ~12 seeds for `e3` and
+~29 per topology for `e2`.
 
-The decisive support is `e2`: the cell-class advantage over its matched control is
-**monotone in wiring randomisation and flips sign** — −0.175 on the real
-connectome, +0.078 on Erdős–Rényi. So the grouping is not intrinsically a good
-anchoring; it is good *because it matches the connectome*. That closes the
-obvious objection that any meaningful partition would do as well.
+So the claim is **not established**, and the earlier "4 of 5 rungs beat their
+matched control" was an artefact of a metric that manufactured differences (see
+`docs/findings/2026-09-22-metric-instability.md`). It is not refuted either: the
+direction is consistent across two independent experiments and two null families.
+
+*What is resolved instead:* **granularity beats biology.** The excess error is
+monotone in `constrained_fraction` (0.004 at 0.50 → 0.019 at 0.999), and the
+coarsest-versus-diagonal comparison is resolved at 2.1σ. The reliably useful thing
+is anchoring in *broader* groups, and the annotation ladder happens to supply its
+best rungs at the coarse end. That is the claim to lead with until a predictor or a
+larger budget says otherwise.
 
 *Predictive machinery:* LGCL v8 showed the diagonalisation penalty is a geometric
 resonance requiring the anchoring basis to align with the task's precision basis.
-The first attempt to generalise it — mean `cos²` of principal angles between a
-partition's indicator span and the task subspaces — **does not work**, and the
-failure is informative: raw alignment is anti-correlated with the gap (a finer
-partition has a larger span and overlaps everything for free), and adding an
-empirically measured chance level recovers only 3 of 5 orderings. `hemilineage` is
-aligned *below* chance yet still beats its control, so alignment is not what does
-the work there. **A replacement predictor is an open problem.**
+The principal-angle scalar **fails** — raw alignment is anti-correlated with the
+benefit, and adding an empirical chance level recovers only 3 of 5 orderings.
+Truncating the task subspace spectrally (fixing a genuine range-space degeneracy
+identified later) does not improve it. **A working predictor is an open problem**,
+and it is the binding constraint on the claim.
 
 *Anti-p-hacking:* every comparison is at matched `n_parameters`, and the primary
 control is a group-size-matched random permutation of the labels — identical group

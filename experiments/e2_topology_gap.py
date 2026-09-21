@@ -44,8 +44,7 @@ from pathlib import Path
 
 import numpy as np
 
-from clfly.bench.oracle import gap_vs_oracle as _gap
-from clfly.bench.oracle import task_geometry
+from clfly.bench.oracle import paired_excess, task_geometry
 from clfly.connectome import annotate, circuits, graph, rewiring, tasks
 from clfly.lgcl.bases import Diagonal, Partition, random_partition
 
@@ -53,16 +52,6 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 
 #: Nulls ordered from least to most structure destroyed.
 TOPOLOGY_ORDER = rewiring.null_names()
-
-
-def gap_vs_oracle(seq, basis) -> float:
-    """Excess final error of a basis-anchored filter over the exact oracle."""
-    return float(_gap(seq, basis, keys=("final_avg_error",)))
-
-
-def geometry(seq, ranks) -> dict:
-    """Task-geometry readings -- see :func:`clfly.bench.oracle.task_geometry`."""
-    return task_geometry(seq, ranks)
 
 
 def run(args) -> dict:
@@ -73,40 +62,36 @@ def run(args) -> dict:
 
     for topology in args.topologies:
         print(f"  topology: {topology}")
-        rows = []
+        # The circuit and its rewiring belong to the *topology*, not the seed.
+        # Extracting inside the seed loop would give each seed a different
+        # rewired graph, so the seeds would not be replicates of the same condition.
+        circ = circuits.extract(conn, ann, hops=0, max_neurons=args.circuit_size)
+        W0 = circ.net.weights()
+        W = rewiring.apply_null(W0, topology, np.random.default_rng(args.seed0))
+        print(f"      edges {W.nnz:,} (was {W0.nnz:,})  "
+              f"targets changed {rewiring.swap_fraction(W0, W):.3f}")
+        circ.net = graph.Connectome(circ.net.n_neurons, circ.net.root_ids, W.tocsr())
+
+        seqs, ranks = [], []
         for seed in range(args.seed0, args.seed0 + args.seeds):
-            circ = circuits.extract(conn, ann, hops=0, max_neurons=args.circuit_size)
-            rng = np.random.default_rng(seed)
-            W0 = circ.net.weights()
-            W = rewiring.apply_null(W0, topology, rng)
-            moved = rewiring.swap_fraction(W0, W)
-            print(f"      {topology:12} edges {W.nnz:,} (was {W0.nnz:,})  "
-                  f"targets changed {moved:.3f}")
-            circ.net = graph.Connectome(circ.net.n_neurons, circ.net.root_ids, W.tocsr())
-
             wt = tasks.build_tasks(circ, support_size=args.support, q=args.q, seed=seed)
-            seq = wt.sequence
+            seqs.append(wt.sequence)
+            ranks.append(wt.ranks)
 
-            # identical groupings across topologies, and one matched random control
-            rng_b = np.random.default_rng(seed)
-            bases = {
-                "diagonal(EWC)": Diagonal(seq.d),
-                "bio:cell_class": Partition(circ.labels["cell_class"]),
-                "rand:cell_class": random_partition(circ.labels["cell_class"], rng_b),
-            }
-            row = {"geometry": geometry(seq, wt.ranks)}
-            for name, b in bases.items():
-                row[f"gap:{name}"] = gap_vs_oracle(seq, b)
-            rows.append(row)
-            print(f"    seed {seed} done ({time.time()-t0:.0f}s)  d={seq.d}")
+        # identical groupings across topologies, and one matched random control
+        rng_b = np.random.default_rng(args.seed0)
+        bases = {
+            "diagonal(EWC)": Diagonal(seqs[0].d),
+            "bio:cell_class": Partition(circ.labels["cell_class"]),
+            "rand:cell_class": random_partition(circ.labels["cell_class"], rng_b),
+        }
+        print(f"    built {len(seqs)} task sets ({time.time()-t0:.0f}s)  d={seqs[0].d}")
 
-        agg = {}
-        for key in rows[0]:
-            if key == "geometry":
-                agg["geometry"] = {k: float(np.nanmean([r["geometry"][k] for r in rows]))
-                                   for k in rows[0]["geometry"]}
-            else:
-                agg[key] = float(np.nanmean([r[key] for r in rows]))
+        agg = {"geometry": {k: float(np.mean([task_geometry(s, r)[k]
+                                              for s, r in zip(seqs, ranks)]))
+                            for k in task_geometry(seqs[0], ranks[0])}}
+        for name, b in bases.items():
+            agg[name] = paired_excess(seqs, b)
         out["topologies"][topology] = agg
 
     out["timing_s"] = time.time() - t0
@@ -115,32 +100,39 @@ def run(args) -> dict:
 
 def report(results: dict) -> None:
     order = [t for t in TOPOLOGY_ORDER if t in results["topologies"]]
-    print(f"\n{'topology':14} {'overlap':>9} {'chance':>8} {'over/ch':>8} "
-          f"{'eff_rank':>9} {'flatten':>8} {'gap:EWC':>10} {'bio-rand':>9}")
-    print("-" * 88)
+    print(f"\n{'topology':14} {'overlap':>8} {'over/ch':>8} {'flatten':>8} "
+          f"{'excess:EWC':>11} {'sem':>8} {'gap(sd)':>13} {'bio-rand':>10} {'sem':>8}")
+    print("-" * 100)
     for t in order:
         a = results["topologies"][t]
         g = a["geometry"]
-        ov = g["consecutive_alignment"]
-        ch = g["chance_alignment"]
-        print(f"{t:14} {ov:9.4f} {ch:8.4f} {ov/ch:8.3f} {g['effective_rank']:9.1f} "
-              f"{g['flattening']:8.3f} {a['gap:diagonal(EWC)']:+10.4f} "
-              f"{a['gap:bio:cell_class'] - a['gap:rand:cell_class']:+9.4f}")
+        bio, rnd = a["bio:cell_class"], a["rand:cell_class"]
+        delta = bio["excess_mean"] - rnd["excess_mean"]
+        sem = float(np.hypot(bio["excess_sem"], rnd["excess_sem"]))
+        print(f"{t:14} {g['consecutive_alignment']:8.4f} "
+              f"{g['consecutive_alignment']/g['chance_alignment']:8.3f} "
+              f"{g['flattening']:8.3f} {a['diagonal(EWC)']['excess_mean']:+11.5f} "
+              f"{a['diagonal(EWC)']['excess_sem']:8.5f} "
+              f"{a['diagonal(EWC)']['gap_mean']:+7.3f}"
+              f"({a['diagonal(EWC)']['gap_sd']:.3f}) "
+              f"{delta:+10.5f} {sem:8.5f}")
 
     print("\nmonotonicity along the null order (real -> erdos_renyi):")
     readings = (
         ("task overlap", lambda a: a["geometry"]["consecutive_alignment"]),
         ("overlap/chance", lambda a: a["geometry"]["consecutive_alignment"]
             / a["geometry"]["chance_alignment"]),
-        ("flattening", lambda a: a["geometry"]["flattening"]),
-        ("EWC gap", lambda a: a["gap:diagonal(EWC)"]),
-        ("bio - rand", lambda a: a["gap:bio:cell_class"] - a["gap:rand:cell_class"]),
+        ("EWC excess", lambda a: a["diagonal(EWC)"]["excess_mean"]),
+        ("bio - rand", lambda a: a["bio:cell_class"]["excess_mean"]
+            - a["rand:cell_class"]["excess_mean"]),
     )
     for label, getter in readings:
         vals = [getter(results["topologies"][t]) for t in order]
         rising = all(b >= a - 1e-9 for a, b in zip(vals, vals[1:]))
-        shown = "  ".join(f"{v:+.4f}" for v in vals)
+        shown = "  ".join(f"{v:+.5f}" for v in vals)
         print(f"  {label:16} {shown}   monotone={'YES' if rising else 'no'}")
+    print("  (monotone over 5 points on a chaotic metric is weak evidence; read the")
+    print("   per-point standard errors before believing any trend)")
 
 
 def main(argv=None) -> int:
