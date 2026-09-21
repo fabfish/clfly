@@ -198,8 +198,7 @@ failures, goes in `docs/findings/`.
 
 Research here runs as a bounded, measured loop: one metric, constrained scope,
 automatic rollback, git as the record. Phase 1's gate was `repro_max_abs_err`,
-now closed at 4.7e-5. Phase 3–4's gate is the basis-anchoring benefit under a
-matched budget.
+now closed at 4.7e-5.
 
 Two rules that keep the loop honest:
 
@@ -209,6 +208,33 @@ Two rules that keep the loop honest:
 2. **Failures ship.** The Phase-1 negative result (no unimodal peak in the
    coordinate basis) is in the findings log with the same prominence as the
    successes, because it is what redirected the programme.
+
+### Measurement rules
+
+Added 2026-09-22, after the headline metric was found to be chaotic
+(`docs/findings/2026-09-22-metric-instability.md`).
+
+3. **Do not report the relative gap bare.** On the connectome substrate EWC's
+   relative excess over the oracle has a standard deviation comparable to its own
+   mean — up to 1.38 across seeds at *fixed* settings — and moves by ±0.04 under a
+   **1e-15 relative** change in the spectral radius. It is a ratio of two small,
+   close numbers, so it inherits the EWC estimator's full relative variance.
+   Report `clfly.bench.oracle.paired_excess`: the **absolute** excess with its
+   standard error across >= 3 seeds, plus `gap_of_means` if a ratio is wanted.
+   At current settings, excess differences below ~0.05 are not resolvable.
+4. **Pin the spectral radius, and report it.** `stable_weights` must use a
+   deterministic ARPACK start vector. With the default random start, `W` differs by
+   1 ULP between identical calls and the reported gap moves by several percent.
+   This was a real bug, found and closed.
+5. **Geometry is safe; realized errors are not.** Quantities computed from
+   eigenvectors (task overlap, effective rank) are bit-reproducible. Anything built
+   from a realized estimation error is not. Prefer geometric statements.
+6. **Watch for range-space degeneracy.** Taking the top-`rank` subspace of a
+   rank-`rank` matrix returns its entire range space, which for these tasks is
+   determined by support *membership* and is blind to how strongly each neuron is
+   driven. A predictor built on it cannot see spectral structure — the most likely
+   reason the principal-angle alignment scalar failed in `e3`. Use
+   `task_subspaces(..., top=k)` for a spectrally selected subspace.
 
 ## Related work to differentiate against
 

@@ -118,22 +118,36 @@ class WiringTasks:
 
 # --------------------------------------------------------------------------
 def stable_weights(conn: Connectome, rho: float = 0.9, scale: str = "log1p",
-                   maxiter: int = 2000) -> sp.csr_matrix:
+                   maxiter: int = 2000, v0: np.ndarray | None = None) -> sp.csr_matrix:
     """Connectome weights rescaled to spectral radius ``rho < 1``.
 
     Stability is not a detail: ``G = (I - W)^{-1}`` only exists, and the linear
     rate model only has a fixed point, when the spectral radius is below one.
     The connectome's raw signed weights are far from that, so the dynamics are
     normalised rather than the threshold being fiddled per experiment.
+
+    **``v0`` matters more than it looks.**  ARPACK starts from a random vector when
+    ``v0`` is not given, so the converged eigenvalue varies in its last bits and
+    the rescaling factor with it -- ``W`` differs by ~1 ULP between two identical
+    calls.  That is invisible here and catastrophic downstream: the rank-deficient
+    Kalman recursion is ill-conditioned enough to amplify a 1-ULP weight change
+    into a several-percent change in the reported EWC gap.  A deterministic start
+    vector is therefore passed by default, and
+    :func:`clfly.bench.oracle.gap_bandwidth` measures whatever amplification
+    remains.
     """
     W = conn.weights(scale).astype(np.float64).tocsr()
     n = W.shape[0]
     k = min(2, n - 1)
+    if v0 is None:
+        # deterministic, seed-independent start
+        v0 = np.ones(n, dtype=np.float64)
     try:
-        lam = spla.eigs(W, k=k, which="LM", return_eigenvectors=False, maxiter=maxiter)
+        lam = spla.eigs(W, k=k, which="LM", return_eigenvectors=False,
+                        maxiter=maxiter, v0=v0)
         radius = float(np.abs(lam).max())
     except Exception:  # pragma: no cover - fall back to power iteration
-        v = np.ones(n)
+        v = v0.copy()
         radius = 0.0
         for _ in range(200):
             v = W @ v

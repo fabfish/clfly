@@ -101,12 +101,19 @@ def irreducible_error(seq, P0_scale: float = 1.0) -> np.ndarray:
 
 
 def gain_mismatch_excess(seq, basis: Basis, P0_scale: float = 1.0) -> np.ndarray:
-    """Per-step MSE excess attributable to the basis projection.
+    """Per-step MSE excess of projecting the *prior* through ``basis``.
 
-    Diagnostic that decomposes an anchoring basis's cost into per-task steps,
-    instead of only reporting the endpoint.  Uses the optimal-gain identity: the
-    projected covariance becomes the next step's prior, and the induced gain
-    error is priced exactly.
+    Implements the appendix identity ``M(K) - M(K*) = tr(J (K-K*)(P_J^{-1} + J^{-1})(K-K*)^T)``,
+    so a single covariance compression is priced exactly as a gain error.
+
+    **Read the caveat before using this on a recursive filter.**  It is identically
+    zero for any basis whose projection is idempotent *and* already applied: after
+    the first step the prior lives inside the basis's family, so projecting it again
+    changes nothing and the per-step gain cost is exactly 0.  Measured on the
+    connectome tasks, ``basis=Diagonal`` returns a flat array of zeros -- not a bug,
+    but the quantitative form of LGCL v8's lemma that *all* of the diagonalisation
+    penalty is cumulative.  The identity prices one-off projections; it cannot
+    attribute a recursive scheme's loss to any individual step.
     """
     d = seq.d
     P = P0_scale * np.eye(d)

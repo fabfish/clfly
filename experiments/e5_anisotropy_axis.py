@@ -35,9 +35,16 @@ from pathlib import Path
 
 import numpy as np
 
-from clfly.bench.oracle import gap_vs_oracle, oracle_errors, task_geometry
+from clfly.bench.oracle import (
+    diagonalisation_pressure,
+    gap_vs_oracle,
+    oracle_errors,
+    paired_excess,
+    task_geometry,
+    task_subspaces,
+)
 from clfly.connectome import annotate, circuits, graph, tasks
-from clfly.lgcl.bases import Diagonal, Partition, random_partition
+from clfly.lgcl.bases import Diagonal, Partition, alignment_score, random_partition
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
@@ -53,13 +60,27 @@ def run(args) -> dict:
 
     for seed in range(args.seed0, args.seed0 + args.seeds):
         circ = circuits.extract(conn, ann, hops=0, max_neurons=args.circuit_size)
+        ref_V = None
+        seq_by_kappa: dict[float, list] = {}
         for kappa in args.kappas:
             wt = tasks.build_tasks(circ, support_size=args.support, q=args.q,
                                    seed=seed, weight_concentration=kappa)
             seq = wt.sequence
+            seq_by_kappa.setdefault(kappa, []).append(seq)
             geom = task_geometry(seq, wt.ranks)
             oracle = oracle_errors(seq)
             rng = np.random.default_rng(seed)
+            diag = Diagonal(seq.d)
+
+            # How much each task's precision subspace moves as kappa changes.  If
+            # this stays ~1 the subspaces are kappa-invariant, which would explain
+            # the otherwise puzzling constancy of the cross-task overlap.
+            V = task_subspaces(seq, wt.ranks)
+            if ref_V is None:
+                ref_V = V
+            drift = float(np.mean([alignment_score(ref_V[k], V[k])
+                                   for k in range(seq.T)]))
+
             point = {
                 "seed": seed,
                 "kappa": float(kappa),
@@ -69,16 +90,31 @@ def run(args) -> dict:
                 "top_eig_share": geom["top_eig_share"],
                 "overlap": geom["consecutive_alignment"],
                 "chance_alignment": geom["chance_alignment"],
+                "subspace_drift": drift,
                 "oracle_final": oracle["final_avg_error"],
                 "gap_ewc": gap_vs_oracle(seq, Diagonal(seq.d)),
                 "gap_bio_cc": gap_vs_oracle(seq, Partition(circ.labels["cell_class"])),
                 "gap_rand_cc": gap_vs_oracle(
                     seq, random_partition(circ.labels["cell_class"], rng)),
             }
+            point |= {f"press_{k}": v for k, v in
+                      diagonalisation_pressure(seq, diag).items()}
             out["points"].append(point)
             print(f"  seed {seed} kappa={kappa:<5g} flatten={point['flattening']:.4f} "
                   f"effrank={point['effective_rank']:6.1f} "
+                  f"offdiag={point['press_mean_discarded']:.4f} "
                   f"gap_ewc={point['gap_ewc']:+.4f} ({time.time()-t0:.0f}s)")
+
+        # Per-seed ratios are chaotic; the pooled view is the one to trust.
+        # NOTE: this must stay outside the seed loop -- inside it, each seed pools
+        # only the sequences seen so far and the sem comes out as zero.
+    out.setdefault("pooled", {})
+    for kappa, seqs in seq_by_kappa.items():
+        pooled = paired_excess(seqs, Diagonal(seqs[0].d))
+        out["pooled"][f"kappa={kappa:g}"] = pooled
+        print(f"  pooled kappa={kappa:<5g} excess={pooled['excess_mean']:+.5f}"
+              f" +-{pooled['excess_sem']:.5f}  gap(sd)={pooled['gap_mean']:+.3f}"
+              f"({pooled['gap_sd']:.3f})")
 
     out["timing_s"] = time.time() - t0
     return out
@@ -86,13 +122,14 @@ def run(args) -> dict:
 
 def report(results: dict) -> None:
     pts = results["points"]
-    print(f"\n{'kappa':>7} {'flatten':>9} {'eff_rank':>9} {'top_share':>10} "
-          f"{'overlap':>9} {'gap_EWC':>9} {'bio-rand':>9}")
-    print("-" * 70)
+    print(f"\n{'kappa':>7} {'flatten':>8} {'effrank':>8} {'topshr':>7} {'overlap':>8} "
+          f"{'subdrift':>9} {'offdiag':>8} {'gainsex':>9} {'gap_EWC':>9}")
+    print("-" * 96)
     for p in pts:
-        print(f"{p['kappa']:7g} {p['flattening']:9.4f} {p['effective_rank']:9.1f} "
-              f"{p['top_eig_share']:10.4f} {p['overlap']:9.4f} {p['gap_ewc']:+9.4f} "
-              f"{p['gap_bio_cc'] - p['gap_rand_cc']:+9.4f}")
+        print(f"{p['kappa']:7g} {p['flattening']:8.4f} {p['effective_rank']:8.1f} "
+              f"{p['top_eig_share']:7.4f} {p['overlap']:8.4f} {p['subspace_drift']:9.4f} "
+              f"{p['press_mean_discarded']:8.4f} {p['press_gain_excess_sum']:9.4f} "
+              f"{p['gap_ewc']:+9.4f}")
 
     # Averaged over seeds when there is more than one.
     by_kappa: dict[float, list[dict]] = {}
@@ -109,9 +146,14 @@ def report(results: dict) -> None:
     print(f"  gap monotone decreasing in kappa: {'YES' if falling else 'no'}")
 
     if len(ks) > 2:
-        rho = _spearman(flat, gap)
-        print(f"  Spearman(flattening, gap) over all points = {rho:+.3f}")
-        print("  (negative rho means richer spectra give a LARGER gap)")
+        print("\n  correlations over the sweep (Spearman):")
+        for label, vals in (("flattening", flat),
+                            ("off-diagonal share", [float(np.mean(
+                                [q["press_mean_discarded"] for q in by_kappa[k]])) for k in ks]),
+                            ("gain excess", [float(np.mean(
+                                [q["press_gain_excess_sum"] for q in by_kappa[k]])) for k in ks])):
+            print(f"    {label:20} vs gap_EWC: rho = {_spearman(vals, gap):+.3f}")
+        print("  (rho near -1 means that quantity rises exactly when the gap does)")
 
 
 def _spearman(x, y) -> float:
