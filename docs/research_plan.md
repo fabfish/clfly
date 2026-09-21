@@ -77,13 +77,17 @@ chance at Erdős–Rényi). The geometry half of the claim holds cleanly.
 degree-preserving family the gap moves *opposite* to interference — overlap rises
 8× while the gap falls by two-thirds. The first mechanism story was wrong.
 
-*Replacement, to be tested properly:* the gap tracks the **spectral richness** of
-each task's precision within its observed subspace (~50 effective directions of
-~72 on the real connectome, collapsing to rank-1 as the wiring is randomised).
-This is consistent with Phase 1's "anisotropy governs the penalty" but on a
-different axis, and unifying the two is the main open theoretical question. The
-current evidence is four points with the axis confounded with swap strength, so
-this is a hypothesis, not a finding.
+*Replacement, after `e5`: anisotropy, in the same direction Phase 1 found.* Vary
+the task's spectral concentration **directly**, at fixed topology, fixed support
+size and fixed rank, and the gap is U-shaped in concentration with an overall
+negative association with flatness (Spearman −0.75) — i.e. more anisotropy gives a
+larger gap, matching Phase 1's direction on a different axis. Two corrections to
+the intermediate story: the confounded `e2` trend had the *opposite* sign, and the
+curve is non-monotone, dipping to a minimum at moderate concentration (+0.075)
+before rising to +1.20. **The intermediate dip has no mechanism yet**; the
+predicted signature is a fall in the off-diagonal share of `Σ_k` in the neuron
+basis around `kappa ≈ 0.5`. Unifying the fully-observed and rank-deficient
+anisotropy axes is the main open theoretical question.
 
 *Controls (all required, or the claim is uninterpretable):* degree-preserving
 double-edge swaps at several strengths, Erdős–Rényi at matched density, and a
