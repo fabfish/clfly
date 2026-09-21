@@ -82,6 +82,7 @@ class Circuit:
     name: str
     net: Connectome
     labels: dict[str, np.ndarray] = field(default_factory=dict)
+    value_names: dict[str, list[str]] = field(default_factory=dict)
 
     @property
     def n_neurons(self) -> int:
@@ -89,6 +90,11 @@ class Circuit:
 
     def basis_names(self) -> list[str]:
         return sorted(self.labels)
+
+    def neuron_names(self, column: str) -> list[str]:
+        """Per-neuron group name for one basis column (``"Kenyon_Cell"``, ...)."""
+        names = self.value_names[column]
+        return [names[i] for i in self.labels[column]]
 
     def covariance_gb(self) -> float:
         """Memory one dense ``d x d`` float64 matrix would take, in GB."""
@@ -209,20 +215,23 @@ def extract(
 
     sub = conn.subgraph(nodes)
 
-    labels = {}
+    labels, value_names = {}, {}
     for col in columns:
-        lab = ann.labels(col, sub.root_ids, missing=missing)
-        # Drop groups that vanished with the subcircuit, and renumber densely so
-        # Partition() sees a contiguous label space.
-        _, lab = np.unique(lab, return_inverse=True)
-        labels[col] = lab
+        raw, names = ann.labels_and_names(col, sub.root_ids, missing=missing)
+        # Drop groups that vanished with the subcircuit and renumber densely, so
+        # Partition() sees a contiguous label space and the names stay aligned.
+        uniq, inverse = np.unique(raw, return_inverse=True)
+        remap = -np.ones(int(uniq.max()) + 1, dtype=np.int64)
+        remap[uniq] = np.arange(len(uniq))
+        labels[col] = remap[inverse]
+        value_names[col] = [names[i] for i in uniq]
 
     auto_name = name or "+".join(s.name for s in specs)
     if hops:
         auto_name += f"+{hops}hop"
     if sampled:
         auto_name += f"@n{len(nodes)}"
-    return Circuit(name=auto_name, net=sub, labels=labels)
+    return Circuit(name=auto_name, net=sub, labels=labels, value_names=value_names)
 
 
 def circuit_report(circ: Circuit) -> dict:

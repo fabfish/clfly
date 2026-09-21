@@ -133,11 +133,34 @@ def partial_observation_bases(d, T, obs_dim, rng):
 # --------------------------------------------------------------------------
 # sampling
 # --------------------------------------------------------------------------
+def sample_measurement(theta: np.ndarray, J: np.ndarray,
+                       rng: np.random.Generator, tol: float = 1e-10) -> np.ndarray:
+    """One sufficient statistic drawn with precision ``J``, singular or not.
+
+    ``y = theta + J^{-1/2} z``, restricted to the directions ``J`` actually
+    constrains.  On an unconstrained direction ``J`` has zero eigenvalue, so the
+    measurement carries no information there and ``y`` simply equals ``theta`` --
+    harmless, because the update ``P^{-1} + J`` ignores that direction entirely.
+
+    This generalises :func:`simulate`, which needs ``J`` invertible and therefore
+    cannot express the partially-observed regime at all.  Reconstructed
+    configurations of the published exp4/exp5 families hit exactly that wall.
+    """
+    w, V = np.linalg.eigh((J + J.T) * 0.5)
+    observed = w > tol * max(1.0, float(np.abs(w).max()))
+    y = theta.copy()
+    if observed.any():
+        y = y + V[:, observed] @ (rng.standard_normal(int(observed.sum()))
+                                  / np.sqrt(w[observed]))
+    return y
+
+
 def simulate(theta0: np.ndarray, J: np.ndarray, q: float, rng: np.random.Generator):
     """Sample the drift trajectory and one sufficient statistic per task.
 
     Faithful to the reference: ``theta`` is recorded *before* the drift for
     task ``k``, and the measurement noise is drawn from ``N(0, J_k^{-1})``.
+    Equivalent to :func:`sample_measurement` when every ``J_k`` is invertible.
     """
     T, d = J.shape[0], J.shape[1]
     theta = theta0.copy()

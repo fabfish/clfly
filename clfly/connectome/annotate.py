@@ -83,6 +83,38 @@ class Annotations:
         out.extend(sorted(extra))
         return out
 
+    def labels_and_names(self, column: str, root_ids: np.ndarray,
+                         missing: str = "singleton"):
+        """Like :meth:`labels`, but also return the group *name* for each label id.
+
+        Used wherever a downstream step has to reason about what a group means
+        rather than just that it is a group -- matching an assembly by cell-type
+        prefix, or writing a human-readable group table.
+        """
+        vals = self.frame[column].reindex(root_ids).to_numpy(dtype=object)
+        present = ~np.asarray(pd.isna(vals))
+        named_codes, uniques = pd.factorize(vals[present])
+        names = [str(u) for u in uniques]
+        n_named = len(names)
+
+        if missing == "drop":
+            out = np.full(len(vals), -1, dtype=np.int64)
+            out[present] = named_codes
+            return out, names
+
+        out = np.empty(len(vals), dtype=np.int64)
+        out[present] = named_codes
+        miss = np.flatnonzero(~present)
+        if missing == "shared":
+            out[miss] = n_named
+            names = names + [f"__missing__"]
+        elif missing == "singleton":
+            out[miss] = np.arange(n_named, n_named + len(miss))
+            names = names + [f"__missing__:{i}" for i in miss]
+        else:
+            raise ValueError(f"unknown missing policy {missing!r}")
+        return out, names
+
     def labels(self, column: str, root_ids: np.ndarray,
                missing: str = "singleton") -> np.ndarray:
         """Partition labels aligned to the dense neuron index.
@@ -104,26 +136,7 @@ class Annotations:
         Returns integer labels in ``0..n_groups-1`` over the full index (or over
         the annotated subset for ``"drop"``).
         """
-        vals = self.frame[column].reindex(root_ids).to_numpy(dtype=object)
-        present = ~np.asarray(pd.isna(vals))
-        named_codes, uniques = pd.factorize(vals[present])
-        n_named = len(uniques)
-
-        if missing == "drop":
-            out = np.full(len(vals), -1, dtype=np.int64)
-            out[present] = named_codes
-            return out
-
-        out = np.empty(len(vals), dtype=np.int64)
-        out[present] = named_codes
-        miss = np.flatnonzero(~present)
-        if missing == "shared":
-            out[miss] = n_named
-        elif missing == "singleton":
-            out[miss] = np.arange(n_named, n_named + len(miss))
-        else:
-            raise ValueError(f"unknown missing policy {missing!r}")
-        return out
+        return self.labels_and_names(column, root_ids, missing=missing)[0]
 
     def annotated_mask(self, column: str, root_ids: np.ndarray) -> np.ndarray:
         """Boolean mask of neurons that actually carry a value in ``column``."""
