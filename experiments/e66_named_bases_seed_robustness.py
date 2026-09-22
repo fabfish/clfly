@@ -35,14 +35,18 @@ from pathlib import Path
 import numpy as np
 from scipy.stats import binomtest
 
-#: rung -> (source artifact, human label) for the measured control-draw sd.  `side` has no artifact:
-#: the draw spread was measured for `cell_class`, hemilineage, `supertype` and for pooled `cell_type`
-#: at min group sizes 2/3/4/6, and never for `side` alone.  That absence is reported, not filled in.
+#: rung -> candidate source artifacts for the measured control-draw sd, most direct first.  When `e67`
+#: finished its `side` arm there was no named rung left without a measurement except `cell_type`, whose
+#: direct measurement was still running; the pooled fallback is kept for that case and labelled as a
+#: proxy rather than passed off as the column's own.
 DRAW_SD_SOURCES = {
-    "cell_class": ("runs/e17_cell_class_drawsd.json", "cell_class"),
-    "ito_lee_hemilineage": ("runs/e17b_ito_lee_hemilineage_drawsd.json", "ito_lee_hemilineage"),
-    "supertype": ("runs/e17b_supertype_drawsd.json", "supertype"),
-    "cell_type": ("runs/e14_drawsd_min4.json", "cell_type pooled at min group size 4"),
+    "side": (("runs/e67_drawsd_side_min1.json", "side, 8 draws"),),
+    "cell_class": (("runs/e17_cell_class_drawsd.json", "cell_class, 5 draws"),),
+    "ito_lee_hemilineage": (("runs/e17b_ito_lee_hemilineage_drawsd.json",
+                             "ito_lee_hemilineage, 5 draws"),),
+    "supertype": (("runs/e17b_supertype_drawsd.json", "supertype, 5 draws"),),
+    "cell_type": (("runs/e67_drawsd_cell_type_min1.json", "cell_type, 8 draws"),
+                  ("runs/e14_drawsd_min4.json", "cell_type POOLED at min group size 4 -- a proxy")),
 }
 
 #: The deterministic non-partition bases, and the reference they are contrasted against.
@@ -134,8 +138,12 @@ def main() -> None:
         dl = bv[:n] - rv[:n]
         st = per_seed_stats(dl)
 
-        src = DRAW_SD_SOURCES.get(rung)
-        draw = load(src[0]) if src else None
+        draw, source = None, None
+        for path, lab in DRAW_SD_SOURCES.get(rung, ()):
+            draw = load(path)
+            if draw is not None:
+                source = lab
+                break
         sd = float(draw["control_sd_across_draws"]) if draw else None
         if sd is not None:
             denom = float(np.hypot(st["seed_sem"], sd))
@@ -152,7 +160,7 @@ def main() -> None:
         print(f"   {'':<22} LOO min sigma {st['loo_min']:.1f}   LOO flips {st['loo_flips']}   "
               f"leverage {st['leverage']:.2f}   range [{st['delta_min']:+.5f}, {st['delta_max']:+.5f}]")
         if sd is not None:
-            print(f"   {'':<22} control-draw sd {sd:.6f} ({src[1]}) -> sigma(rule) "
+            print(f"   {'':<22} control-draw sd {sd:.6f} ({source}) -> sigma(rule) "
                   f"{sigma_rule:.1f}   binding axis: {which_binds}")
         else:
             print(f"   {'':<22} control-draw sd NOT MEASURED for this rung -> sigma(rule) is a "

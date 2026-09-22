@@ -460,7 +460,35 @@ two circuits): the draw-to-draw sd is **~1.1e-3 for coarse partitions (2–10 gr
 the seed sem, so a single-draw σ overstates the evidence several-fold — and **~4e-5–9e-5 for
 near-diagonal ones**, where it is negligible. The mechanism is that permuting labels barely
 changes a partition made of singletons and changes a great deal when there are two to ten
-groups. Two rungs of the ladder are in fact the *same partition* (`pool32` and `pool64`; only
+groups.
+
+**With one counterexample that matters, because `side` is one of those partitions.** The claim as
+written is keyed on group count, and `side` is a **4-group** partition — inside the coarse band, and so
+credited with a 3–6× overstatement and a ~1.1e-3 draw sd. Measured directly over eight draws it is
+**2.16e-4**, an overstatement of **1.22×**, and it is not group count that decides: at d = 1307 the
+measured draw sds run 3.9e-5, 9.3e-4, **2.16e-4**, 1.06e-3 as concentration rises 0.020 → 0.325 →
+0.498 → 0.678, so the spread is not monotone in the scalar the project substituted for group count
+either (`docs/findings/2026-09-23-side-draw-sd-refutes-the-concentration-model.md`). The four cs = 300
+conditions of §5's correction therefore remain interpolated rather than measured.
+
+**With `side` measured, four of the five named rungs can be corrected with measurements rather than
+interpolation** (`cell_class`, hemilineage and `supertype` already had theirs; `cell_type`'s is
+running):
+
+| rung | σ, seed-only | draw sd, measured | **σ with the draw component** | overstatement |
+|---|---|---|---|---|
+| `side` | 28.78 | 2.16e-4 (`e67`, 8 draws) | **17.54** | 1.64× |
+| `cell_class` | 12.14 | 2.37e-4 (`e17`, 5 draws) | **9.01** | 1.35× |
+| `ito_lee_hemilineage` | 9.32 | 4.16e-5 (`e17b`, 5 draws) | **9.25** | 1.01× |
+| `supertype` | 4.26 | 8.35e-5 (`e17b`, 5 draws) | **4.14** | 1.03× |
+
+All four resolve after the correction, and the "3–6× for coarse partitions" figure is wrong for every
+one of them: the real overstatements are **1.0–1.6×**. That figure came from *pooled `cell_type`*
+partitions, and it is precisely `side` — the rung whose σ this paper leans on most — that it
+over-penalises by the largest factor. It also reverses a comparison: the granularity ladder's corrected
+rungs sit at 4–9σ, so the five-rung table's best rung at **17.5σ** is *more* decisive than every
+corrected ladder rung, where the uncorrected tables made the ladder look an order of magnitude
+stronger. Two rungs of the ladder are in fact the *same partition* (`pool32` and `pool64`; only
 two cell types have ≥32 neurons), and their controls disagree at 4.7σ, which is where this
 started.
 
@@ -874,14 +902,25 @@ the basis question unanswerable there.
 rank correlations of +0.97 to +0.99.
 
 **That count was then re-derived with the control-draw component included**, because every "clears
-2σ" in it had been computed from the seed-only sem — the quantity §4.3 shows understates the
-uncertainty several-fold for coarse partitions. It holds: **13 of 13 at the estimated draw sd, and
+2σ" in it had been computed from the seed-only sem. It holds: **13 of 13 at the estimated draw sd, and
 12 of 12 if the fine columns' draw sd is four times the estimate**, with the sign record perfect at
 every multiplier from 0.1× to 10× (`docs/findings/2026-09-22-predictor-survives-draw-correction.md`).
-What does change is the individual σ: `side` at d = 1307 goes from 15.53σ to **4.47σ**, the largest
-correction in the study, because `side`'s concentration makes it a coarse partition. The 2σ line
-falls between `baseline/supertype` at 1.94 and `wider-tasks/supertype` at 2.17, so the count is
-13 ± 1 depending on an interpolated quantity — which is the honest form of the claim.
+The 2σ line falls between `baseline/supertype` at 1.94 and `wider-tasks/supertype` at 2.17, so the
+count is 13 ± 1 depending on an interpolated quantity — which is the honest form of the claim.
+
+**And that correction was then measured on the one rung it was largest for, and it shrank by a factor
+of 2.8.** `side`'s draw sd had never been measured, so the analysis above *interpolated* it to
+**1.03e-3** from the concentration relation — which is what turns 15.53σ into 4.47σ. Measured
+directly, over eight independent control draws at d = 1307 (`e67`), it is **2.16e-4**, so the
+correction is 1.22× and **15.53σ becomes 12.74σ**: `side` is not the largest correction in the study
+at all. The interpolation fails as a *model* too. At d = 1307 the measured points run 3.9e-5 at
+concentration 0.020, 9.3e-4 at 0.325, **2.16e-4 at 0.498**, 1.06e-3 at 0.678 — up, down by 4.3×, up
+again — so the scalar that replaced group count is not the axis either
+(`docs/findings/2026-09-23-side-draw-sd-refutes-the-concentration-model.md`). The four cs = 300 rows
+of the correction are not confirmed by this: `side`'s spread has not been measured at d = 952, and the
+model that produced those rows mispredicts by 4.8× at the one point where it can be checked. The
+headline count is untouched — `side` resolves above 12σ under either sd, and the 2σ line sits on
+fine-column pairs this measurement says nothing about.
 
 Two limits, stated plainly. It is a **ranking** predictor, not a calibrated one: its
 dynamic range varies by more than an order of magnitude across conditions while the
