@@ -148,12 +148,31 @@ degree-preserving family the gap moves *opposite* to interference — overlap ri
 > three** — it reproduces seed 0 exactly (1.1244 → 1.2572) while seeds 1 and 2 fall, and the 3-seed
 > means fall too — so it is withdrawn. What would settle the direction is more seeds of the
 > `swap2`/cs = 300 sweep, not another coordinate.
-> **So the position on the instability itself is unchanged and now measured rather than argued:
-> `excess(swap2)` is not a stable quantity across circuits, and no coordinate tried so far accounts
-> for it quantitatively.** What does carry weight is structural and unchanged over six circuits: the
-> two control topologies hold to **10.5%** (`real`) and **24.3%** (`swap0.5`) while `swap2` spans
-> **166%** — measured seed-robust at 27/27 unanimous signs (`e47`) — and the Erdős–Rényi separation
-> remains a regime offset by a factor of eleven with its realization check done and passed.
+>
+> **And the coordinate search is now enumerated rather than anecdotal.** All eight recorded geometry
+> coordinates, on three axes, with the multiple-comparison structure reported instead of assumed
+> (`e53`): **no coordinate survives across circuit sizes alone** (ρ = +0.829, raw p = 0.058 at n = 6,
+> corrected 0.117 — a power limit, not a refutation), but **`effective_rank` and its negative
+> `top_eig_share` do survive across one circuit's realizations** (ρ = +0.943, corrected **p = 0.033**)
+> **and on all twelve points pooled** (ρ = −0.895, corrected **p = 0.0008**). Two corrections were
+> needed to see that: the eight coordinates collapse to **two** distinct orderings on the cross-size
+> axis and five on the pooled one, so Holm over eight counts one line of evidence five times and put
+> the realization axis on the wrong side of 0.05; and the intended negative control
+> (`chance_alignment`) turns out to equal `mean_rank / d`, so it is collinear with a real coordinate
+> and this sweep has **no** internal falsification test.
+>
+> **So the plan's phrasing is corrected: the coordinate accounts for the *ordering* of the excess and
+> not for its *magnitude law*.** The law is refuted separately (cross-family slopes, the missed
+> pre-registered band) and the across-circuit sign rule separately again. "No coordinate accounts for
+> it" invited the reading that the ordinal relation was dead too, and it is not.
+> (`docs/findings/2026-09-22-coordinate-search-enumerated.md`)
+>
+> **The position on the instability itself is unchanged: `excess(swap2)` is not a stable quantity
+> across circuits, and no coordinate accounts for it *quantitatively*.** What does carry weight is
+> structural and unchanged over six circuits: the two control topologies hold to **10.5%** (`real`)
+> and **24.3%** (`swap0.5`) while `swap2` spans **166%** — measured seed-robust at 27/27 unanimous
+> signs (`e47`) — and the Erdős–Rényi separation remains a regime offset by a factor of eleven with
+> its realization check done and passed.
 > (`docs/findings/2026-09-22-geometry-mechanism-refuted-on-the-realization-axis.md`,
 > `docs/findings/2026-09-22-cs700-rejects-the-geometry-reading.md`,
 > `docs/findings/2026-09-22-the-knob-is-inert-where-the-mechanism-was-proposed.md`,
