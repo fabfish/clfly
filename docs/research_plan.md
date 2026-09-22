@@ -404,8 +404,23 @@ unpaired sems; the paired sem at `side` is 1.5× smaller, and the same lesson ha
 independently on the neuron ladder. And the variance, not the effect size, is now the binding
 constraint on this question — which is the same shape as the frozen-body lesson.
 
-*Remaining:* three rungs of the `e10` sweep are still queued, but they answer a weaker question than
+*Remaining:* two rungs of the `e10` sweep are still queued, but they answer a weaker question than
 the one above.
+
+**Three of five rungs are now measured**, all at λ = 1.0:
+
+| rung | constrained | biological | matched random | Δ accuracy | σ paired |
+|---|---|---|---|---|---|
+| `side` | 0.6947 | 0.8148 | 0.8264 | −0.0116 | 0.43 |
+| `cell_class` | 0.9250 | 0.8426 | 0.8611 | −0.0185 | 0.35 |
+| `ito_lee_hemilineage` | 0.9945 | 0.8333 | 0.8333 | 0.0000 ± 0.0305 | degenerate (mean in its own sem) |
+
+All three are nulls with intervals of roughly ±0.03 accuracy, and none beats the naive baseline. Two
+things about that: **λ = 1.0 is the λ at which the `cell_class` contrast is *smallest*** (−0.0185
+against −0.0648 at λ = 0.1), so the rungs have been sampled where the effect is weakest — `e28` is
+putting `side` at λ = 0.1 for that reason. And ±0.03 accuracy against a neuron-level effect of about
+10% of the oracle gap means a network effect of that relative size would be invisible here
+(`docs/findings/2026-09-22-ito-rung-and-degenerate-sigma.md`).
 
 > **All of `e10` is λ-conditional, and λ was never set.** The rungs ran at **λ = 1.0**, the argparse
 > default — 300× the value the project's own sweep recommends (0.003) and beyond the range it swept
