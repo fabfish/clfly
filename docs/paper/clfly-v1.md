@@ -845,11 +845,24 @@ draws of the realisation.
 - **The annotation vocabulary is not a granularity sweep, and the ladder's coarse end is
   degenerate.** Four of the five annotation rungs sit in the top 15% of the constrained range,
   so the five-rung ladder alone under-reports the biological contribution. The granularity
-  ladder (§4.3) corrects that at d = 1307 only, with 12 seeds — but it has **six distinct
-  partitions across eight rungs**: the pooling threshold is a *count* and the median cell type
-  has one neuron, so one group grows 723 → 867 → 952 → 968 → 1062 → 1167 while a 140-neuron cell
-  type never merges (`pool32` and `pool64` are bit-identical), and `pool128` is a 2-group
-  partition. Its two coarsest points are blunt instruments rather than fine resolution.
+  ladder (§4.3) corrects that — but it has **six distinct partitions across eight rungs**: the
+  pooling threshold is a *count* and the median cell type has one neuron, so one group grows
+  723 → 867 → 952 → 968 → 1062 → 1167 while a 140-neuron cell type never merges (`pool32` and
+  `pool64` are bit-identical), and `pool128` is a 2-group partition. Its two coarsest points are
+  blunt instruments rather than fine resolution. **And this is systematic, not incidental**: at
+  d = 1874 the duplicate is `pool64 ≡ pool128` instead, so each configuration has six distinct
+  partitions with the duplication at the coarse end. A **rank-based** ladder — merge the *k*
+  smallest groups rather than everything below a size — would give eight distinct rungs by
+  construction.
+- **The ladder replicates in form but not in number.** Re-run at **d = 1874 with support 150**
+  (12 seeds), it resolves the same **7 of 8** rungs with the same exception (`pool1`, the un-pooled
+  `cell_type` partition — a fourth independent confirmation of that null), at 22–62σ, and shows the
+  same broad interior maximum rather than a monotone trend. What does not replicate is the
+  **maximum's position** (constrained 0.540 here, 0.638 there) and the **effect's relative size**:
+  at matched granularity the advantage is **17.0%** of the oracle gap at d = 1307 against **9.5%** at
+  d = 1874. So "pool the rarest cell types" survives and the *magnitude* of what it buys is
+  configuration-dependent by a factor of two
+  (`docs/findings/2026-09-22-ladder-replicates-at-d1874.md`).
 - **The curve's fine structure is not resolvable, and that is a budget fact rather than a
   to-do.** The internal steps span 0.0008–0.0021 against a control-draw spread of ~1.1e-3, and
   averaging the control brings only the two largest steps (`pool2 → cell_class`, `side → pool4`)

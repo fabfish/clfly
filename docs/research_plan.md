@@ -247,6 +247,26 @@ the target beside a `K` column saying "infeasible" — and nobody looked. It is 
 `pool2 → cell_class` and `side → pool4`, at two control draws each. The K=4 run is queued
 behind the CPU queue (`e3 --control-draws K` is implemented and its wiring validated).
 
+*And the ladder replicates at a second configuration — in form, not in number.* `e9` re-ran it at
+**d = 1874 with support 150** (a 43% larger circuit *and* wider tasks, 12 seeds):
+
+| | d = 1307, support 80 | d = 1874, support 150 |
+|---|---|---|
+| rungs resolved | 7 of 8 | **7 of 8** |
+| the exception | `pool1` (`cell_type`), 0.4σ | **`pool1`, 1.6σ** — fourth confirmation of that null |
+| rung σ range | 4–42σ | **22–62σ** |
+| peak of \|delta\| | constrained **0.540** (`pool4`) | constrained **0.638** (`pool8`) |
+| delta / oracle at matched granularity | **17.0%** | **9.5%** |
+| distinct partitions | 6 of 8 rungs (`pool32 ≡ pool64`) | **6 of 8** (`pool64 ≡ pool128`) |
+
+So the *form* replicates — a broad interior maximum, the `cell_type` null, biology beating matched
+random throughout — while the **peak's position moves and the relative effect halves**. The degeneracy
+is also systematic rather than accidental: each configuration has six distinct partitions across
+eight rungs, in both cases duplicated at the coarse end, because the device is a count threshold
+against a size distribution whose median is 1. A **rank-based** ladder (merge the *k* smallest
+groups) would give eight distinct rungs by construction and is the fix for both this and the synapse
+line (`docs/findings/2026-09-22-ladder-replicates-at-d1874.md`).
+
 The predictor handles the ladder at Spearman **+0.995** over 17 partition bases, including
 eight of similar granularity distinguished only by which groups were merged — a case where a
 predictor that merely recovered `constrained_fraction` would give them all the same score.
