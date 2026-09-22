@@ -87,6 +87,12 @@ def run_condition(cond, args, conn, ann) -> dict:
             "excess": ex["excess_mean"],
             "excess_sem": ex["excess_sem"],
             "pressure": float(np.mean([projection_pressure(s, b) for s in seqs])),
+            #: Carried through so the matched pairs can be checked *per seed* rather than only on
+            #: their pooled means.  Without it the run reproduces `e6_predictor_6` exactly and adds
+            #: nothing, which is what the first launch of `e64` did: every basis in a condition sees
+            #: the same task geometries in the same order, so the per-seed excesses are matched and
+            #: the contrast between a biological basis and its control is a paired quantity.
+            "excess_per_seed": ex.get("excess_per_seed"),
         })
     return {"condition": cond, "d": seqs[0].d, "n_seeds": len(seqs), "rows": rows}
 

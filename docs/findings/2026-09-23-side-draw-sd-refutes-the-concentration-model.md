@@ -56,7 +56,7 @@ Every measured point on `cell_type` at d = 1307, plus this one:
 
 | partition | concentration | measured draw sd | draws |
 |---|---|---|---|
-| `cell_type` min 1 | 0.020 | 3.9e-5 | 2 |
+| `cell_type` min 1 | 0.020 | **6.8e-5** | **8** |
 | `cell_type` min 2 | 0.325 | 9.3e-4 | 5 |
 | **`side`** | **0.498** | **2.16e-4** | **8** |
 | `cell_type` min 32 | 0.678 | 1.06e-3 | 2 |
@@ -98,9 +98,9 @@ measurements this run says nothing about. **13 of 13 stands.**
 
 ### 4.1 And the whole five-rung table can now be corrected, because four of its five draw sds are measured
 
-`side` was the last named rung whose draw spread was unknown. With it, the five-rung table of
-`e3_seeds18` can be corrected with measurements rather than an interpolation — `cell_class`,
-hemilineage and `supertype` already had theirs from `e17`/`e17b`, and `cell_type`'s is still running:
+`side` was the last named rung whose draw spread was unknown. With it, and with `e67`'s second arm
+finishing in the same sweep, **all five** named rungs can now be corrected with measurements rather
+than an interpolation:
 
 | rung | σ, seed-only (18 seeds) | draw sd, measured | source | **σ with the draw component** | overstatement |
 |---|---|---|---|---|---|
@@ -108,16 +108,25 @@ hemilineage and `supertype` already had theirs from `e17`/`e17b`, and `cell_type
 | `cell_class` | 12.14 | 2.37e-4 | `e17`, 5 draws | **9.01** | 1.35× |
 | `ito_lee_hemilineage` | 9.32 | 4.16e-5 | `e17b`, 5 draws | **9.25** | 1.01× |
 | `supertype` | 4.26 | 8.35e-5 | `e17b`, 5 draws | **4.14** | 1.03× |
-| `cell_type` | 0.74 | — | unmeasured (`e67` running) | — | — |
+| `cell_type` | 0.74 | 6.80e-5 | `e67`, 8 draws | **0.73** | 1.02× |
 
-All four resolve after the correction — 17.5σ, 9.0σ, 9.3σ, 4.1σ — and the paper's §4.3 rule of thumb,
-that a coarse partition's single-draw σ overstates the evidence 3–6×, is wrong for every one of them:
-the real overstatements are **1.0–1.6×**. The rule of thumb was derived from *pooled `cell_type`*
-partitions, and it is exactly `side` — the named rung with the largest uncorrected σ, and the one whose
-σ the paper leans on most — that the rule over-penalises by the largest factor. Which also flips a
-comparison the paper makes in the other direction: the granularity ladder's corrected rungs sit at
-4–9σ, so the five-rung table's best rung at **17.5σ** is *more* decisive than every corrected ladder
-rung, not less.
+Four of the five still resolve — 17.5σ, 9.0σ, 9.3σ, 4.1σ, with `cell_type` a null either way — and the
+paper's §4.3 rule of thumb, that a coarse partition's single-draw σ overstates the evidence 3–6×, is
+wrong for every one of them: the real overstatements are **1.0–1.6×**. The rule of thumb was derived
+from *pooled `cell_type`* partitions, and it is exactly `side` — the named rung with the largest
+uncorrected σ, and the one whose σ the paper leans on most — that the rule over-penalises by the
+largest factor. Which also flips a comparison the paper makes in the other direction: the granularity
+ladder's corrected rungs sit at 4–9σ, so the five-rung table's best rung at **17.5σ** is *more*
+decisive than every corrected ladder rung, not less.
+
+**And the fine end of the calibration moved too, in the direction the mechanism document warned
+about.** The 2-draw value for `cell_type` min 1 was 3.9e-5; eight draws give **6.8e-5**, a factor of
+1.75 — and that document had explicitly flagged the two-draw figure as having "a standard error of
+order 50%". It was right about that one, while being wrong by 4.8× about `side`. At the fine end the
+single-draw protocol is also *exactly* right: for `cell_type` min 1 the overstatement is **1.00×**,
+because a near-diagonal partition's control is nearly the diagonal and relabelling it changes almost
+nothing. That is the one part of the old "coarse versus fine" story that survives, and it survives as a
+statement about concentration at the extremes rather than about group count.
 
 ## 5. What it moves: the budget, in the safe direction
 
@@ -130,16 +139,24 @@ predicted the direction would reverse. The scalar is not yet usable for budgetin
 
 ## 6. Limits
 
-- **One partition, one circuit size.** d = 1307 only. The cs = 300 conditions of the predictor's table
+- **Two partitions, one circuit size.** d = 1307 only. The cs = 300 conditions of the predictor's table
   are not covered, and that is where three of the five published `side` corrections live.
 - **Eight draws.** The sd of eight points has a relative standard error near 25%, so "2.16e-4" is
   roughly [1.6e-4, 3.3e-4]. That interval excludes the predicted 1.0e-3 comfortably and contains the
   two-draw 9e-5 at its edge — the refutation is robust to the sample size, the vindication of the
   smoke value is not.
 - **The comparison points at concentration 0.325 and 0.678 rest on 5 and 2 draws** respectively. The
-  non-monotonicity claim is a statement about those three numbers as measured; if the 0.678 point is
-  off, the "up-down-up" shape could be "down-up". Either way, `side` at 0.498 being 4.3× below the
-  partition at 0.325 is the measurement that refutes monotonicity, and it is not the 2-draw point.
-- **`cell_type` at d = 1307 with 812 groups is running** in the same sweep
-  (`runs/e67_drawsd_cell_type_min1.json`), which will give a second measured point from this run
-  against the 2-draw 3.9e-5 currently used for the fine end of the calibration.
+  non-monotonicity claim is a statement about those numbers as measured; if the 0.678 point is off, the
+  "up-down-up" shape could be "down-up". Either way, `side` at 0.498 being 4.3× below the partition at
+  0.325 is the measurement that refutes monotonicity, and it is not the 2-draw point.
+- **`cell_type` min 1 also landed in this sweep** (`runs/e67_drawsd_cell_type_min1.json`, 8 draws,
+  6.80e-5). It does two things: it replaces the 2-draw 3.9e-5 that was one of the three measured points
+  the concentration interpolation was built on — moving it by 1.75×, which is within what a two-point sd
+  should move by — and it gives the five-rung table its fifth measured correction. Both are reported
+  above; neither changes the refutation of `side`'s prediction, and the fine end of the relation is now
+  anchored on eight draws instead of two.
+- **The concentration scalar failed as a *predictor*, not as a description.** Four measured points at
+  d = 1307 (0.020 → 6.8e-5, 0.325 → 9.3e-4, 0.498 → 2.16e-4, 0.678 → 1.06e-3) do not order
+  monotonically, but nothing here says no function of the partition's geometry predicts the draw
+  spread. `e72` pre-registers the natural next candidate — the draw-to-draw spread of the partition's
+  *task alignment*, which is the only thing a relabelling actually changes.
