@@ -505,7 +505,11 @@ Added 2026-09-22, after the headline metric was found to be chaotic
    rungs are that, so they are not granularity points at all. **For a budget,
    use ≈1e-3 for any coarse rung rather than an interpolation**: it is the top of
    the observed range, so it overstates the required K rather than understating
-   it. Where the draw term
+   it. The interpolation is nevertheless usable when a measurement is unavailable —
+   the three annotation columns measured so far (`cell_class` 2.371e-4 against a
+   predicted 1.881e-4, `pool4` 6.13e-4 against 1.1e-3, `pool2` 9.29e-4 against
+   1.1e-3) all landed within 45% of their predicted values and on the safe side of
+   the budget. Where the draw term
    dominates, a single-draw σ overstates the evidence several-fold: coarse-rung σ
    in the basis study are provisional, `pool4` 42.2σ → ≈8.7σ with the component
    included, and `pool2 → pool4` (the plateau question) 2.2σ → ≈0.6σ. Report the

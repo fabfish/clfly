@@ -110,3 +110,56 @@ by constructing new partitions. The first of those is in flight.
   averaged controls, and no such run exists.
 - The five points are not independent draws: the same circuit is rewired along one swap family, so
   the topologies are nested by construction and the σ are not independent across rows.
+
+## 8. The measurement: the inference holds, with 60% headroom
+
+`e17` measured `cell_class`'s draw sd directly at d = 1307 (12 groups, concentration 0.171, 3 seeds,
+5 draws) — the partition the script can build with `--column cell_class --min-size 1`:
+
+| quantity | value |
+|---|---|
+| **draw sd** | **2.371e-4** |
+| the interpolation §3 used | 1.881e-4 |
+| ratio | **1.26×** |
+| per-draw control means | 0.013922, 0.013895, 0.013668, 0.014290, 0.014123 |
+
+So the interpolation was good to 26%, and the knee's first interior point is no longer missing for
+this partition. Recomputing the table with the **measured** value:
+
+| topology | delta | σ seed-only | **σ measured** | σ at 2× (the cliff) |
+|---|---|---|---|---|
+| `real` | −0.00276 | 2.52 | **2.46** | 2.31 |
+| `swap0.1` | −0.00202 | 2.27 | **2.19** | 2.00 |
+| `swap0.5` | +0.00102 | 2.42 | **2.11** | 1.61 |
+| `swap2` | +0.00042 | 2.75 | 1.50 | 0.85 |
+| `erdos_renyi` | +0.00213 | 2.43 | **2.35** | 2.14 |
+
+**Four of five points resolve, two on each side of zero** — `real` (2.46) and `swap0.1` (2.19)
+negative, `swap0.5` (2.11) and `erdos_renyi` (2.35) positive. `swap2` does not resolve, as predicted
+from the interpolation. So §4's conclusion is unchanged and §5's sensitivity is now **resolved
+rather than open**:
+
+> `swap0.1`, the second negative point, falls below 2σ only once the draw sd exceeds **4.775e-4** —
+> **2.01× the measured value**. The inference that the advantage is a property of the connectome
+> therefore has 60% of headroom on the one quantity that was interpolated.
+
+The cliff being at 2.01× is a coincidence of this dataset rather than a property of anything, but it
+is worth noting how close the published form of the claim came to having no support at all: had the
+draw sd been twice the interpolation instead of 1.26×, the claim in the abstract would have rested
+on a single resolved negative point.
+
+`e17` also gives an independent estimate of the `cell_class` delta itself, at 3 seeds:
+**−0.00312**, against the ladder's −0.00319 at 18 seeds and −0.00307 in the predictor's
+larger-circuit condition. Three runs, three seed counts, agreement to 4%.
+
+## 9. What this closes and what it does not
+
+**Closed:** the sign-flip inference no longer depends on an interpolation, and the real disagreement
+between the two e2 findings is reconciled (§2 — the metric, not the effect).
+
+**Not closed:** the knee as a *curve*. `cell_class` at 0.171 is now measured, but the rise from
+0.020 to 0.325 is still only two points plus this one, and the predictor's matched-pair count
+(`2026-09-22-predictor-survives-draw-correction.md` §4) turns on `supertype` (concentration 0.026)
+and `ito_lee_hemilineage` (0.032), which sit **below** `cell_class` and remain interpolated. The same
+one-measurement-per-column route applies: `--column supertype` and `--column ito_lee_hemilineage`
+would close it, one run each.

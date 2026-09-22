@@ -43,10 +43,9 @@ Four findings, one of them unexpected in direction.
    annotation rung showed (0.0041–0.0088 against 0.0015–0.0048). The advantage also **changes
    sign** as the wiring is randomised — negative on the real connectome and mildly rewired
    versions, positive on heavily rewired and Erdős–Rényi ones, with two resolved points on each
-   side (2.21–2.48σ once the control-draw component is included, which also leaves one of the five
-   points unresolved) — so it is a property of the connectome rather than of the
-   vocabulary, though that inference is sensitive to an interpolated quantity and is being
-   measured. The curve's *shape*, however, is **not established**: the plateau, the location
+   side (2.11–2.46σ once the control-draw component is included; one of the five points does not
+   resolve) — so it is a property of the connectome rather than of the
+   vocabulary. The curve's *shape*, however, is **not established**: the plateau, the location
    of the optimum, and the claim that the coarsest rung is uniquely weak all rest on
    differences between deltas of 0.0015–0.004, which is the same order as that draw spread. A
    predictor built from the projection loss of the *exact* filter's
@@ -419,15 +418,21 @@ reverses to a small penalty once the wiring is substantially randomised. The
 progression is not monotone (`real` is more negative than `swap0.1`).
 
 *These σ are seed-only, and `cell_class` is a coarse partition (concentration 0.171), so the
-control-draw component applies.* Adding it in quadrature — at an **interpolated** value, since
-0.171 falls inside an unmeasured interval — leaves **four of the five points resolved**, at 2.21σ
-to 2.48σ, and drops `swap2` to 1.75σ. So the defensible form is: **the advantage is negative on
-the real connectome and on mildly rewired wiring (2.22σ, 2.48σ) and positive on substantially
-rewired and Erdős–Rényi wiring (2.21σ, 2.38σ) — a sign change with two resolved points on each
-side — rather than every point resolving individually.** The claim was always marginal, and it is
-sensitive to the interpolated value: at twice the estimated draw sd only one resolved negative
-point remains and the inference that the advantage is a property of the connectome no longer
-follows. The measurement that would settle it is running
+control-draw component applies.* It has now been **measured directly** at d = 1307 — 2.371e-4, against
+an interpolation of 1.881e-4, i.e. the interpolation was good to 26%. With the measured value the
+table becomes:
+
+| topology | `real` | `swap0.1` | `swap0.5` | `swap2` | `erdos_renyi` |
+|---|---|---|---|---|---|
+| σ seed-only | 2.52 | 2.27 | 2.42 | 2.75 | 2.43 |
+| **σ measured** | **2.46** | **2.19** | **2.11** | 1.50 | **2.35** |
+
+**Four of five points resolve, two on each side of zero** — `real` (2.46) and `swap0.1` (2.19)
+negative, `swap0.5` (2.11) and `erdos_renyi` (2.35) positive. So the defensible form is: *a sign
+change with two resolved points on each side*, rather than every point resolving individually —
+`swap2` does not, and had the draw sd been twice the interpolation rather than 1.26× it, the second
+negative point would have fallen below 2σ as well and the inference would have rested on `real`
+alone. As measured it has **60% of headroom** on that quantity
 (`docs/findings/2026-09-22-sign-flip-under-draw-correction.md`).
 
 ---

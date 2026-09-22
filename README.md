@@ -83,10 +83,9 @@ The scientific programme is complete. A working paper draft consolidating it is 
   types already cuts the penalty by **72%**. The advantage also **changes sign** as the wiring is
   randomised — negative on the real connectome and mildly rewired versions, positive on heavily
   rewired and Erdős–Rényi ones — which is what makes it a property of the connectome rather than
-  of the vocabulary. With the control-draw component included, two points on each side resolve at
-  2.21–2.48σ and one of the five does not resolve at all, so the sign *pattern* is supported
-  rather than every point; the inference is also sensitive to an interpolated quantity that is
-  being measured.
+  of the vocabulary. With the control-draw component included (now **measured**, not interpolated),
+  two points on each side resolve at 2.11–2.46σ and one of the five does not resolve at all, so the
+  sign *pattern* is what is supported rather than every point.
   But the σ are inflated: a matched-random control is a **single draw**, and for coarse
   partitions the draw-to-draw spread is itself ~1.1e-3, 3–6× the reported sem. With it included
   the rung-level result holds at **4–9σ** (not 20–42σ), while the plateau and the location of
