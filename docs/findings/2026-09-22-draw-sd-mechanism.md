@@ -239,3 +239,44 @@ same reshuffling exposure as the measured ones). None of the three is exact, and
   still interpolated across the knee, which is the one place the interpolation is load-bearing: it
   decides whether `wider-tasks/supertype` sits above or below the 2σ line in the predictor's
   matched-pair count (`2026-09-22-predictor-survives-draw-correction.md` §4).
+
+## 10. `supertype`: the interpolation was wrong by 2×, and nothing changed
+
+`e17b` measured the first fine-column draw sd directly — `supertype` at d = 1307,
+concentration 0.0257, 3 seeds, 5 draws:
+
+| quantity | value |
+|---|---|
+| **draw sd** | **8.4e-5** |
+| interpolated prediction | 4.14e-5 |
+| ratio | **2.0×** |
+| per-draw control means | 0.01628, 0.01613, 0.01622, 0.01629, 0.01635 |
+
+This is the **worst interpolation error so far** — against 1.26× for `cell_class`, 1.15× for
+`pool4` and 1.18× for `pool2` — and it is in the direction that matters, since the predictor's
+matched-pair count turns on `supertype` and `ito_lee_hemilineage`. So the obvious question is
+whether the count moves. It does not:
+
+| | resolvable pairs | correct sign | closest pair to the 2σ line |
+|---|---|---|---|
+| as published (interpolated) | 13 | **13/13** | baseline/`supertype` at 1.94 |
+| with the `e17`/`e17b` measurements | 13 | **13/13** | baseline/`supertype` at 1.94 |
+
+The reason is that `supertype`'s seed sem (0.0007–0.0016) is an order of magnitude larger than either
+draw sd, so the draw term is negligible for that column and doubling it changes nothing to two
+decimals. **The predictor's headline is indifferent to an error of this size in exactly the columns
+it depends on.**
+
+Two consequences:
+
+- **The reliability claim needed correcting, not the science.** Plan rule 10 said the three measured
+  columns "all landed within 45% of their predicted values". True of the three measured *then*, and
+  false as a general statement the moment a fourth column was measured: the spread is now
+  1.15×–2.0×. The rule has been updated.
+- **A 2× error in `sd_draw` is not a 2× error in a conclusion.** Where the draw term dominates
+  (coarse partitions) the interpolation has been accurate to 15–26%; where it has been off by 2×,
+  the column is fine and the draw term does not matter. The two failure modes are disjoint, which is
+  why the budget table's constant and the predictor's count are both safe.
+
+`ito_lee_hemilineage` (concentration 0.032) is the second fine column and is still running; it is the
+last one needed to close the knee for every column the predictor uses.
