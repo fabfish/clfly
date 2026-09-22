@@ -473,11 +473,19 @@ def main(argv=None) -> int:
             pc = paired_contrast([r[key] for r in bio["replicates"]],
                                  [r[key] for r in rnd["replicates"]])
             out["matched_pair"][key] = pc
-            line = (f"    {key:18} delta {pc['delta']:+.4f}  unpaired "
-                    f"{pc['sem_unpaired']:.4f} ({pc['sigma_unpaired']:.2f} sigma)")
+            line = (f"    {key:18} delta {pc['delta']:+.4f} +- "
+                    f"{pc['sem_unpaired']:.4f} unpaired ({pc['sigma_unpaired']:.2f} sigma)")
             if "sem_paired" in pc:
-                line += (f"  paired {pc['sem_paired']:.4f} ({pc['sigma_paired']:.2f} sigma)")
+                line += (f"   {pc['sem_paired']:.4f} paired ({pc['sigma_paired']:.2f} sigma)")
             print(line)
+            if "sem_paired" in pc and pc["sem_paired"] > 0 and abs(pc["delta"]) < pc["sem_paired"]:
+                # a near-zero delta makes sigma degenerate: it goes to 0 however *uncertain* the
+                # measurement is, so "0.00 sigma" reads as "nothing there" when it means "measured
+                # zero with an interval of +/- this sem". Report the interval, which is the
+                # informative thing. Seen on the ito_lee_hemilineage rung, where the three
+                # per-replicate deltas are -0.056, +0.049, +0.007 and their mean is 0.000000.
+                print(f"    {'':18} the mean is inside its own sem, so sigma is degenerate; "
+                      f"the measurement is {pc['delta']:+.4f} +- {pc['sem_paired']:.4f}")
             if "min_detectable" in pc:
                 print(f"    {'':18} this run detects effects above {pc['min_detectable']:.3f}; "
                       f"0.03 would need {pc['repeats_for_0.03']:.0f} repeats and 0.01 "
