@@ -252,6 +252,48 @@ def main() -> None:
         print(f"{label:<22}{str(rec['basis']):<24}{rec['fisher_batches']:>8}"
               f"{a['n']:>6}{t / 3600:>9.2f}{per:>19.1f}")
 
+    print()
+    print("=" * 100)
+    print("5. THE SYNAPSE LADDER AT lam = 1.0, FOUR RUNGS IN")
+    print("=" * 100)
+    print("   the biological partition against its own size-matched random control, per rung, with")
+    print("   the cost and the detection floor each run actually achieved\n")
+    print(f"   {'rung':<22}{'biological':>11}{'control':>10}{'delta':>10}{'sigma':>8}"
+          f"{'floor':>8}{'reps needed for 0.01':>22}{'hours':>8}")
+    rungs = []
+    for label, path, _ in RUNS:
+        if not label.startswith("lam1.0"):
+            continue
+        d = load(path)
+        if d is None or "ewc-block" not in d["methods"] or "ewc-block-rand" not in d["methods"]:
+            continue
+        bio, rnd = d["methods"]["ewc-block"], d["methods"]["ewc-block-rand"]
+        a = np.array([r["final_accuracy"] for r in bio["replicates"]])
+        b = np.array([r["final_accuracy"] for r in rnd["replicates"]])
+        if len(a) != len(b):
+            continue
+        delta = float((a - b).mean())
+        sem = float((a - b).std(ddof=1) / np.sqrt(len(a)))
+        sigma = delta / sem if sem else float("nan")
+        floor = 1.96 * sem
+        reps = required_repeats(0.01, float((a - b).std(ddof=1)))
+        hrs = (d.get("timing_s") or float("nan")) / 3600
+        print(f"   {d['config']['basis']:<22}{a.mean():>11.4f}{b.mean():>10.4f}"
+              f"{delta:>+10.4f}{sigma:>+8.2f}{floor:>8.4f}{reps:>22.0f}{hrs:>8.2f}")
+        rungs.append({"basis": d["config"]["basis"], "lam": d["config"]["lam"],
+                      "biological": float(a.mean()), "control": float(b.mean()),
+                      "delta": delta, "sigma": sigma, "detection_floor": floor,
+                      "repeats_for_0.01": reps, "hours": hrs, "n": len(a)})
+    if rungs:
+        worse = sum(1 for r in rungs if r["delta"] < 0)
+        print(f"\n   {worse} of {len(rungs)} rungs put the biological partition BELOW its matched")
+        print(f"   control, and none resolves: the largest |sigma| is "
+              f"{max(abs(r['sigma']) for r in rungs):.2f}.")
+        print("   Every run's detection floor is 0.05 or wider, so a 0.01-0.03 effect -- the size")
+        print("   the neuron line found -- is invisible at 3 replicates, which is what e38 section 3")
+        print("   already bounded and what e46 (16 replicates) is measuring.")
+        out["ladder_lambda_1"] = rungs
+
     Path(args.json_out).parent.mkdir(parents=True, exist_ok=True)
     with open(args.json_out, "w", encoding="utf-8") as fh:
         json.dump(out, fh, indent=1)

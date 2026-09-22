@@ -625,8 +625,15 @@ well-measured run (the floor is at most 43% of the *contrast's* variance there).
 still worth running because it is nearly free and removes the only genuinely-measurable part — but
 the lever the plan wanted does not exist.
 
-*Remaining:* two rungs of the `e10` sweep are still queued, but they answer a weaker question than
-the one above.
+*Remaining:* none. **The ladder stops at four rungs.** `supertype` landed at **3.43 h** for a fourth
+null (Δ = −0.0185, −0.58σ, floor ±0.063, 119 replicates needed), and `cell_type` was **started and
+stopped** on four independent grounds: its answer is entailed by `e35`'s arithmetic bound (19,618
+groups over 26,568 weights is the diagonal), it is the most expensive rung per `e44`'s measured cost
+model (~6 h against `supertype`'s 3.43 h), `e38`'s power analysis says a 3-replicate run cannot
+resolve the effect anyway, and the three rungs that *can* carry a claim are already measured. The
+freed queue goes to `e46` — 16 replicates at λ = 0.1, the only C2b measurement with a detection floor
+small enough to matter
+(`docs/findings/2026-09-22-ladder-stops-at-four-rungs.md`).
 
 **Three of five rungs are now measured**, all at λ = 1.0:
 
@@ -719,7 +726,7 @@ All of it has been run. The scripts as delivered:
 | `e8_rate_network.py` | — | the non-linear substrate, both settings, frozen-body control | done — replay 2.2–4.2σ, best when tuned |
 | `e3_basis_selection.py --ladder` × d=1874 | C2 | second configuration (support 150, d=1874), 12 seeds | **in flight** — `runs/e9_ladder_d1874.json` |
 | `e3_basis_selection.py --ladder` (re-run) | C2 | per-seed excesses for a paired shape test + determinism check | **in flight** — `runs/e3_ladder_v2.json` |
-| `e8_rate_network.py` × 5 rungs | C2b | synapse annotation ladder (0.6947 → 0.9992) | four of five run — all nulls at λ = 1.0 with ≈±0.03 intervals; `e38` bounds what more replicates can buy; `e44` says stop after `ito_lee_hemilineage` |
+| `e8_rate_network.py` × 5 rungs | C2b | synapse annotation ladder (0.6947 → 0.9992) | **four rungs and stopped** — all nulls at λ = 1.0, 3 of 4 with biology *below* its matched control, none resolving (largest \|σ\| = 0.58), floors ≥0.05 and `supertype` cost 3.43 h. `cell_type` was started and stopped on four independent grounds (`e35`'s bound, `e44`'s cost, `e38`'s power, and the three rungs that can carry a claim already being measured) |
 | `e4_modularity.py` | C3 | never written | **C3 deprioritised** — its mechanism is contradicted by `e2` |
 | `e12_control_spread.py` | C2 | how much of a matched-pair delta is the control *draw* | done — draw sd is ~1.1e-3 coarse, ~4e-5 fine; coarse-rung σ are provisional |
 | `e3 --control-draws K` | C2 | average the matched control over K draws | done — wiring validated; the K=3/K=4 runs are queued behind the CPU queue |
