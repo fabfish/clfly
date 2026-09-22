@@ -34,8 +34,9 @@ answer.
 
 ## The substrate
 
-FlyWire adult brain, public release 783: 139,255 neurons, ~3.7M proofread
-connections, with a systematic annotation table giving **flow, superclass, cell
+FlyWire adult brain, public release 783: **138,639 neurons, 15,091,983 connections**
+(read from the data — `graph.build()`; the annotation table has 139,248 rows), with a
+systematic annotation table giving **flow, superclass, cell
 class, nerve, lineage, side, morphology group, neurotransmitter** for most
 neurons.
 
@@ -76,6 +77,17 @@ chance at Erdős–Rényi). The geometry half of the claim holds cleanly.
 *What is refuted:* the gap does **not** track task overlap. Across the
 degree-preserving family the gap moves *opposite* to interference — overlap rises
 8× while the gap falls by two-thirds. The first mechanism story was wrong.
+
+> **And that refutation is configuration-specific.** It rests on a single contrast,
+> `swap0.5 → swap2` (32.7σ at d = 1307). Re-measured at d = 952 with per-seed storage and matched
+> rewiring strength (swap fraction 0.912 against 0.924), the same contrast is **+0.03525 at 21.8σ
+> paired — the opposite sign**. `real` and `swap0.5` replicate between the two configurations to
+> within 4%; only the `swap2` endpoint moves, by a factor of 4.67 (37σ). So at d = 952 heavy
+> rewiring makes the penalty *worse*, which is what the interference story predicts, and at
+> d = 1307 it makes it better. **The honest status is "refuted at d = 1307, reversed at d = 952"**,
+> and the mechanism question is open again rather than settled
+> (`docs/findings/2026-09-22-c1-refutation-does-not-replicate.md`). A sweep over circuit size is the
+> cheap next step; `e2` already takes `--circuit-size`.
 
 *Replacement, after `e5`: anisotropy, in the same direction Phase 1 found.* Vary
 the task's spectral concentration **directly**, at fixed topology, fixed support

@@ -21,8 +21,9 @@ heavy-tailed, and — crucially — **annotated**, with a biological hierarchy o
 groupings (cell type, hemilineage, nerve, neuropil) that suggests where the
 information actually lives.
 
-So the substrate is the FlyWire adult brain (139,255 neurons, ~3.7M proofread
-connections) with the wiring frozen and only synaptic weights learned, and the
+So the substrate is the FlyWire adult brain (public release 783: **138,639 neurons,
+15,091,983 connections**, with a 139,248-row annotation table) with the wiring frozen and only
+synaptic weights learned, and the
 question is which anchoring basis minimises forgetting — with matching controls
 that make the answer mean something.
 

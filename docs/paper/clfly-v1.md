@@ -27,11 +27,14 @@ Four findings, one of them unexpected in direction.
    Kalman oracle is +33–63% on the connectome against **<1%** in LGCL's synthetic
    random-rotation family. "The diagonal approximation is almost free" is a property
    of random task geometry, not of EWC.
-2. **The connectome separates the tasks, but that is not what drives the penalty.**
-   Task precision subspaces on the real wiring are **7× more orthogonal than random
-   subspaces** and rewiring destroys that monotonically — yet the diagonal's excess
-   moves *opposite* to interference, falling by a resolved 32.7σ while overlap
-   doubles. The obvious mechanism is refuted.
+2. **The connectome separates the tasks, and the mechanism behind the penalty is not
+   interference — though that conclusion is configuration-specific.** Task precision subspaces on
+   the real wiring are **7× more orthogonal than random subspaces** and rewiring destroys that
+   monotonically — yet at d = 1307 the diagonal's excess moves *opposite* to overlap, falling by a
+   resolved 32.7σ while overlap doubles. **At d = 952 the same contrast reverses** (+0.03525 at
+   21.8σ paired, with `real` and `swap0.5` replicating to within 4% and matched rewiring strength),
+   so the refutation holds at one circuit size and reverses at another, and the mechanism question
+   is open (§4.2).
 3. **Biological anchoring bases beat capacity-matched random ones, and there is a
    working a-priori predictor.** The fly's own annotation vocabulary supplies five
    discrete rungs, and four of them sit in the top 15% of the granularity range; on a

@@ -93,3 +93,26 @@ analysis lives and which the draw correction *did* change. The eigenbasis compar
 untouched (it is a fixed basis against the diagonal, no random control anywhere), and so is the
 network line's *method* comparison. The distinction is per-contrast, not per-experiment, which is the
 same lesson as §3 in a smaller form.
+
+---
+
+## Correction (next fire): the conservatism was an inference, and the measurement refutes it for `e2`
+
+§3 argues that `e2`'s unpaired contrasts must be conservative because the shared task-draw component
+makes ``E[corr] > 0`` by construction. `e21` measures it, at d = 952 with per-seed storage:
+
+| contrast | unpaired | **paired** | r |
+|---|---|---|---|
+| `real → swap0.5` | 2.7σ | 2.4σ | −0.216 |
+| `swap0.5 → swap2` | 24.4σ | **21.8σ** | **−0.274** |
+
+The correlation is **negative**, so the paired sem is 1.10–1.12× *larger* and the unpaired figure is
+mildly **optimistic** — the opposite of the inference. With n = 3 the sign of a correlation of −0.27
+is itself not determined, so this does not establish a negative population correlation either. What
+it establishes is the narrower and more useful thing: **the shared task-draw component is not large
+enough to make the conservatism safe to assume.** The `e2` rows of §2 should be read as *unresolved*
+rather than conservative.
+
+The empirical lesson is the one this project keeps re-learning: a variance-decomposition argument
+that sounds structural ("the tasks are shared, therefore the covariance is positive") can be
+outweighed by whatever else varies between the arms, and only a measurement settles which dominates.
