@@ -38,11 +38,11 @@ POOL_DRAW_SD = {
     "pool1": (6.801960781803761e-05, "e67 min 1, 8 draws -- this partition"),
     "pool2": (0.0009286726398617035, "e14 min 2, 5 draws -- this partition"),
     "pool4": (0.00061304922373747, "e14 min 4, 5 draws -- this partition"),
-    "pool8": (None, "unmeasured -- 1.0e-3 carried as an UPPER estimate"),
-    "pool16": (None, "unmeasured -- 1.0e-3 carried as an UPPER estimate"),
+    "pool8": (0.000707089871689136, "e74 min 8, 5 draws -- this partition"),
+    "pool16": (0.000668370535579237, "e74 min 16, 5 draws -- this partition"),
     "pool32": (0.0009286726398617035, "e14 min 2 at concentration 0.325 vs this rung's 0.322"),
     "pool64": (0.0009286726398617035, "e14 min 2 at concentration 0.325 vs this rung's 0.322"),
-    "pool128": (None, "unmeasured -- 1.0e-3 carried as an UPPER estimate"),
+    "pool128": (0.0009646877074569237, "e74 min 128, 5 draws -- this partition"),
 }
 
 #: pool rung -> (draw sd, provenance) for the named family.
@@ -161,11 +161,15 @@ def main() -> None:
     n_meas = len(measured_ladder)
     print(f"\n   So the comparison is {best_named['sigma_rule']:.1f} against up to "
           f"{max(all_ladder):.1f} on the ladder, and it is NOT the")
-    print(f"   'order of magnitude' the uncorrected tables suggested.  {n_meas} of "
-          f"{len(ladder_rows)} ladder rungs have a")
-    print(f"   measured draw sd of their own; the other {len(ladder_rows)-n_meas} carry an UPPER estimate, which")
-    print(f"   *lowers* their sigma, so the ladder's figures are floor values and the gap is if anything")
-    print(f"   smaller than printed.")
+    print(f"   'order of magnitude' the uncorrected tables suggested.")
+    if n_meas == len(ladder_rows):
+        print(f"   All {n_meas} ladder rungs now have a measured draw sd of their own, so the ladder's column")
+        print(f"   is a measurement rather than a floor, and the factor is "
+              f"{best_named['sigma_rule']/max(all_ladder):.1f}x.")
+    else:
+        print(f"   {n_meas} of {len(ladder_rows)} ladder rungs have a measured draw sd of their own; the other")
+        print(f"   {len(ladder_rows)-n_meas} carry an UPPER estimate, which *lowers* their sigma, so the ladder's")
+        print(f"   figures are floor values and the gap is if anything smaller than printed.")
     out["head_to_head"] = dict(
         best_named=best_named["rung"], best_named_sigma=best_named["sigma_rule"],
         best_ladder=(best_ladder["rung"] if best_ladder else None),

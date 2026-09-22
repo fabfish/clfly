@@ -27,11 +27,11 @@ apples-to-oranges. This script applies both steps to both families.
 | ladder | `pool1` | +0.00019 | 0.00051 | 0.00003 | **19.6×** | 7.3 | 6.80e-5 ▣ | 2.6 |
 | | `pool2` | −0.00801 | 0.00032 | 0.00034 | **0.9×** | 23.3 | 9.29e-4 ▣ | 8.1 |
 | | `pool4` | −0.00884 | 0.00021 | 0.00020 | 1.1× | 44.4 | 6.13e-4 ▣ | **13.7** |
-| | `pool8` | −0.00685 | 0.00023 | 0.00022 | 1.0× | 31.0 | 1.0e-3 ▢ | 6.7 |
-| | `pool16` | −0.00765 | 0.00020 | 0.00020 | 1.0× | 38.8 | 1.0e-3 ▢ | 7.5 |
+| | `pool8` | −0.00685 | 0.00023 | 0.00022 | 1.0× | 31.0 | 7.07e-4 ▣ | **9.3** |
+| | `pool16` | −0.00765 | 0.00020 | 0.00020 | 1.0× | 38.8 | 6.68e-4 ▣ | **11.0** |
 | | `pool32` | −0.00699 | 0.00018 | 0.00019 | 1.0× | 36.4 | 9.29e-4 ▣ | 7.4 |
 | | `pool64` | −0.00548 | 0.00026 | 0.00027 | 1.0× | 20.4 | 9.29e-4 ▣ | 5.7 |
-| | `pool128` | −0.00409 | 0.00023 | 0.00023 | 1.0× | 17.9 | 1.0e-3 ▢ | 4.0 |
+| | `pool128` | −0.00409 | 0.00023 | 0.00023 | 1.0× | 17.9 | 9.65e-4 ▣ | **4.1** |
 | named | `side` | −0.00477 | 0.00017 | 0.00015 | 1.1× | 31.7 | 2.16e-4 ▣ | **18.1** |
 | | `cell_class` | −0.00319 | 0.00026 | 0.00011 | 2.3× | 27.8 | 2.37e-4 ▣ | 12.1 |
 | | `cell_type` | +0.00026 | 0.00035 | 0.00001 | **27.3×** | 20.3 | 6.80e-5 ▣ | 3.8 |
@@ -43,14 +43,17 @@ estimate** (which *lowers* σ(rule), so those three are floor values).
 
 ## 3. The head-to-head, which is not the one printed
 
-**The best named rung is 26.1σ and the best ladder rung is 13.7σ** — a factor of 1.9, against the
+**The best named rung is 26.1σ and the best ladder rung is 13.7σ** — a factor of **1.9**, against the
 "order of magnitude" the uncorrected tables implied (the ladder was printed at 20–42σ against the named
 table's 4–9σ, i.e. the ladder looked *stronger*; corrected the same way, the named family is stronger by
 a factor of two rather than weaker by ten).
 
-And the ladder's figure is a **floor**: three of its eight rungs carry an upper estimate for the draw
-sd, so their true σ(rule) is at least what is printed. With those three measured the comparison could
-narrow or invert.
+**And the ladder's column is now fully measured rather than a floor.** `e74` supplied the three rungs
+that had none — `pool8` **7.07e-4**, `pool16` **6.68e-4**, `pool128` **9.65e-4**, each at `e14`'s own
+protocol (3 task seeds, 5 draws) so the points sit beside the old ones. All three came in *below* the
+1.0e-3 the tables had assumed, which is why their σ rose rather than fell: `pool8` 6.7 → **9.3**,
+`pool16` 7.5 → **11.0**, `pool128` 4.0 → **4.1**. So the earlier "floor" caveat is discharged, in the
+direction that *widens* the ladder's spread and leaves the 1.9× factor unchanged.
 
 ## 4. The reason the two published tables were not comparable: the pairing gain is family-dependent
 
@@ -71,13 +74,12 @@ the difference flipped with the pairing gain.** One rung of the ladder pays for 
 
 ## 5. Limits
 
-- **Three of eight ladder rungs have no measured draw sd.** `pool8`, `pool16` and `pool128` carry the
-  published 1.0e-3 as an upper estimate, so their σ(rule) are floors. Measuring them is the obvious
-  completion and needs no new machinery — `e12_control_spread --column cell_type --min-size {8,16,128}`.
-- **The draw sds for `pool32`/`pool64` are borrowed**, from the measured point at concentration 0.325
-  against their 0.322. That is a small extrapolation and it is a *different partition*, which `e67`'s
-  refutation of the concentration scalar is a reason to be wary of; those two rows are labelled but not
-  measured.
+- **Every ladder rung now has a measured draw sd of its own**, after `e74` supplied the last three
+  (`pool8` 7.07e-4, `pool16` 6.68e-4, `pool128` 9.65e-4, at `e14`'s protocol). What remains borrowed are
+  `pool32`/`pool64`, whose draw sd comes from the measured point at concentration 0.325 against their
+  0.322 — a *different partition*, which `e67`'s refutation of the concentration scalar is a reason to be
+  wary of. Those two rows are labelled but not measured, and they are 7.4 and 5.7σ, neither of which is
+  the best rung, so the 1.9× head-to-head does not rest on them.
 - **Different seed counts (12 against 18) and one circuit size.** The head-to-head compares two families
   measured by different runs; the footing is now the same, the artifacts are not.
 - **σ(rule) is the honest axis for this comparison** and it is not the one the paper's tables report;
