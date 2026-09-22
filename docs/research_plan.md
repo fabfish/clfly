@@ -644,14 +644,29 @@ of error bar moves σ by a factor of two in either direction, and the honest mov
 replicate requirement as a function of the assumed correlation rather than to pick one.
 
 And the diagnosis was wrong even though the arithmetic was right. **The `naive` arm is bit-for-bit
-identical in every run** (0.8240740763, per-replicate [0.895833, 0.791667, 0.784722] in all five),
-which confirms the shared seed sequence *and* shows the benchmark is **deterministic given the
-seed**. The per-repeat spread is therefore not measurement noise but genuine learner seed-to-seed
-variability, and no measurement change reduces it: the plan's earlier reading of the 0.032
-evaluation floor as "44% of the variance, removable" is bounded at **1.28×** by `e38` on the one
-well-measured run (the floor is at most 43% of the *contrast's* variance there). `--test 480` is
-still worth running because it is nearly free and removes the only genuinely-measurable part — but
-the lever the plan wanted does not exist.
+identical in every run that shares its training configuration** (0.8240740763, per-replicate
+[0.895833, 0.791667, 0.784722] in the five that do), which confirms the shared seed sequence *and*
+shows the benchmark is **deterministic given the seed**. The per-repeat spread is therefore not
+measurement noise but genuine learner seed-to-seed variability, and no measurement change reduces it:
+the plan's earlier reading of the 0.032 evaluation floor as "44% of the variance, removable" is
+bounded at **1.28×** by `e38` on the one well-measured run (the floor is at most 43% of the
+*contrast's* variance there). `--test 480` is still worth running because it is nearly free and
+removes the only genuinely-measurable part — but the lever the plan wanted does not exist.
+
+> **The independence is narrower than that sentence first implied, and `e54` measured it.** `naive`
+> is independent of `basis`, `lam`, `fisher_batches`, `methods` and `repeats` — and of **nothing
+> else**: it still depends on `iters`, `lr`, `batch`, `train`, `test`, `classes`, `noise`, `support`,
+> `shared_head`, `input_overlap`, `readout_size` and `circuit_size`. A census of the fifteen artifacts
+> that carry the arm finds **six distinct `naive` computations**, only one of which has more than five
+> seeds — and the artifact set therefore holds **no more than nine seeds of any one computation**
+> (n = 9, mean 0.8395, sd **0.0389** [0.0263, 0.0745], binomial floor 0.0306 = **62% of the
+> variance**, so **38% of the spread is the learner**). Every cluster difference is explained by an
+> affecting field, so there is no stale artifact hiding in the set — the census is about which runs
+> compute the same thing. Agreement is established **from the data** (clustering runs that agree
+> bit-for-bit on every *shared* seed) rather than from an assumed config key, because a wrong key
+> looks like a larger sample: the first version merged `e8_rate` with the `e10` rungs and showed a
+> seed carrying two values inside one group. `e46`'s 16 replicates will extend this to n = 16 with no
+> change to the script. (`docs/findings/2026-09-22-naive-arm-census.md`)
 
 *Remaining:* none. **The ladder stops at four rungs.** `supertype` landed at **3.43 h** for a fourth
 null (Δ = −0.0185, −0.58σ, floor ±0.063, 119 replicates needed), and `cell_type` was **started and
@@ -770,6 +785,7 @@ All of it has been run. The scripts as delivered:
 | `e47_contrast_per_seed_signs.py` | C1 | is the C1 contrast seed-robust, or is it `e5` all over again? | done — **robust**: 27/27 task seeds agree with their contrast's sign, no leave-one-seed-out removal flips any, max single-seed leverage 0.58–0.77. **And it found a rule-8 hole**: `runs/e2_analytic.json` stores no per-seed values, so the 32.7σ figure is the one contrast that cannot be checked — `e48` launched to close it |
 | `e2_topology_gap --circuit-size 800 --seeds 6` | C1 | per-seed storage for cs = 800 (`e48`), the only contrast lacking it | **in flight** — `runs/e48_cs800_perseed.json` |
 | `e49_kappa_leverage_by_topology.py` | C1 | does the concentration knob move the carrier where the mechanism was proposed? | done — **no**: travel/noise is **142–271×** at `real` and **9.4×, 20.2×, 5.3×** at `swap2`/cs = 800 because the carrier starts already collapsed (effrank 1.70 vs 55), so that configuration is **untested, not null**; the one `swap2` seed with leverage (−0.786, p = 0.036) gives the `e5` direction |
+| `e54_naive_seed_pool.py` | C2b | is the `naive` arm a free instrument, and how many seeds exist for one computation? | done — **six distinct `naive` computations** across 15 runs, the largest with **n = 9** (sd 0.0389, floor 62% of the variance, so 38% is the learner); agreement established from the data, not an assumed config key |
 | `e8_rate_network --lam 0.1 --repeats 16` | C2b | the properly-powered rung contrast at λ = 0.1 (`e46`), the λ where it resolves | **in flight** — `runs/e46_c2b_powered.json` |
 | `e5_anisotropy_axis.py --seeds 12` | C1 | `e5` re-run with 12 seeds (`e42`) — the binding test for the replacement mechanism | **in flight** — `runs/e42_e5_reseed.json`; the point dict now stores the prescribed absolute excess and the report prints per-seed ρ |
 
