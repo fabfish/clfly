@@ -104,6 +104,13 @@ def main() -> None:
         labels = np.asarray(circ.labels[column])
         if min_size > 1:
             labels = _pool_small_groups(labels, min_size)
+        n_groups = int(len(np.unique(labels)))
+        if n_groups < 2:
+            #: A pooling that collapses the circuit into one group leaves nothing to relabel, so the
+            #: partition has no draw spread at all.  Possible at small circuit sizes and reported
+            #: rather than silently correlating a constant.
+            print(f"  {label:<22} skipped: pooling leaves {n_groups} group(s) at this circuit size")
+            continue
         P_, E_, D_, S_ = [], [], [], []
         for d in range(args.draws):
             rng = np.random.default_rng(40_000 + d)
@@ -151,6 +158,15 @@ def main() -> None:
     mean_r2 = float(np.mean([r["r2"] for r in rows]))
     rho_spread = spearman([r["pressure_sd"] for r in rows], y)
     rho_conc = spearman([r["concentration"] for r in rows], y)
+    #: The `measured_sd` targets are the d = 1307 measurements.  At another circuit size the column is
+    #: a *foreign* number and the spread statistic is not valid -- the co-movement is, because it needs
+    #: no measured draw sd at all.  Saying so is the difference between a replication and a mislabelled
+    #: number, which this project has produced before.
+    target_valid = abs(args.circuit_size - 800) < 1e-9
+    if not target_valid:
+        print(f"\n   NOTE: the `measured_sd` column and the spread statistic below are the d = 1307")
+        print(f"   values and are NOT valid at circuit-size {args.circuit_size}.  Only the co-movement")
+        print(f"   is size-independent, because it needs no measured draw sd.\n")
 
     print()
     print("=" * 108)
@@ -164,9 +180,12 @@ def main() -> None:
     print(f"   beats the alignment's {ALIGNMENT_BASELINE:+.3f}:  "
           f"{'YES' if mean_r > ALIGNMENT_BASELINE else 'NO'}")
     print(f"   (mean Spearman form: {mean_rho:+.3f})")
-    print(f"\n   and the spread statistic reproduced on the same data: "
-          f"Spearman(absolute pressure sd, measured sd) = {rho_spread:+.3f}"
-          f"   (concentration: {rho_conc:+.3f})")
+    if target_valid:
+        print(f"\n   and the spread statistic reproduced on the same data: "
+              f"Spearman(absolute pressure sd, measured sd) = {rho_spread:+.3f}"
+              f"   (concentration: {rho_conc:+.3f})")
+    else:
+        print(f"\n   the spread statistic is NOT reported here: its target is the d = 1307 measurement.")
 
     neg = [r for r in rows if r["pearson"] <= 0]
     print()
@@ -183,6 +202,7 @@ def main() -> None:
         print(f"     -> {r['label']:<22} r {r['pearson']:+.3f}  ({r['n_pos_seed']}/{r['n_seed']} seeds positive)")
 
     out = {"config": vars(args), "n": len(rows), "rows": rows,
+           "target_valid_at_this_size": bool(target_valid),
            "mean_pearson": mean_r, "mean_spearman": mean_rho, "mean_r2": mean_r2,
            "spearman_spread_vs_sd": rho_spread, "spearman_concentration_vs_sd": rho_conc,
            "predicted_comovement": PREDICTED_COMOVEMENT, "predicted_r2": PREDICTED_R2,
