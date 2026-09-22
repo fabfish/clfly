@@ -112,6 +112,15 @@ def run(args) -> dict:
                 "gap_rand_cc": gap_vs_oracle(
                     seq, random_partition(circ.labels["cell_class"], rng)),
             }
+            # The plan's measurement rule 3 prescribes the ABSOLUTE excess, and `e41` had to
+            # recover it from the stored artifact as `gap x oracle_final` -- exact, but a derived
+            # column that a reader has to know the definition of `gap_vs_oracle` to trust.  Store
+            # it, for every arm, so the prescribed metric is in the artifact rather than
+            # reconstructable from it.
+            orc = point["oracle_final"]
+            point["excess_ewc"] = point["gap_ewc"] * orc
+            point["excess_bio_cc"] = point["gap_bio_cc"] * orc
+            point["excess_rand_cc"] = point["gap_rand_cc"] * orc
             point |= {f"press_{k}": v for k, v in
                       diagonalisation_pressure(seq, diag).items()}
             out["points"].append(point)
@@ -159,6 +168,26 @@ def report(results: dict) -> None:
     print(f"  gap_EWC    vs kappa: {' -> '.join(f'{v:+.3f}' for v in gap)}")
     falling = all(b <= a + 1e-9 for a, b in zip(gap, gap[1:]))
     print(f"  gap monotone decreasing in kappa: {'YES' if falling else 'no'}")
+
+    # `e41` showed the published association is carried by one seed, so the pooled figure is not
+    # the number to report.  Print the per-seed correlations next to it: each seed is a complete
+    # repeat of the sweep, which makes it the honest unit.
+    absx = [float(np.mean([q["excess_ewc"] for q in by_kappa[k]])) for k in ks]
+    print(f"  excess_ABS vs kappa: {' -> '.join(f'{v:+.5f}' for v in absx)}")
+    print(f"\n  Spearman(flattening, x), pooled over kappa means:")
+    print(f"    gap_EWC    (relative, what this script used to report) rho = "
+          f"{_spearman(flat, gap):+.3f}")
+    print(f"    excess_EWC (absolute, measurement rule 3)              rho = "
+          f"{_spearman(flat, absx):+.3f}")
+    seeds_present = sorted({p["seed"] for p in pts})
+    if len(seeds_present) > 1:
+        print(f"\n  and PER SEED ({len(seeds_present)} seeds), which is the unit that matters:")
+        print(f"    {'seed':>6}{'rho(gap, flat)':>17}{'rho(excess, flat)':>20}")
+        for s in seeds_present:
+            m = [p for p in pts if p["seed"] == s]
+            rg = _spearman([p["flattening"] for p in m], [p["gap_ewc"] for p in m])
+            ra = _spearman([p["flattening"] for p in m], [p["excess_ewc"] for p in m])
+            print(f"    {s:>6}{rg:>+17.3f}{ra:>+20.3f}")
 
     if len(ks) > 2:
         print("\n  correlations over the sweep (Spearman):")
