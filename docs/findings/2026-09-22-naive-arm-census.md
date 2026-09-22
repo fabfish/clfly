@@ -29,7 +29,7 @@ share, and a run that disagrees on any shared seed is kept out rather than merge
 
 | cluster | runs | seeds | n | what differs from the reference |
 |---|---|---|---|---|
-| **0** | **9** | **0–8** | **9** | — |
+| **0** | **10** | **0–15** | **16** | — |
 | 1 | 2 (`e8_hardened` ×2) | 0–4 | 5 | `shared_head=True`, `readout_size=32`, `input_overlap` |
 | 2 | 1 (`e15_artifact_check`) | 0 | 1 | `iters=2` |
 | 3 | 1 (`e20b_noisefloor_check`) | 0–2 | 3 | `iters=40` |
@@ -42,24 +42,29 @@ of this section read `e8_rate`'s missing `basis` field as a marker for predating
 in five affecting fields anyway. **There is no evidence here of a stale or pre-fix artifact**; the
 census is a statement about which runs compute the same thing and nothing more.
 
-And the pool **cannot be grown from the artifacts**: nine seeds is the most that exist for one
-computation. `e46` is running with 16 replicates and its `naive` arm is complete in the log, so n = 16
-needs only that artifact to land — `e54` will pick it up with no change.
+**And it has since grown to n = 16.** `e46` landed with sixteen replicates, and `e54` picked its
+`naive` arm up with no change to the script — cluster 0 is now ten runs over seeds 0–15. So the arm
+really is a free instrument within a configuration, and the prediction in the previous version of this
+section held.
 
 ## 3. The learner-variability estimate, reproduced at n = 9
 
-| quantity | value |
-|---|---|
-| n | 9 |
-| mean accuracy | 0.8395 |
-| seed-to-seed sd | **0.0389** (95% CI [0.0263, 0.0745]) |
-| binomial floor at `n_eval` = 144 | 0.0306, i.e. **62% of the variance** |
-| seed component | at most **0.0679**; at least **38% of the spread is learner variability** |
+| quantity | at n = 9 | **at n = 16** |
+|---|---|---|
+| mean accuracy | 0.8395 | 0.8411 |
+| seed-to-seed sd | 0.0389 (95% CI [0.0263, 0.0745]) | **0.0411 (95% CI [0.0304, 0.0636])** |
+| binomial floor at `n_eval` = 144 | 0.0306, i.e. **62% of the variance** | 0.0305, i.e. **55%** |
+| seed component | at most 0.0679; ≥ **38%** is learner variability | at most 0.0560; ≥ **45%** is learner variability |
 
-This reproduces `e38`'s n = 9 numbers exactly (sd 0.0389, floor 0.0306, 62% share), from a different
+The n = 9 figures reproduce `e38`'s exactly (sd 0.0389, floor 0.0306, 62% share), from a different
 construction — `e38` read `e8_tuned_lambda` alone while this pools every artifact that agrees with it.
-That agreement is a useful check that the pooling adds no error, and it also confirms that the nine
-seeds really are one computation spread across nine files.
+That agreement is a useful check that the pooling adds no error, and it confirms that those nine seeds
+really are one computation spread across nine files.
+
+**Going to n = 16 narrows the 95% interval on the sd by 1.7× and moves the learner's share from 38% to
+45%** — the direction `e38` predicted, since more seeds can only sharpen a variance decomposition. The
+honest summary of the number is therefore a range rather than a point: **the learner contributes
+38–45% of the benchmark's per-replicate spread**, and no measurement change touches it.
 
 **What the number means for the C2b programme is unchanged and worth restating plainly: 38% of the
 benchmark's per-replicate spread is the learner, not the measurement, so `--test 480` cannot remove

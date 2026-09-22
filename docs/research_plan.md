@@ -771,21 +771,40 @@ accuracy against a neuron-level effect of about 10% of the oracle gap means a ne
 relative size would be invisible here
 (`docs/findings/2026-09-22-ito-rung-and-degenerate-sigma.md`).
 
-**And at λ = 0.1 the rung contrast resolves — in the direction the neuron result predicts.** `e28`
+**And at λ = 0.1 the rung contrast appears to resolve — but its main term was three seeds.** `e28`
 put the coarsest rung at that λ, and both runs share seeds, so the two deltas can be contrasted
 paired:
 
 | rung (λ = 0.1, batches 8) | constrained | Δ accuracy vs its own control | σ paired |
 |---|---|---|---|
-| `side` | 0.6947 | **+0.0069 ± 0.0145** | 0.48 |
-| `cell_class` | 0.9250 | **−0.0648 ± 0.0245** | **2.65** |
-| **`side` − `cell_class`** | | **+0.0718 ± 0.0336** | **2.13** (same sign in all 3 replicates) |
+| `side` | 0.6947 | +0.0069 ± 0.0145 (n = 3) | 0.48 |
+| `cell_class` | 0.9250 | **−0.0648 ± 0.0245 (n = 3)** | **2.65** |
+| `side` − `cell_class` | | +0.0718 ± 0.0336 | 2.13 (same sign in all 3 replicates) |
 
-So the coarse rung is better than the fine one at 2.13σ, opposite signs at the same λ — but **it wins
-because the finer rung loses, not because it gains**: `side`'s own delta is +0.0069 (0.48σ, nothing)
-while `cell_class`'s is a resolved *disadvantage*. Not the neuron-level mechanism, which had the
-coarse grouping genuinely better than random
-(`docs/findings/2026-09-22-rung-question-resolved-at-lambda-0.1.md`).
+> ### ✗ WITHDRAWN — `e46` ran `cell_class` at λ = 0.1 with **sixteen** replicates
+>
+> Same configuration, same code, and **its first three replicates reproduce `e31`'s six values
+> bit-for-bit on both arms**, so the comparison is legitimate. The sixteen-seed deltas:
+>
+> | first k seeds | mean Δ | sem | σ | signs |
+> |---|---|---|---|---|
+> | **3** | **−0.0648** | 0.0245 | **−2.65** | `---` |
+> | 6 | −0.0023 | 0.0353 | −0.07 | `---+-+` |
+> | 12 | −0.0006 | 0.0214 | −0.03 | `---+-+-+--++` |
+> | **16** | **+0.0039** | 0.0161 | **+0.24** | `---+-+-+--++++-+` |
+>
+> **The first three seeds are the three most negative of the sixteen, and they are the entire effect.
+> Three more seeds take it from −2.65σ to −0.07σ.** At sixteen the signs are 7 negative / 2 tied /
+> 7 positive — a perfect split — and the detection floor is **0.032** (19 replicates for 0.03, 167 for
+> 0.01).
+>
+> So **"the rung contrast resolves at λ = 0.1" is withdrawn, and with it the mechanism reading** that
+> the coarse rung wins because the fine one loses to its own control. The paired `side − cell_class`
+> contrast loses its main term; `side` needs its own sixteen-replicate run (`e60`, launched) before the
+> contrast can be restated. The line's position is now **nulls at every rung and every λ tested, with
+> the best-powered measurement also a null** — a stronger negative than the plan had, because it is the
+> *well-powered* configuration that is null.
+> (`docs/findings/2026-09-22-the-c2b-rung-result-was-three-seeds.md`)
 
 The cross-run comparison assumes an `ewc-block` arm is independent of the run's method list, and
 **that is now verified bit for bit**: `e31` reproduced both arms across the two method lists
@@ -797,6 +816,15 @@ Three open items remain: n = 3 (the sem carries ~50% relative
 error); the two intermediate rungs are still λ = 1.0 only, which is what decides between a gradient
 and a step; and the mechanism — the coarse rung wins because the fine one *loses to its own control*
 (−0.0648, 2.65σ), not because the coarse one gains (+0.0069, 0.48σ).
+
+> **All three items are now partly answered, and the answer to the third is that there is nothing to
+> explain.** `e54` extended the seed censuses; `e46` ran `cell_class` at λ = 0.1 with **sixteen**
+> replicates and the mechanism's main term collapsed from **−0.0648 (2.65σ) to +0.0039 (+0.24σ)**,
+> because the three seeds it rested on are the three most negative of sixteen. So the mechanism
+> reading is **withdrawn** and the rung contrast at λ = 0.1 is a null; `e60` runs `side` at sixteen
+> replicates to restate the cross-rung contrast. What remains open is only the **intermediate rungs at
+> λ = 1.0**, which is now a question about a line whose every well-powered measurement is a null
+> (`docs/findings/2026-09-22-the-c2b-rung-result-was-three-seeds.md`).
 
 > **All of `e10` is λ-conditional, and λ was never set.** The rungs ran at **λ = 1.0**, the argparse
 > default — 300× the value the project's own sweep recommends (0.003) and beyond the range it swept
@@ -869,7 +897,8 @@ All of it has been run. The scripts as delivered:
 | `e57_basis_ladder_seed_robustness.py` | C2 | does the CORE claim survive the per-seed discipline that overturned C1? | done — **yes, by a wider margin**: 7 of 8 pool rungs unanimous over **12/12** seeds, no leave-one-out flip, smallest LOO σ **6.6**, leverage 0.51–0.80. But the per-seed evidence is for the **pool ladder** while the headline is stated on the **named bases**, whose 18-seed artifact stores none — `e58` launched to close it |
 | `e59_separation_with_both_components.py` | C1 | every σ here is one of two — how strong is each headline claim about the *rule*? | done — **98%+ of a single point's variance is the wiring draw** (realization sds 0.00377 / 0.00320 against seed sems 0.00025 / 0.00047). ER separation **364.9σ about these graphs, 26.1σ about the rule** (was 152σ); C1 contrast **28.8σ / 2.7σ** (was 32.7σ) — and 2.7σ is a *lower bound* because `swap0.5` has no realization sweep |
 | `e3_basis_selection --extra-bases --seeds 18` | C2 | per-seed storage for the named annotation bases (`e58`), the family the headline is stated on | **in flight** — `runs/e58_bases_18seeds_perseed.json`; 1.31 h the first time and the current code stores the field |
-| `e8_rate_network --lam 0.1 --repeats 16` | C2b | the properly-powered rung contrast at λ = 0.1 (`e46`), the λ where it resolves | **in flight** — `runs/e46_c2b_powered.json` |
+| `e8_rate_network --lam 0.1 --repeats 16` | C2b | the properly-powered rung contrast at λ = 0.1 (`e46`), the λ where it appeared to resolve | done — **NULL**: Δ = **+0.0039 ± 0.0161** at n = 16 against the 3-seed **−0.0648**; the first three seeds are the three most negative of sixteen and three more take it from −2.65σ to −0.07σ. Signs 7/2/7, floor 0.032, 19 replicates for 0.03. The 3-seed run's values reproduce bit-for-bit, so the config is identical |
+| `e8_rate_network --basis side --lam 0.1 --repeats 16` | C2b | `side` at sixteen replicates (`e60`), to restate the cross-rung contrast | **in flight** — `runs/e60_side_lam0.1_16reps.json` |
 | `e5_anisotropy_axis.py --seeds 12` | C1 | `e5` re-run with 12 seeds (`e42`) — the binding test for the replacement mechanism | done — **the direction is REVERSED on the prescribed metric**: 9 positive / 2 negative / **1 tied**, mean +0.265, sign p = **0.0654** (ties dropped; an earlier 0.0386 was my error), pooled +0.228 (p = 0.037); on the relative gap the same seeds say nothing (7/5/0, p = 0.77). Seeds 0–2 reproduce the published artifact exactly |
 
 Every figure carries its control arm, and every recall/precision number in this document
@@ -1088,6 +1117,17 @@ Added 2026-09-22, after the headline metric was found to be chaotic
    fires, in the plan and in a finding. **If a smoke test's output is quoted anywhere, quote
    its `n` beside it** — `--seeds` defaults to 1 in `e5` and this was not noticed while the
    number was being read.
+
+20. **Quote the `n` beside every pooled figure, and treat any `n` below about ten as provisional
+   until its per-seed values have been looked at.** Five results in this project have reversed or
+   nulled when more seeds arrived, and each was a legitimate computation on the data available:
+   `e36`'s "the sign alternates" from **four** points; `e42`'s three-seed mean published as the
+   result for three fires; `e45`'s "a minority of seeds carries it" from **three**; `e51`/`e52`'s
+   "the mechanism's direction, 3 of 3 unanimous" from **three**; and `e46`'s C2b rung contrast,
+   where three negative seeds took `cell_class` at λ = 0.1 from **−0.0648 (2.65σ) to
+   +0.0039 (0.24σ)** at sixteen — and the effect died at the *sixth* seed, which no summary
+   statistic at n = 3 could have shown. The cheap guard is `e47`'s and `e57`'s: compute the
+   per-seed values and look at them **before** quoting the pooled number.
 
 ## Related work to differentiate against
 
