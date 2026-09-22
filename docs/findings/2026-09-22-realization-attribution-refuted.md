@@ -1,0 +1,156 @@
+# E36 — the 367% spread is not a realization effect, and the C1 contrast's *sign* is a function of `swap2`'s rank collapse
+
+**Date:** 2026-09-22
+**Script:** `experiments/e36_geometry_carrier.py` (read-only over `runs/`)
+**Artifacts:** `runs/e36_geometry_carrier.json`, `runs/e26_size400.json`, `runs/e26_size500.json`, `runs/e26_size600.json`, `runs/e32_rewire{0,1,2}.json`, `runs/e33_er_rewire{0,1}.json`
+**Context:** `2026-09-22-swap2-unstable-not-scale-dependent.md`, `2026-09-22-er-separation-realization-exposure.md`, `2026-09-22-swap2-geometry-anomaly.md`
+
+---
+
+## 1. The claim I am testing, in one line
+
+Two fires ago I attributed the 367% spread of `excess(swap2)` across four circuit sizes to
+**re-drawing the swap realization**, and the last fire used that sd (0.0205) to argue the 152σ
+Erdős–Rényi separation would fall to 4.5σ. Both readings leaned on a number that was **inferred**
+from a sweep in which circuit size and realization vary together. `--rewire-seed` separates them, so
+this fire measures it.
+
+## 2. First, the published numbers reproduce exactly
+
+Eight of eight, to five decimals, at the seeds the originals used:
+
+| point | published | re-run | |
+|---|---|---|---|
+| cs300 (d=952) `real` / `swap0.5` / `swap2` | 0.01902 / 0.02257 / 0.05782 | identical | MATCH |
+| cs800 (d=1307) `real` / `swap0.5` / `swap2` | 0.01830 / 0.02317 / 0.01237 | identical | MATCH |
+| cs400 (d=1010) `swap2`, 6 seeds | 0.01762 | 0.01762 | MATCH |
+| cs500 (d=1086) `swap2`, 6 seeds | 0.03492 | 0.03492 | MATCH |
+
+Also worth recording because it was an untested assumption: `e32` run with no `--rewire-seed` at
+cs=800 reproduces the published `0.01237` as the mean of its first three seeds, so **the flag's
+default is realisation 0**, and the size sweep's points are comparable to the realisation runs.
+
+## 3. The realization displacement, measured
+
+Fixed circuit size (800), fixed six task seeds, only `--rewire-seed` varies:
+
+| topology | realizations | sample sd | attributed sd | ratio | P(sd this small │ 0.0205) |
+|---|---|---|---|---|---|
+| `swap2` | 0.01255, 0.01350, 0.01503 | **0.00125** | 0.0205 | **16.3× smaller** | **0.0037** |
+| `erdos_renyi` | 0.14176, 0.14223 | (n=2) | 0.0205 | — | 0.0128 |
+
+For `swap2` the three-realization sd is 0.00125 on 2 df — a three-point sd is itself uncertain by
+roughly a factor of two, and `e32` has three more realizations running — but it is **16× below** the
+number the earlier fires used, and the χ² test rejects the attributed sd at p = 0.0037.
+
+For ER the relevant statistic is the two-draw difference, paired over the four task seeds:
+**+0.00047 ± 0.00065** (t = +0.72, n = 4), i.e. **0.33% of ER's own value**. Under the attributed sd,
+two independent draws would differ by ~0.029; observing a difference this close to zero has
+probability 0.0128. Independently for the two topologies, the attributed sd predicts a
+**1-in-3000 coincidence**.
+
+Note precisely what this is and is not. It is *not* a claim that realizations do not matter: the
+paired t on `swap2` is +2.65, so re-drawing the rewiring does move the number, by 0.00095. It is a
+claim that the movement is **about 1/20th** of the spread it was invoked to explain. The 367% is
+therefore not realization noise, and the four points are not four draws from one distribution.
+
+## 4. Consequence: the `e34` bound is void, and the direction it worried about is closed
+
+`e34` was explicitly a sensitivity bound — "if ER's realization sd were as large as `swap2`'s
+inferred 0.0205, the 152σ becomes 4.5σ". That input is now refuted by measurement, and ER's own
+displacement is 0.00047, i.e. **65× below the 0.0305 that would take the separation to 3σ**. So the
+152σ is not fragile in the way the last fire warned, and the correct scope statement for the ER
+separation reverts to what it was before `e34`: single-realization, but not demonstrably
+realization-limited. `e33` will put an sd on it; at two realizations it does not have one.
+
+## 5. The new fifth point breaks the "alternating sign" claim
+
+`e26` finished cs=600 (d=1149), which adds the fifth point to the contrast that carried C1's
+interference refutation:
+
+| d | effrank(`swap2`) | effrank(`swap0.5`) | `swap0.5 → swap2` Δ | σ | sign |
+|---|---|---|---|---|---|
+| 952 | 15.407 | 12.607 | +0.03525 | +21.8 paired | + |
+| 1010 | 2.213 | 23.339 | −0.00304 | −4.8 paired | − |
+| 1086 | 5.040 | 19.448 | +0.01054 | +14.5 paired | + |
+| **1149** | **2.476** | **23.425** | **−0.00223** | **−4.4 paired** | **−** |
+| 1307 | 1.703 | 19.271 | −0.01079 | −32.7 unpaired | − |
+
+The paired contrasts at 952/1010/1086 reproduce the published +0.03525 / −0.00304 / +0.01054 to the
+last digit, which is the check that the new point is on the same footing. Its sign is **negative**,
+so the sequence is **+, −, +, −, −**: two consecutive negatives, and the "the sign alternates and
+every step is decisive" headline from two fires ago was a property of having exactly four points.
+
+## 6. What the sign is actually a function of
+
+Ordered by `swap2`'s **effective rank** — the participation ratio of the task precision spectrum,
+recorded by every run — the same five points are:
+
+```
+effrank(swap2)   1.703   2.213   2.476   5.040  15.407
+Δ excess        -0.01079 -0.00304 -0.00223 +0.01054 +0.03525
+sign               -       -       -       +       +
+```
+
+**Spearman ρ = +1.000, exact permutation p = 0.0083 one-sided.** Every positive contrast has
+effrank ≥ 5.040, every negative one ≤ 2.476 — so a separating threshold exists anywhere in
+**[2.476, 5.040]** and the sign of the refutation is *predictable without running the learning
+experiment at all*. And because neither effrank nor the excess is monotone in d (15.4, 2.2, 5.0,
+2.5, 1.7), this cannot be a restatement of "circuit size".
+
+The mechanism reads directly: `swap2` is the only topology in the family whose task precision
+**rank-collapses** (effrank 1.7–15.4 against `real`'s 43.8–50.2). When the precision is dominated by
+one direction, protecting that direction is cheap and EWC lands near the oracle, so its excess falls
+*below* its milder control's and the contrast turns negative. When the collapse does not happen
+(effrank 15.4 at d = 952) the penalty is the largest in the family and the contrast is positive.
+
+On the level rather than the contrast, the same coordinate gives
+`excess(swap2) ≈ 0.00280 + 0.02016 · ln(effrank)`, max residual 0.00296 over a range of 0.04545.
+
+## 7. Where the geometry reading stops, stated before it is oversold
+
+- **It is ordinal, not calibrated.** The fit has 5 points and 2 parameters. Two genuine
+  out-of-sample points are already in hand — `swap2` at the same circuit size, different rewiring —
+  and they sit **+0.00341** and **−0.00773** off the curve. The second is 2.6× the in-sample maximum
+  residual and 17% of the range. So the coordinate identifies **which end** of the instability you
+  are at; it does not predict the value.
+- **It is specific to the topology that collapses.** Across the same five circuit sizes the
+  correlation is ρ = +0.400 (p = 0.26) for `swap0.5` and ρ = −0.100 (p = 0.61) for `real`. A
+  constant ratio between a topology's excess and the `swap2` curve looks tidy for ER (2.03 ± 0.3%)
+  but carries no slope information: ER's ln(effrank) leverage across its runs is **0.029**. Only
+  `swap2` (leverage 2.373) can test the slope at all.
+- **`effrank` is downstream.** It is computed from the same task build that produces the excess, so
+  this is a diagnostic coordinate, not an intervention. The intervention that would license a causal
+  reading is `e5`'s, applied at `swap2` — still not run.
+- **Five points.** ρ = 1.000 at n = 5 has exact p = 0.0083, and leave-one-out stays 1.0 in all five
+  deletions, which is more than the n = 3 version two fires ago had — but the threshold is a
+  *bracket* [2.476, 5.040], not an estimate, and `cs700` is the sixth point.
+
+## 8. Withdrawals and replacements, in one place
+
+| earlier statement | status |
+|---|---|
+| "`excess(swap2)` moves with an sd of 0.0205 across realizations" | **withdrawn** — measured 0.00125 (16× smaller) |
+| "substituting that sd turns the 152σ ER separation into 4.5σ" | **void** — input withdrawn; ER's measured displacement is 0.00047 |
+| "the sign alternates, and every step is decisive" | **withdrawn at 5 points** — +, −, +, −, − |
+| "`swap2`'s association with anisotropy runs opposite to `e5`, n = 3, default not a finding" | **upgraded** — n = 5, ρ = +1.000, exact p = 0.0083, leave-one-out all 1.0; the inversion is not noise |
+| "the C1 refutation does not survive" | **survives, with a mechanism** — not because the statistic is noise, but because its sign is set by `swap2`'s rank collapse, which is a function of circuit size |
+
+Nothing in this fire restores the interference *hypothesis* either: the point is that the statistic
+which refuted it is a deterministic function of a geometry that varies with the circuit, so a single
+circuit's sign carries no general claim in either direction.
+
+## 9. Pre-registered, for the next fire
+
+`cs700` (d = 1229) is running. The two readings make numerically different predictions:
+
+- **realization reading:** a fresh draw from a distribution with sd 0.0205 — 95% interval
+  **[−0.01083, +0.06953]** (the interval is wider than the physical range; the reading is that the
+  point carries no information about where on the curve it should sit);
+- **geometry reading:** it lands on **0.00280 + 0.02016 · ln(effrank at cs700)**, a band of
+  **±0.0034** (the wider of the in-sample max residual and the one out-of-sample residual already in
+  hand) — **6× tighter**, and if it lands below 3 the contrast sign must be negative.
+
+Also pre-registered: `e32`'s remaining three realizations will turn the 3-point sd of 0.00125 into a
+6-point one; if it moves above ~0.004 the 16× ratio shrinks to 5×, and the withdrawal stands either
+way but the margin changes.

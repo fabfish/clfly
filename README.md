@@ -139,18 +139,24 @@ Eight of our own earlier conclusions were retracted or overturned as artefacts o
 traps; all eight are in the findings log with the same prominence as the results.
 
 `docs/findings/` holds the dated logs — one per result, negative results included, because
-those are the useful kind. The eight retractions and refutations, in order:
+those are the useful kind. The nine retractions and refutations, in order:
 
 - **the unimodal misalignment peak** of the reference materials does **not** appear in the
   coordinate basis; the penalty is governed by task *anisotropy* (~500× larger for a steep
   spectrum), which a real connectome supplies and a random synthetic task does not;
 - **the interference mechanism** is refuted at **32.7σ** — the penalty moves *opposite* to
   task overlap;
-- **and then the refutation itself**: that 32.7σ is a statement about **one graph**. Across four
-  circuit sizes with matched rewiring strength the contrast is **+21.8σ, −4.8σ, +14.5σ, −32.7σ** —
-  the sign alternates, every step decisive, while `real` holds to 6.2% and `swap0.5` to 18%. So
-  `excess(swap2)` oscillates ~3× between *adjacent* sizes and **neither the refutation nor its
-  reversal survives**;
+- **and then the refutation itself**: that 32.7σ is a statement about **one graph**. Across five
+  circuit sizes with matched rewiring strength the contrast runs **+21.8σ, −4.8σ, +14.5σ, −4.4σ,
+  −32.7σ**, and **neither the refutation nor its reversal survives**;
+- **and then the *reason* I gave for that**: I attributed the contrast's spread to re-drawing the
+  swap realization and fed that sd (0.0205) into the next fire's error bars. Measured directly at
+  fixed circuit size and fixed tasks, the realization sd is **0.00125** — 16× smaller — and
+  Erdős–Rényi moves by **0.33% of its own value**. It is the *circuit* that sets the spread,
+  through the rank collapse of `swap2`'s task precision: ordered by effective rank the
+  five contrast signs are `−, −, −, +, +` (**ρ = +1.000, exact p = 0.0083**), so the sign is
+  *predictable without a learning run* and the earlier "the sign alternates" was an artefact of
+  having exactly four points;
 - **"granularity beats biology"** was an artefact of the annotation vocabulary, which places
   four of its five rungs where biology contributes least;
 - **"granularity locates you, biology sets the height"** — the replacement headline — was
@@ -169,9 +175,13 @@ Plus the traps themselves, each found by falling into it: the **chaotic headline
 metric** (standard deviation exceeding its own mean, and a 1-ULP ARPACK start vector moving
 the result by several percent); the **frozen-body** failure; the **untuned-baseline**
 failure; the **unpaired shape test** (contrasts read from an alphabetically sorted table with
-the wrong error formula); the **single-draw control**; and the **unset hyperparameter** — a run
+the wrong error formula); the **single-draw control**; the **unset hyperparameter** — a run
 that never passes a flag measures at a value nobody inspected, which is how two rungs came to sit
-300× above the project's own recommended λ.
+300× above the project's own recommended λ; and the **confounded variance** — reading the sd off a
+sweep in which several things move together, attributing it to whichever one is interesting, and
+then using it as that factor's sd downstream. That last one is what made a 152σ separation look
+like a 4.5σ one for a whole fire; the correct move is to fix the other factors and let the one you
+care about vary alone, which costs one flag.
 
 ## Reproduce the LGCL numbers
 

@@ -78,18 +78,32 @@ chance at Erdős–Rényi). The geometry half of the claim holds cleanly.
 degree-preserving family the gap moves *opposite* to interference — overlap rises
 8× while the gap falls by two-thirds. The first mechanism story was wrong.
 
-> **And that refutation is a statement about one graph.** It rests on a single contrast,
-> `swap0.5 → swap2`, and across four circuit sizes (matched rewiring strength, swap fraction
-> 0.912–0.924) that contrast is **+0.03525 (21.8σ), −0.00304 (4.8σ), +0.01054 (14.5σ), −0.01079
-> (32.7σ)** at d = 952, 1010, 1086 and 1307. **The sign alternates, and every step is decisive**,
-> while `real` holds to 6.2% and `swap0.5` to 18% across the same sweep. So `excess(swap2)` is not a
-> stable quantity at this perturbation strength — it oscillates by a factor of ~3 between *adjacent*
-> sizes — and **neither the refutation nor its reversal survives**: the previous fire's "at d = 952
-> heavy rewiring makes the penalty worse, as interference predicts" is one draw from the same
-> unstable statistic. The confound still to remove is that the sweep varies the circuit subsample
-> and the swap realization together; `--rewire-seed` now separates them and `e32` is running six
-> realizations at fixed size and fixed tasks
-> (`docs/findings/2026-09-22-swap2-unstable-not-scale-dependent.md`).
+> **And that refutation is a statement about one graph — but not because the statistic is noisy.**
+> It rests on a single contrast, `swap0.5 → swap2`, and across five circuit sizes that contrast is
+> **+0.03525 (21.8σ), −0.00304 (4.8σ), +0.01054 (14.5σ), −0.00223 (4.4σ), −0.01079 (32.7σ)** at
+> d = 952, 1010, 1086, 1149 and 1307. The earlier "the sign alternates, and every step is decisive"
+> was a property of having exactly four points: the fifth breaks it (+, −, +, −, −). Two fires ago
+> I attributed that spread to re-drawing the swap realization; **measured directly at fixed circuit
+> size and fixed tasks, re-drawing moves `excess(swap2)` with sd 0.00125 — 16× less than the 0.0205
+> attributed** (χ² p = 0.0037), and ER's realization displacement is 0.00047, 0.33% of its own value.
+> So the sweep's spread is not realization noise, and `e34`'s "the 152σ becomes 4.5σ" is void.
+>
+> What the sign *is* a function of is `swap2`'s **rank collapse**: ordered by the effective rank of
+> the task precision, the same five points are `−, −, −, +, +` with every negative at effrank ≤ 2.476
+> and every positive at ≥ 5.040 (**Spearman ρ = +1.000, exact permutation p = 0.0083**, separator
+> bracketed in [2.476, 5.040]), and neither effrank nor the excess is monotone in d, so this is not
+> circuit size in disguise. `swap2` is the only topology whose task precision collapses (effrank
+> 1.7–15.4 against `real`'s 43.8–50.2); when the precision is dominated by one direction, protecting
+> it is cheap and EWC lands near the oracle, so `swap2`'s excess falls *below* its milder control's
+> and the contrast goes negative. Level-wise, `excess(swap2) ≈ 0.00280 + 0.02016 · ln(effrank)`, max
+> residual 0.00296 over a 0.04545 range — but **ordinal, not calibrated**: two out-of-sample
+> realization points already sit +0.00341 and −0.00773 off that curve, and the relation is absent
+> for `real` (ρ = −0.10) and `swap0.5` (ρ = +0.40). **So neither the refutation nor its reversal
+> survives, now with a mechanism instead of a noise story**: the sign is set by a geometry that
+> varies with the circuit, which makes it predictable without a learning run but no more general.
+> The confound still to remove is that `effrank` is downstream of the task build; the intervention
+> that would license a causal reading is `e5`'s, applied at `swap2` — cheap, and not done
+> (`docs/findings/2026-09-22-realization-attribution-refuted.md`).
 
 *Replacement, after `e5`: anisotropy, in the same direction Phase 1 found.* Vary
 the task's spectral concentration **directly**, at fixed topology, fixed support
@@ -120,18 +134,19 @@ matched-spectrum random graph. Note Erdős–Rényi is a **separate regime**, no
 end of the swap axis: it also destroys the degree sequence and makes `(I − W)`
 near-singular, so the propagator conditioning changes too.
 
-*And every σ in this family is a single-realization figure.* Each topology is one draw of its
-rewiring rule, so the reported σ measures seed noise *within* that draw and says nothing about
-drawing another graph. The refutation's 32.7σ has been checked and did not survive
-(±alternating across four circuit sizes). The ER separation's 152σ has not, and the arithmetic is
-sobering: `excess(swap2)` moves with an sd of **0.0205** across four (size, realization) draws — 67%
-of its own mean — while the control topologies hold to 6.2% and 18%, and substituting that sd for the
-seed sem turns the **152σ into 4.5σ** (1.5× that sd takes it to 3σ). So the line's numbers are
-statements about *the particular graphs drawn*; the **structural** reading — a separate regime,
-offset by a factor of eleven — is what should carry the weight. `--rewire-seed` now separates the
-realization from the tasks, so the check costs ~12 minutes per realization per topology, and `e32`
-and `e33` are running it for `swap2` and Erdős–Rényi
-(`docs/findings/2026-09-22-er-separation-realization-exposure.md`).
+*And every σ in this family is a single-realization figure — but the realization is no longer the
+thing to worry about.* Each topology is one draw of its rewiring rule, so the reported σ measures
+seed noise *within* that draw and says nothing about drawing another graph. That exposure has now
+been **measured** rather than assumed, and it is small: at fixed circuit size and fixed tasks,
+re-drawing `swap2`'s rewiring moves its excess with **sd 0.00125** (3 realizations, χ² p = 0.0037
+against the previously assumed 0.0205) and re-drawing Erdős–Rényi moves it by **0.00047**, 0.33% of
+its own value. So the 152σ is not realization-fragile in the way the earlier arithmetic feared, and
+`e34`'s "the 152σ becomes 4.5σ" is **void** — its input was the 0.0205 that the size sweep's spread
+was mistakenly attributed to. What the sweep's 367% actually reflects is the circuit, interacting
+with the rewiring through the **effective rank of the task precision** (`e36`); the realization
+contributes about 1/20th of it. The line's numbers remain single-graph statements, and the
+**structural** reading — a separate regime, offset by a factor of eleven — is still what should
+carry the weight (`docs/findings/2026-09-22-realization-attribution-refuted.md`).
 
 ### C2 — Basis selection *(the core contribution)*
 
@@ -561,6 +576,9 @@ All of it has been run. The scripts as delivered:
 | `e4_modularity.py` | C3 | never written | **C3 deprioritised** — its mechanism is contradicted by `e2` |
 | `e12_control_spread.py` | C2 | how much of a matched-pair delta is the control *draw* | done — draw sd is ~1.1e-3 coarse, ~4e-5 fine; coarse-rung σ are provisional |
 | `e3 --control-draws K` | C2 | average the matched control over K draws | done — wiring validated; the K=3/K=4 runs are queued behind the CPU queue |
+| `e2_topology_gap.py --rewire-seed` | C1 | separate the swap *realization* from the circuit subsample | done — realization sd measured at 0.00125 for `swap2` (16× below the attributed 0.0205); ER moves by 0.00047, 0.33% of its own value |
+| `e2_topology_gap.py --circuit-size 700` | C1 | the sixth point of the size sweep, and the test of the geometry reading | **in flight** — prediction pre-registered in the `e36` finding |
+| `e36_geometry_carrier.py` | C1 | is the 367% spread a realization effect or a geometry effect? | done — geometry; the contrast's *sign* is a function of the effective rank of the task precision, ρ = +1.000, exact p = 0.0083 |
 
 Every figure carries its control arm, and every recall/precision number in this document
 carries a resolvability check. The prediction scoreboard, including the refutations,
