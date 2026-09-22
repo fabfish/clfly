@@ -470,14 +470,18 @@ Added 2026-09-22, after the headline metric was found to be chaotic
    *population* of size-matched random partitions, and one draw is one sample from
    it. The draw-to-draw sd is ordered by the partition's **concentration**,
    ``sum_g s_g^2 / d^2`` (`clfly.bench.control.concentration`), **not by its group
-   count**: measured at ≈1.1e-3 for concentrations ≥0.68, ≈9e-4 at 0.33, and
-   ≈4e-5–9e-5 below 0.02, with the knee somewhere between 0.02 and 0.33. A group
+   count**. It is a **coarse/fine** axis only: on d = 1307 the coarse range
+   0.325–0.678 measures 6.1e-4 to 1.06e-3 draw sd with no ordering — 1.01e-3 at
+   0.395 against 6.1e-4 at 0.459, a non-monotone 40% swing between two runs of the
+   same experiment — and the level differs between circuits (4.9e-4 at d = 952
+   against 1.06e-3 at d = 1307, at the same concentration near 0.7). A group
    count gets `side` exactly backwards — 4 groups but a concentration of 0.498,
-   so it belongs with the coarse partitions. **It ranks within a circuit and does
-   not set the level**: at a concentration near 0.7 the d = 952 ladder gives
-   4.9e-4 where d = 1307 gives 1.06e-3. Concentration 1.0 means a single group,
-   i.e. the `Full` basis with excess exactly zero — at d = 952 two ladder rungs
-   are that, so they are not granularity points at all. Where the draw term
+   so it belongs with the coarse partitions. Concentration 1.0 means a single
+   group, i.e. the `Full` basis with excess exactly zero — at d = 952 two ladder
+   rungs are that, so they are not granularity points at all. **For a budget,
+   use ≈1e-3 for any coarse rung rather than an interpolation**: it is the top of
+   the observed range, so it overstates the required K rather than understating
+   it. Where the draw term
    dominates, a single-draw σ overstates the evidence several-fold: coarse-rung σ
    in the basis study are provisional, `pool4` 42.2σ → ≈8.7σ with the component
    included, and `pool2 → pool4` (the plateau question) 2.2σ → ≈0.6σ. Report the
