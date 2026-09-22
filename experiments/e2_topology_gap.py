@@ -45,6 +45,7 @@ from pathlib import Path
 import numpy as np
 
 from clfly.bench.analytic import analytic_excess
+from clfly.bench.artifacts import write_json
 from clfly.bench.oracle import paired_excess, task_geometry
 from clfly.connectome import annotate, circuits, graph, rewiring, tasks
 from clfly.lgcl.bases import Diagonal, Partition, random_partition
@@ -164,8 +165,7 @@ def main(argv=None) -> int:
     results = run(args)
     report(results)
     if args.json_out:
-        args.json_out.parent.mkdir(parents=True, exist_ok=True)
-        args.json_out.write_text(json.dumps(results, indent=1, default=str))
+        write_json(args.json_out, results)
         print(f"\nwrote {args.json_out}")
     return 0
 

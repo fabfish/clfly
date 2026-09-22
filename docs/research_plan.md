@@ -191,7 +191,10 @@ error, so seeds do not reduce it. Inverting that gives, per claim, the required 
 large steps need only **2.2–2.8** (`pool2 → cell_class`, `side → pool4` — the claim that a pooled
 partition beats the vocabulary's own best rung), `pool128 → pool32` needs 6.4, and the plateau's
 internal steps are **infeasible at any K** because their floor under the current 12-seed budget is
-below 3σ (`pool4 → pool2` reaches only 1.5σ). The model calibrates on two contrasts whose true
+below 3σ (`pool4 → pool2` reaches only 1.5σ). That verdict contains no `sd_draw` at all — it is the
+best the *seed budget* can deliver — so it cannot be overturned by measuring the draw sd better,
+only by buying seeds (and the two claims worth buying need `K ≤ 12` even if `sd_draw` is wrong by
+2×; §7 of the finding). The model calibrates on two contrasts whose true
 value is zero (`pool32 ≡ pool64`, `pool1 ≡ cell_type`): it predicts the observed noise to within
 4%, and the seed-only method had called one of them 4.7σ.
 
@@ -464,6 +467,16 @@ Added 2026-09-22, after the headline metric was found to be chaotic
    and `pool2 → pool4` (the plateau question) 2.2σ → ≈0.6σ. Report the two
    components separately, and never rest a claim about a curve's *shape* on
    single-draw controls.
+11. **Artifacts are strict JSON.** Non-finite floats go in as `null`, never as `NaN`
+   or `Infinity` — Python reads those back happily, and `JSON.parse`, `serde_json`,
+   `encoding/json` and `pandas.read_json` all refuse them. Seven rate-network
+   artifacts were unreadable to a strict consumer before this was noticed. Write
+   through `clfly.bench.artifacts.write_json`; do not call `json.dump` directly.
+12. **Budget a question before buying it.** The cost of settling a curve claim is
+   set by how far the effect sits above its floor, and the floor may not involve
+   the parameter you were about to spend compute measuring. Working that out
+   first turned a 5-hour re-run into a 1.9-hour one over three rungs
+   (`docs/findings/2026-09-22-draw-budget.md`).
 
 ## Related work to differentiate against
 

@@ -142,3 +142,44 @@ fifth compute-bound job would slow all of them; the run is scheduled for when co
 - The biological arm's own seed sem varies by rung (0.00005 at `pool4` to 0.00051 at `pool1`),
   so the floor is not uniform across the curve and the small-Δ rows are not all limited by the
   same thing.
+
+## 7. Sensitivity: which verdicts can be overturned by measuring `sd_draw`?
+
+`sd_draw` is the one quantity in §4 that is **interpolated** for rungs of 29–212 groups, which is
+exactly where the two claims worth buying live. So the obvious question is which conclusions would
+move if the interpolation is wrong. Recomputing every required ``K`` over a 7× range of
+``sd_draw``:
+
+| contrast | floor | 0.3e-3 | 0.55e-3 | **1.1e-3** | 2.2e-3 |
+|---|---|---|---|---|---|
+| `pool128 → pool32` | 7.0 | 0.5 | 1.6 | 6.4 | 25.6 |
+| `pool32 → pool64` (true Δ = 0) | 3.3 | 8.1 | 27.1 | 108.6 | 434.3 |
+| `pool64 → pool16` | 4.7 | 1.2 | 3.9 | 15.8 | 63.1 |
+| `pool8 → side` | 5.2 | 1.1 | 3.7 | 15.0 | 60.0 |
+| `side → pool4` | 10.8 | 0.2 | 0.7 | **2.8** | 11.4 |
+| `pool2 → cell_class` | 8.2 | 0.2 | 0.5 | **2.2** | 8.7 |
+| `pool16 → pool8` | 1.9 | inf | inf | inf | inf |
+| `pool4 → pool2` | 1.5 | inf | inf | inf | inf |
+| `cell_class → ito_lee_hemilineage` | 0.4 | inf | inf | inf | inf |
+| `ito_lee_hemilineage → supertype` | 2.3 | inf | inf | inf | inf |
+| `supertype → pool1` | 1.9 | inf | inf | inf | inf |
+| `pool1 → cell_type` (true Δ = 0) | 0.1 | inf | inf | inf | inf |
+
+**The infeasible verdicts are immune to this parameter.** The floor is ``|Δ| / (sqrt(2)
+sem_seed)``, which contains no ``sd_draw`` at all — it is the best the **seed budget** can deliver
+once the draw noise is gone entirely. So "the curve's internal steps are not a resolvable claim"
+cannot be overturned by measuring the draw sd better; it would take more seeds, and §6 notes what
+that would cost. This is the main conclusion of the analysis, and it is now known to rest on the
+seed sems alone.
+
+**The two claims worth buying are robust too.** ``side → pool4`` and ``pool2 → cell_class`` need
+``K ≤ 12`` even if the interpolation is wrong by a factor of two in the unfavourable direction, and
+``K ≈ 0.2`` — i.e. one draw already suffices — at the low end. Their required K scales as
+``sd_draw^2``, as the formula says, so the planned ``K = 4`` run is comfortably above what either
+claim needs at the central estimate and still enough at the pessimistic one.
+
+**One row is fragile, and it is not a real claim.** ``pool32 → pool64`` moves from ``K = 8`` to
+``K = 434`` across the same range. Its true Δ is zero — it is the noise probe — so the number is
+meaningless as a requirement, but it is the clearest illustration of why a claim whose floor is
+just above the target is not a claim: the cost of settling it is set by how far above the floor it
+sits, divided by everything else.

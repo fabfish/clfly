@@ -31,6 +31,7 @@ from pathlib import Path
 
 import numpy as np
 
+from clfly.bench.artifacts import write_json
 from clfly.connectome import annotate, circuits, graph
 from clfly.network import tasks as rate_tasks
 from clfly.network.fisher import SynapsePartition
@@ -435,8 +436,7 @@ def main(argv=None) -> int:
 
     print(f"\n  chance = {1.0 / suite[0].n_classes:.3f}   ({time.time()-t0:.0f}s)")
     if args.json_out:
-        args.json_out.parent.mkdir(parents=True, exist_ok=True)
-        args.json_out.write_text(json.dumps(out, indent=1, default=str))
+        write_json(args.json_out, out)
         print(f"wrote {args.json_out}")
     return 0
 

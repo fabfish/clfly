@@ -371,6 +371,9 @@ exactly (`docs/findings/2026-09-22-draw-budget.md`): the two large steps — `po
 and `side → pool4`, the claim that a pooled partition beats the vocabulary's own best rung — need
 only **three control draws** per rung to clear 3σ, while the plateau's internal steps cannot
 reach 3σ at *any* number of draws with this seed budget (`pool4 → pool2` has a floor of 1.5σ).
+That floor contains no draw-sd term at all — it is what the seed budget alone permits — so the
+verdict cannot be overturned by measuring the draw spread better, only by buying seeds; the two
+claims worth buying need ``K ≤ 12`` even if the draw sd is wrong by a factor of two.
 So the curve has coarse structure that is testable and fine structure that is not a resolvable
 claim at all, and this paper reports the region as a broad band rather than as a shape.
 
@@ -876,3 +879,9 @@ recorded in the corresponding `runs/*.json`:
 
 The connectome data is not redistributed; `python -m clfly.connectome.fetch` clones it
 from its distributors and records the commit hashes.
+
+The artifacts are **strict JSON**. Python's `json` module writes `NaN` and `Infinity` by
+default and reads them back without complaint, so seven rate-network artifacts — whose retention
+matrices carry `NaN` in the not-yet-trained upper triangle — were being written in a form that
+`JSON.parse`, `serde_json`, `encoding/json` and `pandas.read_json` all reject. Every writer now
+goes through `clfly.bench.artifacts.write_json`, which renders those entries as `null`.

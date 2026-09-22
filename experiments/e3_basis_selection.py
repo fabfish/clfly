@@ -39,6 +39,7 @@ from clfly.bench.analytic import (
     projection_pressure,
     spearman,
 )
+from clfly.bench.artifacts import write_json
 from clfly.bench.control import averaged_random_control
 from clfly.bench.oracle import (
     oracle_errors,
@@ -410,8 +411,7 @@ def main(argv=None) -> int:
     report(results)
 
     if args.json_out:
-        args.json_out.parent.mkdir(parents=True, exist_ok=True)
-        args.json_out.write_text(json.dumps(results, indent=1, default=str))
+        write_json(args.json_out, results)
         print(f"\nwrote {args.json_out}")
     return 0
 

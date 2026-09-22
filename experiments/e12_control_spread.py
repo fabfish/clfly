@@ -40,6 +40,7 @@ from pathlib import Path
 import numpy as np
 
 from clfly.bench.analytic import analytic_excess
+from clfly.bench.artifacts import write_json
 from clfly.connectome import annotate, circuits, graph, tasks
 from clfly.lgcl.bases import Partition, random_partition
 
@@ -65,10 +66,12 @@ def run(args) -> dict:
         seqs.append(wt.sequence)
         print(f"  built tasks for seed {seed} ({time.time() - t0:.0f}s)  d={wt.sequence.d}")
 
-    labels = _pool_small_groups(circ.labels["cell_type"], args.min_size)
+    labels = circ.labels[args.column]
+    if args.min_size > 1:
+        labels = _pool_small_groups(labels, args.min_size)
     bio = Partition(labels)
     bio_ex = analytic_excess(seqs, bio)
-    print(f"\n  biological partition (cell_type, min_size {args.min_size}): "
+    print(f"\n  biological partition ({args.column}, min_size {args.min_size}): "
           f"{bio.n_groups} groups, constrained {1 - bio.n_parameters / (seqs[0].d * (seqs[0].d + 1) // 2):.4f}")
     print(f"    excess {bio_ex['excess_mean']:+.5f} +- {bio_ex['excess_sem']:.5f} "
           f"(oracle {bio_ex['oracle_mean']:.5f})")
@@ -85,19 +88,29 @@ def run(args) -> dict:
     sems = np.array([c["excess_sem"] for c in ctrl])
     sd_draw = float(means.std(ddof=1))
     sem_mean = sd_draw / np.sqrt(len(means))
+
+    def safe(num, den):
+        """Ratio that stays finite in JSON: ``Infinity`` is not valid JSON.
+
+        A one-seed run has sem 0, and a claim that is exactly zero divides by it; the
+        honest value is "unbounded", which JSON can express as null but not as inf.
+        """
+        return float(num) / float(den) if den else float("nan")
+
     print(f"\n  {args.draws} independent control draws for that partition:")
     print(f"    per-draw means: " + " ".join(f"{m:+.5f}" for m in means))
     print(f"    mean over draws   {means.mean():+.5f} +- {sem_mean:.5f} (sem over draws)")
     print(f"    across-draw sd    {sd_draw:.5f}   <- the component a single-draw sem omits")
     print(f"    within-draw sem   {sems.mean():.5f}   <- what the protocol reports today")
-    print(f"    inflation factor  {sd_draw / sems.mean():.1f}x")
+    print(f"    inflation factor  {safe(sd_draw, sems.mean()):.1f}x  "
+          f"(<1 means the seed sem dominates; report it either way)")
 
     delta = bio_ex["excess_mean"] - means.mean()
     sem_seed = float(np.hypot(bio_ex["excess_sem"], sems.mean()))
     sem_honest = float(np.hypot(bio_ex["excess_sem"], sem_mean))
     print(f"\n  delta (biological minus matched-random): {delta:+.5f}")
-    print(f"    sigma with a single control draw (protocol today): {abs(delta) / sem_seed:6.1f}")
-    print(f"    sigma with the draw component included:            {abs(delta) / sem_honest:6.1f}")
+    print(f"    sigma with a single control draw (protocol today): {safe(abs(delta), sem_seed):6.1f}")
+    print(f"    sigma with the draw component included:            {safe(abs(delta), sem_honest):6.1f}")
     print(f"    both are readable against the oracle gap of {bio_ex['oracle_mean']:.5f}")
 
     return {
@@ -109,8 +122,9 @@ def run(args) -> dict:
         "control_sd_across_draws": sd_draw,
         "control_sem_over_draws": sem_mean,
         "delta": float(delta),
-        "sigma_single_draw": abs(delta) / sem_seed,
-        "sigma_with_draw_noise": abs(delta) / sem_honest,
+        "sigma_single_draw": safe(abs(delta), sem_seed),
+        "sigma_with_draw_noise": safe(abs(delta), sem_honest),
+        "inflation_factor": safe(sd_draw, float(sems.mean())),
         "timing_s": time.time() - t0,
     }
 
@@ -123,16 +137,19 @@ def main(argv=None) -> int:
     p.add_argument("--seeds", type=int, default=6, help="task-geometry draws per control")
     p.add_argument("--seed0", type=int, default=0)
     p.add_argument("--q", type=float, default=0.02)
-    p.add_argument("--min-size", type=int, default=4,
-                   help="merge cell types smaller than this; the pooling rung to test")
+    p.add_argument("--column", default="cell_type",
+                   help="annotation column to build the partition from; the ladder uses "
+                        "cell_type, the five-rung ladder uses all of them")
+    p.add_argument("--min-size", type=int, default=1,
+                   help="merge cell types smaller than this; the pooling rung to test. "
+                        "Ignored at 1 (the column's own partition)")
     p.add_argument("--draws", type=int, default=12, help="independent random controls")
     p.add_argument("--json-out", type=Path, default=None)
     args = p.parse_args(argv)
 
     results = run(args)
     if args.json_out:
-        args.json_out.parent.mkdir(parents=True, exist_ok=True)
-        args.json_out.write_text(json.dumps(results, indent=1, default=str))
+        write_json(args.json_out, results)
         print(f"\nwrote {args.json_out}")
     return 0
 
