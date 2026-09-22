@@ -264,8 +264,21 @@ random throughout — while the **peak's position moves and the relative effect 
 is also systematic rather than accidental: each configuration has six distinct partitions across
 eight rungs, in both cases duplicated at the coarse end, because the device is a count threshold
 against a size distribution whose median is 1. A **rank-based** ladder (merge the *k* smallest
-groups) would give eight distinct rungs by construction and is the fix for both this and the synapse
-line (`docs/findings/2026-09-22-ladder-replicates-at-d1874.md`).
+groups) gives eight distinct rungs by construction — it spans 0.469–0.979 at d = 1307 with no
+duplicates — and is the fix for the fine-to-mid range
+(`docs/findings/2026-09-22-ladder-replicates-at-d1874.md`).
+
+**But the coarse end of any such curve is low-resolution by arithmetic, not by choice of device.**
+`constrained ≤ 1 − (d/m + 1)/(d+1) ≈ 1 − 1/m` for a partition into ``m`` groups, so a rung at
+constrained 0.5 needs at most four groups and anything below 0.67 needs at most three — and few
+groups means blunt instruments. There is **no way to sample constrained < 0.47 with more than about
+ten groups**, whatever the pooling rule. That is also *why* the annotation vocabulary is crowded near
+the diagonal: constrained ≈ 1 − 1/m means most of the range is reachable only with many groups.
+So "the vocabulary under-reports biology by placing four of its five rungs near the diagonal" is right
+about the vocabulary and wrong to imply a device could do better — the honest recommendation is to
+**anchor at the coarsest granularity the arithmetic allows you to distinguish (≈0.5–0.7, i.e. 4–10
+groups) and accept that the fine structure of the coarse end is not measurable**
+(`docs/findings/2026-09-22-coarse-end-is-arithmetic.md`).
 
 The predictor handles the ladder at Spearman **+0.995** over 17 partition bases, including
 eight of similar granularity distinguished only by which groups were merged — a case where a

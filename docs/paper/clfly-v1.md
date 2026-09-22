@@ -852,8 +852,16 @@ draws of the realisation.
   blunt instruments rather than fine resolution. **And this is systematic, not incidental**: at
   d = 1874 the duplicate is `pool64 ≡ pool128` instead, so each configuration has six distinct
   partitions with the duplication at the coarse end. A **rank-based** ladder — merge the *k*
-  smallest groups rather than everything below a size — would give eight distinct rungs by
-  construction.
+  smallest groups rather than everything below a size — gives eight distinct rungs by construction,
+  spanning 0.469–0.979 at d = 1307.
+- **But the coarse end is low-resolution by arithmetic, not by choice of device.** For a partition
+  into ``m`` groups, `constrained ≤ 1 − (d/m + 1)/(d+1) ≈ 1 − 1/m`, so a rung at constrained 0.5
+  needs at most four groups and anything below 0.67 needs at most three. There is **no way to sample
+  constrained < 0.47 with more than about ten groups**, whatever the pooling rule: a partition is
+  coarse *because* it has few groups. That is also why the annotation vocabulary crowds near the
+  diagonal, so the recommendation is to **anchor at the coarsest granularity the arithmetic allows
+  you to distinguish (≈0.5–0.7 constrained, i.e. 4–10 groups)** and to report the coarse end's fine
+  structure as unmeasurable (`docs/findings/2026-09-22-coarse-end-is-arithmetic.md`).
 - **The ladder replicates in form but not in number.** Re-run at **d = 1874 with support 150**
   (12 seeds), it resolves the same **7 of 8** rungs with the same exception (`pool1`, the un-pooled
   `cell_type` partition — a fourth independent confirmation of that null), at 22–62σ, and shows the
