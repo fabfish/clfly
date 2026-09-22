@@ -101,11 +101,13 @@ The best anchoring basis is a **biological module basis** — cell class, cell t
 hemilineage, or nerve — and it beats the neuron basis by more than
 capacity-matched random partitions do.
 
-*Status: **resolved** — best rung 42.2σ on the granularity ladder; 4 of the 5 annotation
-rungs resolve too.* The five-rung table below is at 5 task seeds; re-running at **18
-seeds** refines it to `side` 28.8σ, `cell_class` 12.1σ, `hemilineage` 9.3σ, `supertype`
-4.3σ, `cell_type` 0.7σ — four resolved, and the fifth is the rung that is nearly the
-diagonal. It is kept because the ladder (below) is measured against it: those five rungs
+*Status: **resolved at the rung level; the curve's shape is not**.* The five-rung table below is at
+5 task seeds; re-running at **18 seeds** refines it to `side` 28.8σ, `cell_class` 12.1σ,
+`hemilineage` 9.3σ, `supertype` 4.3σ, `cell_type` 0.7σ — four resolved, and the fifth is the rung
+that is nearly the diagonal. **Every σ in that table is seed-only and therefore inflated for the
+coarse rungs**, by the control-draw component (rule 10, and
+`docs/findings/2026-09-22-control-drawn-once.md`); the ladder's best rung is 42.2σ seed-only and
+**13.7σ** at the measured draw sd (`docs/findings/2026-09-22-draw-budget.md` §9). The five rungs
 are what the annotation vocabulary offers, and four of them sit in the top 15% of the
 granularity range. The earlier
 "consistent direction, ~1.3σ" reading was limited by the realized-error metric, not by

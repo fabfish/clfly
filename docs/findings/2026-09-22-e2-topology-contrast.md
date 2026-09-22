@@ -149,3 +149,22 @@ Next:
    versus rank-deficient tasks with controlled spectra, in one experiment.
 3. Seed count: the `swap0.1` / `swap0.5` differences are single-digit-percent gap
    changes at 3 seeds; the monotone *bio − rand* trend is the robust one.
+
+---
+
+## 8. Correction (later): the sign flip is a pattern, not five resolved points
+
+The numbers in §5 are realized-excess; the published version uses the **analytic** estimator
+(`runs/e2_analytic.json`), which reproduces the deltas used in the paper
+(−0.00276, −0.00202, +0.00102, +0.00042, +0.00213) at σ 2.27–2.75 each. So the "not resolved
+point-by-point" verdict in `2026-09-22-stable-scale-recheck.md` was a statement about the
+**realized metric** (SE ≈ 0.023–0.028), not about the effect, and that disagreement is closed.
+
+But those σ are seed-only, and `cell_class` is a **coarse** partition (concentration 0.171), so the
+control-draw component applies. Adding it in quadrature — at an interpolated value, since 0.171
+falls in an unmeasured interval — leaves **four of five points resolved** at 2.21–2.48σ and drops
+`swap2` to 1.75σ. The claim becomes: *negative on `real` and `swap0.1`, positive on `swap0.5` and
+`erdos_renyi`, two resolved points on each side*, rather than every point resolving. At twice the
+estimated draw sd only one resolved negative point remains.
+
+Full analysis: `docs/findings/2026-09-22-sign-flip-under-draw-correction.md`.

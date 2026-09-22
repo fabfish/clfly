@@ -40,9 +40,13 @@ Four findings, one of them unexpected in direction.
    figure of 42.2σ overstates it several-fold, because a coarse matched-random control has
    a draw-to-draw spread of its own that had never been measured). The biological advantage is
    *larger* than any
-   annotation rung showed (0.0041–0.0088 against 0.0015–0.0048) and the advantage flips sign once
-   the wiring is randomised, so it is a property of the connectome rather than of the
-   vocabulary. The curve's *shape*, however, is **not established**: the plateau, the location
+   annotation rung showed (0.0041–0.0088 against 0.0015–0.0048). The advantage also **changes
+   sign** as the wiring is randomised — negative on the real connectome and mildly rewired
+   versions, positive on heavily rewired and Erdős–Rényi ones, with two resolved points on each
+   side (2.21–2.48σ once the control-draw component is included, which also leaves one of the five
+   points unresolved) — so it is a property of the connectome rather than of the
+   vocabulary, though that inference is sensitive to an interpolated quantity and is being
+   measured. The curve's *shape*, however, is **not established**: the plateau, the location
    of the optimum, and the claim that the coarsest rung is uniquely weak all rest on
    differences between deltas of 0.0015–0.004, which is the same order as that draw spread. A
    predictor built from the projection loss of the *exact* filter's
@@ -412,9 +416,19 @@ biological-minus-matched-random sign **flips** along the rewiring axis:
 
 The advantage exists on the real connectome and on mildly rewired versions, and
 reverses to a small penalty once the wiring is substantially randomised. The
-progression is not monotone (`real` is more negative than `swap0.1`) but every point
-is individually resolved, so the sign flip is the claim. This closes the obvious
-objection that any meaningful partition would do as well as a biological one.
+progression is not monotone (`real` is more negative than `swap0.1`).
+
+*These σ are seed-only, and `cell_class` is a coarse partition (concentration 0.171), so the
+control-draw component applies.* Adding it in quadrature — at an **interpolated** value, since
+0.171 falls inside an unmeasured interval — leaves **four of the five points resolved**, at 2.21σ
+to 2.48σ, and drops `swap2` to 1.75σ. So the defensible form is: **the advantage is negative on
+the real connectome and on mildly rewired wiring (2.22σ, 2.48σ) and positive on substantially
+rewired and Erdős–Rényi wiring (2.21σ, 2.38σ) — a sign change with two resolved points on each
+side — rather than every point resolving individually.** The claim was always marginal, and it is
+sensitive to the interpolated value: at twice the estimated draw sd only one resolved negative
+point remains and the inference that the advantage is a property of the connectome no longer
+follows. The measurement that would settle it is running
+(`docs/findings/2026-09-22-sign-flip-under-draw-correction.md`).
 
 ---
 

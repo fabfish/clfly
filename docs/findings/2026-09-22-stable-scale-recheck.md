@@ -168,3 +168,18 @@ The honest summary: this substrate gives **deterministic geometric answers** and
 **noisy performance answers**, and most of the earlier programme was reading the
 second kind as though it were the first.
 
+
+---
+
+## Correction (later): the "not resolved" verdict was about the metric, not the effect
+
+The `bio − rand` contrast is resolved point-by-point on the **analytic** estimator, where the same
+five topologies give deltas of −0.00276, −0.00202, +0.00102, +0.00042, +0.00213 at σ 2.27–2.75
+(`runs/e2_analytic.json`). The SE ≈ 0.023–0.028 quoted above is the **realized** metric's, so §4's
+"the sign flip is not resolved point-by-point" was a statement about the estimator, not about the
+underlying effect — the same budget-not-effect pattern as the 3-of-5 → 4-of-5 rungs case.
+
+The claim is nevertheless weaker than the paper's abstract stated, for a different reason: those
+σ are seed-only and `cell_class` is a coarse partition, so the control-draw component applies and
+leaves four of five points resolved with `swap2` at 1.75σ. See
+`docs/findings/2026-09-22-sign-flip-under-draw-correction.md`.

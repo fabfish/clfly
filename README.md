@@ -80,8 +80,13 @@ The scientific programme is complete. A working paper draft consolidating it is 
   top 15% of the constrained range. Replacing them with a continuous **granularity ladder**
   that pools the rarest cell types gives **7 of 8 rungs resolved**, with a
   *larger* biological delta than any annotation rung showed; merging just the singleton cell
-  types already cuts the penalty by **72%**, and the advantage flips sign once the wiring is
-  randomised, so it is a property of the connectome rather than of the vocabulary.
+  types already cuts the penalty by **72%**. The advantage also **changes sign** as the wiring is
+  randomised — negative on the real connectome and mildly rewired versions, positive on heavily
+  rewired and Erdős–Rényi ones — which is what makes it a property of the connectome rather than
+  of the vocabulary. With the control-draw component included, two points on each side resolve at
+  2.21–2.48σ and one of the five does not resolve at all, so the sign *pattern* is supported
+  rather than every point; the inference is also sensitive to an interpolated quantity that is
+  being measured.
   But the σ are inflated: a matched-random control is a **single draw**, and for coarse
   partitions the draw-to-draw spread is itself ~1.1e-3, 3–6× the reported sem. With it included
   the rung-level result holds at **4–9σ** (not 20–42σ), while the plateau and the location of
