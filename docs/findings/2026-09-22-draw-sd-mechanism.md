@@ -196,3 +196,46 @@ interpolation at concentration 0.498*. But every coarse partition measured on d 
 0.395, 0.459, 0.678 — lands between 6.1e-4 and 1.06e-3, so ~1.0e-3 is the right *order* for any
 coarse rung on that circuit without any interpolation at all. The prediction is now supported by
 the flatness of the range rather than by a curve fit through it.
+
+## 9. The complete d = 1307 curve, and the number to actually use
+
+`e14` has finished. All six points on the instrument circuit, each with its group count:
+
+| concentration | 0.020 | 0.325 | 0.395 | 0.459 | 0.536 | 0.678 |
+|---|---|---|---|---|---|---|
+| groups | 812 | 90 | 51 | 29 | 12 | 3 |
+| min_size | 1 | 2 | 3 | 4 | 6 | 32 |
+| draw sd | 3.9e-5 | 9.29e-4 | 1.01e-3 | 6.13e-4 | 7.28e-4 | 1.06e-3 |
+| draws | n=2 | 5 | 5 | 5 | 5 | n=2 |
+
+Two of the six (`min_size 3` and `min_size 6`) are rungs **the ladder skips** — it goes 1, 2, 4,
+8 — so this is the first look at those granularities as well.
+
+**The coarse range has a factor of 1.7 of scatter and no ordering.** 6.13e-4 to 1.06e-3 across
+0.325–0.678, with the minimum in the middle. Mean ≈ 8.7e-4, and the three middle points
+(9.29e-4, 1.01e-3, 6.13e-4, 7.28e-4) differ from each other by more than the smooth trend would
+suggest. Four independent runs of the same experiment, so this is not a single bad draw.
+
+**So the number to use in a budget is a constant, and it is now chosen against four measurements
+rather than one.** The budget table used 1.1e-3 for every coarse rung. That is above all four
+measured coarse values (max 1.06e-3), so it **overstates** the required ``K`` — the safe direction.
+Recording it as a deliberate over-estimate rather than as a fitted value matters, because the
+temptation once a curve exists is to interpolate on it, and the curve does not order.
+
+**`side`'s prediction is now supported three ways**: by interpolation (≈1.0e-3 at concentration
+0.498), by the flatness of the coarse range (every coarse partition on this circuit lands in
+6e-4–1.1e-3), and by the mechanism (an unbalanced partition with a 501-neuron largest group has the
+same reshuffling exposure as the measured ones). None of the three is exact, and they agree.
+
+## 10. What is still unmeasured
+
+- **The knee.** Between 0.020 (3.9e-5) and 0.325 (9.29e-4) no point exists, so the rise's shape is
+  unknown — it could be a step, a power law, or two regimes. It does not affect any budget, which
+  needs only the coarse plateau, but it is the obvious next measurement and needs partitions the
+  `cell_type` pooling cannot produce (concentrations of 0.05–0.25).
+- **The d = 952 coarse range**, with more than 3 draws. Three draws is what made that curve's top
+  end unreadable (§5), and it is the only cross-circuit comparison available.
+- **`cell_class`** (concentration 0.171) and the annotation columns generally. Their draw sds are
+  still interpolated across the knee, which is the one place the interpolation is load-bearing: it
+  decides whether `wider-tasks/supertype` sits above or below the 2σ line in the predictor's
+  matched-pair count (`2026-09-22-predictor-survives-draw-correction.md` §4).

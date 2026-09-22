@@ -229,3 +229,35 @@ direction for a budget calculation.
 The remaining measurements (51, 29 and 12 groups) are in the same run. `side` is **not** covered —
 it is a balanced 4-group partition rather than an unbalanced pooled one, and §4 of
 `docs/findings/2026-09-22-artifacts-and-targeted-rungs.md` says why that may matter.
+
+## 9. The interpolation replaced, in full
+
+`e14` has finished all four of its runs. The one quantity §4 had to interpolate — the draw sd of
+rungs with 29–212 groups on the instrument circuit — is now measured at four concentrations:
+
+| concentration | 0.325 | 0.395 | 0.459 | 0.536 |
+|---|---|---|---|---|
+| groups | 90 | 51 | 29 | 12 |
+| min_size | 2 | 3 | 4 | 6 |
+| draw sd | 9.29e-4 | 1.01e-3 | 6.13e-4 | 7.28e-4 |
+
+The interpolated value §4 used was **1.1e-3**, which is above all four. So every required ``K`` in
+§4 is, if anything, an over-estimate, and the corrected numbers can be read as upper bounds. The
+two claims worth buying become easier again at the measured values:
+
+| claim | §4 figure | with `e14`'s measurements |
+|---|---|---|
+| `pool4` delta resolves from zero | 7.9σ | **13.7σ** |
+| `side → pool4` | K = 1.4 | **K = 0.8 — clear at the single draw already taken** |
+| `pool2 → cell_class` | K = 1.0 | K ≈ 0.8 (only `pool2`'s sd is measured; `cell_class` is still interpolated) |
+| `pool4 → pool2` (the plateau's key step) | infeasible, floor 2.2σ | **still infeasible** — the floor has no draw term, so no measurement moves it |
+
+The last row is the point worth carrying forward: **the verdicts that matter most are the ones no
+amount of measurement of `sd_draw` can change**, because they rest on the seed budget. Everything
+in this finding that *did* move moved by less than a factor of two and in the safe direction.
+
+The residual uncertainty is a factor of **1.7 within the coarse range** (6.13e-4 against 1.06e-3,
+non-monotone across four runs of the same experiment), which is why §8 of the mechanism finding
+recommends a constant at the top of the range rather than an interpolation. §7's sensitivity table
+shows what a factor of two does: the two worth-buying claims stay at K ≤ 4 even at ×2, and the five
+infeasible verdicts stay infeasible at every multiplier from 0.27 to 2.
