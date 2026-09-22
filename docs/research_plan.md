@@ -105,6 +105,17 @@ predicted signature is a fall in the off-diagonal share of `Σ_k` in the neuron
 basis around `kappa ≈ 0.5`. Unifying the fully-observed and rank-deficient
 anisotropy axes is the main open theoretical question.
 
+*And the sign is not topology-free.* In the `e2` scale sweep — where the **wiring** is
+the variable and `flattening` is a consequence of it rather than an intervention —
+`swap2` shows the **opposite** sign: its most anisotropic point (flattening 0.0235) has
+the *smallest* excess and its least anisotropic (0.2334) the largest, while `real` and
+`swap0.5` follow the direction above. So the relation here is a statement **at fixed
+topology**, and applying it where the wiring varies is not licensed. `swap2`'s flattening
+also spans **895%** across the sweep against `real`'s 4.2%, which localises that anomaly
+to the propagated task spectrum rather than the filter
+(`docs/findings/2026-09-22-swap2-geometry-anomaly.md`). The test is `e5`'s own
+intervention applied at a rewired topology — cheap, and not done.
+
 *Controls (all required, or the claim is uninterpretable):* degree-preserving
 double-edge swaps at several strengths, Erdős–Rényi at matched density, and a
 matched-spectrum random graph. Note Erdős–Rényi is a **separate regime**, not the
