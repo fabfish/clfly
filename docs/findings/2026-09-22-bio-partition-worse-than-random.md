@@ -104,3 +104,45 @@ Each was invisible from inside its own artifact, and the third was invisible bec
 lived in files with no reason to be compared — one from the basis study, one from the rung ladder.
 **A run's λ is not a property of the run; it is a coordinate, and coordinates have to be plotted
 before they can be read.** That is plan rule 14's lesson one level up.
+
+## 7. The complete λ arm at the ladder's batches — the sign never flips
+
+`e25` finished, so all three points of the arm exist:
+
+| λ (batches = 8, `cell_class`, 3 repeats, same seeds) | naive | biological | matched random | Δ accuracy | σ paired | Δ forgetting | σ paired |
+|---|---|---|---|---|---|---|---|
+| 0.003 | 0.8241 | 0.8403 | 0.8634 | **−0.0231** | 0.87 | +0.0035 | 0.08 |
+| **0.1** | 0.8241 | 0.7755 | 0.8403 | **−0.0648** | **2.65** | **+0.0903** | **2.73** |
+| 1.0 | 0.8241 | 0.8426 | 0.8611 | −0.0185 | 0.35 | +0.0243 | 0.45 |
+
+**The biological partition is worse than its size-matched random control at every λ tried**, spanning
+a 300× range, with the naive baseline constant to four decimals (0.8241) throughout because it has no
+Fisher. The *sign* is λ-robust; the *magnitude* is not, and it peaks at λ = 0.1 rather than at either
+end.
+
+**That removes the λ confound I raised an hour earlier.** §3 above said the "no advantage" reading
+held at one λ rather than being λ-robust. That was written with two points. With three it is
+λ-robust in the sense that matters — the direction never reverses — and the correct summary is
+narrower and stronger:
+
+> At `cell_class` and Fisher batches = 8, the biological synapse partition is never better than a
+> group-size-matched random partition at any λ in {0.003, 0.1, 1.0}, and at λ = 0.1 it is
+> **significantly worse on both metrics** (2.65σ and 2.73σ paired).
+
+Two readings of the λ dependence are now available and they are not in conflict. The λ *sweep* found
+that the winner flips with λ at batches 32; here, at batches 8, the winner does not flip — the random
+control wins throughout. So the instability the sweep found is a property of **(λ, batches) jointly**
+and not of λ alone, which is the same conclusion §7 of `2026-09-22-e10-lambda-not-set.md` reached from
+the other direction.
+
+## 8. What is still missing, and it is not the λ arm
+
+The **rung** question — does `side` beat `cell_class` as an anchoring basis — is untouched by all of
+this. Both rungs have a bio-versus-random measurement only at λ = 1.0 (−0.0116 at 0.43σ for `side`,
+−0.0185 at 0.35σ for `cell_class`), so at the one shared λ they are indistinguishable from each other
+*and* from zero. Answering it needs either the λ = 0.1 arm at `side` (one run, ~35 min, and it is the
+λ where the `cell_class` contrast is largest) or the paired cross-rung contrast at a single λ.
+
+The cheapest informative run in the whole network line is therefore **`side` at λ = 0.1, batches = 8**:
+it completes the (λ, rung) grid at the one λ where the effect is resolved, and it costs the same as
+the runs already done.
