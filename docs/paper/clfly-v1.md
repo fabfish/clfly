@@ -509,14 +509,16 @@ the seed sem, so a single-draw σ overstates the evidence several-fold — and *
 near-diagonal ones**, where it is negligible. The mechanism offered for that pattern was that permuting
 labels barely changes a partition made of singletons and changes a great deal when there are two to ten
 groups. **That reading has since been refuted four times over** (`e67`, `e72`, `e75`, and `e67`'s own
-non-monotonicity), and five candidates later the one that works is a **different kind of object**: the
-draw-to-draw spread of `projection_pressure` — how much of the predicted prior the projection discards,
-**weighted by the task's measurement information `J_k`** — ranks the draw spread at **+0.767 (p = 0.016)**
-while being only +0.317 with concentration. The four failures all used the task's *subspace*; this uses
-the task's *information*, which is what the spread turns out to be about. So the draw sd is
-**measured per rung** wherever a σ uses it, and the predictor is a lead rather than a substitute for that
-measurement. See the note two paragraphs below and
-`docs/findings/2026-09-23-pressure-spread-predicts-the-draw-spread.md`.
+non-monotonicity), and what replaces it is a **mechanism rather than another candidate**: the
+draw-to-draw movement of the control's excess tracks `projection_pressure` — how much of the predicted
+prior the projection discards, **weighted by the task's measurement information `J_k`** — at **r = 0.906,
+r² = 0.828** on the same relabelling, against **0.170 (r² 0.066)** for the bare alignment on the identical
+design (`e81`; the paired difference is +0.736 ± 0.061 with nine of nine partitions positive). All four
+failures were **subspace overlaps** — they ask where the drive *is* — and none could see `J_k`, which is
+what the spread turns out to be about. The draw sd is still **measured per rung** wherever a σ uses it,
+so nothing in this paper's numbers depends on the mechanism; but the error bar now has an explanation.
+See the note two paragraphs below and
+`docs/findings/2026-09-23-the-pressure-mechanism.md`.
 
 **With one counterexample that matters, because `side` is one of those partitions.** The claim as
 written is keyed on group count, and `side` is a **4-group** partition — inside the coarse band, and so
