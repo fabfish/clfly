@@ -74,6 +74,17 @@ error against <1% in LGCL's random-rotation family.*
 chance**, and rewiring monotonically destroys that (up to 5× *more aligned* than
 chance at Erdős–Rényi). The geometry half of the claim holds cleanly.
 
+> **And this half is now measured to be seed-robust**, which the interpretation below is not. Every
+> one of the **27** task seeds behind the five checkable `swap0.5 → swap2` contrasts agrees with its
+> contrast's sign (6/6 at each of cs400/500/600/700, 3/3 at cs300), **no leave-one-seed-out removal
+> flips any of them**, and the largest single-seed leverage is **0.58–0.77** on a scale whose
+> ceiling is 1 (for a single-outlier contrast leverage is *exactly* 1, an identity pinned in the
+> tests). Contrast `e5`'s association, where one seed of three carried it and another had the
+> *opposite* sign and every pooled statistic was null. So **the existence of the instability is
+> solid and only its interpretation failed** — that split has been implicit for four findings and
+> `e47` makes it measured
+> (`docs/findings/2026-09-22-c1-contrast-is-seed-robust.md`).
+
 *What is refuted:* the gap does **not** track task overlap. Across the
 degree-preserving family the gap moves *opposite* to interference — overlap rises
 8× while the gap falls by two-thirds. The first mechanism story was wrong.
@@ -86,9 +97,10 @@ degree-preserving family the gap moves *opposite* to interference — overlap ri
 > I attributed that spread to re-drawing the swap realization; **measured directly at fixed circuit
 > size and fixed tasks, re-drawing moves `excess(swap2)` with sd 0.00303 at four realizations — 6.8×
 > less than the 0.0205 attributed** (χ² p = 0.0044), and ER's is 0.00353, 5.8× less (p = 0.0069).
-> The final counts settle it at a **~6×** margin: `swap2` **0.00350** over 5 realizations
-> (p = 0.0016) and ER **0.00320** over 6 (p = 0.00026), the latter spanning **5.3% of its own mean**
-> against the 67% the withdrawn attribution required.
+> The final counts settle it at a **~5.4×** margin: `swap2` **0.00377** over all 6 realizations
+> (p = 0.00059, range 0.00930) and ER **0.00320** over 6 (p = 0.00026), the latter spanning **5.3% of
+> its own mean** against the 67% the withdrawn attribution required. The margin moved 16.3× → 6.8× →
+> 5.9× → **5.4×** as realizations were added, i.e. it is settling rather than drifting.
 > So the sweep's spread is not realization noise, and `e34`'s "the 152σ becomes 4.5σ" is void.
 >
 > **And the coordinate I proposed for the sign does not work either.** Across those five circuits the
@@ -706,6 +718,9 @@ All of it has been run. The scripts as delivered:
 | `e43_e5_replication.py` | C1 | is the `e5` artifact live output or a stale file? | done — **live**: `e37`'s same-configuration arm reproduces all 21 `(seed, kappa)` points, worst 0.50× print-rounding tolerance, so the published table's discrepant cells are the stale thing |
 | `e44_penalty_cost_scaling.py` | C2b | what actually bounds each rung's cost? | done — **two terms**: `28 µs x G + 7.6e-4 x sum_g s_g^2`, crossing at `G ~ sum_g s_g^2 / 40,000`; the fine rungs are dispatch-dominated (which is why `supertype` ate 3.5 CPU-hours) and a block-diagonal sparse route is 50–891× faster there but **slower** at the coarse end |
 | `e45_e5_seed_pattern_across_circuits.py` | C1 | does `e5`'s seed pattern repeat at a second circuit size? | done — **no rescue**: four pooled statistics over two circuit sizes and two metrics are **all null** (p = 0.216, 0.077, 0.862, 0.658), two with the opposite sign; exactly one seed of three is strong in each draw (−0.964 and −0.893 relative, −0.929 and −0.893 absolute), so the association is a per-seed event in a minority of seeds |
+| `e47_contrast_per_seed_signs.py` | C1 | is the C1 contrast seed-robust, or is it `e5` all over again? | done — **robust**: 27/27 task seeds agree with their contrast's sign, no leave-one-seed-out removal flips any, max single-seed leverage 0.58–0.77. **And it found a rule-8 hole**: `runs/e2_analytic.json` stores no per-seed values, so the 32.7σ figure is the one contrast that cannot be checked — `e48` launched to close it |
+| `e2_topology_gap --circuit-size 800 --seeds 6` | C1 | per-seed storage for cs = 800 (`e48`), the only contrast lacking it | **in flight** — `runs/e48_cs800_perseed.json` |
+| `e8_rate_network --lam 0.1 --repeats 16` | C2b | the properly-powered rung contrast at λ = 0.1 (`e46`), the λ where it resolves | **in flight** — `runs/e46_c2b_powered.json` |
 | `e5_anisotropy_axis.py --seeds 12` | C1 | `e5` re-run with 12 seeds (`e42`) — the binding test for the replacement mechanism | **in flight** — `runs/e42_e5_reseed.json`; the point dict now stores the prescribed absolute excess and the report prints per-seed ρ |
 
 Every figure carries its control arm, and every recall/precision number in this document
