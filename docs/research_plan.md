@@ -188,18 +188,23 @@ the same order as the draw sd. `pool2 → pool4` goes 2.2σ → ≈0.6σ. The fi
 *And the budgets are now known exactly* (`docs/findings/2026-09-22-draw-budget.md`). Averaging
 the control over ``K`` draws enters as ``sd_draw^2/K`` — a per-observation spread, not a standard
 error, so seeds do not reduce it. Inverting that gives, per claim, the required ``K``: the two
-large steps need only **2.2–2.8** (`pool2 → cell_class`, `side → pool4` — the claim that a pooled
-partition beats the vocabulary's own best rung), `pool128 → pool32` needs 6.4, and the plateau's
+large steps need only **1.0–1.4** (`pool2 → cell_class`, `side → pool4` — the claim that a pooled
+partition beats the vocabulary's own best rung), `pool128 → pool32` needs 2.9, and the plateau's
 internal steps are **infeasible at any K** because their floor under the current 12-seed budget is
-below 3σ (`pool4 → pool2` reaches only 1.5σ). That verdict contains no `sd_draw` at all — it is the
+below 3σ (`pool4 → pool2` reaches only 2.2σ). That verdict contains no `sd_draw` at all — it is the
 best the *seed budget* can deliver — so it cannot be overturned by measuring the draw sd better,
-only by buying seeds (and the two claims worth buying need `K ≤ 12` even if `sd_draw` is wrong by
+only by buying seeds (and the two claims worth buying need `K ≤ 5.5` even if `sd_draw` is wrong by
 2×; §7 of the finding). The model calibrates on two contrasts whose true
 value is zero (`pool32 ≡ pool64`, `pool1 ≡ cell_type`): it predicts the observed noise to within
 4%, and the seed-only method had called one of them 4.7σ.
 
+*These numbers were 2× too large in the first version*, because `draws_needed` applied its own
+factor of √2 to terms the caller had already combined. One verdict was wrong (a contrast with a
+3.3σ floor was reported infeasible), and the inconsistency was visible in the table — a floor above
+the target beside a `K` column saying "infeasible" — and nobody looked. It is an invariant test now.
+
 **So the region is a broad band, not a curve with structure**, and the two claims worth buying are
-`pool2 → cell_class` and `side → pool4`, at three control draws each. The K=4 run is queued
+`pool2 → cell_class` and `side → pool4`, at two control draws each. The K=4 run is queued
 behind the CPU queue (`e3 --control-draws K` is implemented and its wiring validated).
 
 The predictor handles the ladder at Spearman **+0.995** over 17 partition bases, including

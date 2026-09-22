@@ -79,27 +79,34 @@ def test_delta_sem_does_not_shrink_the_draw_term_with_seeds():
 
 
 def test_draws_needed_inverts_the_variance_relation():
-    delta, sem_seed, sd = 1e-3, 2e-4, 1e-3
-    k = draws_needed(delta, sem_seed, sd, target_sigma=3.0, contrast=False)
-    # check by construction: at that K the claim is exactly at the target
-    assert abs(delta) / delta_sem(sem_seed, sd, draws=k) == pytest.approx(3.0, rel=1e-6)
+    delta, sem, sd = 1e-3, 2e-4, 1e-3
+    k = draws_needed(delta, sem, sd, target_sigma=3.0)
+    # by construction: at that K the claim sits exactly at the target
+    assert abs(delta) / delta_sem(sem, sd, draws=k) == pytest.approx(3.0, rel=1e-6)
 
 
-def test_draws_needed_doubles_for_a_contrast():
-    a = draws_needed(1e-3, 2e-4, 1e-3, target_sigma=3.0, contrast=False)
-    b = draws_needed(1e-3, 2e-4, 1e-3, target_sigma=3.0, contrast=True)
-    assert b > a
+def test_draws_needed_does_not_recombine_the_two_rungs_of_a_contrast():
+    # REGRESSION. An earlier version took a `contrast` flag and applied its own factor of two,
+    # double-counting whenever the caller had already combined the two rungs -- which is the
+    # usual case, and which halved every required K and flipped one verdict. The function now
+    # takes the claim's terms already combined, so the closed form must match exactly.
+    delta, sem, sd = 5e-3, 4e-4, 1.2e-3
+    want = (delta / 3.0) ** 2
+    assert draws_needed(delta, sem, sd) == pytest.approx(sd ** 2 / (want - sem ** 2))
 
 
 def test_draws_needed_is_infinite_when_the_seed_budget_binds():
     # the target is below what infinitely many draws could deliver, so no K suffices
-    assert draws_needed(1e-4, 5e-4, 1e-3, target_sigma=3.0, contrast=True) == float("inf")
+    assert draws_needed(1e-4, 5e-4, 1e-3, target_sigma=3.0) == float("inf")
 
 
 def test_draws_needed_is_smaller_for_a_larger_effect():
-    small = draws_needed(5e-4, 2e-4, 1e-3, contrast=True)
-    large = draws_needed(5e-3, 2e-4, 1e-3, contrast=True)
-    assert large < small
+    assert draws_needed(5e-3, 2e-4, 1e-3) < draws_needed(5e-4, 2e-4, 1e-3)
+
+
+def test_draws_needed_is_below_one_when_the_draw_already_suffices():
+    # a claim well clear of its floor needs no averaging at all
+    assert draws_needed(5e-3, 1e-4, 1e-3) < 1.0
 
 
 # --------------------------------------------------------------------------
@@ -129,3 +136,25 @@ def test_concentration_ignores_label_names_and_is_monotone_in_coarseness():
     assert concentration(relabelled) == pytest.approx(concentration(labels))
     coarse = np.where(labels == 0, 0, 1)            # merge everything but one group
     assert concentration(coarse) > concentration(labels)
+
+
+def test_draws_needed_is_finite_exactly_when_the_floor_clears_the_target():
+    """A consistency invariant that the double-counting bug violated.
+
+    ``K`` is finite iff ``|delta| / sem`` — the floor reachable with infinitely many draws —
+    exceeds the target. The buggy version applied its own factor of two to a `sem` that already
+    combined two rungs, so it reported ``inf`` for contrasts whose floor was comfortably above
+    the target. That inconsistency was visible in the published table (a row with floor 3.3 and
+    K = infeasible) and should have been caught by inspection; it is a test now.
+    """
+    rng = np.random.default_rng(0)
+    for _ in range(500):
+        delta = float(rng.uniform(-5e-3, 5e-3))
+        sem = float(rng.uniform(1e-5, 1e-3))
+        sd = float(rng.uniform(1e-5, 3e-3))
+        for target in (2.0, 3.0, 4.0):
+            k = draws_needed(delta, sem, sd, target)
+            clears = abs(delta) / sem > target
+            assert (k != float("inf")) == clears, (delta, sem, sd, target, k)
+            if clears:
+                assert k > 0

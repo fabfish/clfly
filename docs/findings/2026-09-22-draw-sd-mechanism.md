@@ -60,7 +60,7 @@ So:
 
 - the 9e-5 smoke value is predicted **not to replicate**; it was two draws, and the sd of two points
   has a standard error of order 50%;
-- the `side → pool4` budget of K ≈ 2.8 **stands**, and the "coarse" column of the budget table did
+- the `side → pool4` budget of K ≈ 1.4 **stands**, and the "coarse" column of the budget table did
   not need to be split by column after all — but for a reason the group-count model could not have
   supplied.
 

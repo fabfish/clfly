@@ -88,25 +88,33 @@ def delta_sem(sem_seed: float, sd_draw: float, draws: int = 1) -> float:
     return float(np.hypot(sem_seed, sd_draw / np.sqrt(draws)))
 
 
-def draws_needed(delta: float, sem_seed: float, sd_draw: float,
-                 target_sigma: float = 3.0, contrast: bool = True) -> float:
+def draws_needed(delta: float, sem_claim: float, sd_claim: float,
+                 target_sigma: float = 3.0) -> float:
     """How many control draws a claim needs, or ``inf`` if no number of draws suffices.
 
-    ``contrast=True`` treats the claim as the difference between *two* rungs' deltas (each with
-    its own control draw, so the draw variance counts twice); ``contrast=False`` treats it as a
-    single rung's delta against zero.
+    The two error arguments describe **the claim itself**, already combined, and that is the
+    whole convention:
+
+    - a single rung's delta against zero: ``sem_claim`` is that delta's seed sem, ``sd_claim``
+      its control's draw sd;
+    - the difference between two rungs' deltas: both are combined **in quadrature across the
+      two rungs**, ``hypot(sem_a, sem_b)`` and ``hypot(sd_a, sd_b)``, because the two rungs
+      have independent control draws.
+
+    Doing the combining in the caller keeps the arithmetic here to one line.  An earlier
+    version took a ``contrast`` flag and applied its own factor of two, which **double-counted**
+    whenever the caller had already combined the two rungs -- the usual case.  It halved every
+    required ``K`` and flipped one verdict the wrong way, so the flag was removed rather than
+    fixed.
 
     Returns ``inf`` when even averaging the draw noise to nothing leaves the seed sem above the
-    target -- in that case the binding constraint is the seed budget, and the caller should be
-    told so rather than given a large finite number.
+    target: then the binding constraint is the seed budget, and the caller should be told so
+    rather than handed a large finite number.
     """
-    target = abs(delta) / target_sigma
-    want = target ** 2
-    factor = 2.0 if contrast else 1.0
-    floor = factor * sem_seed ** 2
-    if want <= floor:
+    want = (abs(delta) / target_sigma) ** 2
+    if want <= sem_claim ** 2:
         return float("inf")
-    return float(factor * sd_draw ** 2 / (want - floor))
+    return float(sd_claim ** 2 / (want - sem_claim ** 2))
 
 
 def concentration(labels) -> float:

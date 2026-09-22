@@ -76,33 +76,44 @@ experiment in §5.
 
 | contrast | Δ of deltas | σ at K=1 | floor | **K for 3σ** | σ at K=4 |
 |---|---|---|---|---|---|
-| `side → pool4` | −0.00407 | 2.58 | 10.8 | **2.8** | **3.50** |
-| `pool2 → cell_class` | +0.00482 | 2.99 | 8.2 | **2.2** | **3.86** |
-| `pool128 → pool32` | −0.00289 | 1.83 | 7.0 | **6.4** | 2.46 |
-| `pool8 → side` | +0.00208 | 1.32 | 5.2 | 15.0 | 1.78 |
-| `pool64 → pool16` | −0.00217 | 1.36 | 4.7 | 15.8 | 1.82 |
-| `pool32 → pool64` (true Δ = 0) | +0.00150 | 0.95 | 3.3 | 109 | 1.26 |
-| `ito_lee_hemilineage → supertype` | +0.00152 | 3.20 | **2.3** | infeasible | 2.29 |
-| `supertype → pool1` | +0.00164 | 2.65 | 1.9 | infeasible | 1.89 |
-| `pool16 → pool8` | +0.00080 | 0.50 | 1.9 | infeasible | 0.68 |
-| **`pool4 → pool2`** | +0.00084 | 0.52 | **1.5** | **infeasible** | **0.68** |
-| `cell_class → ito_lee_hemilineage` | +0.00023 | 0.19 | 0.4 | infeasible | 0.23 |
-| `pool1 → cell_type` (true Δ = 0) | +0.00007 | 0.11 | 0.1 | infeasible | 0.08 |
+| `side → pool4` | −0.00407 | 2.58 | 15.2 | **1.4** | **4.95** |
+| `pool2 → cell_class` | +0.00482 | 2.99 | 11.6 | **1.0** | **5.46** |
+| `pool128 → pool32` | −0.00289 | 1.83 | 9.8 | **2.9** | 3.48 |
+| `pool8 → side` | +0.00208 | 1.32 | 7.4 | 6.0 | 2.52 |
+| `pool64 → pool16` | −0.00217 | 1.36 | 6.6 | 5.8 | 2.57 |
+| `pool32 → pool64` (true Δ = 0) | +0.00150 | 0.95 | 4.7 | 16.4 | 1.78 |
+| `ito_lee_hemilineage → supertype` | +0.00152 | 3.20 | 3.3 | 0.2 | 3.24 |
+| `supertype → pool1` | +0.00164 | 2.65 | 2.7 | infeasible | 2.67 |
+| `pool16 → pool8` | +0.00080 | 0.50 | 2.7 | infeasible | 0.96 |
+| **`pool4 → pool2`** | +0.00084 | 0.52 | **2.2** | **infeasible** | 0.96 |
+| `cell_class → ito_lee_hemilineage` | +0.00023 | 0.19 | 0.5 | infeasible | 0.33 |
+| `pool1 → cell_type` (true Δ = 0) | +0.00007 | 0.11 | 0.1 | infeasible | 0.11 |
+
+> **These numbers were wrong once, by a factor of two, and the error is worth reading.** The first
+> version of `draws_needed` took a ``contrast`` flag and multiplied by ``sqrt(2)`` itself, while the
+> caller had *already* combined the two rungs in quadrature — so the factor was applied twice, every
+> ``K`` came out ~2× too large, and `ito_lee_hemilineage → supertype` was reported **infeasible**
+> when its floor is 3.3σ and it is in fact settled by the single draw it has. The symptom was
+> visible in the published table: a row whose floor (3.3σ) was above the target while its ``K``
+> column said "infeasible". Nothing in the project checks that invariant, and nobody looked. It is a
+> test now, and the flag is gone — the function takes the claim's two error terms already combined,
+> which removes the chance of double-counting at the source.
 
 Three things follow.
 
-**The two large steps are testable at K ≈ 2–3.** `side → pool4` (the claim that a pooled
+**The two large steps are testable at K ≈ 1–1.4.** `side → pool4` (the claim that a pooled
 partition beats the annotation vocabulary's own best rung) and `pool2 → cell_class` (the biggest
-single drop in the curve) both come inside 3σ with three draws per rung; `pool128 → pool32` needs
-six. This is the first time those claims have been anything other than a guess.
+single drop in the curve) clear 3σ with **two** draws per rung — one draw already gets them to
+2.6σ and 3.0σ. `pool128 → pool32` needs three. This is the first time those claims have been
+anything other than a guess, and they are cheaper than the first estimate said.
 
 **The plateau's internal structure is not testable.** `pool4 → pool2`, the contrast the earlier
-fire read the plateau from, has a floor of **1.5σ** at 12 seeds: even with the draw noise removed
+fire read the plateau from, has a floor of **2.2σ** at 12 seeds: even with the draw noise removed
 it cannot reach 3σ, and removing draw noise entirely is impossible. Its neighbours `pool16 →
-pool8` (1.9σ) and `supertype → pool1` (1.9σ) are in the same position. So "a plateau spanning
-0.32–0.67" is not a resolution problem that more compute fixes — with this seed budget it is
-**not a resolvable claim at all**, and the region should be reported as a broad band rather than
-as a curve with internal structure.
+pool8` (2.7σ) and `supertype → pool1` (2.7σ) and `cell_class → ito_lee_hemilineage` (0.5σ) are in
+the same position. So "a plateau spanning 0.32–0.67" is not a resolution problem that more compute
+fixes — with this seed budget it is **not a resolvable claim at all**, and the region should be
+reported as a broad band rather than as a curve with internal structure.
 
 **Two contrasts have a known true value of zero, and both behave.** `pool32 → pool64` and
 `pool1 → cell_type` are duplicate partitions; the model puts the first at 0.95σ and the second at
@@ -114,12 +125,14 @@ on the other, exactly as the sign of the correlation with granularity would pred
 **Run the ladder with `--control-draws 4`.** Cost is 5× the control arm (8 biological + 32
 controls + one diagonal ≈ 41 bases versus 17), or 12 seeds × 41 bases ≈ 5 h at the measured
 37 s per base-seed. The biological arm need not be recomputed if the seeds are matched, which
-halves it.
+halves it. However, K=4 is more than either of the two claims needs (§4: K ≈ 1–1.4), so the
+targeted version — three rungs, K=4, 15 bases ≈ 1.9 h — is the better buy
+(`docs/findings/2026-09-22-artifacts-and-targeted-rungs.md`).
 
 The prediction to test is specific, and stated in advance, from the last column of §4: at K=4 the
-two biggest steps come out at **3.86σ** (`pool2 → cell_class`) and **3.50σ** (`side → pool4`),
-`pool128 → pool32` at 2.46σ (it needs K=6.4 to clear 3σ), and **every small step stays at 0.68σ
-or below** — `pool4 → pool2` at 0.68σ, `pool16 → pool8` at 0.68σ. If instead the small steps
+two biggest steps come out at **5.46σ** (`pool2 → cell_class`) and **4.95σ** (`side → pool4`),
+`pool128 → pool32` at 3.48σ, and **every small step stays at 0.96σ or below** — `pool4 → pool2` at
+0.96σ, `pool16 → pool8` at 0.96σ. If instead the small steps
 resolve, the draw-sd estimate is too large and E12 needs revisiting; if the large steps fail to
 resolve, the seed budget is the binding constraint and the rung-level claim is weaker than §3
 says. Either outcome is informative, which is the point of writing the prediction down first.
@@ -147,39 +160,41 @@ fifth compute-bound job would slow all of them; the run is scheduled for when co
 
 `sd_draw` is the one quantity in §4 that is **interpolated** for rungs of 29–212 groups, which is
 exactly where the two claims worth buying live. So the obvious question is which conclusions would
-move if the interpolation is wrong. Recomputing every required ``K`` over a 7× range of
-``sd_draw``:
+move if the interpolation is wrong. Scaling each contrast's **own** two-rung draw sd by a factor:
 
-| contrast | floor | 0.3e-3 | 0.55e-3 | **1.1e-3** | 2.2e-3 |
+| contrast | floor | ×0.27 | ×0.5 | **×1** | ×2 |
 |---|---|---|---|---|---|
-| `pool128 → pool32` | 7.0 | 0.5 | 1.6 | 6.4 | 25.6 |
-| `pool32 → pool64` (true Δ = 0) | 3.3 | 8.1 | 27.1 | 108.6 | 434.3 |
-| `pool64 → pool16` | 4.7 | 1.2 | 3.9 | 15.8 | 63.1 |
-| `pool8 → side` | 5.2 | 1.1 | 3.7 | 15.0 | 60.0 |
-| `side → pool4` | 10.8 | 0.2 | 0.7 | **2.8** | 11.4 |
-| `pool2 → cell_class` | 8.2 | 0.2 | 0.5 | **2.2** | 8.7 |
-| `pool16 → pool8` | 1.9 | inf | inf | inf | inf |
-| `pool4 → pool2` | 1.5 | inf | inf | inf | inf |
-| `cell_class → ito_lee_hemilineage` | 0.4 | inf | inf | inf | inf |
-| `ito_lee_hemilineage → supertype` | 2.3 | inf | inf | inf | inf |
-| `supertype → pool1` | 1.9 | inf | inf | inf | inf |
+| `pool128 → pool32` | 9.8 | 0.2 | 0.7 | 2.9 | 11.5 |
+| `pool32 → pool64` (true Δ = 0) | 4.7 | 1.2 | 4.1 | 16.4 | 65.6 |
+| `pool64 → pool16` | 6.6 | 0.4 | 1.5 | 5.8 | 23.4 |
+| `pool8 → side` | 7.4 | 0.4 | 1.5 | 6.0 | 24.1 |
+| `side → pool4` | 15.2 | 0.1 | 0.3 | **1.4** | 5.5 |
+| `pool2 → cell_class` | 11.6 | 0.1 | 0.3 | **1.0** | 4.0 |
+| `pool16 → pool8` | 2.7 | inf | inf | inf | inf |
+| `pool4 → pool2` | 2.2 | inf | inf | inf | inf |
+| `cell_class → ito_lee_hemilineage` | 0.5 | inf | inf | inf | inf |
+| `ito_lee_hemilineage → supertype` | 3.3 | 0.0 | 0.0 | 0.2 | 0.7 |
+| `supertype → pool1` | 2.7 | inf | inf | inf | inf |
 | `pool1 → cell_type` (true Δ = 0) | 0.1 | inf | inf | inf | inf |
 
-**The infeasible verdicts are immune to this parameter.** The floor is ``|Δ| / (sqrt(2)
-sem_seed)``, which contains no ``sd_draw`` at all — it is the best the **seed budget** can deliver
-once the draw noise is gone entirely. So "the curve's internal steps are not a resolvable claim"
-cannot be overturned by measuring the draw sd better; it would take more seeds, and §6 notes what
+**The infeasible verdicts are immune to this parameter.** The floor is ``|Δ| / sem_seed`` — the
+claim's two arms already combined — and it contains no ``sd_draw`` at all: it is the best the
+**seed budget** can deliver once the draw noise is gone entirely. So "the curve's internal steps
+are not a resolvable claim" cannot be overturned by measuring the draw sd better; it would take
+more seeds, and §6 notes what
 that would cost. This is the main conclusion of the analysis, and it is now known to rest on the
-seed sems alone.
+seed sems alone. (An earlier version of this table wrote the floor with a spurious ``sqrt(2)``, the
+same double-count as §4, which made the floors depend on ``sd_draw`` only through an arithmetic
+error — the five ``inf`` rows were invariant then too, for the right reason, by accident.)
 
 **The two claims worth buying are robust too.** ``side → pool4`` and ``pool2 → cell_class`` need
-``K ≤ 12`` even if the interpolation is wrong by a factor of two in the unfavourable direction, and
+``K ≤ 5.5`` even if the interpolation is wrong by a factor of two in the unfavourable direction, and
 ``K ≈ 0.2`` — i.e. one draw already suffices — at the low end. Their required K scales as
 ``sd_draw^2``, as the formula says, so the planned ``K = 4`` run is comfortably above what either
 claim needs at the central estimate and still enough at the pessimistic one.
 
-**One row is fragile, and it is not a real claim.** ``pool32 → pool64`` moves from ``K = 8`` to
-``K = 434`` across the same range. Its true Δ is zero — it is the noise probe — so the number is
+**One row is fragile, and it is not a real claim.** ``pool32 → pool64`` moves from ``K = 1.2`` to
+``K = 66`` across the same range. Its true Δ is zero — it is the noise probe — so the number is
 meaningless as a requirement, but it is the clearest illustration of why a claim whose floor is
 just above the target is not a claim: the cost of settling it is set by how far above the floor it
 sits, divided by everything else.
