@@ -186,12 +186,16 @@ those are the useful kind. The eleven retractions and refutations, in order:
   reasonable value across eight experiments; and
 - **"more anisotropy gives a larger gap"** — the replacement mechanism for the refuted
   interference story, and the project's most-quoted direction — is **carried by one seed of
-  three**. Its published Spearman of −0.75 is reproduced *exactly* by changing one cell of the
-  artifact it cites, and that same cell is what creates its headline U-shape; the cited file is the
-  three-seed re-run, not the one-seed run the finding claims, and it agrees with the published table
-  in 35 of 42 cells with **every** disagreement in the realized-error columns. Pooled over the
-  artifact: −0.282 (p = 0.216); on the absolute metric the plan itself prescribes: **+0.040
-  (p = 0.86)**.
+  three, and the pattern repeats**. Its published Spearman of −0.75 is reproduced *exactly* by
+  changing one cell of the artifact it cites, and that same cell is what creates its headline
+  U-shape; the cited file is the three-seed re-run, not the one-seed run the finding claims, and it
+  agrees with the published table in 35 of 42 cells with **every** disagreement in the realized-error
+  columns. Pooled over the artifact: −0.282 (p = 0.216); on the absolute metric the plan itself
+  prescribes: **+0.040 (p = 0.86)**. Re-run at cs = 300 on independent tasks it gives per-seed
+  −0.321 / −0.893 / **+0.500**, pooled −0.507 (p = 0.032) — so in *each* draw exactly one seed shows
+  a strong association and exactly one has the **opposite** sign. The association is a **per-seed
+  event in a minority of seeds**, and its pooled significance is a property of the draw, not of the
+  manipulation.
 
 Plus the traps themselves, each found by falling into it: the **chaotic headline
 metric** (standard deviation exceeding its own mean, and a 1-ULP ARPACK start vector moving
