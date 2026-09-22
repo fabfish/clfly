@@ -159,15 +159,26 @@ anisotropy axes is the main open theoretical question.
 > buy seeds, not a better metric.
 > (`docs/findings/2026-09-22-e5-does-not-reproduce-its-own-artifact.md`)
 >
-> **And the same manipulation run at cs = 300 — an independent task draw — both repeats the failure
-> mode and flips the pooled verdict.** Per-seed ρ(flattening, gap): cs = 800 gives **−0.964, −0.321,
-> +0.107** with pooled **−0.282 (p = 0.216, null)**; cs = 300 gives **−0.321, −0.893, +0.500** with
-> pooled **−0.507 (p = 0.032, significant)**. So in *each* draw exactly one seed shows a strong
-> association and exactly one has the **opposite** sign — on different tasks and a different circuit.
-> The honest model is therefore that the association is a **per-seed event occurring in a minority of
-> seeds**, not a uniform property with noise on top: that reading is consistent with both draws (2
-> strong-seed hits in 6 seeds) *and* with the pooled significance being unstable. Six seeds can say
-> the pattern repeats; they cannot estimate the mixing weight, which is what `e42`'s 12 seeds are for.
+> **And the same manipulation run at cs = 300 — an independent task draw — does not rescue it, and
+> points the other way.** Four pooled statistics, **none significant**: on the relative gap cs = 800
+> gives **−0.282 (p = 0.216)** and cs = 300 gives **−0.395 (p = 0.077)**; on the **absolute** excess
+> that rule 3 prescribes they are **+0.040 (p = 0.862)** and **−0.103 (p = 0.658)** — two of the four
+> with the *opposite sign* to the claimed direction. So under the metric the project itself prescribes
+> the association is **absent from the pooled statistic at both circuit sizes**.
+>
+> What does repeat is the shape of the failure: **exactly one seed of three** shows a strong
+> association in each draw, and the two strong seeds agree closely — **−0.964 and −0.893** (relative)
+> and **−0.929 and −0.893** (absolute). The reading is that the association is a **per-seed event
+> occurring in a minority of seeds**, not a uniform property with noise on top: that is consistent
+> with both draws (2 strong hits in 6 seeds) *and* with every pooled statistic being null, which is
+> what a mixture produces when it is averaged. Six seeds can say the shape repeats; they cannot
+> estimate the mixing weight — `e42`'s 12 seeds can.
+>
+> *(This paragraph replaces an earlier version of itself, committed ten minutes earlier in the same
+> fire, which reported that the pooled verdict "flips" to significant at cs = 300. That was an
+> artifact of pooling an **incomplete seed** from `e37`'s in-flight log: completing it moved the
+> p from 0.032 to 0.077, across the significance line, and also retracted a second claim about an
+> opposite-signed seed.)*
 > (`docs/findings/2026-09-22-e5-pattern-repeats-at-a-second-circuit.md`)
 >
 > Everything in the paragraph below about `swap2`'s opposite sign is unaffected — it rests on the
@@ -694,7 +705,7 @@ All of it has been run. The scripts as delivered:
 | `e41_anisotropy_seed_fragility.py` | C1 | does `e5`'s anisotropy association survive its artifact, its other seeds and the metric rule? | done — **no**: the cited file is the 3-seed rerun and disagrees with the table in 7 of 42 cells (all in the realized-error columns); one cell reproduces both headlines exactly; the association is 1 of 3 seeds, p = 0.216 pooled, **+0.040 (p = 0.86)** on the prescribed absolute metric |
 | `e43_e5_replication.py` | C1 | is the `e5` artifact live output or a stale file? | done — **live**: `e37`'s same-configuration arm reproduces all 21 `(seed, kappa)` points, worst 0.50× print-rounding tolerance, so the published table's discrepant cells are the stale thing |
 | `e44_penalty_cost_scaling.py` | C2b | what actually bounds each rung's cost? | done — **two terms**: `28 µs x G + 7.6e-4 x sum_g s_g^2`, crossing at `G ~ sum_g s_g^2 / 40,000`; the fine rungs are dispatch-dominated (which is why `supertype` ate 3.5 CPU-hours) and a block-diagonal sparse route is 50–891× faster there but **slower** at the coarse end |
-| `e45_e5_seed_pattern_across_circuits.py` | C1 | does `e5`'s seed pattern repeat at a second circuit size? | done — **yes**: cs = 300 gives −0.321 / −0.893 / **+0.500** with pooled −0.507 (p = 0.032) against cs = 800's −0.964 / −0.321 / +0.107 and pooled −0.282 (p = 0.216); one strong seed and one opposite-signed seed in *each* draw, so the association is a per-seed event, not a uniform property |
+| `e45_e5_seed_pattern_across_circuits.py` | C1 | does `e5`'s seed pattern repeat at a second circuit size? | done — **no rescue**: four pooled statistics over two circuit sizes and two metrics are **all null** (p = 0.216, 0.077, 0.862, 0.658), two with the opposite sign; exactly one seed of three is strong in each draw (−0.964 and −0.893 relative, −0.929 and −0.893 absolute), so the association is a per-seed event in a minority of seeds |
 | `e5_anisotropy_axis.py --seeds 12` | C1 | `e5` re-run with 12 seeds (`e42`) — the binding test for the replacement mechanism | **in flight** — `runs/e42_e5_reseed.json`; the point dict now stores the prescribed absolute excess and the report prints per-seed ρ |
 
 Every figure carries its control arm, and every recall/precision number in this document
@@ -848,6 +859,17 @@ Added 2026-09-22, after the headline metric was found to be chaotic
    because the background default applied. Any run expected to exceed ~10 minutes needs
    an explicit long timeout or none at all; otherwise the fire ends with a partial log
    and no artifact, which looks like a slow run rather than a dead one.
+17. **Never compute a pooled statistic from an in-flight run.** A progress log is fine for
+   reading individual points and for replication checks, and it is *not* fine for a
+   pooled figure, because the last seed is partial and a partial seed is both badly
+   estimated and over-weighted. This was done once, in `e45`, and the incomplete seed
+   moved a pooled p from **0.077 to 0.032** — across the significance line — producing a
+   finding that had to be corrected ten minutes later. The same partial data also
+   inverted a per-seed ρ from −0.179 to +0.500 and a second claim fell with it. If the
+   artifact is not finished, report the per-seed values and wait; `e45` now excludes
+   incomplete sections and says so. The general form: **a pooled number needs every
+   component finished, and partial data fails silently rather than loudly because a
+   partial pool is still a number.**
 
 ## Related work to differentiate against
 

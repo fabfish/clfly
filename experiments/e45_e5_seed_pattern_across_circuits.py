@@ -196,16 +196,24 @@ def main() -> None:
     for r in results:
         if r["metric"] != "gap":
             continue
+        if r["pooled_verdict"] == "incomplete":
+            continue  # a section still being written has no pooled statistic to compare
         k = (round(r["pooled"]["rho"], 6), round(r["pooled"]["p"], 6), r["pooled"]["n"])
         if k in seen:
             continue
         seen.add(k)
         distinct.append(r)
-    dupes = sum(1 for r in results if r["metric"] == "gap") - len(distinct)
+    dupes = sum(1 for r in results
+                if r["metric"] == "gap" and r["pooled_verdict"] != "incomplete") - len(distinct)
     print(f"   {len(distinct)} DISTINCT pooled statistic(s) over {len(sig)+len(null)} sections"
-          f" ({dupes} repeat(s) of the same draw via another route)")
+          f" ({dupes} repeat(s) of the same draw via another route,")
+    print(f"   plus {sum(1 for r in results if r['pooled_verdict'] == 'incomplete')}"
+          f" section(s) still being written and excluded)")
     print(f"   of the distinct ones, {sum(1 for r in distinct if r['pooled_verdict'] == 'SIGNIFICANT')}"
           f" reach p < 0.05\n")
+    print("   NOTE: a section read from an in-flight log can have a PARTIAL seed, and a partial seed")
+    print("   biases the pool. Prefer the JSON with all 21 points; e45 was first read off a log with")
+    print("   seed 2 at 4 of 7 points and it moved cs=300's pooled p from 0.0765 to 0.0319.\n")
     for r in distinct:
         if r["metric"] != "gap":
             continue

@@ -191,11 +191,13 @@ those are the useful kind. The eleven retractions and refutations, in order:
   U-shape; the cited file is the three-seed re-run, not the one-seed run the finding claims, and it
   agrees with the published table in 35 of 42 cells with **every** disagreement in the realized-error
   columns. Pooled over the artifact: −0.282 (p = 0.216); on the absolute metric the plan itself
-  prescribes: **+0.040 (p = 0.86)**. Re-run at cs = 300 on independent tasks it gives per-seed
-  −0.321 / −0.893 / **+0.500**, pooled −0.507 (p = 0.032) — so in *each* draw exactly one seed shows
-  a strong association and exactly one has the **opposite** sign. The association is a **per-seed
-  event in a minority of seeds**, and its pooled significance is a property of the draw, not of the
-  manipulation.
+  prescribes: **+0.040 (p = 0.86)**. Re-run at cs = 300 on independent tasks: per-seed
+  −0.321 / −0.893 / −0.179, pooled −0.395 (p = 0.077), and on the prescribed absolute metric
+  **−0.103 (p = 0.658)**. So **none of the four pooled statistics over two circuit sizes and two
+  metrics reaches significance**, two of them with the opposite sign; what repeats is that **exactly
+  one seed of three** is strong in each draw (−0.964 and −0.893). The association is a **per-seed
+  event in a minority of seeds**, and it is absent from the pooled statistic under the project's own
+  prescribed metric at both circuit sizes.
 
 Plus the traps themselves, each found by falling into it: the **chaotic headline
 metric** (standard deviation exceeding its own mean, and a 1-ULP ARPACK start vector moving
