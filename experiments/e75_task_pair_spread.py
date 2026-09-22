@@ -132,7 +132,14 @@ def main() -> None:
                          pearson=pear, spearman=spear, per_seed=per_seed,
                          n_pos_seed=sum(1 for v in per_seed if v > 0),
                          n_seed=len(per_seed),
-                         alignment_values=A.tolist(), excess_values=E.tolist()))
+                         #: Kept in the artifact rather than filtered out.  The first version of this
+                         #: script dropped these four fields to keep the JSON small, which threw away
+                         #: two hours of `analytic_excess` calls and made a later question -- does the
+                         #: pressure co-move with the excess on the same (draw, seed) pairs? --
+                         #: unanswerable without re-running the whole thing.  Storage is cheap here; a
+                         #: recomputation is not, and this project has now lost a field three times.
+                         alignment_values=A.tolist(), excess_values=E.tolist(),
+                         draw_index=D.tolist(), seed_index=S.tolist()))
         print(f"  {label:<22} conc {conc:.3f}  alignment {A.mean():.4f}  excess {E.mean():.5f}  "
               f"within-seed co-movement: r {pear:+.3f}  rho {spear:+.3f}  "
               f"({rows[-1]['n_pos_seed']}/{rows[-1]['n_seed']} seeds positive)  "
@@ -175,9 +182,7 @@ def main() -> None:
     else:
         print(f"   none: every partition's excess moves with its alignment within a seed")
 
-    out = {"config": vars(args), "rows": [{k: v for k, v in r.items()
-                                           if k not in ("alignment_values", "excess_values")}
-                                          for r in rows],
+    out = {"config": vars(args), "rows": rows,
            "n": len(rows), "spearman_comovement_vs_sd": rho_cm,
            "spearman_concentration_vs_sd": rho_conc,
            "within_positive": within_pos, "predicted_rho": PREDICTED_RHO,
