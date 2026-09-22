@@ -70,9 +70,15 @@ def run(args) -> dict:
         # rewired graph, so the seeds would not be replicates of the same condition.
         circ = circuits.extract(conn, ann, hops=0, max_neurons=args.circuit_size)
         W0 = circ.net.weights()
-        W = rewiring.apply_null(W0, topology, np.random.default_rng(args.seed0))
+        # The rewiring stream is separable from the task stream. `seed0` drives both by default,
+        # which confounds "a different swap realization" with "different tasks" -- and the swap2
+        # endpoint's excess turned out to vary by a factor of three across realizations, so the two
+        # have to be separable to tell which one moves it.
+        rw_seed = args.seed0 if args.rewire_seed is None else args.rewire_seed
+        W = rewiring.apply_null(W0, topology, np.random.default_rng(rw_seed))
         print(f"      edges {W.nnz:,} (was {W0.nnz:,})  "
-              f"targets changed {rewiring.swap_fraction(W0, W):.3f}")
+              f"targets changed {rewiring.swap_fraction(W0, W):.3f}  "
+              f"rewire_seed {rw_seed}")
         circ.net = graph.Connectome(circ.net.n_neurons, circ.net.root_ids, W.tocsr())
 
         seqs, ranks = [], []
@@ -178,6 +184,9 @@ def main(argv=None) -> int:
     p.add_argument("--seed0", type=int, default=0)
     p.add_argument("--q", type=float, default=0.02)
     p.add_argument("--topologies", default=",".join(TOPOLOGY_ORDER))
+    p.add_argument("--rewire-seed", type=int, default=None,
+                   help="seed the swap stream separately from the tasks; without it `seed0` drives "
+                        "both, confounding a different swap realization with different tasks")
     p.add_argument("--json-out", type=Path, default=None)
     p.add_argument("--no-realized", action="store_true",
                    help="skip the realized-error arm; the analytic estimator supersedes it "
