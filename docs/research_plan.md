@@ -449,11 +449,15 @@ So the coarse rung is better than the fine one at 2.13σ, opposite signs at the 
 because the finer rung loses, not because it gains**: `side`'s own delta is +0.0069 (0.48σ, nothing)
 while `cell_class`'s is a resolved *disadvantage*. Not the neuron-level mechanism, which had the
 coarse grouping genuinely better than random
-(`docs/findings/2026-09-22-rung-question-resolved-at-lambda-0.1.md`). Three open items: n = 3; the
-two intermediate rungs are still λ = 1.0 only; and the cross-run comparison assumes an `ewc-block`
-arm is independent of the run's method list, which is supported by five identical naive arms but
-**has since been verified, bit for bit** — `e31` reproduced both arms across the two method lists
-identically to the last decimal. Three open items remain: n = 3 (the sem carries ~50% relative
+(`docs/findings/2026-09-22-rung-question-resolved-at-lambda-0.1.md`).
+
+The cross-run comparison assumes an `ewc-block` arm is independent of the run's method list, and
+**that is now verified bit for bit**: `e31` reproduced both arms across the two method lists
+identically to the last decimal. That check had to be run deliberately — every cross-run comparison
+in this line depends on it, and none of them could have detected a violation, because a violation
+would have looked exactly like the difference between configurations they were measuring.
+
+Three open items remain: n = 3 (the sem carries ~50% relative
 error); the two intermediate rungs are still λ = 1.0 only, which is what decides between a gradient
 and a step; and the mechanism — the coarse rung wins because the fine one *loses to its own control*
 (−0.0648, 2.65σ), not because the coarse one gains (+0.0069, 0.48σ).
