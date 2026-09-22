@@ -41,12 +41,13 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 
 def train_task(model, heads, suite, k: int, iters: int, lr: float, batch: int,
                seed: int, ewc=None, block_ewc=None, replay: list | None = None,
-               replay_batch: int = 16):
+               replay_batch: int = 16, shared: bool = False):
     """Train on task ``k``; optionally with an EWC penalty or a replay buffer.
 
-    ``heads`` is the list of per-task decoders — one per task, since the read-out
-    populations differ in size and a shared head would have to be resized per task.
-    Only the current task's head and the shared recurrent body are trained.
+    ``heads`` is the list of decoders: one per task in the task-incremental default (the
+    read-out populations differ in size), or a single shared decoder over the whole
+    circuit state in the class-incremental mode, where every task is trained through
+    ``heads[0]`` and only the current task's class logits receive gradient.
 
     ``ewc`` is ``(fisher, anchor, lam)`` with a per-parameter diagonal Fisher over the
     masked recurrent weights, and ``replay`` a list of ``(u, y, task_index)`` from
@@ -56,7 +57,7 @@ def train_task(model, heads, suite, k: int, iters: int, lr: float, batch: int,
     import torch
 
     task = suite[k]
-    readout = heads[k]
+    readout = heads[0] if shared else heads[k]
     rng = np.random.default_rng(seed)
     params = [model.theta, model.bias] + list(readout.parameters())
     opt = torch.optim.Adam(params, lr=lr)
@@ -68,7 +69,7 @@ def train_task(model, heads, suite, k: int, iters: int, lr: float, batch: int,
         idx = rng.integers(0, len(Y), size=min(batch, len(Y)))
         traj = model(U[idx], None)
         x = traj[:, -1, :][:, task.readout_neurons]
-        loss = lossf(readout(x), Y[idx])
+        loss = lossf(_logits(readout, x, task, shared), Y[idx])
 
         if ewc is not None:
             fisher, anchor, lam = ewc
@@ -85,14 +86,16 @@ def train_task(model, heads, suite, k: int, iters: int, lr: float, batch: int,
             rtask = [replay[i][2] for i in pick]
             rtraj = model(ru, None)
             rloss = 0.0
-            # Each replayed sample is scored through *its own* task head, because the
-            # heads are task-specific: using the current head would be asking it to
-            # classify an old task's labels.
+            # Each replayed sample is scored through its own task's logits: with per-task
+            # heads that means its own decoder, and with a shared head its own class
+            # slice.  Either way the old labels are interpreted in the space they were
+            # trained in.
             for t_idx in set(rtask):
                 sel = torch.tensor([i for i, t in enumerate(rtask) if t == t_idx])
-                heads[t_idx](rtraj[sel, -1, :][:, suite[t_idx].readout_neurons])
+                tk = suite[t_idx]
+                head = heads[0] if shared else heads[t_idx]
                 rloss = rloss + lossf(
-                    heads[t_idx](rtraj[sel, -1, :][:, suite[t_idx].readout_neurons]),
+                    _logits(head, rtraj[sel, -1, :][:, tk.readout_neurons], tk, shared),
                     ry[sel])
             loss = loss + rloss / max(1, len(set(rtask)))
 
@@ -102,7 +105,21 @@ def train_task(model, heads, suite, k: int, iters: int, lr: float, batch: int,
     return float(loss.item())
 
 
-def evaluate(model, readout, task) -> float:
+def _logits(readout, x, task, shared: bool):
+    """Task logits, from a shared head or a task's own.
+
+    With a shared head the logits are ``(total_classes,)`` and the task's own classes
+    occupy a contiguous slice, so the loss is taken over that slice and the labels stay
+    local.  This is the standard class-incremental protocol: the learner is never shown
+    a future task's classes.
+    """
+    out = readout(x)
+    if not shared:
+        return out
+    return out[:, task.class_offset: task.class_offset + task.n_classes]
+
+
+def evaluate(model, readout, task, shared: bool = False) -> float:
     """Held-out accuracy at the final timestep."""
     import torch
 
@@ -110,7 +127,7 @@ def evaluate(model, readout, task) -> float:
         U = torch.from_numpy(task.u_test).float()
         Y = torch.from_numpy(task.y_test).long()
         traj = model(U, None)
-        logits = readout(traj[:, -1, :][:, task.readout_neurons])
+        logits = _logits(readout, traj[:, -1, :][:, task.readout_neurons], task, shared)
         return float((logits.argmax(dim=1) == Y).float().mean())
 
 
@@ -143,7 +160,7 @@ def diagonal_fisher(model, readout, task, n_batches: int = 8, seed: int = 0) -> 
 
 
 def block_fisher(model, heads, suite, k: int, part, n_batches: int = 8,
-                 seed: int = 0) -> np.ndarray:
+                 seed: int = 0, shared: bool = False) -> np.ndarray:
     """Block-diagonal Fisher over a synapse partition, accumulated on task ``k``.
 
     The within-group second moments ``E[g_g g_g^T]``, stored densely per group.  This is
@@ -154,7 +171,7 @@ def block_fisher(model, heads, suite, k: int, part, n_batches: int = 8,
     import torch
 
     task = suite[k]
-    readout = heads[k]
+    readout = heads[0] if shared else heads[k]
     rng = np.random.default_rng(seed)
     U = torch.from_numpy(task.u_train).float()
     Y = torch.from_numpy(task.y_train).long()
@@ -163,7 +180,8 @@ def block_fisher(model, heads, suite, k: int, part, n_batches: int = 8,
     for _ in range(n_batches):
         idx = rng.integers(0, len(Y), size=min(32, len(Y)))
         traj = model(U[idx], None)
-        loss = lossf(readout(traj[:, -1, :][:, task.readout_neurons]), Y[idx])
+        loss = lossf(_logits(readout, traj[:, -1, :][:, task.readout_neurons], task, shared),
+                     Y[idx])
         model.zero_grad()
         loss.backward()
         if model.theta.grad is not None:
@@ -196,7 +214,12 @@ def run_method(conn_net, suite, method: str, args, seed: int,
     torch.manual_seed(seed)
 
     model = conn_net.torch_model()
-    heads = [torch.nn.Linear(t.n_readout, t.n_classes) for t in suite]
+    shared = bool(getattr(args, "shared_head", False))
+    if shared:
+        total = sum(t.n_classes for t in suite)
+        heads = [torch.nn.Linear(suite[0].n_readout, total)]
+    else:
+        heads = [torch.nn.Linear(t.n_readout, t.n_classes) for t in suite]
     fisher = None
     anchor = None
     blocks = None
@@ -218,12 +241,13 @@ def run_method(conn_net, suite, method: str, args, seed: int,
                 method == "ewc" and fisher is not None) else None,
             block_ewc=(part, blocks, anchor_b, args.lam) if (
                 method.startswith("ewc-block") and blocks is not None) else None,
-            replay=(replay if method == "replay" else None)))
+            replay=(replay if method == "replay" else None), shared=shared))
         for j in range(k + 1):
-            R[k, j] = evaluate(model, heads[j], suite[j])
+            R[k, j] = evaluate(model, heads[0] if shared else heads[j], suite[j], shared)
 
         if method == "ewc":
-            f = diagonal_fisher(model, heads[k], task, n_batches=args.fisher_batches, seed=seed + k)
+            f = diagonal_fisher(model, heads[0] if shared else heads[k], task,
+                                n_batches=args.fisher_batches, seed=seed + k)
             # Normalise the diagonal the same way `trace_normalise` normalises the
             # blocks.  Without this the two families sit at different effective
             # strengths for the same lambda -- the block Fishers are rescaled to unit
@@ -235,7 +259,8 @@ def run_method(conn_net, suite, method: str, args, seed: int,
             fisher = f if fisher is None else fisher + f
             anchor = model.theta.detach().clone()
         if method.startswith("ewc-block"):
-            b = block_fisher(model, heads, suite, k, part, n_batches=args.fisher_batches, seed=seed + k)
+            b = block_fisher(model, heads, suite, k, part,
+                             n_batches=args.fisher_batches, seed=seed + k, shared=shared)
             if args.normalise_fisher:
                 b = part.trace_normalise(b)
             blocks = b if blocks is None else blocks + b
@@ -276,6 +301,9 @@ def main(argv=None) -> int:
     p.add_argument("--train", type=int, default=96)
     p.add_argument("--test", type=int, default=48)
     p.add_argument("--seed0", type=int, default=0)
+    p.add_argument("--shared-head", action="store_true",
+                   help="class-incremental: one decoder for every task read out from "
+                        "the whole circuit, with disjoint class ranges")
     p.add_argument("--basis", default="cell_class",
                    help="annotation column for the synapse partition")
     p.add_argument("--fisher-batches", type=int, default=8,
@@ -297,7 +325,8 @@ def main(argv=None) -> int:
     conn = graph.build()
     ann = annotate.load_annotations()
     circ = circuits.extract(conn, ann, hops=0, max_neurons=args.circuit_size)
-    suite = rate_tasks.make_suite(circ, n_train=args.train, n_test=args.test)
+    suite = rate_tasks.make_suite(circ, n_train=args.train, n_test=args.test,
+                                  shared_head=args.shared_head)
     net = build_net(circ, RateConfig(seed=args.seed0))
 
     # Synapse partitions for the block-EWC variants, plus the matched random control.

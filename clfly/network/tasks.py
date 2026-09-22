@@ -41,9 +41,10 @@ class RateTask:
     n_neurons: int
     tau: int
     u_train: np.ndarray        # (n_train, tau, n_neurons)
-    y_train: np.ndarray        # (n_train,)
+    y_train: np.ndarray        # (n_train,)  local labels, 0 .. n_classes-1
     u_test: np.ndarray
     y_test: np.ndarray
+    class_offset: int = 0      # where this task's classes sit in a shared head
 
     @property
     def n_input(self) -> int:
@@ -73,22 +74,34 @@ def _population(circ: Circuit, column: str, prefixes: tuple[str, ...],
 
 
 def make_task(circ: Circuit, name: str, input_spec: tuple[str, tuple[str, ...]],
-              readout_spec: tuple[str, tuple[str, ...]], n_classes: int = 4,
+              readout_spec: tuple[str, tuple[str, ...]] | None, n_classes: int = 4,
               n_train: int = 96, n_test: int = 48, tau: int = 12,
-              noise: float = 1.0, cap: int = 220, seed: int = 0) -> RateTask:
+              noise: float = 1.0, cap: int = 220, seed: int = 0,
+              class_offset: int = 0, readout_all: bool = False) -> RateTask:
     """Build one task: fixed class templates, injected over ``tau`` timesteps.
 
     The stimulus is sustained rather than instantaneous, so the network's recurrent
     dynamics have time to propagate it from the input population to the readout —
     which is the whole point of using the connectome as the substrate rather than a
     feedforward readout.
+
+    ``readout_all`` makes the read-out the whole circuit state and is what the
+    **shared-head** (class-incremental) mode uses: with a single decoder serving every
+    task, the tasks can no longer be separated by their read-out population and must
+    differ only in where the stimulus enters.  Labels stay local (``0 .. n_classes-1``)
+    and ``class_offset`` records where they sit in the shared head, so the loss is over
+    the task's own class subset — the standard class-incremental protocol, where the
+    learner never sees a future task's classes.
     """
     rng = np.random.default_rng(seed)
     n = circ.n_neurons
     cols_in, vals_in = input_spec
-    cols_out, vals_out = readout_spec
     inp = _population(circ, cols_in, vals_in, cap=cap, seed=seed)
-    out = _population(circ, cols_out, vals_out, cap=cap, seed=seed + 1)
+    if readout_all:
+        out = np.arange(n)
+    else:
+        cols_out, vals_out = readout_spec
+        out = _population(circ, cols_out, vals_out, cap=cap, seed=seed + 1)
 
     templates = rng.standard_normal((n_classes, len(inp)))
 
@@ -104,7 +117,8 @@ def make_task(circ: Circuit, name: str, input_spec: tuple[str, tuple[str, ...]],
     u_te, y_te = make(n_test, 1)
     return RateTask(name=name, input_neurons=inp, readout_neurons=out,
                     n_classes=n_classes, n_neurons=n, tau=tau,
-                    u_train=u_tr, y_train=y_tr, u_test=u_te, y_test=y_te)
+                    u_train=u_tr, y_train=y_tr, u_test=u_te, y_test=y_te,
+                    class_offset=class_offset)
 
 
 #: The default suite.  Three tasks on distinct circuits, so the interference question
@@ -117,7 +131,17 @@ SUITE_SPECS = (
 )
 
 
-def make_suite(circ: Circuit, specs=SUITE_SPECS, **kwargs) -> list[RateTask]:
-    """Build the default behavioural suite against a circuit."""
-    return [make_task(circ, name, inspec, outspec, seed=i, **kwargs)
+def make_suite(circ: Circuit, specs=SUITE_SPECS, shared_head: bool = False,
+               **kwargs) -> list[RateTask]:
+    """Build the default behavioural suite against a circuit.
+
+    ``shared_head`` switches to the **class-incremental** configuration: every task is
+    read out from the whole circuit through a single decoder, and the tasks' label sets
+    are made disjoint (``class_offset``).  The per-task-readout version is the
+    task-incremental baseline, where each task owns a decoder that is never touched
+    again after its turn.
+    """
+    return [make_task(circ, name, inspec, outspec, seed=i,
+                      class_offset=i * kwargs.get("n_classes", 4),
+                      readout_all=shared_head, **kwargs)
             for i, (name, inspec, outspec) in enumerate(specs)]

@@ -359,17 +359,45 @@ three independent runs. Whole experiment: minutes on CPU.
 | replay (16 stimuli/task) | **0.903 ± 0.014** | **−0.000 ± 0.021** |
 
 **No Fisher-anchoring variant resolves a benefit over the naive baseline**, at any λ
-(0.01–100) or any Fisher batch count (8, 32, 128) tried. **Replay is the only method
-that clearly works**, at ~2σ, with the best accuracy, leaving earlier tasks slightly
-better than when they were learned.
+(0.01–100) or any Fisher batch count (8, 32, 128) tried. **Replay** is the only method
+that resolves anything, at ~2σ, and only in the task-incremental configuration.
 
-**And the basis finding does not transfer.** Grouping the 27k *synapses* by
+**The basis finding does not transfer.** Grouping the 27k *synapses* by
 `(pre cell class, post cell class)` — the exact analogue of the partition that won on
 the linear substrate — shows no advantage over a size-matched random grouping at any
 setting, and the comparison flips sign across settings. The analogy between "block
 structure of the precision matrix over **neurons**" and "partition of the **synapses**
 by endpoint class" is not valid: they are different partitions of different spaces, and
-the linear result never required the second to behave like the first.
+the linear result never required the second to behave like the first. Two candidate
+explanations were tested and both ruled out: the block Fisher's failure is not
+estimation noise (raising the batch count does not help, and the effect sizes *halve*
+under more replicates), and it is not a badly tuned λ (five values swept, with the
+bio-versus-random ordering flipping between them).
+
+**A class-incremental variant makes the problem easier, not harder** *(shared head, one
+12-way decoder for every task, disjoint class ranges, 5 replicates)*:
+
+| method | final accuracy | mean forgetting |
+|---|---|---|
+| **naive** | **0.936 ± 0.011** | **+0.044 ± 0.018** |
+| EWC, diagonal | 0.883 ± 0.039 | +0.121 ± 0.056 |
+| EWC, block — biological | 0.922 ± 0.023 | +0.058 ± 0.031 |
+| replay | 0.917 ± 0.016 | +0.065 ± 0.024 |
+
+Naive is best on both metrics and replay *stops helping*. The reason is identifiable and
+biological: the usual class-incremental penalty arises because tasks **share an input
+space** and must be solved with the same features. Here they do not — each task's
+stimulus enters a *different circuit* — so the shared decoder can allocate near-orthogonal
+directions per task and there is no competition to create forgetting. **The connectome
+separates the tasks at the input rather than at the head**, which is exactly how a fly
+avoids the problem.
+
+**The limiter is task difficulty, not method choice.** All tasks are learned to ~0.92–1.00
+against 0.25 chance, leaving almost no headroom for a method to demonstrate anything. The
+identified fixes are higher stimulus noise, more classes, and — most interestingly —
+driving tasks into *overlapping* input populations using the controlled-overlap machinery
+from §4.5, which would test directly whether input-level separation is why forgetting is
+mild.
 
 **The family is badly behaved as its curvature estimate improves.** Raising the Fisher
 batch count from 8 to 128 drives the diagonal's forgetting from +0.063 to **+0.250**
