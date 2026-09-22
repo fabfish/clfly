@@ -918,7 +918,7 @@ replicate count the variance budget asks for, **sixteen**, the same configuratio
 **Δ = +0.0039 ± 0.0161 (0.24σ)** with a detection floor of **0.032**: the first three seeds are the
 three most negative of the sixteen and **the effect dies at the sixth** — six seeds take it from
 −2.65σ to −0.07σ, and the sixteen-seed signs are **7 positive, 2 tied, 7 negative**. `e46`'s first
-three replicates equal the three-seed run's values bit-for-bit, so the configuration is identical and
+three replicates equal the three-seed run's values to the last printed decimal, so the configuration is identical and
 the retraction is clean rather than a comparison across configs. Raising λ to 1.0 shrinks the gap to
 0.35σ, so the null reading holds at *that* λ as well. Across every cell with three or more replicates,
 biology shows an advantage in exactly one — (0.003, 32) — and that cell's own 9-replicate replication
@@ -1045,13 +1045,14 @@ The one pair the pairing *removes* rather than resolves is `rewired-swap2` / `si
 wrong on one rung and unmeasurable on another.
 
 **That count was then re-derived with the control-draw component included**, because every "clears
-2σ" in it had been computed from the seed-only sem. It holds: **13 of 13 at the estimated draw sd, and
-12 of 12 if the fine columns' draw sd is four times the estimate**, with the sign record perfect at
-every multiplier from 0.1× to 10× (`docs/findings/2026-09-22-predictor-survives-draw-correction.md`).
-The 2σ line falls between `baseline/supertype` at 1.94 and `wider-tasks/supertype` at 2.17, so that
-count was 13 ± 1 depending on an interpolated quantity. **The pairing supersedes the whole exercise**:
-it moves the denominator from 13 to 24, and with the row's rung-level draw sds measured rather than
-interpolated the count is **21 of 25 clear 2σ and 20 of 21 called correctly**.
+2σ" in it had been computed from the seed-only sem. Under that arithmetic it held: **13 of 13 at the
+estimated draw sd, and 12 of 12 if the fine columns' draw sd was four times the estimate**, with the sign
+record perfect at every multiplier from 0.1× to 10× (`docs/findings/2026-09-22-predictor-survives-draw-correction.md`).
+The 2σ line fell between `baseline/supertype` at 1.94 and `wider-tasks/supertype` at 2.17, so that
+count was 13 ± 1 depending on an interpolated quantity. **But an arithmetic re-derivation cannot fix a
+denominator, and the pairing is what the denominator needed** — it moves the count from 13 to 24, and with
+the row's rung-level draw sds measured rather than interpolated the count is **21 of 25 clear 2σ and 20 of
+21 called correctly**.
 
 **And that correction was then measured on the one rung it was largest for, and it shrank by a factor
 of 2.8.** `side`'s draw sd had never been measured, so the analysis above *interpolated* it to
@@ -1152,16 +1153,30 @@ draws of the realisation.
   you to distinguish (≈0.5–0.7 constrained, i.e. 4–10 groups)** and to report the coarse end's fine
   structure as unmeasurable (`docs/findings/2026-09-22-coarse-end-is-arithmetic.md`).
 - **The ladder replicates in form but not in number.** Re-run at **d = 1874 with support 150**
-  (12 seeds), it resolves the same **7 of 8** rungs with the same exception (`pool1`, the un-pooled
-  `cell_type` partition — a fourth independent confirmation of that null), at 22–62σ, and shows the
-  same broad interior maximum rather than a monotone trend. What does not replicate is the
+  (12 seeds), it shows the same broad interior maximum rather than a monotone trend, and its per-seed
+  structure is **at least as robust as at d = 1307**: `e79` re-ran the identical configuration with
+  per-seed storage and **all eight rungs are unanimous over 12/12 seeds**, with no leave-one-out flip, a
+  smallest leave-one-out σ of **9.0** and a largest single-seed leverage of **0.67** — against 7 of 8, 6.6
+  and 0.80 at d = 1307. What does not replicate is the
   **maximum's position** (constrained 0.540 here, 0.638 there) and the **effect's relative size**:
   at matched granularity the advantage is **17.0%** of the oracle gap at d = 1307 against **9.5%** at
   d = 1874. So "pool the rarest cell types" survives and the *magnitude* of what it buys is
   configuration-dependent by a factor of two
-  (`docs/findings/2026-09-22-ladder-replicates-at-d1874.md`).
+  (`docs/findings/2026-09-22-ladder-replicates-at-d1874.md`,
+  `docs/findings/2026-09-23-the-ladder-second-configuration-per-seed.md`).
+
+  **And the exception this bullet used to name is not an exception.** Earlier versions said the ladder
+  "resolves the same 7 of 8 rungs with the same exception — `pool1`, the un-pooled `cell_type`
+  partition — a fourth independent confirmation of that null". `e66` showed that `pool1` is **not a
+  null**: its two arms co-move at ρ = 0.9987 across task draws, so the unpaired sem is 27× too large and
+  the rung is a **reliable disadvantage** — +0.000261 ± 0.0000129 = **20.3σ paired** at d = 1307, and
+  **+0.00035 at 9.85σ with 12/12 signs** at d = 1874. The finest granularity is worse than its own
+  matched control, at both configurations and at both circuit sizes, which is a stronger statement than
+  the null it was recorded as and is what the ladder's collapsed fine end says as well.
 - **The curve's fine structure is not resolvable, and that is a budget fact rather than a
-  to-do.** The internal steps span 0.0008–0.0021 against a control-draw spread of ~1.1e-3, and
+  to-do.** The internal steps span 0.0008–0.0021 against a control-draw spread of 6.8e-5 to 9.6e-4 at the
+  ladder's own rungs (`e14`, `e67`, `e74`) — where the first version of this sentence used the *assumed*
+  1.1e-3, which `e67` refuted — and
   averaging the control brings only the two largest steps (`pool2 → cell_class`, `side → pool4`)
   inside 3σ at three draws each; the rest have a floor below 3σ under this 12-seed budget at
   *any* number of draws. §4.3 therefore reports a broad band, not a shape.
@@ -1189,9 +1204,12 @@ demonstrably cannot tell you is which of its conclusions are artefacts of the li
   had been silently deciding which pairs those were.
 - **A matched-random control is a single draw from a population.** Its draw-to-draw spread is a
   per-observation quantity, invisible to the seed sem and unreduced by more seeds; on this
-  substrate it is ~1.1e-3 for coarse partitions against seed sems of ~2e-4. Two rungs of the
-  ladder are in fact the *same partition*, and their controls disagreed at 4.7σ while the seed
-  sem called the curve's internal steps resolved.
+  substrate it is **measured** at 6.8e-5 to 9.6e-4 across the ladder's own rungs (`e14`, `e67`, `e74`)
+  against seed sems of ~2e-4, the first version of this sentence used an *assumed* 1.1e-3 that `e67`
+  refuted, and the mechanism behind it is now known — `projection_pressure`, the precision-weighted
+  projected deficit, explains 83% of the draw-to-draw variance on the same relabelling (`e81`). Two
+  rungs of the ladder are in fact the *same partition*, and their controls disagreed at 4.7σ while the
+  seed sem called the curve's internal steps resolved.
 
 **The predictor.** Validated on five out-of-sample conditions, on the hardened network
 configuration, and on the granularity ladder — where it reaches **+0.995** across 17 bases
@@ -1218,7 +1236,10 @@ hiding the trade.
 mechanism behind C1 (refuted at 32.7σ — **and then the refutation itself**, which turned out to be a
 statement about the particular graphs drawn rather than about a stable quantity: across **six**
 circuit sizes the contrast runs +21.8σ, −4.8σ, +14.5σ, −4.4σ, −18.7σ, −32.7σ, while `real` holds to
-10.5% and `swap0.5` to 24.3%); **and then the explanation of the refutation**, pursued for four more
+10.5% and `swap0.5` to 24.3%; and at cs = 800 the refutation is **two numbers rather than one** — a
+paired **−28.85σ about those two graphs** and **2.2σ about the rewiring rule**, once `e65`'s six-draw
+`swap0.5` realization sweep replaced the assumption that its spread was negligible); **and then the
+explanation of the refutation**, pursued for four more
 experiments and refuted at four independent levels (§4.2.1); **and then the association we proposed
 to replace it with**, which twelve seeds reverse on the metric this project's own measurement rule
 prescribes while saying nothing on the metric it reports; C3 as stated (deprioritised, its mechanism

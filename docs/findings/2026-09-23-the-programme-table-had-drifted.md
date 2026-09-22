@@ -1,8 +1,8 @@
-# E85 — the programme table had drifted from the artifacts on eight rows, including a duplicate
+# E85 — the programme table had drifted on eight rows, and the paper's limitations section had a **null that is really a resolved disadvantage**
 
 **Date:** 2026-09-23
-**Artifact:** `docs/research_plan.md`, §"Experimental programme"
-**Context:** `2026-09-22-e5-artifact-is-live.md` (e43, the project's first stale-table lesson), every finding referenced below
+**Artifact:** `docs/research_plan.md` §"Experimental programme", `docs/paper/clfly-v1.md`
+**Context:** `2026-09-22-e5-artifact-is-live.md` (e43, the project's first stale-table lesson), `2026-09-23-cell-type-is-not-a-null.md` (e66), every finding referenced below
 
 ---
 
@@ -68,7 +68,38 @@ is mechanical — every row names either a `runs/*.json` or a finding, and both 
 Two of the eight would have been caught by nothing else, because they were not wrong about a *result*:
 the duplicate row and the "K=4 was never run" claim are statements about the project's own bookkeeping.
 
-## 4. Limits
+## 4. And the same audit applied to the paper, which found one scientific error
+
+Rule 22's mechanism is not specific to the plan, so the check was run on the paper's number-bearing
+sentences too — grepping for the figures recent fires have overturned. Five had not been updated, and one
+of them was not a bookkeeping slip:
+
+* **§7's limitations said the ladder "resolves the same 7 of 8 rungs with the same exception (`pool1`, the
+  un-pooled `cell_type` partition — a fourth independent confirmation of that null)".** `e66` overturned
+  that. `pool1` is **not a null**: its two arms co-move at ρ = 0.9987 across task draws, so the unpaired
+  sem is 27× too large, and the rung is a **reliable disadvantage** — +0.000261 ± 0.0000129 = **20.3σ
+  paired** at d = 1307 and **+0.00035 at 9.85σ, 12/12 signs** at d = 1874. So the paper's limitations
+  section was asserting that a *disadvantage* had been independently confirmed as a *null*, four times
+  over. This is the sharpest instance of the pattern in this audit and it is the one that would have been
+  hardest to notice, because the sentence is a *limitation* — a reader is primed to take it as the
+  conservative statement.
+* **§5 said the predictor's count "holds: 13 of 13 at the estimated draw sd"** in the same paragraph that
+  the pairing later supersedes. An arithmetic re-derivation cannot fix a denominator; the paragraph is now
+  written in the order the project learned it.
+* **§7 and the methodological-lessons list both used the *assumed* control-draw spread of ~1.1e-3.** `e67`
+  refuted that figure — the ladder's own rungs measure 6.8e-5 to 9.6e-4 — and the mechanism is now known
+  (`e81`). Both sentences now carry the measured range.
+* **§4.6's reproduction check said "bit-for-bit"**, which rule 21 withdrew; it now says "to the last printed
+  decimal", which is what an environment-scoped identity test can actually claim.
+* **The retraction list's C1 entry gave the refutation at 32.7σ** without the rule-level figure. It now
+  carries both: −28.85σ about the two graphs and **2.2σ about the rewiring rule**.
+
+**The direction is the same as the table's, and worse.** Four of the five drifted toward a *larger* or
+more comfortable claim, and the fifth — the limitations section — drifted toward *understating* the
+project's own result by recording a resolved disadvantage as a null. A paper's limitations section is the
+last place a reader expects an error, which is exactly why it is worth auditing.
+
+## 5. Limits
 
 - **This audit covers the programme table and one adjacent passage**, not the whole plan. The plan is
   ~1200 lines and much of it is prose that asserts numbers; a full pass against artifacts has not been
