@@ -93,9 +93,12 @@ seeds are the three most negative of the sixteen, and the effect dies at the six
 best-powered measurement in that line is a null, and being *well-powered* makes it a stronger
 negative than the reversal it replaced. On that substrate EWC helps only when the read-out is narrow
 enough to make the plastic weights load-bearing, and replay — content memory — is the stronger
-method in every setting, with forgetting driven to zero or below: at its tuned configuration,
-**−0.0854 ± 0.0129 = 6.6σ**, which is a number the project had to *recreate* — the published 4.2σ
-version had no artifact on disk, and the recreation reproduces it and strengthens it. That confirms
+method in every setting, with forgetting driven to **zero or below**: at its tuned configuration, a
+contrast of **−0.0854 ± 0.0129 = 6.6σ** against naive, which is a number the project had to *recreate* —
+the published 4.2σ version had no artifact on disk, and the recreation reproduces it and strengthens it.
+(The strongest evidence for that contrast is at sixteen replicates, where it is **−0.0677 ± 0.0101 =
+6.73σ with sixteen of sixteen replicates agreeing**, though replay's own forgetting there is 0.83σ from
+zero rather than resolved below it.) That confirms
 the theory's prediction that memory should dominate regularisation in this partially-observed regime,
 and it required tuning replay's own parameters, which had been fixed at the worst reasonable value
 for eight consecutive experiments.
@@ -845,14 +848,30 @@ three settings with **every method tuned**:
 
 | setting | naive | EWC, diagonal | replay |
 |---|---|---|---|
-| task-incremental (per-task heads) | +0.101 ± 0.049 | +0.128 ± 0.061 (**worse**) | **−0.056 ± 0.009 (−0.157, 3.1σ)** |
-| class-incremental (shared head, whole state) | +0.059 ± 0.028 | +0.063 ± 0.010 (tie) | **−0.010 ± 0.016 (−0.069, 2.2σ)** |
+| task-incremental (per-task heads) | +0.101 ± 0.049 | +0.128 ± 0.061 (**worse**) | **−0.004 ± 0.009 (−0.104, 6.32σ)** †|
+| class-incremental (shared head, whole state) | +0.059 ± 0.028 | +0.063 ± 0.010 (tie) | **+0.006 ± 0.015 (−0.063, 3.79σ)** †|
 | class-incremental, hardened (32-neuron read-out) | +0.066 ± 0.019 | **+0.010 ± 0.010 (−0.056, 2.6σ)** | **−0.010 ± 0.006 (−0.076, 4.2σ)** |
 
 *(mean forgetting; replay at pool 96 / per-step 8, EWC at λ = 0.003 / 8 Fisher batches.)*
 
-**Replay resolves in all three settings**, always with the best accuracy and always with
-forgetting driven **negative** — earlier tasks end up better than when they were learned. The
+**† The two upper rows are re-measurements, not restorations.** Both had **no artifact**, and the
+recreations' `naive` fingerprints **failed** — 0.8417 against `e10_rung_*`'s stored 0.8241 for task-IL,
+0.9194 against `e8_class_incremental`'s 0.9361 for class-IL — with large *mixed-sign* per-seed
+differences, which is the signature of a different training trajectory rather than a wrong parameter. The
+cause is the environment: these runs went out with `OMP_NUM_THREADS=3` and the originals' settings are
+recorded nowhere, so **a missing artifact cannot be restored across environments** (plan rule 21,
+`docs/findings/2026-09-23-the-missing-replay-arm-is-a-re-measurement.md`). What the re-measurements give,
+at five replicates: task-IL's contrast is **6.32σ** against the claimed 3.1σ with replay's own forgetting
+at **−0.004 ± 0.009**, and class-IL's is **3.79σ** against 2.2σ with **every one of the claim's four
+numbers inside the measured interval** — the closest reproduction in this paper, on the row whose
+configuration could not be pinned. Their *accuracy* contrasts are the cleanest numbers either arm has:
+**+0.090 ± 0.008 (11.87σ)** and **+0.042 ± 0.009 (4.60σ)**, five of five replicates positive each.
+
+**Replay resolves in all three settings**, always with the best accuracy and always with forgetting
+driven to **zero or below** — earlier tasks end up at least as well retained as when they were learned.
+The distinction matters and is measured: only the hardened setting's own forgetting is resolved *below*
+zero (−0.010 ± 0.006), while task-IL reaches −0.004 ± 0.009 and class-IL +0.006 ± 0.015, i.e. both sit at
+zero. The
 earlier "replay is setting-dependent" claim is **withdrawn in full**.
 
 **EWC resolves in exactly one setting**, the hardened one, and requires the plastic weights to
