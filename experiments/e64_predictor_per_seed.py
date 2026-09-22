@@ -37,7 +37,7 @@ DRAW_SD_SOURCES = {
     "cell_class": ("runs/e17_cell_class_drawsd.json", "e17, 5 draws"),
     "ito_lee_hemilineage": ("runs/e17b_ito_lee_hemilineage_drawsd.json", "e17b, 5 draws"),
     "supertype": ("runs/e17b_supertype_drawsd.json", "e17b, 5 draws"),
-    "cell_type": ("runs/e14_drawsd_min4.json", "e14 pooled min4 -- a proxy"),
+    "cell_type": ("runs/e67_drawsd_cell_type_min1.json", "e67, 8 draws"),
 }
 
 #: What `e6_predictor_6` reports, so the reproduction is checked rather than assumed.
@@ -187,6 +187,31 @@ def main() -> None:
     out["under_2_with_draw"] = [dict(condition=p["condition"], rung=p["rung"],
                                      sigma_task=p["sigma_task"], sigma_rule=p["sigma_rule"])
                                 for p in under]
+
+    #: The most conservative denominator the project can quote: pair resolvable only if it clears 2
+    #: sigma with the *measured* control-draw component folded in.  A predictor should be scored on
+    #: what is measurable, and this is the smallest set of measurable pairs.
+    rule_ok = [p for p in all_pairs if p["sigma_rule"] is not None and p["sigma_rule"] > 2.0]
+    mis = [p for p in rule_ok if not p["pooled_ok"]]
+    print()
+    print("=" * 112)
+    print("4. THE MOST CONSERVATIVE HEADLINE: PAIRS THAT CLEAR 2 SIGMA WITH THE DRAW COMPONENT IN")
+    print("=" * 112)
+    print(f"   pairs clearing 2 sigma on the task axis alone:        {sum(1 for p in all_pairs if p['sigma_task'] > 2.0)}"
+          f" of {len(all_pairs)}")
+    print(f"   pairs clearing 2 sigma with the measured draw sd too: {len(rule_ok)} of {len(all_pairs)}")
+    print(f"   of those, called correctly:                           "
+          f"{sum(p['pooled_ok'] for p in rule_ok)} of {len(rule_ok)}")
+    for p in mis:
+        print(f"     -> the miss: {p['condition']}/{p['rung']}, sigma(task) {p['sigma_task']:.2f}, "
+              f"sigma(rule) {p['sigma_rule']:.2f}, signs {p['signs']}, "
+              f"predicted {'bio' if p['call'] < 0 else 'rand'}")
+    out["conservative"] = dict(n_task_2sigma=sum(1 for p in all_pairs if p["sigma_task"] > 2.0),
+                               n_rule_2sigma=len(rule_ok),
+                               correct_rule_2sigma=sum(p["pooled_ok"] for p in rule_ok),
+                               misses=[dict(condition=p["condition"], rung=p["rung"],
+                                            sigma_task=p["sigma_task"], sigma_rule=p["sigma_rule"],
+                                            signs=p["signs"], delta=p["delta"]) for p in mis])
 
     Path(args.json_out).parent.mkdir(parents=True, exist_ok=True)
     with open(args.json_out, "w", encoding="utf-8") as fh:

@@ -72,10 +72,10 @@ Four findings, one of them unexpected in direction.
    trajectory ranks candidate bases at Spearman **+0.995** over the ladder's 17 bases —
    including eight partitions of near-identical granularity told apart only by *which*
    groups were merged — and identifies the better of each biological-versus-matched-random pair
-   on **13 of 13** pairs whose difference clears 2σ, across five conditions it was
-   not tuned on. That count was re-derived with the control-draw component included (§4.3) and
-   holds at **12 of 12** even if the interpolated draw sd for the fine annotation columns is four
-   times the estimate, with the sign record perfect at any multiplier from 0.1× to 10×.
+   on **24 of 24** pairs whose difference clears 2σ *on the paired seed sem*, across five
+   conditions it was not tuned on — **20 of 21** once each rung's measured control-draw component
+   is included, the single miss being a confident, 10.6σ wrong call on heavily rewired wiring.
+   The sign record is unanimous per seed on every resolvable pair.
 4. **The wiring's own eigenbasis beats the neuron diagonal at equal capacity** — a 28%
    reduction in excess error with no annotation involved at all — while *adaptive*
    projection (spectral truncation, locally optimal at every step) is the worst
@@ -975,33 +975,47 @@ drift rate (q 0.02→0.10), topology (real→`swap2`) and circuit size (d 952→
 
 | condition | Spearman | matched-pair signs | **resolvable pairs** |
 |---|---|---|---|
-| `baseline` | +0.973 | 5/5 | **3/3** |
-| `wider-tasks` | +0.991 | 5/5 | **4/4** |
-| `faster-drift` | +0.973 | 5/5 | **3/3** |
-| `rewired-swap2` | +0.991 | 4/5 | **0/0** |
-| `larger-circuit` | +0.991 | 5/5 | **3/3** |
-| **all** | **mean +0.984** | 24/25 | **13/13** |
+| `baseline` | +0.973 | 5/5 | **5/5** |
+| `wider-tasks` | +0.991 | 5/5 | **5/5** |
+| `faster-drift` | +0.973 | 5/5 | **5/5** |
+| `rewired-swap2` | +0.991 | 4/5 | **4/4** (3 called right) |
+| `larger-circuit` | +0.991 | 5/5 | **5/5** |
+| **all** | **mean +0.984** | 24/25 | **24/24** (20/21 with the draw component) |
 
 The sign test is the decisive one. A predictor that merely recovered
 `constrained_fraction` **must** score 0/25, because matched pairs have identical
-`constrained_fraction` by construction. And the single "failure" turns out not to be one: it
-falls in the one condition where **not a single pair is resolvable** — all five excess
-differences are below measurement noise, so the predictor was being scored on a quantity that
-was not there to order. That condition is `swap2`, where the task precisions collapse to
-nearly rank-one and the basis-to-basis differences shrink to ~0.003 against a task-to-task
-variance of ~0.01; it is also the condition `e2` used for its 32.7σ refutation of the
-interference mechanism, so the same collapse that gave the project its cleanest negative made
-the basis question unanswerable there.
+`constrained_fraction` by construction. **And the single disagreement is a real, strongly resolved
+wrong call, which earlier versions of this section softened and should not have.** It is the
+`rewired-swap2` / `cell_class` pair: with per-seed values (`e64`) its excess difference is
+**+0.003402 at 10.63σ on the paired seed sem with six of six seeds agreeing in sign** (8.54σ once the
+measured control-draw component is folded in), and the predictor calls it the other way. The condition
+is not a null either — four of its five pairs resolve and the predictor gets three of them right. So
+the honest form is the one this paper first stated: **one confident failure on heavily rewired wiring**,
+which is a known failure mode of a working predictor rather than an untested case
+(`docs/findings/2026-09-23-the-predictors-record-per-seed.md`).
 
-**So the standing result is 13 of 13 on every pair the excess metric can resolve**, alongside
-rank correlations of +0.97 to +0.99.
+**And with the pairing the denominator itself moves.** Every σ in the table above was computed from
+`hypot(sem_bio, sem_rand)`, which for a pair whose two arms co-move across task draws is an order of
+magnitude too large. Re-run with per-seed storage, **24 of the 25 pairs clear 2σ on the paired seed
+sem**, all 24 have **unanimous per-seed signs**, none changes sign under leave-one-out removal, and the
+smallest leave-one-out σ is **6.31**. Fold in each rung's **measured** control-draw sd and **21 of 25**
+remain, of which the predictor calls **20** correctly. So the standing result is:
+
+> **24 of 24 on the paired seed sem, or 20 of 21 once the control-draw component is included** —
+> alongside rank correlations of +0.97 to +0.99.
+
+The one pair the pairing *removes* rather than resolves is `rewired-swap2` / `side` (0.39σ paired,
+0.21σ with the draw component), so the rewired condition is where the predictor is both confidently
+wrong on one rung and unmeasurable on another.
 
 **That count was then re-derived with the control-draw component included**, because every "clears
 2σ" in it had been computed from the seed-only sem. It holds: **13 of 13 at the estimated draw sd, and
 12 of 12 if the fine columns' draw sd is four times the estimate**, with the sign record perfect at
 every multiplier from 0.1× to 10× (`docs/findings/2026-09-22-predictor-survives-draw-correction.md`).
-The 2σ line falls between `baseline/supertype` at 1.94 and `wider-tasks/supertype` at 2.17, so the
-count is 13 ± 1 depending on an interpolated quantity — which is the honest form of the claim.
+The 2σ line falls between `baseline/supertype` at 1.94 and `wider-tasks/supertype` at 2.17, so that
+count was 13 ± 1 depending on an interpolated quantity. **The pairing supersedes the whole exercise**:
+it moves the denominator from 13 to 24, and with the row's rung-level draw sds measured rather than
+interpolated the count is **21 of 25 clear 2σ and 20 of 21 called correctly**.
 
 **And that correction was then measured on the one rung it was largest for, and it shrank by a factor
 of 2.8.** `side`'s draw sd had never been measured, so the analysis above *interpolated* it to
@@ -1146,10 +1160,13 @@ demonstrably cannot tell you is which of its conclusions are artefacts of the li
 **The predictor.** Validated on five out-of-sample conditions, on the hardened network
 configuration, and on the granularity ladder — where it reaches **+0.995** across 17 bases
 and separates eight partitions of near-identical granularity told apart only by *which*
-groups were merged — with rank correlations of +0.973 to +0.995 and **13 of 13** correct on
-every matched pair whose difference clears 2σ. Its limits are specific: it is a **ranking**
+groups were merged — with rank correlations of +0.973 to +0.995 and **24 of 24** correct on
+every matched pair whose difference clears 2σ on the paired seed sem (**20 of 21** once each
+rung's measured control-draw component is included). Its limits are specific: it is a **ranking**
 predictor, not a calibrated one (dynamic range varies by more than an order of magnitude
-across conditions); it applies to **fixed** anchoring structures and fails on
+across conditions); it has **one confident failure**, on heavily rewired wiring at `cell_class`
+granularity, called the wrong way at 10.6σ with six of six seeds agreeing; it applies to **fixed**
+anchoring structures and fails on
 state-dependent ones, because it scores each step myopically and cannot see the retained
 subspace being renewed under it (measured step-to-step overlap 0.03 for `Rank(4)`); and it
 was **not** validated on the network's synapse partitions.

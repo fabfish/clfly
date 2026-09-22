@@ -54,6 +54,23 @@ disagreement, but no pair in it is measurable at this resolution. The plan's con
 **untested** where it currently implies a success or a failure, which is rule 18's distinction applied
 to a score sheet rather than to an intervention.
 
+> **OVERTURNED by `e64` (`docs/findings/2026-09-23-the-predictors-record-per-seed.md`).** The σ in this
+> section are the **unpaired** ones — `hypot(sem_bio, sem_rand)` — and for a pair whose two arms co-move
+> across task draws that quantity is an order of magnitude too large. `e64` re-ran these five
+> conditions with per-seed storage, and on the **paired** sem the failure is **10.63σ** with **six of
+> six seeds agreeing in sign** (8.54σ with the control-draw component folded in). So the condition is
+> neither untested nor a null: four of its five pairs resolve and the predictor gets three of them
+> right, the one miss being a **confident wrong call on heavily rewired wiring**. The original `e6`
+> reading — "one confident failure, called the wrong way with a large margin" — was right and this
+> section's softening of it was an artefact of the error formula.
+>
+> The same applies to the two readings below: paired, **`supertype` resolves in every condition at
+> 8.1–14.8σ** and **`cell_type` at 7.8–13.9σ**, so "the 13 resolvable calls are about the three coarser
+> rungs" is withdrawn as well. What does survive is that `cell_type`'s *delta* is ~0.00006 — the reason
+> its σ is small is not the predictor but the near-diagonal partition, exactly as the second bullet
+> says. And the denominator itself moves: on the paired sem **24 of the 25 pairs resolve**, against the
+> 13 reported here, with **20 of 21** called correctly once the measured draw sds are included.
+
 Two further readings from the same table, both consistent with `e35`'s arithmetic bound
 (`constrained ≤ 1 − 1/m`, so a very fine partition is the diagonal):
 
