@@ -183,8 +183,21 @@ included the rung-level result is **4–9σ, not 20–42σ** — still a result 
 optimum's location, "`side` is uniquely weak", and the headline "granularity sets where you are
 on the curve, biology sets the height" all collapse: they rest on differences of 0.0015–0.004,
 the same order as the draw sd. `pool2 → pool4` goes 2.2σ → ≈0.6σ. The fine-end decline
-(`pool1 → pool2`, ≈7σ) survives, because one of its rungs has a precise control
-(`docs/findings/2026-09-22-control-drawn-once.md`).
+(`pool1 → pool2`, ≈7σ) survives, because one of its rungs has a precise control.
+
+*And the budgets are now known exactly* (`docs/findings/2026-09-22-draw-budget.md`). Averaging
+the control over ``K`` draws enters as ``sd_draw^2/K`` — a per-observation spread, not a standard
+error, so seeds do not reduce it. Inverting that gives, per claim, the required ``K``: the two
+large steps need only **2.2–2.8** (`pool2 → cell_class`, `side → pool4` — the claim that a pooled
+partition beats the vocabulary's own best rung), `pool128 → pool32` needs 6.4, and the plateau's
+internal steps are **infeasible at any K** because their floor under the current 12-seed budget is
+below 3σ (`pool4 → pool2` reaches only 1.5σ). The model calibrates on two contrasts whose true
+value is zero (`pool32 ≡ pool64`, `pool1 ≡ cell_type`): it predicts the observed noise to within
+4%, and the seed-only method had called one of them 4.7σ.
+
+**So the region is a broad band, not a curve with structure**, and the two claims worth buying are
+`pool2 → cell_class` and `side → pool4`, at three control draws each. The K=4 run is queued
+behind the CPU queue (`e3 --control-draws K` is implemented and its wiring validated).
 
 The predictor handles the ladder at Spearman **+0.995** over 17 partition bases, including
 eight of similar granularity distinguished only by which groups were merged — a case where a
@@ -372,6 +385,7 @@ All of it has been run. The scripts as delivered:
 | `e8_rate_network.py` × 5 rungs | C2b | synapse annotation ladder (0.6947 → 0.9992), the untested rung `side` included | **in flight** — `runs/e10_rung_*.json` |
 | `e4_modularity.py` | C3 | never written | **C3 deprioritised** — its mechanism is contradicted by `e2` |
 | `e12_control_spread.py` | C2 | how much of a matched-pair delta is the control *draw* | done — draw sd is ~1.1e-3 coarse, ~4e-5 fine; coarse-rung σ are provisional |
+| `e3 --control-draws K` | C2 | average the matched control over K draws | done — wiring validated; the K=3/K=4 runs are queued behind the CPU queue |
 
 Every figure carries its control arm, and every recall/precision number in this document
 carries a resolvability check. The prediction scoreboard, including the refutations,

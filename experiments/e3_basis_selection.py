@@ -39,6 +39,7 @@ from clfly.bench.analytic import (
     projection_pressure,
     spearman,
 )
+from clfly.bench.control import averaged_random_control
 from clfly.bench.oracle import (
     oracle_errors,
     paired_excess,
@@ -201,9 +202,22 @@ def run(args) -> dict:
 
         rng = np.random.default_rng(args.seed0)
         agg = {}
+        # the biological partition's labels per rung, so the matched-random control can be
+        # re-drawn from them when more than one draw is asked for
+        pooled_labels: dict[str, np.ndarray] = {}
         for name, basis in candidate_bases(circ, rng, extras=args.extra_bases,
                                            ladder=args.ladder).items():
-            row = {"analytic": analytic_excess(seqs, basis)}
+            if isinstance(basis, Partition) and name.startswith("bio:"):
+                pooled_labels[name[4:]] = np.asarray(basis.labels)
+            if (args.control_draws > 1 and name.startswith("rand:")
+                    and name[5:] in pooled_labels):
+                # average the control over independent draws: one draw is a single sample from
+                # the population of size-matched random partitions, and for coarse partitions
+                # its spread is several times the seed sem (see clfly/bench/control.py)
+                row = {"analytic": averaged_random_control(
+                    seqs, pooled_labels[name[5:]], rng, draws=args.control_draws)}
+            else:
+                row = {"analytic": analytic_excess(seqs, basis)}
             if not args.no_realized:
                 row["realized"] = paired_excess(seqs, basis)
             # candidate a-priori predictor: available before any anchored filter runs
@@ -218,9 +232,14 @@ def run(args) -> dict:
                 row.update(alignment_of(basis, seqs[0], rank_ref, rng,
                                         top=args.align_top))
             agg[name] = row
-            print(f"    {name:26} analytic={row['analytic']['excess_mean']:+.5f}"
-                  f"+-{row['analytic']['excess_sem']:.5f}  "
+            a = row["analytic"]
+            extra = (f"  draws={a['control_draws']}"
+                     f" sd_across={a['sd_across_draws']:.5f}"
+                     if a.get("control_draws", 1) > 1 else "")
+            print(f"    {name:26} analytic={a['excess_mean']:+.5f}"
+                  f"+-{a['excess_sem']:.5f}  "
                   f"pressure={row['pressure']:.4f}"
+                  + extra
                   + (f"  realized={row['realized']['excess_mean']:+.5f}"
                      f"+-{row['realized']['excess_sem']:.5f}" if "realized" in row else "")
                   + f"  ({time.time()-t0:.0f}s)")
@@ -363,6 +382,11 @@ def main(argv=None) -> int:
     p.add_argument("--ladder", action="store_true",
                    help="sweep a smooth granularity curve of pooled cell-type "
                         "partitions instead of the five annotation rungs")
+    p.add_argument("--control-draws", type=int, default=1,
+                   help="average the group-size-matched random control over this many "
+                        "independent draws. One draw is a single sample from the population "
+                        "of random partitions and its spread is a per-observation sd, not a "
+                        "standard error -- see clfly/bench/control.py")
     p.add_argument("--extra-bases", action="store_true",
                    help="also test non-partition candidates: spectral truncation "
                         "and the connectome eigenbasis")

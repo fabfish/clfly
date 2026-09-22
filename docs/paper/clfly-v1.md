@@ -366,9 +366,13 @@ and the headline "granularity sets where you are on the curve, biology sets the 
 on differences between deltas of 0.0015–0.004, the same order as the draw spread. `pool2 →
 pool4` — the contrast the plateau was originally read from — goes from 2.2σ to ≈0.6σ. What
 survives of the shape is the fine-end decline (`pool1 → pool2` at ≈7σ), and it survives precisely
-because one of its two rungs has a precise control. Until the control is averaged per rung,
-this paper reports the rung-level claim and marks the curve's shape **unresolved**
-(`docs/findings/2026-09-22-control-drawn-once.md`).
+because one of its two rungs has a precise control. The budgets have since been worked out
+exactly (`docs/findings/2026-09-22-draw-budget.md`): the two large steps — `pool2 → cell_class`
+and `side → pool4`, the claim that a pooled partition beats the vocabulary's own best rung — need
+only **three control draws** per rung to clear 3σ, while the plateau's internal steps cannot
+reach 3σ at *any* number of draws with this seed budget (`pool4 → pool2` has a floor of 1.5σ).
+So the curve has coarse structure that is testable and fine structure that is not a resolvable
+claim at all, and this paper reports the region as a broad band rather than as a shape.
 
 ### 4.4 The wiring's own eigenbasis beats the neuron diagonal at equal capacity
 
