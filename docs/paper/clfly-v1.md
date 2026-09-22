@@ -37,8 +37,9 @@ Four findings, one of them unexpected in direction.
    discrete rungs, and four of them sit in the top 15% of the granularity range; on a
    continuous **granularity ladder** that pools the rarest cell types, **seven of eight
    rungs resolve, up to 42.2σ**, and the biological advantage is *larger* than any
-   annotation rung showed (0.0041–0.0088 against 0.0015–0.0048) and non-monotone,
-   peaking near 0.54 constrained. The ladder's best partition beats the vocabulary's own
+   annotation rung showed (0.0041–0.0088 against 0.0015–0.0048), forming a flat-topped
+   plateau over roughly 0.32–0.67 constrained rather than a peak at any one rung. The
+   ladder's best partition beats the vocabulary's own
    best rung (`side`) by **2.5×** at the same granularity. The advantage flips sign once
    the wiring is randomised, so it is a property of the connectome rather than of the
    vocabulary. A predictor built from the projection loss of the *exact* filter's
@@ -311,10 +312,18 @@ the excess from +0.01743 to +0.00496, a **72% reduction**, and already beats its
 control at 24.8σ. The finest annotation rung, which showed nothing (0.4σ) and which
 earlier fires reported as "`cell_type` buys nothing", is the *worst* rung in the ladder.
 
-*The optimum is mid-granularity, around 0.54 constrained.* The advantage is non-monotone —
-0.4σ at 0.979, 24.8σ at 0.674, **42.2σ at 0.540**, 17.8σ at 0.191. That shape was
-invisible to the five-rung ladder precisely because it has no rungs between 0.50 and 0.83,
-the interval containing the peak.
+*The advantage is a plateau, not a peak — and the distinction is worth being strict about.*
+Every rung's delta is resolved from zero (0.4σ at 0.979, rising to 24.8σ at 0.674, 42.2σ at
+0.540, 17.8σ at 0.191), but "resolved from zero at 42.2σ" is not "distinguishable from its
+neighbours". Contrasting deltas between adjacent rungs, `pool1 − pool2` is **13.6σ** and
+`pool32 − pool64` is 4.7σ, while inside the plateau the largest adjacent contrast is
+`pool4 − pool8` at 6.4σ and `pool2 − pool4` is only **2.2σ**. What resolves is that the fine
+end collapses and the coarse end declines; what does not is a peak at 0.540. The defensible
+shape is **a flat-topped plateau spanning roughly 0.32–0.67 constrained**, invisible to the
+five-rung ladder because it has no rungs between 0.50 and 0.83. Those contrasts are computed
+unpaired and are therefore conservative (the rungs share seeds, so the true paired sems are
+smaller); the run did not retain per-seed values, and `clfly/bench/analytic.py` now records
+`excess_per_seed` so a paired test can be run.
 
 *The ladder's best rung beats the vocabulary's best rung at the vocabulary's own
 granularity.* `side` sits at 0.501 with excess +0.00391; `pool4` sits at 0.540 with excess

@@ -261,4 +261,10 @@ def analytic_excess(sequences, basis: Basis | None = None,
         "ewc_mean": float(np.mean(ewc)),
         "oracle_mean": float(np.mean(orc)),
         "gap_of_means": float(excess.mean() / np.mean(orc)) if np.mean(orc) else float("nan"),
+        # Kept so that contrasts *between* bases can be tested paired: every basis in a
+        # run sees the same task geometries in the same order, so the per-seed excesses
+        # are matched. The unpaired sem reported above is then conservative for any
+        # difference whose two terms are positively correlated across seeds, which is the
+        # usual case here -- both are dominated by the task-geometry draw.
+        "excess_per_seed": [float(x) for x in excess],
     }

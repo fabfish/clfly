@@ -61,7 +61,7 @@ The scientific programme is complete. A working paper draft consolidating it is 
 | 4c | `e5`/`e6` anisotropy axis, predictor development and out-of-sample validation | done |
 | 4d | `e7` pairwise interference prior | done |
 | 4e | `e8` rate-network benchmark, frozen-body diagnosis, all methods tuned | done |
-| 4f | `e3 --ladder` granularity sweep: 7/8 rungs resolve, up to 42.2σ, peak at 0.54 | done |
+| 4f | `e3 --ladder` granularity sweep: 7/8 rungs resolve, up to 42.2σ, plateau 0.32–0.67 | done |
 | 5 | write-up | draft v1 |
 
 ### What the results say
@@ -79,8 +79,9 @@ The scientific programme is complete. A working paper draft consolidating it is 
   ladder shows how much.** The fly's annotation vocabulary puts four of its five rungs in the
   top 15% of the constrained range. Replacing them with a continuous **granularity ladder**
   that pools the rarest cell types makes **7 of 8 rungs resolve, up to 42.2σ**, with a
-  *larger* biological delta than any annotation rung showed. The optimum is mid-granularity
-  (~0.54 constrained), and the ladder's best partition is **2.5× better than the vocabulary's
+  *larger* biological delta than any annotation rung showed. The advantage is a **plateau**
+  over roughly 0.32–0.67 constrained rather than a peak at one rung, and the ladder's best
+  partition is **2.5× better than the vocabulary's
   own best rung** (`side`) at the same granularity. Merging just the singleton cell types
   already cuts the penalty by **72%**. The advantage flips sign once the wiring is randomised,
   so it is a property of the connectome rather than of the vocabulary.

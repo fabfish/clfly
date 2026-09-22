@@ -155,9 +155,12 @@ and gives a different picture: **7 of 8 rungs resolve**, at 17.8σ to **42.2σ**
 | `pool128` | 0.191 | +0.00079 | +0.00488 | 17.8 |
 
 Three things follow. **Merging only the singleton cell types** cuts the excess by 72% and
-already beats a matched random control at 24.8σ. **The optimum is mid-granularity** — 0.4σ at
-0.979, peaking at 42.2σ near 0.540, declining to 17.8σ at 0.191 — a non-monotonicity the five
-rungs could not see, having no rung between 0.50 and 0.83. And **the ladder's own best rung is
+already beats a matched random control at 24.8σ. **The advantage is a plateau, not a peak** —
+every rung's delta is resolved from zero (0.4σ at 0.979, 42.2σ at 0.540, 17.8σ at 0.191) but
+the adjacent contrast `pool2 − pool4` is only 2.2σ while `pool1 − pool2` is 13.6σ, so what
+resolves is a flat top over ~0.32–0.67 with both ends falling off, not an optimum at 0.540.
+That non-monotonicity the five rungs could not see at all, having no rung between 0.50 and
+0.83. And **the ladder's own best rung is
 beaten at its own granularity**: `side` (0.501) has excess +0.00391 while `pool4` (0.540) has
 **+0.00156**, 2.5× smaller, with the random control at that granularity (+0.01041) *worse* than
 `side`.

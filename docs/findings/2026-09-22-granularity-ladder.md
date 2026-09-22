@@ -57,10 +57,38 @@ matched random control at 24.8σ. The finest rung of the annotation ladder, whic
 nothing (0.4σ) and which earlier fires reported as "`cell_type` buys nothing", is the *worst*
 rung in the ladder.
 
-**The optimum is mid-granularity, around 0.54 constrained.** The advantage is 0.4σ at 0.979,
-rises to 24.8σ at 0.674, peaks at **42.2σ at 0.540**, and declines to 17.8σ at 0.191. That
-non-monotonicity was invisible to the five-rung ladder precisely because it has no rungs
-between 0.50 and 0.83 — the interval containing the peak.
+**The advantage is flat-topped, not sharply peaked, and the coarse claim stands while the
+fine one does not.** Every rung's delta is resolved from zero, most of them at 18σ–42σ — but
+"resolved from zero at 42.2σ" is not the same statement as "the peak is distinguishable from
+its neighbours", and the ladder's shape claim needs the second. Contrasting *deltas* between
+adjacent rungs (each delta's sem combined in quadrature):
+
+| contrast | Δ of deltas | σ |
+|---|---|---|
+| `pool1 − pool2` | +0.00820 | **13.6** |
+| `pool2 − pool4` | +0.00084 | 2.2 |
+| `pool4 − pool8` | −0.00199 | **6.4** |
+| `pool8 − pool16` | +0.00080 | 2.7 |
+| `pool16 − pool32` | −0.00067 | 2.5 |
+| `pool32 − pool64` | −0.00150 | **4.7** |
+| `pool64 − pool128` | −0.00139 | **4.0** |
+
+So what resolves is that the **fine end collapses** (`pool1 − pool2` is 13.6σ — `cell_type`
+really is the worst rung) and that the **coarse end declines** from `pool32` on. What does
+*not* resolve is a peak at a particular rung: `pool2`, `pool4`, `pool8`, `pool16` and
+`pool32` all sit between 0.0069 and 0.0088, and the largest adjacent contrast inside that
+plateau is `pool4 − pool8` at 6.4σ, with `pool2 − pool4` at only 2.2σ. **The defensible shape
+is a plateau spanning roughly 0.32–0.67 constrained, falling off at both ends** — not an
+optimum at 0.540.
+
+Two things bound that reading, in opposite directions. The deltas are *paired* — every basis
+in the run sees the same task geometries in the same seed order — so the sem of a delta
+computed unpaired, as here, is **conservative** whenever the two excesses are positively
+correlated across seeds, which they are (both are dominated by the task-geometry draw). The
+plateau may therefore be sharper than 2.2σ suggests. But this run did not store per-seed
+values, so the paired test could not be computed from it; `clfly/bench/analytic.py` now
+records `excess_per_seed` so that it can be, and a re-run is in flight. Until that lands, the
+plateau is what the artifact supports.
 
 **And the ladder's best rung is beaten at its own granularity.** `side` sits at constrained
 0.501 with excess +0.00391; `pool4` sits at 0.540 with excess **+0.00156** — a **2.5×** smaller
@@ -95,7 +123,7 @@ pressure, since matching was enforced on group sizes. It separates them.
 | biological advantage, best rung | `side`, 0.0048, 28.8σ | `pool4`, 0.0088, **42.2σ** |
 | best biological basis found | `side`, excess 0.00391 | `pool4`, excess **0.00156** (2.5× smaller) |
 | number of resolved rungs | 4 of 5 | **7 of 8** |
-| shape | "advantage decreases with granularity" | **non-monotone, peaking near 0.54** |
+| shape | "advantage decreases with granularity" | **flat-topped plateau over ~0.32–0.67, falling off at both ends** (the peak rung is only 2.2σ above its neighbour) |
 | headline | granularity beats biology | **granularity locates you; biology sets the height** |
 
 The practical recommendation also changes. It was "anchor in the coarsest available grouping";
