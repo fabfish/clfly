@@ -419,17 +419,30 @@ against the Kalman oracle. What is genuinely surprising is that **replay stopped
 inverting LGCL v7's expectation that content memory dominates regularisation in the
 partially-observed regime — now the most interesting open question in the network line.
 
-**And the basis ordering reverses.** On the *linear* substrate the coarsest partition cut
-the excess error by 80% relative to the diagonal and `cell_class` beat its matched control
-at 12.1σ. On the trained network the block Fisher is **worse** than the plain neuron
-diagonal (+0.039 ± 0.025, 1.6σ), and the biological partition still shows no advantage over
-its matched random control (0.6σ). So the project's central claim — that the coordinate
-basis is the wrong place to anchor a Fisher matrix — holds on the connectome's **neuron**
-geometry and **reverses on its synapse geometry**. Those are different spaces, and this is
-now a measured difference in direction rather than an appeal to the analogy being invalid.
-The likeliest mechanism is estimation noise (the block Fisher has 5.3e7 entries to fill
-from 1024 observations against the diagonal's 26,568), and it is testable on the hardened
-configuration by re-running the batch-count sweep.
+**And the basis ordering reverses — but only suggestively.** On the *linear* substrate the
+coarsest partition cut the excess error by 80% relative to the diagonal and `cell_class`
+beat its matched control at 12.1σ. On the trained network the block Fisher is worse than the
+plain neuron diagonal at 32 Fisher batches (+0.039 ± 0.025, 1.6σ). **That reversal is
+suggestive, not established**: it is 0.9σ at 8 batches and absent at 128, and it was never
+above 2σ. The mechanism proposed for it — estimation noise, the block Fisher having 5.3e7
+entries to fill from 1024 observations — was **tested and refuted**: a 16-fold better
+estimate does not recover the block's position, so its disadvantage is not an artefact of a
+poor estimate.
+
+What does survive is narrower and still sharp: **the biological synapse partition shows no
+advantage over its size-matched random control in any of the five settings tested** (Fisher
+batches 8/32/128, λ 0.003/0.01/0.1), and its ordering against that control **flips sign
+between them** — the null-effect signature. The linear substrate's 12.1σ advantage for the
+same grouping does not reproduce here under any setting tried.
+
+**One statement in this section is fully robust: the diagonal degrades as its Fisher
+estimate improves** (+0.010 → +0.028 → +0.035 as batches go 8 → 32 → 128, monotone;
++0.063 → +0.250 on the unhardened configuration). A better-estimated Fisher is a *stronger*
+penalty at fixed λ, so EWC walks into over-constraint. The best configuration found is
+therefore both *weaker and coarser* than a careful practitioner would choose: λ = 0.003 with
+the Fisher estimated from 8 batches gives +0.010 ± 0.010 forgetting against naive's
++0.066 ± 0.019, a **2.6σ** advantage. "Anchor gently, and do not estimate the curvature too
+carefully" is not a satisfying prescription, but it is what the measurements say.
 
 The general rule the project now applies:
 
