@@ -334,6 +334,42 @@ coarse rungs**, by the control-draw component (rule 10, and
 `docs/findings/2026-09-22-control-drawn-once.md`); the ladder's best rung is 42.2σ seed-only and
 **13.7σ** at the measured draw sd (`docs/findings/2026-09-22-draw-budget.md` §9). The five rungs
 are what the annotation vocabulary offers, and four of them sit in the top 15% of the
+
+> ### ✔ And the core claim passes the per-seed discipline that overturned C1
+>
+> `e57` asked the three questions C1 was taken apart by — sign unanimity, leave-one-out, and which
+> axis carries the noise — of the pool ladder, the one C2 family whose artifact stores
+> `excess_per_seed` (twelve seeds, cs = 800):
+>
+> | rung | Δ | seed sem | σ (seed only) | signs | LOO min σ | leverage |
+> |---|---|---|---|---|---|---|
+> | `pool1` | +0.00019 | 0.00003 | +7.35 | `++++++++-+++` | 6.6 | 0.80 |
+> | `pool2` | −0.00801 | 0.00034 | −23.3 | `------------` | 21.3 | 0.53 |
+> | `pool4` | −0.00884 | 0.00020 | **−44.4** | `------------` | 40.7 | 0.71 |
+> | `pool8` … `pool128` | −0.0069 … −0.0041 | 0.0002–0.0003 | −31.0 … −17.9 | all `-`×12 | 16.3–35.4 | 0.51–0.60 |
+>
+> **Seven of eight rungs are unanimous over all twelve seeds, no leave-one-seed-out removal flips any
+> sign, the smallest LOO σ is 6.6, and single-seed leverage is 0.51–0.80** on a scale whose ceiling is
+> 1. C1's contrasts were unanimous over 3–6 seeds at 4–33σ; **C2 is unanimous over twelve and its
+> weakest rung is still 16σ on the seed axis alone.** So the discipline that repeatedly overturned the
+> side line does not touch the core one, which is the check that makes the discipline worth having.
+>
+> **The seed σ is nonetheless the inflated one.** The seed sem is 2–3e-05 while the measured
+> control-draw sd reaches **0.001010** (`cell_type` min_size 3, five draws) — more than ten times it —
+> so the −44σ is naive and the plan's 3–8σ rung-level figures, which fold the draw in, are the right
+> ones. What is new is the per-seed structure, not the σ.
+>
+> **And the per-seed evidence is for the wrong family.** The headline is stated on the **named
+> annotation bases**; the per-seed values exist for the **pool ladder**. `e3_seeds18` — **18 seeds, the
+> most in the project, on the family the claim is on** — stores none, nor does the d = 1874 ladder.
+> `e58` is launched to close the first (same configuration, 1.31 h the first time; the current code
+> stores the field and that artifact predates it). The d = 1874 ladder is 5.64 h and stays open.
+>
+> **And the three lines have three different binding axes**: C1 the **circuit/realization**, C2 the
+> **control draw**, C2b the **learner's seeds**. So "the bracket is a bracket", "the control is one
+> draw" and "the floor is 62% learner" are three different corrections to three different lines, and
+> none of them transfers — which is why each line needed its own check rather than a shared rule.
+> (`docs/findings/2026-09-22-c2-passes-the-per-seed-discipline.md`)
 granularity range. The earlier
 "consistent direction, ~1.3σ" reading was limited by the realized-error metric, not by
 the effect. Measured on the **analytic expected error** (exact, no sampling noise — see
@@ -830,6 +866,8 @@ All of it has been run. The scripts as delivered:
 | `e54_naive_seed_pool.py` | C2b | is the `naive` arm a free instrument, and how many seeds exist for one computation? | done — **six distinct `naive` computations** across 15 runs, the largest with **n = 9** (sd 0.0389, floor 62% of the variance, so 38% is the learner); agreement established from the data, not an assumed config key |
 | `e55_seed_resolution_of_excess.py` | — | is the "below ~0.05 not resolvable" figure still right, at n = 12? | done — **stale by 3× and the wrong shape**: the absolute metric's CV is 0.70–1.26, the same as the relative gap's, so it fixes the *ratio* not the spread; unpaired resolution is **0.0159 at n = 12** (0.0319 at n = 3) but **0.00100** as a within-seed difference, and the same topology's sd moves **11×** with the drive construction |
 | `e56_metric_pathology_both_ways.py` | C1 | where does the metric choice decide the answer, and in which direction? | done — **both directions measured**: at cs800/`real` the banned metric **hid** a reversal (prescribed p = 0.065 vs banned 0.77); at cs300/`swap2` it **manufactured** one (prescribed null at 6/4/2, p = 0.754; banned Wilcoxon p = 0.0068, pooled p = 4e-6) and the rank decomposition puts it on the **oracle** (ρ(oracle, flatten) = +0.79, negative oracle coefficient, R² = 0.85) |
+| `e57_basis_ladder_seed_robustness.py` | C2 | does the CORE claim survive the per-seed discipline that overturned C1? | done — **yes, by a wider margin**: 7 of 8 pool rungs unanimous over **12/12** seeds, no leave-one-out flip, smallest LOO σ **6.6**, leverage 0.51–0.80. But the per-seed evidence is for the **pool ladder** while the headline is stated on the **named bases**, whose 18-seed artifact stores none — `e58` launched to close it |
+| `e3_basis_selection --extra-bases --seeds 18` | C2 | per-seed storage for the named annotation bases (`e58`), the family the headline is stated on | **in flight** — `runs/e58_bases_18seeds_perseed.json`; 1.31 h the first time and the current code stores the field |
 | `e8_rate_network --lam 0.1 --repeats 16` | C2b | the properly-powered rung contrast at λ = 0.1 (`e46`), the λ where it resolves | **in flight** — `runs/e46_c2b_powered.json` |
 | `e5_anisotropy_axis.py --seeds 12` | C1 | `e5` re-run with 12 seeds (`e42`) — the binding test for the replacement mechanism | done — **the direction is REVERSED on the prescribed metric**: 9 positive / 2 negative / **1 tied**, mean +0.265, sign p = **0.0654** (ties dropped; an earlier 0.0386 was my error), pooled +0.228 (p = 0.037); on the relative gap the same seeds say nothing (7/5/0, p = 0.77). Seeds 0–2 reproduce the published artifact exactly |
 
