@@ -147,3 +147,20 @@ contains **six distinct partitions**, two rungs are duplicates, and its two coar
 - The `ratio` line in e12's output is below 1 for fine partitions. That is the correct reading
   (the seed sem dominates there), not a bug; the label is "how much a single-draw sem overstates
   the evidence", so below 1 means it does not overstate it at all.
+
+---
+
+## Correction (later): "uses no random control" is a property of a contrast, not of an experiment
+
+§7 above says: *"Results that use **no** random control are untouched: the `e2` topology family, the
+eigenbasis comparison, and the network line's method comparison."*
+
+The `e2` topology family is not one thing. Its **excess** contrasts — including the 32.7σ interference
+refutation — use no control and are indeed untouched by this finding. But the same script also
+computes a `bio:cell_class` vs `rand:cell_class` contrast, which is where the sign-flip analysis
+lives and which the draw correction *did* change (four of five points stay resolved; the second
+negative point has 60% of headroom). The eigenbasis comparison and the network line's *method*
+comparison are genuinely untouched.
+
+So the distinction is per-contrast, not per-experiment — the same lesson as
+`2026-09-22-sigma-audit.md` §3, in a smaller form.

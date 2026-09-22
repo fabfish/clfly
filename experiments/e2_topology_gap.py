@@ -46,6 +46,7 @@ import numpy as np
 
 from clfly.bench.analytic import analytic_excess
 from clfly.bench.artifacts import write_json
+from clfly.bench.control import paired_contrast
 from clfly.bench.oracle import paired_excess, task_geometry
 from clfly.connectome import annotate, circuits, graph, rewiring, tasks
 from clfly.lgcl.bases import Diagonal, Partition, random_partition
@@ -138,15 +139,24 @@ def report(results: dict) -> None:
         shown = "  ".join(f"{v:+.5f}" for v in vals)
         print(f"  {label:24} {shown}   monotone={'YES' if rising else 'no'}")
     print("\n  adjacent-contrast significance (analytic excess, |delta| / sem):")
+    print("    the task seeds are shared across topologies, so these contrasts are PAIRED;")
+    print("    the paired figure is reported where per-seed values exist, and it is the right one")
     for label, getter in (("EWC excess", lambda a: a["diagonal(EWC)"]["analytic"]),
                           ("bio-cell_class", lambda a: a["bio:cell_class"]["analytic"]),
                           ("rand-cell_class", lambda a: a["rand:cell_class"]["analytic"])):
         stats = [getter(results["topologies"][t]) for t in order]
         parts = []
         for i in range(len(stats) - 1):
-            d = stats[i + 1]["excess_mean"] - stats[i]["excess_mean"]
-            s = float(np.hypot(stats[i + 1]["excess_sem"], stats[i]["excess_sem"]))
-            parts.append(f"{order[i]}->{order[i+1]} {d:+.5f} ({abs(d)/s if s else float('inf'):.1f}s)")
+            a, b = stats[i], stats[i + 1]
+            d = b["excess_mean"] - a["excess_mean"]
+            if "excess_per_seed" in a and "excess_per_seed" in b:
+                pc = paired_contrast(a["excess_per_seed"], b["excess_per_seed"])
+                parts.append(f"{order[i]}->{order[i+1]} {d:+.5f} "
+                             f"({pc['sigma_paired']:.1f}s paired, {pc['sigma_unpaired']:.1f}s unpaired)")
+            else:
+                s = float(np.hypot(b["excess_sem"], a["excess_sem"]))
+                parts.append(f"{order[i]}->{order[i+1]} {d:+.5f} "
+                             f"({abs(d)/s if s else float('inf'):.1f}s unpaired -- no per-seed data)")
         print(f"  {label:16} " + "  ".join(parts))
 
 

@@ -276,7 +276,14 @@ along the degree-preserving swap family the diagonalisation penalty moves *oppos
 task overlap, falling by a resolved 32.7σ between `swap0.5` and `swap2` while overlap
 doubles — so the mechanism C3 was built on does not hold in the linear substrate. C3
 would now have to be restated as a claim about whatever *does* drive the penalty
-(anisotropy of the task precision), and that is not yet well enough understood to
+(anisotropy of the task precision), and that is not yet well enough understood to state
+as a testable prediction.
+
+*(That 32.7σ is an **unpaired** figure for a comparison whose seeds are shared across
+topologies, so it is conservative in expectation rather than optimised — see the σ audit at
+`docs/findings/2026-09-22-sigma-audit.md`. `e21` measures the paired figure and
+`e2_topology_gap.py`'s contrast table now uses the paired formula where per-seed values
+exist.)*
 
 ### C4 — Circuit overlap predicts interference
 
