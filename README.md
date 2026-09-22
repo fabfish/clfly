@@ -61,7 +61,7 @@ The scientific programme is complete. A working paper draft consolidating it is 
 | 4c | `e5`/`e6` anisotropy axis, predictor development and out-of-sample validation | done |
 | 4d | `e7` pairwise interference prior | done |
 | 4e | `e8` rate-network benchmark, frozen-body diagnosis, all methods tuned | done |
-| 4f | `e3 --ladder` granularity sweep: 7/8 rungs resolve, up to 42.2σ, plateau 0.32–0.67 | done |
+| 4f | `e3 --ladder` granularity sweep: 7/8 rungs resolve at 4–9σ once the control is averaged; curve shape unresolved | done |
 | 5 | write-up | draft v1 |
 
 ### What the results say
@@ -75,16 +75,19 @@ The scientific programme is complete. A working paper draft consolidating it is 
   rewiring destroys that monotonically. But the penalty moves *opposite* to
   interference, falling by a resolved **32.7σ** while overlap doubles. Our own
   hypothesis, refuted on the axis where it was cleanest to test.
-- **Biological anchoring bases beat capacity-matched random ones — but only the granularity
-  ladder shows how much.** The fly's annotation vocabulary puts four of its five rungs in the
+- **Biological anchoring bases beat capacity-matched random ones — and the curve's *shape* is
+  not established.** The fly's annotation vocabulary puts four of its five rungs in the
   top 15% of the constrained range. Replacing them with a continuous **granularity ladder**
-  that pools the rarest cell types makes **7 of 8 rungs resolve, up to 42.2σ**, with a
-  *larger* biological delta than any annotation rung showed. The advantage is a **plateau**
-  over roughly 0.32–0.67 constrained rather than a peak at one rung, and the ladder's best
-  partition is **2.5× better than the vocabulary's
-  own best rung** (`side`) at the same granularity. Merging just the singleton cell types
-  already cuts the penalty by **72%**. The advantage flips sign once the wiring is randomised,
-  so it is a property of the connectome rather than of the vocabulary.
+  that pools the rarest cell types gives **7 of 8 rungs resolved**, with a
+  *larger* biological delta than any annotation rung showed; merging just the singleton cell
+  types already cuts the penalty by **72%**, and the advantage flips sign once the wiring is
+  randomised, so it is a property of the connectome rather than of the vocabulary.
+  But the σ are inflated: a matched-random control is a **single draw**, and for coarse
+  partitions the draw-to-draw spread is itself ~1.1e-3, 3–6× the reported sem. With it included
+  the rung-level result holds at **4–9σ** (not 20–42σ), while the plateau and the location of
+  the optimum — differences of 0.0015–0.004 — fall to ~0.6σ and are reported as **unresolved**.
+  The remedy is to average the control over several draws per rung, which is scripted and
+  queued.
 - **The wiring's own eigenbasis beats the neuron diagonal at equal capacity** — a 28%
   reduction in excess error with no annotation involved — while *adaptive* projection
   (spectral truncation, locally optimal at every step) is the worst candidate tested.
@@ -122,11 +125,11 @@ The scientific programme is complete. A working paper draft consolidating it is 
 - **A sign test on differences below the noise floor is a random draw** — report the
   target's resolvability alongside any ranking or sign score.
 
-Six of our own earlier conclusions were retracted or overturned as artefacts of these
-traps; all six are in the findings log with the same prominence as the results.
+Seven of our own earlier conclusions were retracted or overturned as artefacts of these
+traps; all seven are in the findings log with the same prominence as the results.
 
-`docs/findings/` holds the dated logs — 24 of them, negative results included, because
-those are the useful kind. The six retractions and refutations, in order:
+`docs/findings/` holds the dated logs — 28 of them, negative results included, because
+those are the useful kind. The seven retractions and refutations, in order:
 
 - **the unimodal misalignment peak** of the reference materials does **not** appear in the
   coordinate basis; the penalty is governed by task *anisotropy* (~500× larger for a steep
@@ -134,8 +137,12 @@ those are the useful kind. The six retractions and refutations, in order:
 - **the interference mechanism** is refuted at **32.7σ** — the penalty moves *opposite* to
   task overlap;
 - **"granularity beats biology"** was an artefact of the annotation vocabulary, which places
-  four of its five rungs where biology contributes least. The granularity ladder replaces it
-  with "granularity locates you, biology sets the height";
+  four of its five rungs where biology contributes least;
+- **"granularity locates you, biology sets the height"** — the replacement headline — was
+  itself withdrawn: the curve's shape rests on differences of 0.0015–0.004 between deltas, the
+  same order as the spread of a **single-draw** matched-random control, which had never been
+  measured. Averaged properly the rung-level result is 4–9σ rather than 20–42σ, and the plateau
+  and optimum location are **unresolved**;
 - **the "4 of 5 rungs" reading** was a metric artefact (the honest figure is 4 of 5 only at
   the standard configuration and with a stable metric);
 - **"no Fisher-anchoring variant helps on the network"** was wrong, because the benchmark
@@ -143,10 +150,11 @@ those are the useful kind. The six retractions and refutations, in order:
 - **"replay is setting-dependent"** was confounded with a budget fixed at the worst
   reasonable value across eight experiments.
 
-Plus the three traps themselves, each found by falling into it: the **chaotic headline
+Plus the traps themselves, each found by falling into it: the **chaotic headline
 metric** (standard deviation exceeding its own mean, and a 1-ULP ARPACK start vector moving
-the result by several percent); the **frozen-body** failure; and the **untuned-baseline**
-failure.
+the result by several percent); the **frozen-body** failure; the **untuned-baseline**
+failure; the **unpaired shape test** (contrasts read from an alphabetically sorted table with
+the wrong error formula); and the **single-draw control**.
 
 ## Reproduce the LGCL numbers
 

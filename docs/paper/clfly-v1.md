@@ -36,20 +36,21 @@ Four findings, one of them unexpected in direction.
    working a-priori predictor.** The fly's own annotation vocabulary supplies five
    discrete rungs, and four of them sit in the top 15% of the granularity range; on a
    continuous **granularity ladder** that pools the rarest cell types, **seven of eight
-   rungs resolve, up to 42.2σ**, and the biological advantage is *larger* than any
-   annotation rung showed (0.0041–0.0088 against 0.0015–0.0048), forming a flat-topped
-   plateau over roughly 0.32–0.67 constrained rather than a peak at any one rung. The
-   ladder's best partition beats the vocabulary's own
-   best rung (`side`) by **2.5×** at the same granularity. The advantage flips sign once
+   rungs resolve, at 4–9σ once the control is averaged properly** (§4.3; the single-draw
+   figure of 42.2σ overstates it several-fold, because a coarse matched-random control has
+   a draw-to-draw spread of its own that had never been measured). The biological advantage is
+   *larger* than any
+   annotation rung showed (0.0041–0.0088 against 0.0015–0.0048) and the advantage flips sign once
    the wiring is randomised, so it is a property of the connectome rather than of the
-   vocabulary. A predictor built from the projection loss of the *exact* filter's
+   vocabulary. The curve's *shape*, however, is **not established**: the plateau, the location
+   of the optimum, and the claim that the coarsest rung is uniquely weak all rest on
+   differences between deltas of 0.0015–0.004, which is the same order as that draw spread. A
+   predictor built from the projection loss of the *exact* filter's
    trajectory ranks candidate bases at Spearman **+0.995** over the ladder's 17 bases —
    including eight partitions of near-identical granularity told apart only by *which*
    groups were merged — and identifies the better of each biological-versus-matched-random
    pair on **13 of 13** pairs whose difference clears 2σ, across five conditions it was
-   not tuned on. The corrected headline is that **granularity sets where you are on the
-   curve; biology sets the curve's height** — and the annotation vocabulary under-reported
-   that height by placing its rungs where biology contributes almost nothing.
+   not tuned on.
 4. **The wiring's own eigenbasis beats the neuron diagonal at equal capacity** — a 28%
    reduction in excess error with no annotation involved at all — while *adaptive*
    projection (spectral truncation, locally optimal at every step) is the worst
@@ -342,14 +343,32 @@ the annotation ladder's best rung and a random partition of the same size.
 
 The headline this corrects is our own. "Granularity beats biology" came from the five-rung
 ladder, where the biological deltas (0.0015–0.0048) were smaller than the granularity
-trend. On the ladder the deltas are larger than any annotation rung's and they *grow* with
-the sweep. The honest form is: **granularity sets where you are on the curve, and biology
-sets the curve's height** — a height the annotation vocabulary under-reported by placing
-four of its five rungs in the region where biology contributes almost nothing. The
-practical recommendation changes accordingly: not "anchor in the coarsest available
-grouping" but **"pool the rarest cell types and anchor there"**, a device any vocabulary
-supports, needing no new ontology, delivering a 2.5× smaller penalty than the best rung
-this fly's annotation happens to provide.
+trend. On the ladder the deltas are larger than any annotation rung's — and *that* is the part
+that survives the correction below. The practical recommendation is **"pool the rarest cell
+types and anchor there"**, a device any vocabulary supports, needing no new ontology.
+
+**And the curve's shape does not survive.** Every σ in this subsection, and in the five-rung
+table above, treats the matched-random control as a fixed quantity. It is a **single draw** from
+the population of size-matched random partitions, and that population has a spread of its own
+which was never measured. Measured now (`e12_control_spread`, 812-group and 8-group partitions,
+two circuits): the draw-to-draw sd is **~1.1e-3 for coarse partitions (2–10 groups)** — 3–6×
+the seed sem, so a single-draw σ overstates the evidence several-fold — and **~4e-5–9e-5 for
+near-diagonal ones**, where it is negligible. The mechanism is that permuting labels barely
+changes a partition made of singletons and changes a great deal when there are two to ten
+groups. Two rungs of the ladder are in fact the *same partition* (`pool32` and `pool64`; only
+two cell types have ≥32 neurons), and their controls disagree at 4.7σ, which is where this
+started.
+
+With the component included, the rung-level result becomes **4–9σ instead of 20–42σ** — still a
+result, and the claim that biology beats matched random over 0.32–0.67 constrained stands. But
+the shape claims do not: the plateau, the location of the optimum, "`side` is uniquely weak",
+and the headline "granularity sets where you are on the curve, biology sets the height" all rest
+on differences between deltas of 0.0015–0.004, the same order as the draw spread. `pool2 →
+pool4` — the contrast the plateau was originally read from — goes from 2.2σ to ≈0.6σ. What
+survives of the shape is the fine-end decline (`pool1 → pool2` at ≈7σ), and it survives precisely
+because one of its two rungs has a precise control. Until the control is averaged per rung,
+this paper reports the rung-level claim and marks the curve's shape **unresolved**
+(`docs/findings/2026-09-22-control-drawn-once.md`).
 
 ### 4.4 The wiring's own eigenbasis beats the neuron diagonal at equal capacity
 
@@ -826,6 +845,7 @@ recorded in the corresponding `runs/*.json`:
 |---|---|
 | §4.1, §4.3 | `python -m experiments.e3_basis_selection --json-out runs/e3_analytic.json` |
 | §4.3 ladder | `python -m experiments.e3_basis_selection --ladder --no-realized --json-out runs/e3_ladder.json` |
+| §4.3 control-draw spread | `python -m experiments.e12_control_spread --min-size 1 --seeds 2 --draws 5` |
 | §4.2, §4.4 | `python -m experiments.e2_topology_gap --json-out runs/e2_analytic.json` |
 | §5 | `python -m experiments.e6_predictor --json-out runs/e6_predictor.json` |
 | §6 | `python -m clfly.lgcl.repro`, `pytest -q` |

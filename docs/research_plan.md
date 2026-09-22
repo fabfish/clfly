@@ -165,12 +165,26 @@ beaten at its own granularity**: `side` (0.501) has excess +0.00391 while `pool4
 **+0.00156**, 2.5× smaller, with the random control at that granularity (+0.01041) *worse* than
 `side`.
 
-So the honest form of the headline is: **granularity sets where you are on the curve; biology's
-contribution is what the curve's height shows — and the fly's own annotation vocabulary
-under-reports it by placing four of its five rungs where biology contributes almost nothing.**
-The practical recommendation becomes **"pool the rarest cell types and anchor there"**, which
-needs no new ontology and delivers a 2.5× smaller penalty than the best rung the fly's
-annotation happens to provide.
+So the honest form of a *rung-level* headline is: **the fly's own annotation vocabulary
+under-reports biology's contribution, because four of its five rungs sit where biology
+contributes almost nothing.** The practical recommendation is **"pool the rarest cell types and
+anchor there"**, which needs no new ontology.
+
+*But the curve's shape is unresolved, and it was the second time this fire that a shape claim
+was withdrawn.* A matched-random control is a **single draw** from the population of
+size-matched random partitions, and that population has a spread which was never measured.
+Measured now (`experiments/e12_control_spread.py`): the draw-to-draw sd is ~**1.1e-3** for
+coarse partitions (2–10 groups) — 3–6× the seed sem — and ~**4e-5–9e-5** for near-diagonal ones.
+`pool32` and `pool64` are in fact the *same partition* and their controls disagree at 4.7σ,
+which is where the question came from; and the ladder has only **six distinct partitions**
+across its eight rungs (one group grows 723 → 867 → 952 → 968 → 1062 → 1167 while a 140-neuron
+cell type never merges, so `pool32 ≡ pool64` and `pool128` is 2 groups). With the draw component
+included the rung-level result is **4–9σ, not 20–42σ** — still a result — while the plateau, the
+optimum's location, "`side` is uniquely weak", and the headline "granularity sets where you are
+on the curve, biology sets the height" all collapse: they rest on differences of 0.0015–0.004,
+the same order as the draw sd. `pool2 → pool4` goes 2.2σ → ≈0.6σ. The fine-end decline
+(`pool1 → pool2`, ≈7σ) survives, because one of its rungs has a precise control
+(`docs/findings/2026-09-22-control-drawn-once.md`).
 
 The predictor handles the ladder at Spearman **+0.995** over 17 partition bases, including
 eight of similar granularity distinguished only by which groups were merged — a case where a
@@ -357,6 +371,7 @@ All of it has been run. The scripts as delivered:
 | `e3_basis_selection.py --ladder` (re-run) | C2 | per-seed excesses for a paired shape test + determinism check | **in flight** — `runs/e3_ladder_v2.json` |
 | `e8_rate_network.py` × 5 rungs | C2b | synapse annotation ladder (0.6947 → 0.9992), the untested rung `side` included | **in flight** — `runs/e10_rung_*.json` |
 | `e4_modularity.py` | C3 | never written | **C3 deprioritised** — its mechanism is contradicted by `e2` |
+| `e12_control_spread.py` | C2 | how much of a matched-pair delta is the control *draw* | done — draw sd is ~1.1e-3 coarse, ~4e-5 fine; coarse-rung σ are provisional |
 
 Every figure carries its control arm, and every recall/precision number in this document
 carries a resolvability check. The prediction scoreboard, including the refutations,
@@ -425,6 +440,16 @@ Added 2026-09-22, after the headline metric was found to be chaotic
    When something is too slow to run, profile it before concluding the science is
    expensive. Related: a module with no tests hid a dtype crash one argument away
    — the penalty was one float64 anchor from raising.
+10. **A matched-random control must be averaged over draws.** The control is the
+   *population* of size-matched random partitions, and one draw is one sample from
+   it. Measured (`experiments/e12_control_spread.py`): the draw-to-draw sd is
+   ~**1.1e-3** for coarse partitions (2–10 groups) — 3–6× the seed sem, so a
+   single-draw σ overstates the evidence several-fold — and ~**4e-5–9e-5** for
+   near-diagonal ones, where it is negligible. Coarse-rung σ in the basis study
+   are therefore provisional: `pool4` 42.2σ → ≈8.7σ with the component included,
+   and `pool2 → pool4` (the plateau question) 2.2σ → ≈0.6σ. Report the two
+   components separately, and never rest a claim about a curve's *shape* on
+   single-draw controls.
 
 ## Related work to differentiate against
 
