@@ -432,6 +432,36 @@ setting-dependent" claim as confounded.
 uses 30× the memory; per byte the diagonal anchor is the better buy. Reporting only the
 absolute numbers would hide the trade.
 
+**Both methods work once every hyperparameter is tuned — and replay is the stronger.** The
+last fire showed that *every* replay result in the project's history had been taken at 16
+stored stimuli per task, which merely ties naive, while EWC's λ had been swept. Re-running all
+three settings with **every method tuned**:
+
+| setting | naive | EWC, diagonal | replay |
+|---|---|---|---|
+| task-incremental (per-task heads) | +0.101 ± 0.049 | +0.128 ± 0.061 (**worse**) | **−0.056 ± 0.009 (−0.157, 3.1σ)** |
+| class-incremental (shared head, whole state) | +0.059 ± 0.028 | +0.063 ± 0.010 (tie) | **−0.010 ± 0.016 (−0.069, 2.2σ)** |
+| class-incremental, hardened (32-neuron read-out) | +0.066 ± 0.019 | **+0.010 ± 0.010 (−0.056, 2.6σ)** | **−0.010 ± 0.006 (−0.076, 4.2σ)** |
+
+*(mean forgetting; replay at pool 96 / per-step 8, EWC at λ = 0.003 / 8 Fisher batches.)*
+
+**Replay resolves in all three settings**, always with the best accuracy and always with
+forgetting driven **negative** — earlier tasks end up better than when they were learned. The
+earlier "replay is setting-dependent" claim is **withdrawn in full**.
+
+**EWC resolves in exactly one setting**, the hardened one, and requires the plastic weights to
+be load-bearing; where they are not, the diagonal anchor does nothing. **Replay beats EWC
+wherever both work.**
+
+This is what the theory predicted: LGCL v7 measured content memory to be **12.7× more valuable
+than regularisation** in the partially-observed regime, and every one of these tasks is
+partially observed by construction. After eight fires of not having tuned replay, it does.
+
+**The memory trade, which the table above omits.** At their tuned optima EWC stores 26,568
+floats (**0.2 MB**) for +0.010 forgetting, while replay stores 96 × 12 × 1307 = 1.5M floats
+(**6.0 MB**) for −0.010. Replay is stronger in absolute terms and uses **30× the memory**; per
+byte the diagonal anchor is the better buy. Reporting only the first would hide the trade.
+
 The general rule the project now applies:
 
 > Measure the plastic-minus-frozen accuracy gap before believing any forgetting difference,
