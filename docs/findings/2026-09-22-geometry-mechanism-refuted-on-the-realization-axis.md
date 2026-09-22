@@ -71,7 +71,44 @@ circuit sweep, whose linear slope is 0.00300 — 2–2.7× the other two. So **n
 fits all three families**: the implied slope depends on which interval of effective rank you probe.
 That is what a shared confound looks like, and it is what a carrier does not look like.
 
-## 4. What survives, and what is withdrawn
+## 4. The *descriptive* sign rule is refuted too, on the first out-of-sample test
+
+The section above retires the mechanism. But the previous fire kept a fallback: the sign of the C1
+contrast is a monotone function of `swap2`'s effective rank, with the separator bracketed in
+**[2.476, 5.040]**, so the sign "needs no learning run to predict". A bracket is a statement about
+where the threshold *could* be; a point **above** it is a genuine out-of-sample test, and the cs=800
+realizations supply four, all against the same `swap0.5` baseline (cs = 800, default rewiring), in the
+same unpaired convention as the published −32.7σ figure:
+
+| rewiring | effrank(`swap2`) | contrast vs `swap0.5` | σ | observed | rule says |
+|---|---|---|---|---|---|
+| rw0 | 1.706 | −0.01062 | −26.4 | − | − |
+| rw1 | 1.436 | −0.00967 | −23.8 | − | − |
+| rw2 | 2.692 | −0.00814 | −25.5 | − | − |
+| **rw3** | **5.853** | **−0.00377** | **−10.0** | **−** | **+** ← fails |
+
+rw3's effective rank is **above** the 5.040 that the five-point rule named as the lower edge of the
+positive region, and its contrast is **negative at 10.0σ**. So the separator does not exist. With all
+nine contrast points — the five circuit sizes plus the four realizations — ordered by effective rank,
+the sign sequence is
+
+```
+- - - - - - + - +        rho = +0.767   (was +1.000 at n = 5)
+```
+
+and the largest *negative* effective rank is 5.853, above the 5.040 that the positive region was
+supposed to start at. The five-point ρ = +1.000 was a property of the five points: it had no coverage
+between 2.5 and 5.0, and the first realization to land above the bracket falsifies the rule.
+
+**So what is left of the C1 result.** The four published contrasts at cs 300/400/500/600 and the
+cs800 one are what they are, and the statement that no interference claim survives in either
+direction stands. But the *explanation* is gone at three levels: the effective rank does not share a
+slope across families (13.6σ), the curve does not predict a realization inside its own fitted range
+(0.019 against an in-sample 0.003), and the sign rule fails above the bracket at 10σ. The honest
+position is the one the project had two fires ago, arrived at with more evidence: **`excess(swap2)` is
+not a stable quantity across circuits, and no coordinate the project has tried accounts for it.**
+
+## 5. What survives, and what is withdrawn
 
 **Withdrawn: §6 of `2026-09-22-realization-attribution-refuted.md`** — the mechanism reading, that
 `swap2`'s excess tracks the rank collapse of its task precision and that this is why the C1
@@ -80,22 +117,25 @@ fire's realization sweep (slopes 13.6σ apart; a 0.019 out-of-sample miss inside
 the previous fire's `kappa` smoke test (more concentration gave a *larger* gap at `swap2`, which is
 `e5`'s direction at `real`, not the required one).
 
-**What survives, because it is only descriptive:** across those five circuit sizes, the sign of the
-C1 contrast is a monotone function of `swap2`'s effective rank — `−, −, −, +, +`, every negative at
-≤ 2.476 and every positive at ≥ 5.040, ρ = +1.000 with exact p = 0.0083, and neither quantity
-monotone in d. That is a true statement about five points and it is *useful as a coordinate*, because
-it needs no learning run to compute. It is **not** a statement that the effective rank causes the
-excess, and the previous fire's own §6b had already flagged the tension. The honest summary is that
-the C1 refutation's sign is *predictable from a diagnostic* and *not explained by it*.
+**What survives, and only as a description of the five circuits that produced it:** across those
+five circuit sizes the sign is monotone in `swap2`'s effective rank — `−, −, −, +, +`, ρ = +1.000 with
+exact p = 0.0083, and neither quantity monotone in d. That is a true statement about five points.
+It is **not** a usable coordinate: §4 shows it fails on the first points drawn outside the bracket
+that defined it (−10.0σ at effrank 5.853), taking the nine-point ρ to +0.767. So the C1 refutation's
+sign is neither explained by the geometry nor reliably predicted by it.
+
+**Withdrawn alongside the mechanism:** the previous fire's §6b-§7 framing that the sign rule "needs no
+learning run to predict" and that the geometry identifies "which end of the instability you are at".
+Both were properties of the five-point sample.
 
 **One place the relation does hold, reported because it cuts the other way:** within ER's four
 realizations the ordering is perfect (ρ = +1.000, exact p = 0.042) with a slope of 0.0340. ER is a
 different regime — it destroys the degree sequence and makes `(I − W)` near-singular — and its level
 is 10× swap2's, so this is not evidence for the mechanism; it is evidence that the effective rank
-carries *some* information inside a family, which is exactly why the cross-family slope mismatch is
-the thing that matters.
+carries *some* information inside a family, which is exactly why the cross-family slope mismatch and
+the cross-bracket sign failure are the things that matter.
 
-## 5. Limits
+## 6. Limits
 
 - Both realization families have **four** points, so each slope has 2 df and the σ on the difference
   (13.6σ) is the one number here that is properly resolved; the individual slopes are not.
@@ -108,3 +148,10 @@ the thing that matters.
 - `cs700` is still running. It is now a test of a curve that has already failed out of sample, so a
   miss there would be a third confirmation rather than a new finding — the decisive result is
   already in.
+- The nine-point sign sequence uses an **unpaired** convention for the four cs=800 realization points
+  (the cs=800 `swap0.5` arm has no stored per-seed values, unlike the cs400/500/600 arms), matching
+  the published cs800 figure. Each of the four is resolved at ≥ 10σ either way, so the sign is not in
+  question; only the σ magnitudes would change under pairing.
+- rw3's contrast (−0.00377, 10.0σ) is the weakest of the four negatives, and it is the one that does
+  the work. If it were 3σ it would be the whole refutation; it is not, and the figure is reported so
+  that can be checked.

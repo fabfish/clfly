@@ -496,6 +496,8 @@ def main() -> None:
                   f" predict")
         print(f"   Spearman(effrank(swap2), delta) = {rho_c:+.3f}"
               + (f"   exact p = {one_c:.4f} one-sided" if one_c == one_c else ""))
+        print("   NOTE: section 3d tests this separator on the cs=800 realizations, which lie")
+        print("         outside the bracket, and it does not hold -- see 3d.")
         out["contrast"] = dict(
             rows=contrasts, spearman=rho_c, p_one_sided=one_c, signs=signs, flips=flips,
             positive_min_effrank=min(above) if above else None,
@@ -504,6 +506,64 @@ def main() -> None:
         out["rank_excess"]["swap2"]["fit"] = dict(
             intercept=float(intercept), slope=float(slope),
             residuals=resid.tolist(), max_abs_residual=float(np.abs(resid).max()),
+        )
+
+    print()
+    print("=" * 78)
+    print("3d. THE SIGN RULE, TESTED ON THE REALIZATION POINTS")
+    print("=" * 78)
+    print("   3b's separator was bracketed in [2.476, 5.040] from the five circuit sizes, and")
+    print("   the bracket is what the rule's scope is: a point above it is a real test.  The")
+    print("   cs=800 realizations supply four, all against the same `swap0.5` baseline (cs=800,")
+    print("   the default rewiring), so the contrast convention matches the published -32.7 sigma")
+    print("   figure: unpaired.\n")
+    base_entry = load("runs/e2_analytic.json")
+    base = analytic(base_entry, "swap0.5") if base_entry else None
+    extra_contrasts = []
+    if base is not None:
+        b, bs = base[0]["excess_mean"], base[0]["excess_sem"]
+        pattern, want = REALIZATIONS.get("swap2", (None, 0))
+        print(f"   {'rw':>4}{'effrank(sw2)':>14}{'delta vs swap0.5':>18}{'sigma':>9}"
+              f"{'sign':>6}{'rule says':>11}")
+        for s in range(want):
+            entry = load(pattern % s) if pattern else None
+            if entry is None:
+                continue
+            got = analytic(entry, "swap2")
+            if got is None:
+                continue
+            a, g = got
+            delta = a["excess_mean"] - b
+            sem = float(np.hypot(a["excess_sem"], bs))
+            sigma = delta / sem
+            says = "+" if g["effective_rank"] >= 5.040 else "-"
+            obs = "+" if delta > 0 else "-"
+            flag = "   <- RULE FAILS" if says != obs else ""
+            print(f"   {s:>4}{g['effective_rank']:>14.3f}{delta:>+18.5f}{sigma:>+9.2f}"
+                  f"{obs:>6}{says:>11}{flag}")
+            extra_contrasts.append(dict(label=f"cs800 rw{s}", effrank=g["effective_rank"],
+                                        effrank_swap2=g["effective_rank"],
+                                        delta=delta, sigma=sigma, source="realization"))
+    if extra_contrasts and contrasts:
+        both = [dict(effrank_swap2=c["effrank_swap2"], delta=c["delta"], label=c["label"],
+                     source="circuit-size") for c in contrasts] + extra_contrasts
+        both.sort(key=lambda c: c["effrank_swap2"])
+        rho_b = spearman([c["effrank_swap2"] for c in both], [c["delta"] for c in both])
+        one_b, _ = exact_spearman_p([c["effrank_swap2"] for c in both],
+                                   [c["delta"] for c in both])
+        signs_b = ["+" if c["delta"] > 0 else "-" for c in both]
+        print(f"\n   all {len(both)} contrast points, ordered by effrank(swap2):")
+        print("     " + "  ".join(f"{c['label']}:{s}" for c, s in zip(both, signs_b)))
+        print(f"   sign sequence {''.join(signs_b)}  -- Spearman rho = {rho_b:+.3f}"
+              + (f", exact p = {one_b:.4f} one-sided" if one_b == one_b else ""))
+        below_max = max(c["effrank_swap2"] for c in both if c["delta"] < 0)
+        print(f"   the separator that 3b bracketed in [2.476, 5.040] no longer exists: the")
+        print(f"   {sum(1 for c in extra_contrasts if c['delta'] < 0)} realization points are negative and"
+              f" the largest negative effrank is now {below_max:.3f},")
+        print(f"   above the 5.040 that 3b named as the lower edge of the positive region.")
+        out["contrast_with_realizations"] = dict(
+            n=len(both), spearman=rho_b, p_one_sided=one_b, signs=signs_b,
+            rows=both, negative_max_effrank=float(below_max),
         )
 
         print("\n  where the other topologies sit on that curve (matched effective rank):")

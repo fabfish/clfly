@@ -84,39 +84,35 @@ degree-preserving family the gap moves *opposite* to interference — overlap ri
 > d = 952, 1010, 1086, 1149 and 1307. The earlier "the sign alternates, and every step is decisive"
 > was a property of having exactly four points: the fifth breaks it (+, −, +, −, −). Two fires ago
 > I attributed that spread to re-drawing the swap realization; **measured directly at fixed circuit
-> size and fixed tasks, re-drawing moves `excess(swap2)` with sd 0.00125 — 16× less than the 0.0205
-> attributed** (χ² p = 0.0037), and ER's realization displacement is 0.00047, 0.33% of its own value.
+> size and fixed tasks, re-drawing moves `excess(swap2)` with sd 0.00303 at four realizations — 6.8×
+> less than the 0.0205 attributed** (χ² p = 0.0044), and ER's is 0.00353, 5.8× less (p = 0.0069).
 > So the sweep's spread is not realization noise, and `e34`'s "the 152σ becomes 4.5σ" is void.
 >
-> What the sign *is* a function of is `swap2`'s **rank collapse**: ordered by the effective rank of
-> the task precision, the same five points are `−, −, −, +, +` with every negative at effrank ≤ 2.476
-> and every positive at ≥ 5.040 (**Spearman ρ = +1.000, exact permutation p = 0.0083**, separator
-> bracketed in [2.476, 5.040]), and neither effrank nor the excess is monotone in d, so this is not
-> circuit size in disguise. Level-wise, `excess(swap2) ≈ 0.00280 + 0.02016 · ln(effrank)`, max
-> residual 0.00296 over a 0.04545 range. **So neither the refutation nor its reversal survives**, and
-> the sign is *predictable from a diagnostic that needs no learning run*.
+> **And the coordinate I proposed for the sign does not work either.** Across those five circuits the
+> sign is monotone in `swap2`'s effective task-precision rank (`−, −, −, +, +`, ρ = +1.000, exact
+> p = 0.0083, separator bracketed in [2.476, 5.040]), and neither effrank nor the excess is monotone
+> in d. But that is a property of the five points: the bracket has no coverage and the first
+> realization drawn **above** it (effrank 5.853) gives a contrast of **−0.00377 at −10.0σ** when the
+> rule requires positive, taking the nine-point ρ to **+0.767**. The sign is therefore neither
+> explained by the geometry nor reliably predicted by it.
 >
-> **But the coordinate describes those five circuits; it does not explain them.** The mechanism
-> reading — that `swap2`'s task precision rank-collapses, a collapsed precision is cheap to protect,
-> and that is why its excess falls below its milder control's — is **withdrawn**, refuted on two
-> independent intervention axes in the same day. Re-drawing the rewiring at fixed circuit size and
-> fixed tasks, which moves the effective rank a second way, gives log slopes **13.6σ apart** between
-> `swap2` and ER (0.0047 ± 0.0009 against 0.0340 ± 0.0020) with the circuit sweep's own 0.0202
-> matching neither; the linear-in-effrank form is the one the two realization families agree on
-> (0.00147 against 0.00110) and it is 2–2.7× too shallow for the circuit sweep. **No single monotone
-> form fits all three families** — the implied slope depends on which interval of effective rank you
-> probe, which is what a shared confound looks like and a carrier does not. And the five-point curve
-> misses a new realization whose effective rank lies *inside* the fitted range by **0.01902**, 6.4×
-> its in-sample maximum residual; the 8-point rank correlation falls from 1.000 to **+0.810**.
-> Independently, the direct concentration intervention (`e5`'s `kappa` knob, now runnable at a
-> rewired topology via the new `--topology` flag) went the *other* way in a smoke test at cs = 300 —
-> more concentration gave a *larger* gap, which is `e5`'s sign at `real`, not `swap2`'s. Seven
-> `kappa` values × 3 seeds at both topologies is running (`e37`).
+> The mechanism behind that coordinate is withdrawn at the same time, refuted on two further axes.
+> Re-drawing the rewiring at fixed circuit size, which moves the effective rank a second way, gives
+> log slopes **13.6σ apart** between `swap2` and ER (0.0047 ± 0.0009 against 0.0340 ± 0.0020) with the
+> circuit sweep's own 0.0202 matching neither; the linear-in-effrank form is the one the two
+> realization families agree on (0.00147 against 0.00110) and it is 2–2.7× too shallow for the circuit
+> sweep. **No single monotone form fits all three families** — the implied slope depends on which
+> interval of effective rank you probe, which is what a shared confound looks like and a carrier does
+> not. And the five-point curve misses a realization whose effective rank lies *inside* its own fitted
+> range by **0.01902**, 6.4× its in-sample maximum residual. Independently, the direct concentration
+> intervention (`e5`'s `kappa` knob, now runnable at a rewired topology via the new `--topology` flag)
+> went the *other* way in a smoke test at cs = 300 — more concentration gave a *larger* gap, which is
+> `e5`'s sign at `real`, not `swap2`'s. Seven `kappa` values × 3 seeds at both topologies is running
+> (`e37`). **So the position is the one the project held two fires ago, arrived at with more
+> evidence: `excess(swap2)` is not a stable quantity across circuits, and no coordinate tried so far
+> accounts for it.** The structural contrast that does carry weight is the ER separation, a
+> regime offset by a factor of eleven.
 > (`docs/findings/2026-09-22-geometry-mechanism-refuted-on-the-realization-axis.md`)
->
-> The realization attribution from the fire before that is also settled: the sd is **0.00303** at
-> four realizations of `swap2` and **0.00353** for ER (5.8–6.8× below the 0.0205 that was attributed
-> to it, χ² p = 0.004 / 0.007), exactly as pre-registered.
 
 *Replacement, after `e5`: anisotropy, in the same direction Phase 1 found.* Vary
 the task's spectral concentration **directly**, at fixed topology, fixed support

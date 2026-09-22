@@ -157,12 +157,17 @@ those are the useful kind. The ten retractions and refutations, in order:
   effective rank of `swap2`'s task precision the five contrast signs are `−, −, −, +, +`
   (**ρ = +1.000, exact p = 0.0083**), making the sign *predictable without a learning run* and the
   earlier "the sign alternates" an artefact of having exactly four points;
-- **and then that mechanism too**: the effective rank *describes* those five circuits without
-  explaining them. Moving it a second way — re-drawing the rewiring at fixed circuit size — gives log
-  slopes **13.6σ apart** between families (0.0047 against 0.0340) with the circuit sweep's own 0.0202
-  matching neither, no single monotone form fits all three, and the five-point curve then misses a
-  realization whose effective rank lies *inside* its fitted range by **0.01902** — 6.4× its in-sample
-  maximum residual. The direct concentration intervention went the other way as well;
+- **and then that mechanism too, and the sign rule built on it**: the effective rank *describes*
+  those five circuits without explaining them. Moving it a second way — re-drawing the rewiring at
+  fixed circuit size — gives log slopes **13.6σ apart** between families (0.0047 against 0.0340) with
+  the circuit sweep's own 0.0202 matching neither, no single monotone form fits all three, and the
+  five-point curve then misses a realization whose effective rank lies *inside* its fitted range by
+  **0.01902** — 6.4× its in-sample maximum residual. The sign rule went with it: its separator was
+  bracketed in [2.476, 5.040], and the first realization drawn *above* the bracket (effrank 5.853)
+  gives a contrast of **−0.00377 at −10.0σ** where the rule requires positive, taking the nine-point
+  ρ from +1.000 to **+0.767**. The direct concentration intervention went the other way as well. What
+  is left is where this line started: `excess(swap2)` is not a stable quantity across circuits, and
+  no coordinate tried so far accounts for it;
 - **"granularity beats biology"** was an artefact of the annotation vocabulary, which places
   four of its five rungs where biology contributes least;
 - **"granularity locates you, biology sets the height"** — the replacement headline — was
