@@ -1239,6 +1239,16 @@ Added 2026-09-22, after the headline metric was found to be chaotic
    draws* (which `e81` is) should cancel the shared component, a claim `e88` exists to test
    (`docs/findings/2026-09-23-the-three-size-decay-is-not-resolved.md`).
 
+   **And a grep for the overturned figure is not an audit.** `e85`'s paper pass found five stale sentences
+   by searching for the numbers recent fires had changed, and that method has two blind spots the later
+   abstract pass (`e89`) exposed: **a variant spelling escapes it** ("bit-for-bit" and "bit-identical" were
+   withdrawn by rule 21, but §4.2 was written "**bit-reproducible**", which matches neither pattern and
+   survived five passes), and **a hybrid range looks locally plausible** (the abstract's "**+33–63%**" mixed
+   the measured +33% with the upper end of an earlier *realization-based* +45–63% that the paper states
+   nowhere, and neither endpoint had been overturned so neither was searched for). The check that catches
+   both is to ask **where each number should be sourced** and go there, rather than to ask whether the
+   number looks familiar (`docs/findings/2026-09-23-the-abstract-had-six-stale-figures.md`).
+
 ## Related work to differentiate against
 
 Four papers are close enough to require explicit positioning — all use fly

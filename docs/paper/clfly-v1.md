@@ -24,8 +24,11 @@ covariance is a property of the fly.
 Four findings, one of them unexpected in direction.
 
 1. **A large diagonalisation penalty appears.** EWC's excess error over the exact
-   Kalman oracle is +33–63% on the connectome against **<1%** in LGCL's synthetic
-   random-rotation family. "The diagonal approximation is almost free" is a property
+   Kalman oracle is **+33–34%** on the connectome against **<1%** in LGCL's synthetic
+   random-rotation family (+33% at d = 1307, +34% at d = 3150 — an earlier
+   realization-based estimate of the same contrast gave +45–63%, and the two were once
+   mixed into a single "33–63%" range in a projection audit, which is corrected here).
+   "The diagonal approximation is almost free" is a property
    of random task geometry, not of EWC.
 2. **The connectome separates the tasks — and the claim that this does *not* drive the penalty
    does not survive.** Task precision subspaces on the real wiring are **7× more orthogonal than
@@ -54,12 +57,15 @@ Four findings, one of them unexpected in direction.
    working a-priori predictor.** The fly's own annotation vocabulary supplies five
    discrete rungs, and four of them sit in the top 15% of the granularity range; on a
    continuous **granularity ladder** that pools the rarest cell types, **seven of eight
-   rungs favour biology and resolve at 4.0–13.7σ once the control is averaged properly and
-   the contrast is paired** (§4.3; the single-draw figure of 42.2σ overstates it several-fold,
-   because a coarse matched-random control has a draw-to-draw spread of its own that had never
-   been measured — and three of the eight rungs still have no measurement of that spread, so the
-   column is a floor). The eighth, the finest rung of all, is a **2.6σ disadvantage** rather than
-   the null it was reported as. The biological advantage is
+   rungs favour biology and resolve at 4.1–13.7σ once each rung's control-draw spread is measured
+   and the contrast is paired** (§4.3; the single-draw figure of 42.2σ overstates it several-fold,
+   because a coarse matched-random control has a draw-to-draw spread of its own). All eight rungs now
+   have a measurement of that spread of their own, so the column is a measurement rather than a floor —
+   and it puts the ladder **below** the named rungs' best rather than an order of magnitude above it
+   (13.7σ against 26.1σ, a factor of 1.9). The eighth, the finest rung of all, is a **2.6σ disadvantage**
+   rather than the null it was reported as — and the same rung is a **20.3σ disadvantage** on the paired
+   seed sem, because its two arms co-move across task draws and the unpaired sem is 27× too large
+   (§4.3). The biological advantage is
    *larger* than any
    annotation rung showed (0.0041–0.0088 against 0.0015–0.0048). The advantage also **changes
    sign** as the wiring is randomised — negative on the real connectome and mildly rewired
@@ -89,7 +95,10 @@ it *worse* than its control — −0.0648 accuracy at 2.65σ and +0.0903 forgett
 the shared seeds — and at the **sixteen** replicates the variance budget asks for, the same
 configuration gives **+0.0039 ± 0.0161 (0.24σ)** with a detection floor of 0.032: the first three
 seeds are the three most negative of the sixteen, and the effect dies at the sixth. The coarse rung
-`side`, where that three-replicate story also rested, is being re-measured at the same power. So the
+`side`, where that three-replicate story also rested, has now been re-measured at the same power: the
+cross-rung contrast is **−0.0191 ± 0.0216 on accuracy and +0.0352 ± 0.0291 on forgetting** against a
+published 3-replicate +0.0718 at 2.13σ — a null on both metrics, with detection floors of 0.026, 0.032 and
+0.043 saying the run could have seen it. So the
 best-powered measurement in that line is a null, and being *well-powered* makes it a stronger
 negative than the reversal it replaced. On that substrate EWC helps only when the read-out is narrow
 enough to make the plastic weights load-bearing, and replay — content memory — is the stronger
@@ -98,7 +107,12 @@ contrast of **−0.0854 ± 0.0129 = 6.6σ** against naive, which is a number the
 the published 4.2σ version had no artifact on disk, and the recreation reproduces it and strengthens it.
 (The strongest evidence for that contrast is at sixteen replicates, where it is **−0.0677 ± 0.0101 =
 6.73σ with sixteen of sixteen replicates agreeing**, though replay's own forgetting there is 0.83σ from
-zero rather than resolved below it.) That confirms
+zero rather than resolved below it.) **The other two settings had no artifact either, and their
+re-measurements carry the line's cleanest numbers**: replay's *accuracy* advantage is **+0.090 ± 0.008 =
+11.87σ** at task-incremental and **+0.042 ± 0.009 = 4.60σ** at class-incremental, five of five replicates
+positive each — and neither is a *restoration*, because the `naive` fingerprint that identifies a
+configuration **fails across environments**, which is the project's own reproducibility rule biting its own
+reconstruction. That confirms
 the theory's prediction that memory should dominate regularisation in this partially-observed regime,
 and it required tuning replay's own parameters, which had been fixed at the worst reasonable value
 for eight consecutive experiments.
@@ -108,9 +122,9 @@ the conventional relative-forgetting statistic is **unusable** on this substrate
 standard deviation exceeding its own mean, and an exact analytic expected error replaces it
 at ~8× better precision for the same compute; a benchmark can silently measure its decoder
 rather than its subject, for which the frozen-body control is the diagnostic; and a sign
-test on differences below the measurement's noise floor is a random draw. Seven of our own
-earlier conclusions were retracted or overturned as artefacts of these traps — two of them
-headlines, one after the other.
+test on differences below the measurement's noise floor is a random draw. **Thirteen** of our own
+earlier conclusions were retracted or overturned as artefacts of these and related traps — two of them
+headlines, one after the other (§8).
 
 ---
 
@@ -250,7 +264,11 @@ accompanies a biological one so capacity is never confounded with structure.
 *(e3, d = 1307, analytic effect size.)* Against the exact oracle, anchoring in the
 neuron diagonal costs **+0.0174** expected error where the oracle's own error is
 0.0520 — a 33% excess. In LGCL's synthetic random-rotation family the same comparison
-gives <1%.
+gives <1%. **The same ratio at d = 3150 is 34%**, so the figure is scale-stable; an
+*earlier realization-based* estimate of this contrast gave +45–63%, and the two were
+once carried side by side as a single "+33–63%" range in a projection audit, which is a
+mixture of a measured quantity and a different one and is not used anywhere in this
+paper's results.
 
 The qualitative claim of LGCL finding 1 survives in direction — the diagonal is an
 approximation — but its magnitude is substrate-dependent by more than an order of
@@ -261,8 +279,10 @@ magnitude. Random task geometry is the special case.
 *(e2, d = 1307.)* Task precision subspaces on the real wiring are **7× more
 orthogonal than random subspaces** of the same dimensions (`overlap/chance = 0.135`),
 and rewiring destroys this monotonically, reaching **5× more aligned than chance** at
-Erdős–Rényi. These are eigenvector quantities, hence bit-reproducible and free of
-sampling error — the cleanest result in the project.
+Erdős–Rényi. These are eigenvector quantities, hence deterministic up to floating-point
+reduction order and free of sampling error — the cleanest result in the project. (Rule 21's
+qualification applies: "deterministic" here means stable to about the fourth significant digit
+given an environment, not bit-exact — `e77` measured it.)
 
 The natural mechanism follows: tasks interfere less because the wiring keeps them
 apart. **It is wrong.** Across the degree-preserving swap family the EWC excess moves
