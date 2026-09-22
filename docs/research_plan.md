@@ -101,35 +101,41 @@ The best anchoring basis is a **biological module basis** — cell class, cell t
 hemilineage, or nerve — and it beats the neuron basis by more than
 capacity-matched random partitions do.
 
-*Status after the analytic effect size: **resolved at 3 of 5 rungs.*** The earlier
-"consistent direction, ~1.3σ" reading was limited by the realized-error metric, not
-by the effect. Measured on the **analytic expected error** (exact, no sampling noise
-— see `docs/findings/2026-09-22-analytic-expected-error.md`), the
-biological-minus-matched-random delta is:
+*Status: **resolved at four of five rungs** on the analytic expected error.* The table
+below is at 5 task seeds; re-running at **18 seeds** refines it to `side` 28.8σ,
+`cell_class` 12.1σ, `hemilineage` 9.3σ, `supertype` 4.3σ, `cell_type` 0.7σ — four
+resolved, and the fifth is the rung that is nearly the diagonal. The earlier
+"consistent direction, ~1.3σ" reading was limited by the realized-error metric, not by
+the effect. Measured on the **analytic expected error** (exact, no sampling noise — see
+`docs/findings/2026-09-22-analytic-expected-error.md`), the
+biological-minus-matched-random delta at 5 seeds is:
 
-| rung | delta | σ |
-|---|---|---|
-| `side` | −0.00480 | **12.93** |
-| `cell_class` | −0.00307 | **3.68** |
-| `ito_lee_hemilineage` | −0.00280 | **2.61** |
-| `supertype` | −0.00146 | 1.23 |
-| `cell_type` | +0.00026 | 0.22 |
+| rung | delta | σ (5 seeds) | σ (18 seeds) |
+|---|---|---|---|
+| `side` | −0.00480 | **12.93** | **28.78** |
+| `cell_class` | −0.00307 | **3.68** | **12.14** |
+| `ito_lee_hemilineage` | −0.00280 | **2.61** | **9.32** |
+| `supertype` | −0.00146 | 1.23 | **4.26** |
+| `cell_type` | +0.00026 | 0.22 | 0.74 |
 
 The deltas agree in magnitude with the realized-error estimates, so the analytic
 estimator measures the same effect with ~8× smaller standard errors. **The fly's own
-groupings do beat size-matched random partitions, at three rungs, up to 12.9σ** —
-and the two rungs that show nothing are the two the granularity result predicts
-should show nothing (`supertype` and `cell_type` are ≥0.97 constrained, i.e. nearly
-the diagonal).
+groupings do beat size-matched random partitions, at four of five rungs, up to
+28.8σ**, and the rung that shows nothing is the one the granularity result predicts
+should (`cell_type` at 0.979 constrained is nearly the diagonal).
+
+At d = 3150 with 2 seeds only two rungs resolve, which is a statement about budget
+rather than about the effect: `cell_class` goes from 3.7σ at 5 seeds to 12.1σ at 18, on
+the same measured delta.
 
 The strongest basis in the ladder is `side`: four left/right/centre groups beat a
-random 4-group partition of identical sizes at 12.9σ. The coarsest structural split
+random 4-group partition of identical sizes at 28.8σ. The coarsest structural split
 in the annotation table is the most valuable anchoring basis in it.
 
 *What is also resolved:* **granularity beats biology as the headline.** The excess
 is monotone in `constrained_fraction` (0.004 at 0.50 → 0.017 at 0.999), so the
 reliably useful thing is anchoring in *broader* groups. C2 says biology adds on top
-of that, at 3 of 5 rungs.
+of that, at 4 of 5 rungs.
 
 *Predictive machinery:* LGCL v8 showed the diagonalisation penalty is a geometric
 resonance requiring the anchoring basis to align with the task's precision basis.
@@ -149,17 +155,20 @@ The weighting is what makes it more than a restatement of `constrained_fraction`
 On the real connectome it ranks 11 bases against the analytic excess at Spearman
 **+0.991** and gets the sign right at all five matched bio/random pairs — including
 the one where biology loses. Out of sample, across task width, drift rate, topology
-and circuit size, it holds at **mean Spearman +0.982 and 24/25 matched-pair signs**
-(`experiments/e6_predictor.py`). The sign test is the decisive one: a predictor that
-only recovered `constrained_fraction` would score 0/25, because matched pairs share
-it exactly.
+and circuit size, it holds at **mean Spearman +0.984**, with **13 of 13** correct on
+every matched pair whose excess difference clears 2σ (`experiments/e6_predictor.py`;
+the 24/25 headline count includes one pair that is not measurable — see
+`docs/findings/2026-09-22-predictor-no-unexplained-failure.md`). The sign test is the
+decisive one: a predictor that only recovered `constrained_fraction` would score 0/25,
+because matched pairs share it exactly.
 
 Two honest limits. It is a **ranking** predictor, not a calibrated one — its dynamic
 range varies by more than an order of magnitude across conditions while the
-corresponding excess deltas stay of order 0.003–0.010. And it has one confident
-failure: on heavily rewired wiring the `cell_class` pair is called the wrong way with
-a large margin. One failure in 25 is a working predictor with a known failure mode,
-not a law.
+corresponding excess deltas stay of order 0.003–0.010. And it applies to **fixed**
+anchoring structures only: it fails on state-dependent ones (spectral truncation),
+because it scores each step myopically and cannot see the retained subspace being
+renewed under it — measured step-to-step overlap 0.03 for `Rank(4)`, against 1.0 for a
+fixed partition.
 
 *Anti-p-hacking:* every comparison is at matched `n_parameters`, and the primary
 control is a group-size-matched random permutation of the labels — identical group
@@ -241,16 +250,21 @@ lacks.
 
 ## Experimental programme
 
-| Script | Claim | Deliverable |
-|---|---|---|
-| `e2_topology_gap.py` | C1 | gap vs topology, four arms |
-| `e3_basis_selection.py` | C2 | basis ranking, predicted vs measured |
-| `e4_modularity.py` | C3 | interpolated cross-module density vs forgetting |
-| `interference.py` | C4 | circuit overlap vs measured interference |
-| `e5_observability.py` | — | full vs partial regime, against LGCL's 12.7× |
+All of it has been run. The scripts as delivered:
 
-Every figure carries its control arm. The prediction scoreboard, including
-failures, goes in `docs/findings/`.
+| Script | Claim | Deliverable | Status |
+|---|---|---|---|
+| `e2_topology_gap.py` | C1 | excess vs topology along a swap family, four arms | done — mechanism refuted at 32.7σ |
+| `e3_basis_selection.py` | C2 | basis ranking at matched capacity, analytic effect size | done — 4 of 5 rungs resolve |
+| `e5_anisotropy_axis.py` | — | task spectral richness vs penalty, decoupled | done — e2's confounded trend corrected |
+| `e6_predictor.py` | C2 | candidate predictor, out-of-sample, with resolvability | done — +0.984, 13/13 measurable pairs |
+| `e7_interference.py` | C4 | circuit overlap vs measured interference | done — anatomy carries zero signal; post-propagation predicts at +0.94 |
+| `e8_rate_network.py` | — | the non-linear substrate, both settings, frozen-body control | done — replay 2.2–4.2σ, best when tuned |
+| `e4_modularity.py` | C3 | never written | **C3 deprioritised** — its mechanism is contradicted by `e2` |
+
+Every figure carries its control arm, and every recall/precision number in this document
+carries a resolvability check. The prediction scoreboard, including the refutations,
+lives in `docs/findings/`.
 
 ## Method
 

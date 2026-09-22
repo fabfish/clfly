@@ -21,10 +21,10 @@ rather than by synthetic random rotations: each task is a cell-type-defined inpu
 assembly propagated through `G = (I − W)⁻¹`, so the eigenbasis of its observation
 covariance is a property of the fly.
 
-Three findings, one of them unexpected in direction.
+Four findings, one of them unexpected in direction.
 
 1. **A large diagonalisation penalty appears.** EWC's excess error over the exact
-   Kalman oracle is +45–63% on the connectome against **<1%** in LGCL's synthetic
+   Kalman oracle is +33–63% on the connectome against **<1%** in LGCL's synthetic
    random-rotation family. "The diagonal approximation is almost free" is a property
    of random task geometry, not of EWC.
 2. **The connectome separates the tasks, but that is not what drives the penalty.**
@@ -38,18 +38,29 @@ Three findings, one of them unexpected in direction.
    the fifth — the rung that is nearly the diagonal — showing nothing. The advantage
    flips sign once the wiring is randomised, so it is a property of the connectome
    rather than of the vocabulary. A predictor built from the projection loss of the
-   *exact* filter's trajectory ranks candidate bases at Spearman **+0.99** with
-   **29/30** correct matched-pair signs across six conditions it was not tuned on.
+   *exact* filter's trajectory ranks candidate bases at mean Spearman **+0.984** and
+   identifies the better of each biological-versus-matched-random pair on **13 of 13**
+   pairs whose difference clears 2σ, across five conditions it was not tuned on.
 4. **The wiring's own eigenbasis beats the neuron diagonal at equal capacity** — a 28%
    reduction in excess error with no annotation involved at all — while *adaptive*
    projection (spectral truncation, locally optimal at every step) is the worst
    candidate tested. Fixed structures beat adaptive ones here.
 
-Along the way the work produced a methodological result we think is of independent
-use: the conventional relative-forgetting statistic is **unusable** on this
-substrate, with a standard deviation exceeding its own mean, and an exact analytic
-expected error replaces it at ~8× better precision for the same compute. Two of our
-own earlier conclusions were retracted as artefacts of the noisy metric.
+On a **trained connectome-constrained rate network**, the same question reverses: the
+biological synapse partition never beats a size-matched random one, EWC helps only when
+the read-out is narrow enough to make the plastic weights load-bearing, and replay —
+content memory — is the stronger method in every setting, with forgetting driven to zero
+or below. That confirms the theory's prediction that memory should dominate regularisation
+in this partially-observed regime, and it required tuning replay's own parameters, which
+had been fixed at the worst reasonable value for eight consecutive experiments.
+
+Along the way the work produced methodological results we think are of independent use:
+the conventional relative-forgetting statistic is **unusable** on this substrate, with a
+standard deviation exceeding its own mean, and an exact analytic expected error replaces it
+at ~8× better precision for the same compute; a benchmark can silently measure its decoder
+rather than its subject, for which the frozen-body control is the diagnostic; and a sign
+test on differences below the measurement's noise floor is a random draw. Five of our own
+earlier conclusions were retracted or overturned as artefacts of these three traps.
 
 ---
 
@@ -283,7 +294,7 @@ diagonal needs `d(d−1)/2` rotation numbers, shared across tasks and computed o
 both fixed structures and the losers adapt, on a substrate whose failure mode is
 re-projection rather than interference.
 
-### 4.4 The biological advantage is a property of the wiring
+### 4.5 The biological advantage is a property of the wiring
 
 *(e2, analytic effect size, every point resolved at >2.2σ.)* The
 biological-minus-matched-random sign **flips** along the rewiring axis:
@@ -301,7 +312,7 @@ objection that any meaningful partition would do as well as a biological one.
 
 ---
 
-### 4.5 A pairwise interference prior, and why it must be measured post-propagation
+### 4.6 A pairwise interference prior, and why it must be measured post-propagation
 
 *(e7.)* The natural benchmark-level claim is that tasks interfere in proportion to how
 much their circuits overlap — which, if true, gives a continual-learning benchmark a
@@ -336,7 +347,7 @@ This is a better result than the original claim, because "circuit overlap" was
 ambiguous between the two readings and the ambiguity turned out to be the finding.
 The limitation is ten pairs from five tasks.
 
-### 4.6 On a trained network, none of this helps — and that is what the theory predicts
+### 4.7 On a trained network, both methods work — and each needs its own hyperparameters swept
 
 *(e8.)* Everything above sits on the linear-Gaussian reduction. The obvious objection is
 that the reduction, not the connectome, is doing the work. So the same questions were
@@ -607,37 +618,77 @@ draws of the realisation.
 
 ## 7. Limitations
 
+**Scale and scope.**
 - **One circuit, one connectome, one species.** The subcircuit is the mushroom body +
   central complex + antennal lobe of a single female fly, at d = 1307 (headline) and
   d = 3150 (robustness). The geometric result (§4.2) is deterministic and
   scale-independent by construction, but the effect sizes are specific to this
-  `(W, assemblies)` configuration. Of the two surviving rungs, `side` is robustly
-  strong at both scales and `ito_lee_hemilineage` is if anything stronger at the
-  larger one; `cell_class` is **not** scale-robust and is reported as such.
-- **d = 3150 is near the ceiling at this budget.** The exact oracle is O(d³), so a
-  larger circuit costs 7× more per run than d = 1307. The "why not the whole brain"
-  question is answered by conditioning (§3.3), not by choice.
-- **The reduction to a linear-Gaussian model is a reduction.** The connectome sets
-  the *problem geometry* exactly; the dynamics are a linearisation around a fixed
-  point, and the filters are the LGCL family rather than a trained spiking network.
-  A rate-network benchmark with behavioural tasks is the natural next instrument, and
-  is not yet built.
-- **The predictor is validated on six conditions.** Its one failure mode (confident,
-  on heavily rewired wiring, mid-granularity rung) is characterised but not explained.
-- **Two seeds at d = 3150** against five at d = 1307, so the larger-scale σ are
-  themselves less well determined.
+  `(W, assemblies)` configuration. Of the surviving rungs, `side` is robustly strong at
+  both scales and `ito_lee_hemilineage` is if anything stronger at the larger one;
+  `cell_class` is **not** scale-robust and is reported as such.
+- **d = 3150 is near the ceiling at this budget.** The exact oracle is O(d³), so a larger
+  circuit costs 7× more per run than d = 1307. The "why not the whole brain" question is
+  answered by conditioning (§3.3), not by choice.
+- **Two seeds at d = 3150** against five at d = 1307 and 18 for the headline basis result,
+  so the larger-scale σ are themselves less well determined.
+
+**The reduction is a reduction.** The connectome sets the *problem geometry* exactly, and
+the linear-Gaussian model buys an exact oracle — which is why it was worth doing first. But
+the filters are the LGCL family, not a trained spiking network, and the network results
+(§4.7) inherit a three-task, single-species, one-circuit scope. What the reduction
+demonstrably cannot tell you is which of its conclusions are artefacts of the linearisation;
+§4.7 is the beginning of that check, and it overturned three of them.
+
+**Two measurement traps, both of which the project fell into before finding them.**
+- **A benchmark can measure its decoder instead of its subject.** The network line spent
+  four fires concluding that no method worked, on a benchmark whose plastic weights were
+  never load-bearing: freezing them cost 0.007 accuracy and eliminated forgetting entirely.
+  The frozen-body control is the diagnostic, and every forgetting comparison should report
+  the plastic-minus-frozen accuracy gap alongside it.
+- **A comparison in which one method has been tuned and another has not is not a
+  comparison.** EWC's λ and basis were swept across five fires; replay's two parameters were
+  never touched, and the value they were fixed at turned out to be the worst reasonable
+  choice. The strongest result in the network line appeared only when it was fixed.
+
+**The predictor.** Validated on five out-of-sample conditions and on the hardened network
+configuration, with rank correlations of +0.973 to +0.991 and **13 of 13** correct on every
+matched pair whose difference clears 2σ. Its limits are specific: it is a **ranking**
+predictor, not a calibrated one (dynamic range varies by more than an order of magnitude
+across conditions); it applies to **fixed** anchoring structures and fails on
+state-dependent ones, because it scores each step myopically and cannot see the retained
+subspace being renewed under it (measured step-to-step overlap 0.03 for `Rank(4)`); and it
+was **not** validated on the network's synapse partitions.
+
+**The memory asymmetry, which the forgetting numbers alone conceal.** At their tuned optima
+on the hardest network setting, EWC's diagonal Fisher stores 26,568 floats (0.2 MB) for
++0.010 forgetting while replay stores 96 × 12 × 1307 = 1.5M floats (**6.0 MB**) for −0.010.
+Replay is stronger in absolute terms and uses 30× the memory; per byte the diagonal anchor is
+the better buy. Both statements are true, and a paper reporting only the first would be
+hiding the trade.
+
+**Claims that did not survive.** Reported as findings rather than buried: the interference
+mechanism behind C1 (refuted at 32.7σ); C3 as stated (deprioritised, its mechanism
+contradicted); the unimodal misalignment peak of the reference materials (not reproduced in
+the coordinate basis); the "4 of 5 rungs beat their matched control" reading (a metric
+artefact, and the honest figure is 4 of 5 only at the standard configuration and with a
+stable metric); and the "replay is setting-dependent" claim (confounded with an untuned
+budget).
 
 ## 8. What we would do next
 
-1. Explain the predictor's one failure mode.
-2. Test whether `projection_pressure` predicts for *non-partition* bases
-   (`RotatedDiagonal`, `Rank`), which would make it a general basis-selection tool
-   rather than a partition-ranking one.
-3. Build the rate-network task suite so the questions can be asked without the
-   linear-Gaussian reduction — the original motivation for the substrate.
-4. A finer-granularity ladder: pool the smallest cell types to construct partitions
-   between 0.83 and 0.98 constrained, where the biological advantage is largest and
-   the annotation vocabulary has no rung.
+1. **A finer-granularity ladder.** Pool the smallest cell types to construct partitions
+   between 0.83 and 0.98 constrained — the interval in which the biological advantage is
+   largest and the annotation vocabulary supplies no rung.
+2. **Ask the reversed-ordering question properly.** On the hardened network the diagonal and
+   the block Fisher are not distinguishable at 128 Fisher batches; a configuration in which
+   the block's structure *is* well estimated (a smaller circuit, or a lower-rank task family)
+   would settle whether coarser anchoring helps or hurts on synapses, which is currently
+   unresolved rather than answered.
+3. **More tasks.** The interference prior (§4.6) rests on ten pairs from five tasks, and the
+   network benchmark on three. Both would gain more from more tasks than from more seeds.
+4. **A spiking or rate-network substrate at circuit scale with more than three behaviours**,
+   which is what the frozen-body lesson says a *hard* connectome-constrained benchmark needs:
+   tasks that genuinely compete for the same plastic weights.
 
 ## 9. Reproducibility
 
