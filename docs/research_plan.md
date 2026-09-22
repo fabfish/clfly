@@ -464,17 +464,23 @@ Added 2026-09-22, after the headline metric was found to be chaotic
    — the penalty was one float64 anchor from raising.
 10. **A matched-random control must be averaged over draws.** The control is the
    *population* of size-matched random partitions, and one draw is one sample from
-   it. The draw-to-draw sd is set by the partition's **concentration**,
+   it. The draw-to-draw sd is ordered by the partition's **concentration**,
    ``sum_g s_g^2 / d^2`` (`clfly.bench.control.concentration`), **not by its group
    count**: measured at ≈1.1e-3 for concentrations ≥0.68, ≈9e-4 at 0.33, and
    ≈4e-5–9e-5 below 0.02, with the knee somewhere between 0.02 and 0.33. A group
    count gets `side` exactly backwards — 4 groups but a concentration of 0.498,
-   so it belongs with the coarse partitions. Where the draw term dominates, a
-   single-draw σ overstates the evidence several-fold: coarse-rung σ in the basis
-   study are provisional, `pool4` 42.2σ → ≈8.7σ with the component included, and
-   `pool2 → pool4` (the plateau question) 2.2σ → ≈0.6σ. Report the two components
-   separately, and never rest a claim about a curve's *shape* on single-draw
-   controls.
+   so it belongs with the coarse partitions. **It ranks within a circuit and does
+   not set the level**: at a concentration near 0.7 the d = 952 ladder gives
+   4.9e-4 where d = 1307 gives 1.06e-3. Concentration 1.0 means a single group,
+   i.e. the `Full` basis with excess exactly zero — at d = 952 two ladder rungs
+   are that, so they are not granularity points at all. Where the draw term
+   dominates, a single-draw σ overstates the evidence several-fold: coarse-rung σ
+   in the basis study are provisional, `pool4` 42.2σ → ≈8.7σ with the component
+   included, and `pool2 → pool4` (the plateau question) 2.2σ → ≈0.6σ. Report the
+   two components separately, and never rest a claim about a curve's *shape* on
+   single-draw controls. The paired column needs ≥12 seeds to be usable: at 3
+   seeds the sample correlation hits ±1.00 by chance and σ_p disagrees with σ by
+   up to 3×.
 11. **Artifacts are strict JSON.** Non-finite floats go in as `null`, never as `NaN`
    or `Infinity` — Python reads those back happily, and `JSON.parse`, `serde_json`,
    `encoding/json` and `pandas.read_json` all refuse them. Seven rate-network

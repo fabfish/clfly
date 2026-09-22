@@ -269,6 +269,19 @@ def analytic_excess(sequences, basis: Basis | None = None,
         "excess_per_seed": [float(x) for x in excess],
     }
 
+def _sigma(effect: float, sem: float) -> float:
+    """``|effect| / sem`` with the degenerate cases spelled out.
+
+    A zero effect with a zero sem is 0/0, and reporting it as ``inf`` says the opposite of the
+    truth -- "infinitely significant" for a rung whose delta is exactly zero because the
+    partition is trivial. That happened: two rungs of the d = 952 ladder collapse to a single
+    group, which is the ``Full`` basis, and both printed as infinitely resolved.
+    """
+    if sem:
+        return float(effect) / float(sem)
+    return float("nan") if effect == 0 else float("inf")
+
+
 def paired_delta(bio: dict, rand: dict) -> dict:
     """Contrast two bases' excesses, **paired on the seed** where the data allows it.
 
@@ -293,7 +306,7 @@ def paired_delta(bio: dict, rand: dict) -> dict:
     out = {
         "delta": float(delta),
         "sem_unpaired": sem_un,
-        "sigma_unpaired": abs(delta) / sem_un if sem_un else float("inf"),
+        "sigma_unpaired": _sigma(abs(delta), sem_un),
     }
     a, b = bio.get("excess_per_seed"), rand.get("excess_per_seed")
     if a is None or b is None or len(a) != len(b) or len(a) < 2:
@@ -304,7 +317,7 @@ def paired_delta(bio: dict, rand: dict) -> dict:
     out.update({
         "n": int(d.size),
         "sem_paired": sem,
-        "sigma_paired": abs(delta) / sem if sem else float("inf"),
+        "sigma_paired": _sigma(abs(delta), sem),
         "corr": corr,
         # how much the conservative figure cost, as a ratio of sems
         "conservatism": sem_un / sem if sem else float("nan"),
@@ -342,7 +355,7 @@ def contrast_of_contrasts(a: dict, b: dict) -> dict:
     out = {
         "delta": float(delta),
         "sem_unpaired": sem_un,
-        "sigma_unpaired": abs(delta) / sem_un if sem_un else float("inf"),
+        "sigma_unpaired": _sigma(abs(delta), sem_un),
     }
     da, db = a.get("per_seed_delta"), b.get("per_seed_delta")
     if da is None or db is None or len(da) != len(db) or len(da) < 2:
@@ -352,7 +365,7 @@ def contrast_of_contrasts(a: dict, b: dict) -> dict:
     out.update({
         "n": int(d.size),
         "sem_paired": sem,
-        "sigma_paired": abs(delta) / sem if sem else float("inf"),
+        "sigma_paired": _sigma(abs(delta), sem),
         "conservatism": sem_un / sem if sem else float("nan"),
     })
     return out

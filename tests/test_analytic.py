@@ -15,6 +15,8 @@ to catch.
 
 from __future__ import annotations
 
+import math
+
 import numpy as np
 import pytest
 
@@ -267,3 +269,14 @@ def test_contrast_of_contrasts_uses_the_covariance_between_rungs():
     cc = contrast_of_contrasts(rung(3.0), rung(1.0))
     assert cc["sem_paired"] < 0.5 * cc["sem_unpaired"]
     assert cc["conservatism"] > 2.0
+
+
+def test_sigma_of_a_zero_effect_with_zero_sem_is_nan_not_infinite():
+    # REGRESSION: two rungs of the d=952 ladder collapse to a single group, which is the `Full`
+    # basis, so their delta and sem are both exactly zero. Reporting |0|/0 as inf announced them
+    # as infinitely resolved.
+    from clfly.bench.analytic import _sigma
+    assert math.isnan(_sigma(0.0, 0.0))
+    assert _sigma(0.0, 1e-4) == 0.0
+    assert _sigma(1e-3, 1e-4) == pytest.approx(10.0)
+    assert _sigma(1e-3, 0.0) == float("inf")

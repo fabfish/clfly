@@ -120,22 +120,34 @@ def draws_needed(delta: float, sem_claim: float, sd_claim: float,
 def concentration(labels) -> float:
     """``sum_g s_g^2 / d^2`` for a partition — how much of the covariance it constrains.
 
-    This is the quantity that predicts a matched-random control's **draw-to-draw** sd, better
-    than the group count does. Measured on this substrate (`docs/findings/2026-09-22-draw-sd-
-    mechanism.md`):
+    This **ranks** a matched-random control's draw-to-draw sd within one circuit, better than the
+    group count does. It does **not** set the absolute value across circuits: at a concentration
+    near 0.7 the d = 952 ladder gives a draw sd of 4.9e-4 where d = 1307 gives 1.06e-3, a factor
+    of two (`docs/findings/2026-09-22-e13-averaged-controls.md` §5). Use it to order rungs, and
+    measure if a number is needed.
 
-    | ``sum s^2/d^2`` | 0.006 | 0.020 | 0.325 | 0.498 | 0.678 | 0.754 |
-    |---|---|---|---|---|---|---|
-    | draw sd | 9e-5 | 4e-5 | 9.3e-4 | *predicted ~1.0e-3* | 1.06e-3 | 1.08e-3 |
+    Measured, per circuit:
+
+    | ``sum s^2/d^2`` | 0.020 | 0.325 | 0.395 | 0.678 | (d = 1307) |
+    |---|---|---|---|---|---|
+    | draw sd | 3.9e-5 | 9.3e-4 | 1.01e-3 | 1.06e-3 | |
+
+    | ``sum s^2/d^2`` | 0.006 | 0.690 | 0.754 | 0.804 | (d = 952) |
+    |---|---|---|---|---|---|
+    | draw sd | 9.8e-5 | 4.9e-4 | 8.4e-4 | 1.9e-3 | |
 
     The mechanism is that a permutation changes little when the partition is made of singletons
     (most of ``sum s^2`` is then in pairs that are identical under any permutation) and a great
     deal when one group holds most of the neurons, because then the reshuffle decides *which*
-    neurons share that group. It is the concentration, not the number of groups, that sets the
-    scale — which is why `side`, a **balanced** 4-group partition at 0.498, belongs with the
-    coarse partitions rather than with the fine ones.
+    neurons share that group. It is the concentration, not the number of groups, that orders the
+    scale — which is why `side`, a **balanced** 4-group partition at 0.498, belongs with the coarse
+    partitions rather than with the fine ones.
 
     Exact and cheap: no filter is run.
+
+    One trap it also catches: at concentration 1.0 the partition is a **single group**, i.e. the
+    `Full` basis, whose excess is exactly zero by construction. The ladder reaches that at d = 952
+    (`pool64`, `pool128`), so two of its eight rungs are not granularity rungs at all.
     """
     labels = np.asarray(labels)
     if labels.size == 0:

@@ -119,3 +119,39 @@ with a delta of −0.00972. That is larger than either neighbour's (−0.00801 a
 3 seeds rather than 12, so it is not directly comparable and no claim is made from it; but it is one
 more sign that the ladder's spacing is thinnest exactly where the effect is largest, which is the
 reason the shape claims were withdrawn in the first place.
+
+## 7. Correction: it *ranks* within a circuit, it does not *set the level*
+
+§4 of this finding said the draw sd can be "predicted before any filter runs" from the
+concentration. `e13` — the first full ladder with averaged controls, at d = 952 — contradicts the
+strong form of that, and the docstring of `concentration` has been narrowed to match:
+
+| concentration | draw sd at d = 1307 | draw sd at d = 952 |
+|---|---|---|
+| 0.006 / 0.020 | 3.9e-5 (n=2) | 9.8e-5 |
+| 0.325 / 0.395 | 9.3e-4, 1.01e-3 | — |
+| 0.678 / 0.690 | 1.06e-3 (n=2) | **4.94e-4** |
+| 0.754 | 1.08e-3 | **8.40e-4** |
+| 0.804 / 0.819 | — | 1.92e-3, 1.35e-3 |
+
+Monotone **within** each circuit; a factor of two apart **between** them at a concentration near
+0.7. So the defensible claim is:
+
+> **concentration ranks the draw sd within a circuit; it does not set its absolute value.**
+
+What that does and does not damage:
+
+- **The `side` prediction is unaffected.** It interpolates on the d = 1307 curve, which is the
+  circuit `side` lives in. The qualifier is about transferring the *number* to another circuit,
+  which the prediction never did.
+- **The budget table's "coarse" column is unaffected in practice, but for a weaker reason.** It used
+  a single value (1.1e-3) for every coarse rung of *one* circuit, and the measurements on that
+  circuit (9.3e-4, 1.01e-3, 1.06e-3) support it. The reason it works is that the rungs are all in
+  one circuit, not that the value is universal.
+- **The mechanism claim survives.** The rise with concentration is visible in both circuits; what
+  fails is the calibration constant, not the axis.
+
+Also worth recording from the same run: at d = 952 the ladder reaches concentration **1.0**, which is
+a single group — the `Full` basis, whose excess is exactly zero by construction. `pool64` and
+`pool128` are not granularity rungs at all there. `concentration` is a cheap way to detect that,
+and its docstring now says so.
