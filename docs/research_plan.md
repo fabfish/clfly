@@ -78,20 +78,18 @@ chance at Erdős–Rényi). The geometry half of the claim holds cleanly.
 degree-preserving family the gap moves *opposite* to interference — overlap rises
 8× while the gap falls by two-thirds. The first mechanism story was wrong.
 
-> **And that refutation is configuration-specific.** It rests on a single contrast,
-> `swap0.5 → swap2`. Re-measured with per-seed storage and matched rewiring strength
-> (swap fraction 0.912–0.924), the contrast is **+0.03525 at d = 952 (21.8σ paired)**,
-> **−0.00304 at d = 1010 (4.8σ paired)**, and −0.01079 at d = 1307 (32.7σ unpaired). `real` and
-> `swap0.5` hold to **4–12%** across the whole sweep while `swap2` moves by a factor of **4.7** —
-> and 3.3× of that happens between d = 952 and d = 1010, a **6% change in circuit size**. So the
-> sign is positive at one point and negative at two, the gap between them spans an order of
-> magnitude, and neither conditioning (which behaves oppositely at the two extremes) nor subsample
-> composition (ruled out by the flat controls) explains it. **The honest status is "refuted at
-> d = 1307, reversed at d = 952, and not a stable object across the sweep"**, and the mechanism
-> question is open again rather than settled
-> (`docs/findings/2026-09-22-c1-refutation-does-not-replicate.md`,
-> `2026-09-22-swap2-scale-sweep-partial.md`). Three more sweep points are running and they decide
-> between "anomaly at d = 952" and "unstable across subsamples".
+> **And that refutation is a statement about one graph.** It rests on a single contrast,
+> `swap0.5 → swap2`, and across four circuit sizes (matched rewiring strength, swap fraction
+> 0.912–0.924) that contrast is **+0.03525 (21.8σ), −0.00304 (4.8σ), +0.01054 (14.5σ), −0.01079
+> (32.7σ)** at d = 952, 1010, 1086 and 1307. **The sign alternates, and every step is decisive**,
+> while `real` holds to 6.2% and `swap0.5` to 18% across the same sweep. So `excess(swap2)` is not a
+> stable quantity at this perturbation strength — it oscillates by a factor of ~3 between *adjacent*
+> sizes — and **neither the refutation nor its reversal survives**: the previous fire's "at d = 952
+> heavy rewiring makes the penalty worse, as interference predicts" is one draw from the same
+> unstable statistic. The confound still to remove is that the sweep varies the circuit subsample
+> and the swap realization together; `--rewire-seed` now separates them and `e32` is running six
+> realizations at fixed size and fixed tasks
+> (`docs/findings/2026-09-22-swap2-unstable-not-scale-dependent.md`).
 
 *Replacement, after `e5`: anisotropy, in the same direction Phase 1 found.* Vary
 the task's spectral concentration **directly**, at fixed topology, fixed support
