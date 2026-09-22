@@ -61,6 +61,7 @@ The scientific programme is complete. A working paper draft consolidating it is 
 | 4c | `e5`/`e6` anisotropy axis, predictor development and out-of-sample validation | done |
 | 4d | `e7` pairwise interference prior | done |
 | 4e | `e8` rate-network benchmark, frozen-body diagnosis, all methods tuned | done |
+| 4f | `e3 --ladder` granularity sweep: 7/8 rungs resolve, up to 42.2σ, peak at 0.54 | done |
 | 5 | write-up | draft v1 |
 
 ### What the results say
@@ -74,15 +75,22 @@ The scientific programme is complete. A working paper draft consolidating it is 
   rewiring destroys that monotonically. But the penalty moves *opposite* to
   interference, falling by a resolved **32.7σ** while overlap doubles. Our own
   hypothesis, refuted on the axis where it was cleanest to test.
-- **Biological anchoring bases beat capacity-matched random ones**, at **4 of 5**
-  annotation rungs, up to **28.8σ** (the left/right/centre split) — and the advantage
-  flips sign once the wiring is randomised, so it is a property of the connectome
-  rather than of the vocabulary.
+- **Biological anchoring bases beat capacity-matched random ones — but only the granularity
+  ladder shows how much.** The fly's annotation vocabulary puts four of its five rungs in the
+  top 15% of the constrained range. Replacing them with a continuous **granularity ladder**
+  that pools the rarest cell types makes **7 of 8 rungs resolve, up to 42.2σ**, with a
+  *larger* biological delta than any annotation rung showed. The optimum is mid-granularity
+  (~0.54 constrained), and the ladder's best partition is **2.5× better than the vocabulary's
+  own best rung** (`side`) at the same granularity. Merging just the singleton cell types
+  already cuts the penalty by **72%**. The advantage flips sign once the wiring is randomised,
+  so it is a property of the connectome rather than of the vocabulary.
 - **The wiring's own eigenbasis beats the neuron diagonal at equal capacity** — a 28%
   reduction in excess error with no annotation involved — while *adaptive* projection
   (spectral truncation, locally optimal at every step) is the worst candidate tested.
 - **A working a-priori predictor.** Computed from the exact filter's trajectory, it
-  ranks candidate bases at mean Spearman **+0.984** and identifies the better of each
+  ranks candidate bases at mean Spearman **+0.984** — **+0.995** across the granularity
+  ladder's 17 bases, which it tells apart even when they share a granularity and differ
+  only in *which* groups were merged — and identifies the better of each
   biological-versus-matched-random pair on **13 of 13** pairs whose difference clears
   2σ, across five conditions it was not tuned on. A predictor that merely recovered
   *granularity* would score 0/25, since matched pairs share it exactly.
@@ -108,17 +116,20 @@ The scientific programme is complete. A working paper draft consolidating it is 
 - **A sign test on differences below the noise floor is a random draw** — report the
   target's resolvability alongside any ranking or sign score.
 
-Five of our own earlier conclusions were retracted or overturned as artefacts of these
-traps; all five are in the findings log with the same prominence as the results.
+Six of our own earlier conclusions were retracted or overturned as artefacts of these
+traps; all six are in the findings log with the same prominence as the results.
 
-`docs/findings/` holds the dated logs — 23 of them, negative results included, because
-those are the useful kind. The five retractions and refutations, in order:
+`docs/findings/` holds the dated logs — 24 of them, negative results included, because
+those are the useful kind. The six retractions and refutations, in order:
 
 - **the unimodal misalignment peak** of the reference materials does **not** appear in the
   coordinate basis; the penalty is governed by task *anisotropy* (~500× larger for a steep
   spectrum), which a real connectome supplies and a random synthetic task does not;
 - **the interference mechanism** is refuted at **32.7σ** — the penalty moves *opposite* to
   task overlap;
+- **"granularity beats biology"** was an artefact of the annotation vocabulary, which places
+  four of its five rungs where biology contributes least. The granularity ladder replaces it
+  with "granularity locates you, biology sets the height";
 - **the "4 of 5 rungs" reading** was a metric artefact (the honest figure is 4 of 5 only at
   the standard configuration and with a stable metric);
 - **"no Fisher-anchoring variant helps on the network"** was wrong, because the benchmark

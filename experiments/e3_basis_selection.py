@@ -55,8 +55,27 @@ OUT_DIR = REPO_ROOT / "runs"
 BIOLOGICAL_BASES = ("side", "cell_class", "cell_type", "ito_lee_hemilineage", "supertype")
 
 
+def _pool_small_groups(labels: np.ndarray, min_size: int) -> np.ndarray:
+    """Merge every group smaller than ``min_size`` into one shared group.
+
+    The annotation vocabulary supplies five discrete rungs, and they are badly
+    distributed: `side` 0.50, `cell_class` 0.83, then hemilineage/supertype/cell_type
+    crowded at 0.967–0.979. Whether the biological advantage is monotone in granularity
+    or has an optimum cannot be read off five points, four of which sit at one end.
+    Pooling the rarest cell types by size traces the interval in between continuously,
+    which is the same device the rate-network work uses to reach mid-granularity
+    partitions the vocabulary does not provide.
+    """
+    counts = np.bincount(labels)
+    keep = counts >= min_size
+    remap = np.cumsum(keep) - 1
+    pooled_id = int(remap.max()) + 1
+    return np.where(keep, remap, pooled_id)[labels]
+
+
 def candidate_bases(circ: circuits.Circuit, rng: np.random.Generator,
-                    extras: bool = False) -> dict:
+                    extras: bool = False, ladder: bool = False,
+                    ladder_sizes=(1, 2, 4, 8, 16, 32, 64, 128)) -> dict:
     """Every anchoring basis to be compared, biological and control.
 
     ``extras`` adds **non-partition** candidates, which turn the anchoring question
@@ -67,8 +86,21 @@ def candidate_bases(circ: circuits.Circuit, rng: np.random.Generator,
     :func:`clfly.bench.analytic.projection_pressure` applies to them unchanged —
     which is what lets one run test the predictor's generality alongside the
     partition comparison.
+
+    ``ladder`` replaces the five annotation rungs with a **granularity curve**: pooled
+    cell-type partitions at ``ladder_sizes`` minimum-group sizes, each with its own
+    group-size-matched random control, spanning roughly 0.30 to 0.999 constrained.  That
+    makes "is the advantage monotone in granularity, or is there an optimum?" answerable
+    rather than a matter of four crowded points.
     """
     bases = {"diagonal(EWC)": Diagonal(circ.n_neurons)}
+    if ladder:
+        lab = circ.labels["cell_type"]
+        for m in ladder_sizes:
+            pooled = _pool_small_groups(lab, m)
+            bases[f"bio:pool{m}"] = Partition(pooled)
+            bases[f"rand:pool{m}"] = random_partition(pooled, rng)
+        return bases
     for col in BIOLOGICAL_BASES:
         if col not in circ.labels:
             continue
@@ -163,7 +195,8 @@ def run(args) -> dict:
 
         rng = np.random.default_rng(args.seed0)
         agg = {}
-        for name, basis in candidate_bases(circ, rng, extras=args.extra_bases).items():
+        for name, basis in candidate_bases(circ, rng, extras=args.extra_bases,
+                                           ladder=args.ladder).items():
             row = {"analytic": analytic_excess(seqs, basis)}
             if not args.no_realized:
                 row["realized"] = paired_excess(seqs, basis)
@@ -232,7 +265,9 @@ def report(results: dict) -> None:
             hdr += f" | {'realized delta':>15} {'sigma':>7}"
         print(hdr)
         wins_a = wins_r = 0
-        for col in BIOLOGICAL_BASES:
+        rungs = [n[4:] for n in sorted(agg)
+                 if n.startswith("bio:") and f"rand:{n[4:]}" in agg]
+        for col in rungs:
             b, r = agg.get(f"bio:{col}"), agg.get(f"rand:{col}")
             if not b or not r:
                 continue
@@ -250,7 +285,7 @@ def report(results: dict) -> None:
             print(line)
         extra = f", realized {wins_r}/{len(BIOLOGICAL_BASES)}" if has_realized else ""
         print(f"  -> resolved (>2 sigma, biology better): "
-              f"analytic {wins_a}/{len(BIOLOGICAL_BASES)}{extra}")
+              f"analytic {wins_a}/{len(rungs)}{extra}")
 
         # Does the a-priori predictor recover the ordering and the matched-pair signs?
         # Reported separately for partitions and non-partition bases: the predictor
@@ -273,7 +308,7 @@ def report(results: dict) -> None:
                 print(f"      {n:26} excess={agg[n]['analytic']['excess_mean']:+.5f}  "
                       f"pressure={agg[n].get('pressure', float('nan')):9.4f}")
         agree = tot = 0
-        for col in BIOLOGICAL_BASES:
+        for col in rungs:
             b, r = f"bio:{col}", f"rand:{col}"
             if b not in names or r not in names:
                 continue
@@ -299,6 +334,9 @@ def main(argv=None) -> int:
                    help="spectral truncation for the alignment predictor; the "
                         "numerical rank would return the degener"
                         "ate full range space")
+    p.add_argument("--ladder", action="store_true",
+                   help="sweep a smooth granularity curve of pooled cell-type "
+                        "partitions instead of the five annotation rungs")
     p.add_argument("--extra-bases", action="store_true",
                    help="also test non-partition candidates: spectral truncation "
                         "and the connectome eigenbasis")

@@ -101,10 +101,13 @@ The best anchoring basis is a **biological module basis** — cell class, cell t
 hemilineage, or nerve — and it beats the neuron basis by more than
 capacity-matched random partitions do.
 
-*Status: **resolved at four of five rungs** on the analytic expected error.* The table
-below is at 5 task seeds; re-running at **18 seeds** refines it to `side` 28.8σ,
-`cell_class` 12.1σ, `hemilineage` 9.3σ, `supertype` 4.3σ, `cell_type` 0.7σ — four
-resolved, and the fifth is the rung that is nearly the diagonal. The earlier
+*Status: **resolved** — best rung 42.2σ on the granularity ladder; 4 of the 5 annotation
+rungs resolve too.* The five-rung table below is at 5 task seeds; re-running at **18
+seeds** refines it to `side` 28.8σ, `cell_class` 12.1σ, `hemilineage` 9.3σ, `supertype`
+4.3σ, `cell_type` 0.7σ — four resolved, and the fifth is the rung that is nearly the
+diagonal. It is kept because the ladder (below) is measured against it: those five rungs
+are what the annotation vocabulary offers, and four of them sit in the top 15% of the
+granularity range. The earlier
 "consistent direction, ~1.3σ" reading was limited by the realized-error metric, not by
 the effect. Measured on the **analytic expected error** (exact, no sampling noise — see
 `docs/findings/2026-09-22-analytic-expected-error.md`), the
@@ -128,14 +131,52 @@ At d = 3150 with 2 seeds only two rungs resolve, which is a statement about budg
 rather than about the effect: `cell_class` goes from 3.7σ at 5 seeds to 12.1σ at 18, on
 the same measured delta.
 
-The strongest basis in the ladder is `side`: four left/right/centre groups beat a
-random 4-group partition of identical sizes at 28.8σ. The coarsest structural split
-in the annotation table is the most valuable anchoring basis in it.
+The strongest basis *the annotation vocabulary offers* is `side`: four left/right/centre
+groups beat a random 4-group partition of identical sizes at 28.8σ. The coarsest
+structural split in the annotation table is its most valuable rung — but it is not the
+best basis available, as the ladder below shows.
 
-*What is also resolved:* **granularity beats biology as the headline.** The excess
-is monotone in `constrained_fraction` (0.004 at 0.50 → 0.017 at 0.999), so the
-reliably useful thing is anchoring in *broader* groups. C2 says biology adds on top
-of that, at 4 of 5 rungs.
+*What is also resolved:* **the annotation vocabulary under-reports biology's contribution.**
+The five rungs put four of their number in the top 15% of the granularity range, and reading
+the effect off them gave "granularity beats biology". A **granularity curve** — the cell-type
+partition with groups smaller than ``N`` merged, for ``N`` ∈ {1…128}, each with a matched
+random control — replaces them (`--ladder`, `docs/findings/2026-09-22-granularity-ladder.md`)
+and gives a different picture: **7 of 8 rungs resolve**, at 17.8σ to **42.2σ**.
+
+| pooling | constrained | biological excess | matched-random | σ |
+|---|---|---|---|---|
+| `pool1` (= plain `cell_type`) | 0.979 | +0.01743 | +0.01723 | 0.4 |
+| `pool2` | 0.674 | +0.00496 | +0.01296 | **24.8** |
+| **`pool4`** | **0.540** | **+0.00156** | +0.01041 | **42.2** |
+| `pool8` | 0.450 | +0.00137 | +0.00822 | 30.1 |
+| `pool16` | 0.432 | +0.00133 | +0.00898 | 39.1 |
+| `pool32` | 0.322 | +0.00115 | +0.00814 | 37.9 |
+| `pool64` | 0.322 | +0.00115 | +0.00664 | 20.9 |
+| `pool128` | 0.191 | +0.00079 | +0.00488 | 17.8 |
+
+Three things follow. **Merging only the singleton cell types** cuts the excess by 72% and
+already beats a matched random control at 24.8σ. **The optimum is mid-granularity** — 0.4σ at
+0.979, peaking at 42.2σ near 0.540, declining to 17.8σ at 0.191 — a non-monotonicity the five
+rungs could not see, having no rung between 0.50 and 0.83. And **the ladder's own best rung is
+beaten at its own granularity**: `side` (0.501) has excess +0.00391 while `pool4` (0.540) has
+**+0.00156**, 2.5× smaller, with the random control at that granularity (+0.01041) *worse* than
+`side`.
+
+So the honest form of the headline is: **granularity sets where you are on the curve; biology's
+contribution is what the curve's height shows — and the fly's own annotation vocabulary
+under-reports it by placing four of its five rungs where biology contributes almost nothing.**
+The practical recommendation becomes **"pool the rarest cell types and anchor there"**, which
+needs no new ontology and delivers a 2.5× smaller penalty than the best rung the fly's
+annotation happens to provide.
+
+The predictor handles the ladder at Spearman **+0.995** over 17 partition bases, including
+eight of similar granularity distinguished only by which groups were merged — a case where a
+predictor that merely recovered `constrained_fraction` would give them all the same score.
+
+*Honest accounting:* `RotatedDiagonal` bases must carry `d(d-1)/2` rotation
+parameters, so unless the rotation is shared across tasks a "rotated basis EWC" is
+not a compression. Baselines rarely mention this; `bases.py` tracks it in
+`n_shared_parameters`.
 
 *Predictive machinery:* LGCL v8 showed the diagonalisation penalty is a geometric
 resonance requiring the anchoring basis to align with the task's precision basis.
@@ -255,9 +296,9 @@ All of it has been run. The scripts as delivered:
 | Script | Claim | Deliverable | Status |
 |---|---|---|---|
 | `e2_topology_gap.py` | C1 | excess vs topology along a swap family, four arms | done — mechanism refuted at 32.7σ |
-| `e3_basis_selection.py` | C2 | basis ranking at matched capacity, analytic effect size | done — 4 of 5 rungs resolve |
+| `e3_basis_selection.py` | C2 | basis ranking at matched capacity, analytic effect size | done — 7 of 8 rungs on the `--ladder` sweep, up to 42.2σ |
 | `e5_anisotropy_axis.py` | — | task spectral richness vs penalty, decoupled | done — e2's confounded trend corrected |
-| `e6_predictor.py` | C2 | candidate predictor, out-of-sample, with resolvability | done — +0.984, 13/13 measurable pairs |
+| `e6_predictor.py` | C2 | candidate predictor, out-of-sample, with resolvability | done — +0.984 (+0.995 on the ladder), 13/13 measurable pairs |
 | `e7_interference.py` | C4 | circuit overlap vs measured interference | done — anatomy carries zero signal; post-propagation predicts at +0.94 |
 | `e8_rate_network.py` | — | the non-linear substrate, both settings, frozen-body control | done — replay 2.2–4.2σ, best when tuned |
 | `e4_modularity.py` | C3 | never written | **C3 deprioritised** — its mechanism is contradicted by `e2` |

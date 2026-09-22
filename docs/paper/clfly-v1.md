@@ -33,14 +33,22 @@ Four findings, one of them unexpected in direction.
    moves *opposite* to interference, falling by a resolved 32.7σ while overlap
    doubles. The obvious mechanism is refuted.
 3. **Biological anchoring bases beat capacity-matched random ones, and there is a
-   working a-priori predictor.** At matched parameter count the fly's own cell
-   groupings win at **four of five rungs**, up to **28.8σ** (left/right/centre), with
-   the fifth — the rung that is nearly the diagonal — showing nothing. The advantage
-   flips sign once the wiring is randomised, so it is a property of the connectome
-   rather than of the vocabulary. A predictor built from the projection loss of the
-   *exact* filter's trajectory ranks candidate bases at mean Spearman **+0.984** and
-   identifies the better of each biological-versus-matched-random pair on **13 of 13**
-   pairs whose difference clears 2σ, across five conditions it was not tuned on.
+   working a-priori predictor.** The fly's own annotation vocabulary supplies five
+   discrete rungs, and four of them sit in the top 15% of the granularity range; on a
+   continuous **granularity ladder** that pools the rarest cell types, **seven of eight
+   rungs resolve, up to 42.2σ**, and the biological advantage is *larger* than any
+   annotation rung showed (0.0041–0.0088 against 0.0015–0.0048) and non-monotone,
+   peaking near 0.54 constrained. The ladder's best partition beats the vocabulary's own
+   best rung (`side`) by **2.5×** at the same granularity. The advantage flips sign once
+   the wiring is randomised, so it is a property of the connectome rather than of the
+   vocabulary. A predictor built from the projection loss of the *exact* filter's
+   trajectory ranks candidate bases at Spearman **+0.995** over the ladder's 17 bases —
+   including eight partitions of near-identical granularity told apart only by *which*
+   groups were merged — and identifies the better of each biological-versus-matched-random
+   pair on **13 of 13** pairs whose difference clears 2σ, across five conditions it was
+   not tuned on. The corrected headline is that **granularity sets where you are on the
+   curve; biology sets the curve's height** — and the annotation vocabulary under-reported
+   that height by placing its rungs where biology contributes almost nothing.
 4. **The wiring's own eigenbasis beats the neuron diagonal at equal capacity** — a 28%
    reduction in excess error with no annotation involved at all — while *adaptive*
    projection (spectral truncation, locally optimal at every step) is the worst
@@ -59,8 +67,9 @@ the conventional relative-forgetting statistic is **unusable** on this substrate
 standard deviation exceeding its own mean, and an exact analytic expected error replaces it
 at ~8× better precision for the same compute; a benchmark can silently measure its decoder
 rather than its subject, for which the frozen-body control is the diagnostic; and a sign
-test on differences below the measurement's noise floor is a random draw. Five of our own
-earlier conclusions were retracted or overturned as artefacts of these three traps.
+test on differences below the measurement's noise floor is a random draw. Six of our own
+earlier conclusions were retracted or overturned as artefacts of these three traps — one
+of them the headline.
 
 ---
 
@@ -261,8 +270,9 @@ with 9× fewer draws. **The defensible summary is that four rungs beat capacity-
 random partitions at the standard configuration, and that the effect is large enough
 to be seen at every configuration tested.**
 
-**Granularity is the dominant term.** Ordered by how much of the covariance each
-basis constrains, the excess is monotone at every scale:
+**Granularity is the dominant term — and the vocabulary hides most of biology's
+contribution.** Ordered by how much of the covariance each basis constrains, the excess
+is monotone at every scale:
 
 | constrained_fraction | 0.50 | 0.75–0.83 | 0.94–0.97 | 0.95–0.97 | 0.95–0.98 | 0.999 |
 |---|---|---|---|---|---|---|
@@ -272,6 +282,56 @@ basis constrains, the excess is monotone at every scale:
 
 The primary magnitude result is scale-stable: the diagonal's excess is +34% of the
 oracle's error at d = 3150, +34% at d = 1307 with 18 seeds, against +33% at 5 seeds.
+
+But that monotone reading is an artifact of where the vocabulary puts its rungs. Four of
+the five sit in the top 15% of the granularity range, and there is an empty interval
+between 0.50 and 0.83. A **granularity ladder** (`--ladder`) replaces the five rungs with
+the cell-type partition having all groups smaller than ``N`` merged into one shared group,
+for ``N`` ∈ {1, 2, 4, 8, 16, 32, 64, 128}, each against its own group-size-matched random
+control (d = 1307, 12 seeds, analytic effect size):
+
+| pooling | constrained | biological excess | matched-random excess | **delta** | **σ** |
+|---|---|---|---|---|---|
+| `pool1` (= plain `cell_type`) | 0.979 | +0.01743 | +0.01723 | +0.00019 | 0.4 |
+| `pool2` | 0.674 | +0.00496 | +0.01296 | −0.00801 | **24.8** |
+| `pool4` | 0.540 | **+0.00156** | +0.01041 | **−0.00884** | **42.2** |
+| `pool8` | 0.450 | +0.00137 | +0.00822 | −0.00685 | 30.1 |
+| `pool16` | 0.432 | +0.00133 | +0.00898 | −0.00765 | 39.1 |
+| `pool32` | 0.322 | +0.00115 | +0.00814 | −0.00699 | 37.9 |
+| `pool64` | 0.322 | +0.00115 | +0.00664 | −0.00548 | 20.9 |
+| `pool128` | 0.191 | +0.00079 | +0.00488 | −0.00409 | 17.8 |
+
+**Seven of the eight rungs resolve**, at 17.8σ to **42.2σ** — an order of magnitude more
+decisive than the five-rung ladder's best (`side`, 28.8σ, delta 0.0048) — and the
+biological deltas (0.0041–0.0088) are *larger* than any annotation rung's. Three things
+follow.
+
+*Merging only the singleton cell types recovers most of the available gain.* `pool2` cuts
+the excess from +0.01743 to +0.00496, a **72% reduction**, and already beats its matched
+control at 24.8σ. The finest annotation rung, which showed nothing (0.4σ) and which
+earlier fires reported as "`cell_type` buys nothing", is the *worst* rung in the ladder.
+
+*The optimum is mid-granularity, around 0.54 constrained.* The advantage is non-monotone —
+0.4σ at 0.979, 24.8σ at 0.674, **42.2σ at 0.540**, 17.8σ at 0.191. That shape was
+invisible to the five-rung ladder precisely because it has no rungs between 0.50 and 0.83,
+the interval containing the peak.
+
+*The ladder's best rung beats the vocabulary's best rung at the vocabulary's own
+granularity.* `side` sits at 0.501 with excess +0.00391; `pool4` sits at 0.540 with excess
+**+0.00156** — 2.5× smaller — while the matched random control at that granularity is
++0.01041, *worse* than `side`. At matched capacity a pooled cell-type partition beats both
+the annotation ladder's best rung and a random partition of the same size.
+
+The headline this corrects is our own. "Granularity beats biology" came from the five-rung
+ladder, where the biological deltas (0.0015–0.0048) were smaller than the granularity
+trend. On the ladder the deltas are larger than any annotation rung's and they *grow* with
+the sweep. The honest form is: **granularity sets where you are on the curve, and biology
+sets the curve's height** — a height the annotation vocabulary under-reported by placing
+four of its five rungs in the region where biology contributes almost nothing. The
+practical recommendation changes accordingly: not "anchor in the coarsest available
+grouping" but **"pool the rarest cell types and anchor there"**, a device any vocabulary
+supports, needing no new ontology, delivering a 2.5× smaller penalty than the best rung
+this fly's annotation happens to provide.
 
 ### 4.4 The wiring's own eigenbasis beats the neuron diagonal at equal capacity
 
@@ -631,6 +691,13 @@ draws of the realisation.
   answered by conditioning (§3.3), not by choice.
 - **Two seeds at d = 3150** against five at d = 1307 and 18 for the headline basis result,
   so the larger-scale σ are themselves less well determined.
+- **The annotation vocabulary is not a granularity sweep.** Four of its five rungs sit in
+  the top 15% of the constrained range, so the five-rung ladder alone under-reports the
+  biological contribution by placing almost every rung where biology contributes least. The
+  granularity ladder (§4.3) corrects this at d = 1307 only, with 12 seeds; the coarse end of
+  the curve is also under-populated, since beyond `pool32` no further cell type meets the
+  size threshold on this circuit and `pool64`/`pool128` share a `constrained_fraction`. The
+  *shape* of the curve may be specific even if its lesson is not.
 
 **The reduction is a reduction.** The connectome sets the *problem geometry* exactly, and
 the linear-Gaussian model buys an exact oracle — which is why it was worth doing first. But
@@ -650,9 +717,11 @@ demonstrably cannot tell you is which of its conclusions are artefacts of the li
   never touched, and the value they were fixed at turned out to be the worst reasonable
   choice. The strongest result in the network line appeared only when it was fixed.
 
-**The predictor.** Validated on five out-of-sample conditions and on the hardened network
-configuration, with rank correlations of +0.973 to +0.991 and **13 of 13** correct on every
-matched pair whose difference clears 2σ. Its limits are specific: it is a **ranking**
+**The predictor.** Validated on five out-of-sample conditions, on the hardened network
+configuration, and on the granularity ladder — where it reaches **+0.995** across 17 bases
+and separates eight partitions of near-identical granularity told apart only by *which*
+groups were merged — with rank correlations of +0.973 to +0.995 and **13 of 13** correct on
+every matched pair whose difference clears 2σ. Its limits are specific: it is a **ranking**
 predictor, not a calibrated one (dynamic range varies by more than an order of magnitude
 across conditions); it applies to **fixed** anchoring structures and fails on
 state-dependent ones, because it scores each step myopically and cannot see the retained
@@ -669,16 +738,18 @@ hiding the trade.
 **Claims that did not survive.** Reported as findings rather than buried: the interference
 mechanism behind C1 (refuted at 32.7σ); C3 as stated (deprioritised, its mechanism
 contradicted); the unimodal misalignment peak of the reference materials (not reproduced in
-the coordinate basis); the "4 of 5 rungs beat their matched control" reading (a metric
-artefact, and the honest figure is 4 of 5 only at the standard configuration and with a
-stable metric); and the "replay is setting-dependent" claim (confounded with an untuned
-budget).
+the coordinate basis); the headline "granularity beats biology" (itself an artefact of where
+the vocabulary places its rungs, and replaced by "granularity locates you, biology sets the
+height"); the "4 of 5 rungs beat their matched control" reading (a metric artefact, and the
+honest figure is 4 of 5 only at the standard configuration and with a stable metric); and
+the "replay is setting-dependent" claim (confounded with an untuned budget).
 
 ## 8. What we would do next
 
-1. **A finer-granularity ladder.** Pool the smallest cell types to construct partitions
-   between 0.83 and 0.98 constrained — the interval in which the biological advantage is
-   largest and the annotation vocabulary supplies no rung.
+1. **Replicate the granularity curve elsewhere.** The ladder's shape (peak near 0.54,
+   sub-0.002 floor) is measured on one circuit at d = 1307. The lesson — pool the rarest
+   groups — should transfer; the optimum's location should be re-measured on a second
+   circuit, a second connectome, and in the rate-network substrate.
 2. **Ask the reversed-ordering question properly.** On the hardened network the diagonal and
    the block Fisher are not distinguishable at 128 Fisher batches; a configuration in which
    the block's structure *is* well estimated (a smaller circuit, or a lower-rank task family)
@@ -698,6 +769,7 @@ recorded in the corresponding `runs/*.json`:
 | result | command |
 |---|---|
 | §4.1, §4.3 | `python -m experiments.e3_basis_selection --json-out runs/e3_analytic.json` |
+| §4.3 ladder | `python -m experiments.e3_basis_selection --ladder --no-realized --json-out runs/e3_ladder.json` |
 | §4.2, §4.4 | `python -m experiments.e2_topology_gap --json-out runs/e2_analytic.json` |
 | §5 | `python -m experiments.e6_predictor --json-out runs/e6_predictor.json` |
 | §6 | `python -m clfly.lgcl.repro`, `pytest -q` |
