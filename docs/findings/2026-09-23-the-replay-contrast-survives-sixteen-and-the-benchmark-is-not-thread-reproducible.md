@@ -94,7 +94,39 @@ across environments.** Concretely:
 * The 16/16 sign record is unaffected by any of this. Sixteen paired differences agreeing in sign under
   two different environments is stronger evidence than five agreeing under one.
 
-## 4. Limits
+## 4. And the analytic line is thread-sensitive too — at the fourth digit, not the first
+
+Everything above is the torch path. The analytic (numpy) path is what the paper's reproduction claims
+actually rest on — "the cs = 800 column reproduces bit-for-bit" — so whether *it* is environment-stable
+decides how much of the record is at risk. `e77` runs `e12_control_spread` twice on the same small
+configuration, once with `OMP_NUM_THREADS` unset and once at 4:
+
+| quantity | default threads | `OMP_NUM_THREADS=4` | abs diff | relative |
+|---|---|---|---|---|
+| biological excess mean | 0.00151944497748 | 0.00151935491472 | 9.0e-8 | 5.9e-5 |
+| control sd across draws | 0.00170586293021 | 0.00170580016040 | 6.3e-8 | 3.7e-5 |
+| delta | −0.00220874212934 | −0.00220874007566 | 2.1e-9 | **9.3e-7** |
+| per-seed excesses (2) | — | — | — | **1.8e-4** worst |
+| control means (2 draws) | — | — | — | 2.8e-5 worst |
+
+**So the analytic path is thread-sensitive as well, at about the fourth significant digit** — where the
+torch path under the same manipulation produces a *different answer* (0.875 against 0.826). The two
+substrates fail differently in kind, not just in degree.
+
+**No conclusion moves, and that is checkable rather than asserted.** The tightest standard error the
+project quotes is `cell_type`'s paired seed sem of **1.29e-5** against a delta of 2.61e-4 (`e66`); the
+environment noise on a per-seed excess is of order **3e-7 absolute** (1.8e-4 relative of 1.7e-3), i.e.
+**40× below that sem** and three orders below the delta. So every σ in this project is two or more
+orders of magnitude clear of the environment, which is why none of them has ever moved.
+
+**What does have to change is the language.** "Bit-for-bit" and "bit-identical" are wrong for this
+project's numbers, and they are used repeatedly — including in `e62`'s reproduction check and in the
+paper's reproducibility section. The correct claim is **"identical to about four significant digits
+given an environment"**. `e65`'s realization 0 reproducing `e48`'s published `swap0.5` value "to six
+decimals" was printing precision, not bit-exactness — and the same is true of every "reproduces
+bit-for-bit" in the record.
+
+## 5. Limits
 
 - **One environment pair.** `e77` varies the thread count and nothing else; it does not establish
   *which* part of the environment matters, and a different torch build or BLAS backend would be a
