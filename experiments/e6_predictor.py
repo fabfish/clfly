@@ -92,12 +92,20 @@ def run_condition(cond, args, conn, ann) -> dict:
 
 
 def evaluate(rows) -> dict:
-    """Rank correlation, plus sign agreement on every matched bio/random pair."""
+    """Rank correlation, plus sign agreement on every matched bio/random pair.
+
+    Also reports each pair's **resolvability**: the standard error of the excess
+    difference.  This matters because the predictor is sometimes asked to order
+    differences far below what the excess metric can measure, and a "miss" on such a
+    pair is not a failure of the predictor — no predictor can be scored on a quantity
+    that is not there to order.
+    """
     names = [r["basis"] for r in rows]
     excess = [r["excess"] for r in rows]
+    sem = [r.get("excess_sem", 0.0) for r in rows]
     pressure = [r["pressure"] for r in rows]
 
-    pairs, agree = [], 0
+    pairs, agree, resolvable_pairs = [], 0, 0
     for rung in RUNGS:
         b, r = f"bio:{rung}", f"rand:{rung}"
         if b not in names or r not in names:
@@ -105,14 +113,20 @@ def evaluate(rows) -> dict:
         ib, ir = names.index(b), names.index(r)
         d_ex = excess[ib] - excess[ir]
         d_pr = pressure[ib] - pressure[ir]
+        d_sem = float(np.hypot(sem[ib], sem[ir]))
+        sigma = abs(d_ex) / d_sem if d_sem else float("inf")
         ok = (d_ex < 0) == (d_pr < 0)
         agree += bool(ok)
+        resolvable_pairs += bool(sigma > 2.0)
         pairs.append({"rung": rung, "excess_delta": d_ex, "pressure_delta": d_pr,
-                      "sign_ok": ok})
+                      "excess_sem": d_sem, "sigma": sigma,
+                      "resolvable": bool(sigma > 2.0), "sign_ok": ok})
     return {
         "spearman": spearman(pressure, excess),
         "sign_agree": agree,
         "n_pairs": len(pairs),
+        "n_resolvable_pairs": resolvable_pairs,
+        "sign_agree_resolvable": sum(p["sign_ok"] for p in pairs if p["resolvable"]),
         "pairs": pairs,
     }
 
@@ -129,8 +143,8 @@ def main(argv=None) -> int:
     ann = annotate.load_annotations()
 
     out = {"config": vars(args), "conditions": []}
-    print(f"{'condition':16} {'d':>6} {'rho':>7} {'sign':>6}  per-pair signs")
-    print("-" * 76)
+    print(f"{'condition':16} {'d':>6} {'rho':>7} {'sign':>6} {'resolv':>7}  per-pair")
+    print("-" * 82)
     for cond in CONDITIONS:
         res = run_condition(cond, args, conn, ann)
         ev = evaluate(res["rows"])
@@ -139,7 +153,8 @@ def main(argv=None) -> int:
         out["conditions"].append(res)
         signs = "".join("+" if p["sign_ok"] else "-" for p in res["pairs"])
         print(f"{cond['label']:16} {res['d']:6d} {ev['spearman']:+7.3f} "
-              f"{ev['sign_agree']}/{ev['n_pairs']:>2}   {signs}   "
+              f"{ev['sign_agree']}/{ev['n_pairs']:>2}   "
+              f"{ev['sign_agree_resolvable']}/{ev['n_resolvable_pairs']:>2}    {signs}   "
               f"({time.time()-t0:.0f}s)")
 
     rhos = [c["eval"]["spearman"] for c in out["conditions"]]

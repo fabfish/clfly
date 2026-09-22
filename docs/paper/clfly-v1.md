@@ -533,24 +533,30 @@ The weighting is what makes this more than a restatement of `constrained_fractio
 the one where biology loses.
 
 **Out of sample** (`experiments/e6_predictor.py`), across task width (support 30→60),
-drift rate (q 0.02→0.10), topology (real→`swap2`) and circuit size (d 952→1307):
+drift rate (q 0.02→0.10), topology (real→`swap2`) and circuit size (d 952→1307), at 6 seeds:
 
-| condition | Spearman | matched-pair signs |
-|---|---|---|
-| `baseline` | +0.982 | 5/5 |
-| `wider-tasks` | +0.982 | 5/5 |
-| `faster-drift` | +0.982 | 5/5 |
-| `rewired-swap2` | +0.991 | 4/5 |
-| `larger-circuit` | +0.973 | 5/5 |
-
-> **Mean Spearman +0.982; 24/25 matched-pair signs.**
+| condition | Spearman | matched-pair signs | **resolvable pairs** |
+|---|---|---|---|
+| `baseline` | +0.973 | 5/5 | **3/3** |
+| `wider-tasks` | +0.991 | 5/5 | **4/4** |
+| `faster-drift` | +0.973 | 5/5 | **3/3** |
+| `rewired-swap2` | +0.991 | 4/5 | **0/0** |
+| `larger-circuit` | +0.991 | 5/5 | **3/3** |
+| **all** | **mean +0.984** | 24/25 | **13/13** |
 
 The sign test is the decisive one. A predictor that merely recovered
 `constrained_fraction` **must** score 0/25, because matched pairs have identical
-`constrained_fraction` by construction. Scoring 24/25 means the predictor is capturing
-something beyond granularity — which is the claim LGCL's mechanism needed and which
-the principal-angle scalar failed to deliver (3 of 5, with or without spectral
-truncation, and anti-correlated with the benefit in its raw form).
+`constrained_fraction` by construction. And the single "failure" turns out not to be one: it
+falls in the one condition where **not a single pair is resolvable** — all five excess
+differences are below measurement noise, so the predictor was being scored on a quantity that
+was not there to order. That condition is `swap2`, where the task precisions collapse to
+nearly rank-one and the basis-to-basis differences shrink to ~0.003 against a task-to-task
+variance of ~0.01; it is also the condition `e2` used for its 32.7σ refutation of the
+interference mechanism, so the same collapse that gave the project its cleanest negative made
+the basis question unanswerable there.
+
+**So the standing result is 13 of 13 on every pair the excess metric can resolve**, alongside
+rank correlations of +0.97 to +0.99.
 
 Two limits, stated plainly. It is a **ranking** predictor, not a calibrated one: its
 dynamic range varies by more than an order of magnitude across conditions while the
