@@ -81,3 +81,31 @@ tasks and the rewiring together.
   `excess(swap2)`. §4's realization sweep is what would.
 - `swap0.5`'s 18% spread is larger than `real`'s 6.2% but still an order of magnitude below `swap2`'s,
   so the instability is specific to the strongest rewiring and not a general property of the family.
+
+---
+
+## 6. The realization sweep, in progress
+
+`e32` runs six realizations of `swap2` at **fixed size (d = 1307)** and **fixed task seeds**, varying
+only the swap stream via the new `--rewire-seed`. That separates the two factors the sweep above
+confounds — circuit subsample and swap realization — and it is the experiment §4 named.
+
+**First check, and it was worth doing: `--rewire-seed 0` must reproduce the default.** It does,
+bit-exactly — `runs/e32_rewire0.json` stores six per-seed excesses, and their **mean over the first
+three** (the seeds the published run used) is **0.01237**, identical to `runs/e2_analytic.json`'s
+`swap2` value:
+
+```
+per-seed  0.01229  0.01259  0.01224  0.01195  0.01374  0.01246
+mean over seeds 0-2 = 0.01237   ==  published 0.01237
+```
+
+So the flag is wired the way its help string says (absent ⇒ `seed0` drives both streams), and the
+realization comparison that follows is between realizations and nothing else.
+
+The six-realization spread itself is still being collected. The prediction from §4 stands and is
+two-sided: if the excesses cluster tightly around 0.0125, then the four-point sweep's oscillation is
+about the *circuit* and the refutation's fragility is a property of circuit extraction; if they span
+0.012–0.058, then `excess(swap2)` is not a reproducible statistic at all and the swap family needs
+re-deriving before any statement about heavy rewiring can be made. The second is the outcome the
+four-point data points to and the first is the one that would reopen the question.
