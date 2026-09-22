@@ -93,3 +93,29 @@ plus five controls.
   claim of exactness — hence "predictive scalar", not "formula".
 - The claim that the mechanism is "which neurons share the large group" is **argued, not tested**.
   A direct test would permute only the non-singleton groups and hold the singletons fixed.
+
+## 6. Second and third measurements: the knee is between 0.02 and 0.325, and the plateau is flat
+
+e14 has now measured two more partitions, and both land where they were predicted to:
+
+| ``sum s^2/d^2`` | 0.006 | 0.020 | 0.325 | **0.395** | **0.459** | 0.678 | 0.754 |
+|---|---|---|---|---|---|---|---|
+| groups | 812 | 812 | 90 | **51** | **29** | 3 | 8 |
+| draw sd | 9e-5 | 4e-5 | 9.3e-4 | **1.01e-3** | *(running)* | 1.06e-3 | 1.08e-3 |
+
+**The plateau is flat.** Above ~0.33 the draw sd is 0.93, 1.01, 1.06, 1.08 ×1e-3 — a 15% spread over
+a factor of two in concentration. So a single number, ~1.0e-3, is a good working value for any
+concentration above a third, which is what the budget table assumed.
+
+**The knee is bounded on one side only.** The measurements bracket it between 0.020 (4e-5) and 0.325
+(9.3e-4) — a 25× rise across an interval with no point inside it. The two remaining runs (29 groups,
+concentration 0.459; 12 groups, 0.536) are both on the flat side, so **e14 will not locate the knee**.
+That would need points near 0.05–0.25, which no rung of the ladder supplies. Recording this because
+the previous section said the knee-placement runs "will place it" and they will not.
+
+**A side observation on the curve itself.** `min_size 3` is a granularity the ladder **skips** — it
+goes 1, 2, 4, 8 — and it sits at constrained 0.6046, between `pool2` (0.674) and `pool4` (0.540),
+with a delta of −0.00972. That is larger than either neighbour's (−0.00801 and −0.00884). It is from
+3 seeds rather than 12, so it is not directly comparable and no claim is made from it; but it is one
+more sign that the ladder's spacing is thinnest exactly where the effect is largest, which is the
+reason the shape claims were withdrawn in the first place.
