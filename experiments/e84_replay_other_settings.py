@@ -120,13 +120,13 @@ def main() -> None:
         na, rp = d["methods"]["naive"], d["methods"]["replay"]
         print(f"\n   {name}  (n = {len(na['replicates'])})")
         print(f"   {'':<16}{'recreated':>18}{'claimed (3 reps)':>20}")
-        print(f"   {'naive accuracy':<16}{na['final_accuracy']:>10.4f} ± {na['final_sem']:.4f}"
-              f"{cl['naive_acc']:>13.3f} ± {cl['naive_acc_sem']:.3f}")
-        print(f"   {'naive forgetting':<16}{na['mean_forgetting']:>+10.4f} ± {na['forgetting_sem']:.4f}"
-              f"{cl['naive_forget']:>+13.3f} ± {cl['naive_f_sem']:.3f}")
-        print(f"   {'replay accuracy':<16}{rp['final_accuracy']:>10.4f} ± {rp['final_sem']:.4f}"
+        print(f"   {'naive accuracy':<16}{na['final_accuracy']:>10.4f} +/- {na['final_sem']:.4f}"
+              f"{cl['naive_acc']:>13.3f} +/- {cl['naive_acc_sem']:.3f}")
+        print(f"   {'naive forgetting':<16}{na['mean_forgetting']:>+10.4f} +/- {na['forgetting_sem']:.4f}"
+              f"{cl['naive_forget']:>+13.3f} +/- {cl['naive_f_sem']:.3f}")
+        print(f"   {'replay accuracy':<16}{rp['final_accuracy']:>10.4f} +/- {rp['final_sem']:.4f}"
               f"{cl['replay_acc']:>13.3f}")
-        print(f"   {'replay forgetting':<16}{rp['mean_forgetting']:>+10.4f} ± {rp['forgetting_sem']:.4f}"
+        print(f"   {'replay forgetting':<16}{rp['mean_forgetting']:>+10.4f} +/- {rp['forgetting_sem']:.4f}"
               f"{cl['replay_forget']:>+13.3f}")
 
         res = {}
@@ -136,10 +136,10 @@ def main() -> None:
             n = min(a.size, b.size)
             st = paired_stats(a[:n] - b[:n])
             res[metric] = st
-            print(f"\n   replay − naive, {metric}: {st['delta']:+.5f} ± {st['sem']:.5f} = "
-                  f"{st['sigma']:.2f}σ   signs {st['signs']}   LOO min {st['loo_min']:.2f}   "
+            print(f"\n   replay - naive, {metric}: {st['delta']:+.5f} +/- {st['sem']:.5f} = "
+                  f"{st['sigma']:.2f}sigma   signs {st['signs']}   LOO min {st['loo_min']:.2f}   "
                   f"flips {st['loo_flips']}")
-            print(f"      claimed contrast {cl['contrast']:+.3f} at {cl['sigma']:.1f}σ "
+            print(f"      claimed contrast {cl['contrast']:+.3f} at {cl['sigma']:.1f}sigma "
                   f"(forgetting), 3 replicates")
             print(f"      detection floor (2 sems) {2 * st['sem']:.4f}")
         out["settings"][name] = dict(fingerprint=fingerprints.get(name), results=res)

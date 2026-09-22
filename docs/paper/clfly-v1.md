@@ -818,13 +818,19 @@ against the claimed −0.010 / +0.017 / +0.007, and the inversion as a *paired* 
 replicates is **`16 − 8` = +0.02292 ± 0.00390 = 5.88σ with all five signs agreeing**. (Per-step 16's own
 forgetting is 1.58σ from zero and per-step 48's is 0.34σ, so it is the paired comparison and not the sign
 of a single arm that carries the shape; and `48 − 16` is −0.93σ, so what is reproducible is "8 is best",
-not a three-point curve.) One limit, stated rather than implied: the other two settings' pool-96 replay
-arms in the table below are *still* backed by no artifact. And one discovery that scopes all of it: the
+not a three-point curve.) One limit, stated rather than implied: the task-IL row of the table below has now
+been **re-measured** but **not restored** — its artifact was missing, the recreation used the
+configuration the finding describes, and its `naive` fingerprint **failed** (0.8417 against the stored
+0.8241) because rule 21's environment is not recorded for the original. Its re-measured contrast is
+**−0.104 at 6.32σ on forgetting and +0.090 at 11.87σ on accuracy, five of five replicates agreeing**, while
+replay's own forgetting is **≈ 0 (−0.0042 ± 0.0091)** and not the claimed −0.056; the class-IL row is
+still running and was never validatable. And one discovery that scopes all of it: the
 benchmark is **not reproducible across thread counts** — the same command under a different
 `OMP_NUM_THREADS` trains to a different result (`e77`), so the `naive` arm is a determinism control
 *within* an environment rather than across environments, and the sixteen-replicate run is a **separate
 sample** of this configuration rather than an extension of the five-replicate one
-(`docs/findings/2026-09-23-the-replay-contrast-survives-sixteen-and-the-benchmark-is-not-thread-reproducible.md`).
+(`docs/findings/2026-09-23-the-replay-contrast-survives-sixteen-and-the-benchmark-is-not-thread-reproducible.md`,
+`docs/findings/2026-09-23-the-missing-replay-arm-is-a-re-measurement.md`).
 
 **The memory accounting matters and is stated plainly.** At their tuned optima EWC stores
 26,568 floats (0.2 MB) for +0.010 forgetting, while replay stores 96 stimuli × 12 steps ×
