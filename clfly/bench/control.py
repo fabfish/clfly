@@ -156,3 +156,66 @@ def concentration(labels) -> float:
         return 0.0
     sizes = np.bincount(labels).astype(np.float64)
     return float((sizes ** 2).sum() / labels.size ** 2)
+
+
+def paired_contrast(a, b, target_sigma: float = 2.0) -> dict:
+    """Contrast two sets of **matched** observations, and say what the run could detect.
+
+    ``a`` and ``b`` are per-replicate values from two arms that share a seed sequence, so the
+    difference is a matched observation and its sem is ``sd(a - b)/sqrt(n)`` — smaller than
+    combining the two sems in quadrature whenever the arms are positively correlated across
+    replicates, which is the usual case. The unpaired figure is returned too.
+
+    This is the network line's central comparison — a biological partition against its
+    size-matched random control — and it was being reported unpaired, by hand, in the findings
+    rather than by the experiment (`docs/findings/2026-09-22-e10-side-rung-underpowered.md` §4).
+
+    ``min_detectable`` and ``repeats_needed`` are the part worth reading before designing another
+    run: the network benchmark's per-repeat sd is ~0.048 accuracy, so the effects a continual-
+    learning claim would care about (0.01) need ~94 repeats, or ~55 hours per rung. A benchmark
+    that does not print its own detection floor invites the reading that a null is a measurement
+    of zero.
+    """
+    a = np.asarray(a, float)
+    b = np.asarray(b, float)
+    if a.shape != b.shape or a.size == 0:
+        raise ValueError("paired_contrast needs two equally sized, non-empty arms")
+    d = a - b
+    n = d.size
+    out = {
+        "n": int(n),
+        "delta": float(d.mean()),
+        "sem_unpaired": float(np.hypot(a.std(ddof=1) / np.sqrt(n) if n > 1 else 0.0,
+                                       b.std(ddof=1) / np.sqrt(n) if n > 1 else 0.0)),
+        "replicate_sd": float(d.std(ddof=1)) if n > 1 else 0.0,
+    }
+    if n > 1:
+        sem = float(d.std(ddof=1) / np.sqrt(n))
+        out["sem_paired"] = sem
+        out["sigma_paired"] = abs(out["delta"]) / sem if sem else float("nan")
+        out["corr"] = float(np.corrcoef(a, b)[0, 1]) if a.std() > 0 and b.std() > 0 else float("nan")
+        # the smallest effect this run could call at `target_sigma`, and the cost of doing better
+        out["min_detectable"] = target_sigma * sem
+        out["repeats_for_0.01"] = float(np.ceil((target_sigma * out["replicate_sd"] / 0.01) ** 2))
+        out["repeats_for_0.03"] = float(np.ceil((target_sigma * out["replicate_sd"] / 0.03) ** 2))
+    out["sigma_unpaired"] = (abs(out["delta"]) / out["sem_unpaired"]
+                             if out["sem_unpaired"] else float("nan"))
+    return out
+
+
+def evaluation_noise(accuracy: float, n_eval: int) -> float:
+    """Binomial standard error of an accuracy measured on ``n_eval`` held-out decisions.
+
+    Cheap to reduce and easy to forget. On the network benchmark — three tasks, 48 test samples
+    each, so ``n_eval = 144`` — this is **0.032** at a typical accuracy of 0.82, against a
+    measured per-replicate spread of 0.037–0.060. It is therefore 29–74% of the run-to-run
+    *variance*, and it is removable by asking for a bigger test set, which costs almost nothing
+    next to training (`docs/findings/2026-09-22-evaluation-noise.md`).
+
+    Read it before treating a null as a measurement of zero: a benchmark whose noise floor is set
+    by its test-set size is not measuring the method.
+    """
+    if not n_eval:
+        return float("nan")
+    p = float(min(max(accuracy, 0.0), 1.0))
+    return float(np.sqrt(p * (1.0 - p) / n_eval))

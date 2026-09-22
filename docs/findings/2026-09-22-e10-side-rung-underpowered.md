@@ -50,20 +50,28 @@ accuracies for `ewc-block` are 0.8264, 0.7500, 0.8681 — a range of 0.12 — gi
 repeats that is the sem of 0.041.
 
 How many repeats would be needed, at those spreads (2σ, and the run cost 105.5 min for 3 repeats, so
-**≈35 min per repeat**)?
+**≈35 min per repeat**)? The per-replicate sd of a **difference** is `hypot(0.0599, 0.0367)` = 0.0702
+unpaired and 0.0463 paired (the two arms correlate at r = 0.636), so the requirement scales as its
+square:
 
-| effect to detect | repeats needed | wall-clock per rung |
-|---|---|---|
-| 0.05 accuracy | 4 | ≈2.3 h |
-| 0.03 accuracy | 11 | ≈6.4 h |
-| **0.01 accuracy** | **94** | **≈55 h** |
-| 0.03 forgetting | 27 | ≈15.8 h |
-| **0.01 forgetting** | **238** | **≈139 h** |
+| effect to detect | repeats, unpaired | **repeats, paired** | wall-clock per rung (paired) |
+|---|---|---|---|
+| 0.05 accuracy | 8 | **4** | ≈2.3 h |
+| 0.03 accuracy | 22 | **10** | ≈5.9 h |
+| **0.01 accuracy** | **198** | **86** | **≈50 h** |
+| 0.03 forgetting | — | 23 | ≈13 h |
+| 0.01 forgetting | — | 202 | ≈118 h |
 
-And five rungs are queued. **The e10 ladder as configured cannot settle C2b.** It can bound the
-advantage — "no effect larger than about 0.09 accuracy at `side`", the edge of the interval above —
-and it does, but the interesting range for a continual-learning claim is 0.01, which is two orders
-of magnitude of compute away.
+**Pairing is worth 2.3×** (198 → 86 at 0.01 accuracy). And five rungs are queued. **The e10 ladder as
+configured cannot settle C2b.** It can bound the advantage — "no effect larger than about 0.09
+accuracy at `side`", the edge of the interval above — and it does, but the interesting range for a
+continual-learning claim is 0.01, which is two orders of magnitude of compute away.
+
+> **Correction.** An earlier version of this table used 0.0483 — the *mean* of the two arms' sds —
+> and reported 94 repeats. That is not a valid pooled sd for a difference of means, and the correct
+> figures are 198 unpaired and 86 paired. The conclusion is unchanged; the recommendation is not, since
+> pairing turns out to be the larger of the two available levers
+> (`docs/findings/2026-09-22-evaluation-noise.md` §7).
 
 ## 4. Pairing helps, by 1.5×, and the benchmark does not use it
 

@@ -158,3 +158,48 @@ def test_draws_needed_is_finite_exactly_when_the_floor_clears_the_target():
             assert (k != float("inf")) == clears, (delta, sem, sd, target, k)
             if clears:
                 assert k > 0
+
+
+# --------------------------------------------------------------------------
+# paired_contrast: the network line's central comparison, and its power
+# --------------------------------------------------------------------------
+def test_paired_contrast_reports_both_sems_and_the_detection_floor():
+    from clfly.bench.control import paired_contrast
+    rng = np.random.default_rng(0)
+    z = rng.normal(size=40)                      # a shared, dominant replicate axis
+    a = 0.80 + 0.05 * z + 0.01 * rng.normal(size=40)
+    b = 0.79 + 0.05 * z + 0.01 * rng.normal(size=40)
+    out = paired_contrast(a, b)
+    assert out["n"] == 40
+    assert out["delta"] == pytest.approx(0.01, abs=0.01)
+    # the shared axis cancels in the paired difference, which is the point
+    assert out["sem_paired"] < 0.3 * out["sem_unpaired"]
+    assert out["min_detectable"] == pytest.approx(2.0 * out["sem_paired"])
+    assert out["repeats_for_0.01"] >= 1
+
+
+def test_paired_contrast_needs_matched_arms():
+    from clfly.bench.control import paired_contrast
+    with pytest.raises(ValueError):
+        paired_contrast([1.0, 2.0], [1.0])
+    with pytest.raises(ValueError):
+        paired_contrast([], [])
+
+
+def test_paired_contrast_handles_a_single_replicate():
+    # one replicate has no spread, so the sems are undefined rather than zero; the delta survives
+    from clfly.bench.control import paired_contrast
+    out = paired_contrast([0.81], [0.79])
+    assert out["delta"] == pytest.approx(0.02)
+    assert out["n"] == 1
+    assert "sem_paired" not in out
+
+
+def test_evaluation_noise_is_the_binomial_standard_error():
+    from clfly.bench.control import evaluation_noise
+    # 144 held-out decisions at p = 0.8
+    assert evaluation_noise(0.8, 144) == pytest.approx(np.sqrt(0.8 * 0.2 / 144))
+    assert evaluation_noise(0.5, 100) == pytest.approx(0.05)
+    # a perfect score has no binomial spread, and n=0 is undefined rather than infinite
+    assert evaluation_noise(1.0, 144) == 0.0
+    assert np.isnan(evaluation_noise(0.8, 0))

@@ -32,6 +32,7 @@ from pathlib import Path
 import numpy as np
 
 from clfly.bench.artifacts import write_json
+from clfly.bench.control import evaluation_noise, paired_contrast
 from clfly.connectome import annotate, circuits, graph
 from clfly.network import tasks as rate_tasks
 from clfly.network.fisher import SynapsePartition
@@ -432,6 +433,56 @@ def main(argv=None) -> int:
         print(f"    forgetting per task: {['%+.3f' % x for x in agg['forgetting_per_task']]}")
         print(f"    -> final accuracy {agg['final_accuracy']:.3f} ± {agg['final_sem']:.3f},  "
               f"mean forgetting {agg['mean_forgetting']:+.3f} ± {agg['forgetting_sem']:.3f}")
+
+    # How much of the run-to-run spread is just the test set? The final accuracy averages one
+    # evaluation per task over `n_test` held-out samples each, so it carries a binomial se; next
+    # to training, enlarging that test set is free. A benchmark that does not say this invites
+    # reading a null as a measurement of zero.
+    n_eval = sum(len(t.y_test) for t in suite)
+    print(f"\n  --- noise floor (n_eval = {n_eval} held-out decisions per replicate) ---")
+    out["evaluation_noise"] = {"n_eval": n_eval}
+    for name, m in out["methods"].items():
+        ev = evaluation_noise(m["final_accuracy"], n_eval)
+        rep_sd = m["final_sem"] * np.sqrt(max(args.repeats, 1))
+        resid = float(np.sqrt(max(rep_sd ** 2 - ev ** 2, 0.0)))
+        out["evaluation_noise"][name] = {
+            "binomial_sem": ev, "replicate_sd": rep_sd, "residual_sd": resid,
+            "variance_fraction": (ev ** 2 / rep_sd ** 2) if rep_sd else float("nan")}
+        if rep_sd and ev < rep_sd:
+            print(f"    {name:16} per-replicate sd {rep_sd:.4f}  of which evaluation "
+                  f"{ev:.4f} ({ev**2/rep_sd**2:.0%} of the variance, and removable); "
+                  f"training {resid:.4f}")
+        else:
+            # the floor can dominate when replicates are nearly identical (a very short run) or
+            # when the 144 held-out decisions are not independent. Saying so is the point of
+            # printing this at all -- a fraction above 100% is a signal, not a number.
+            print(f"    {name:16} per-replicate sd {rep_sd:.4f} is at or below the test-set "
+                  f"floor {ev:.4f}: this run cannot separate them (short training, or the "
+                  f"held-out decisions are correlated)")
+
+    # The comparison the whole network line is about: the biological partition against its
+    # size-matched random control. It was previously done by hand in the findings, and unpaired --
+    # but the two arms share a seed sequence, so their replicates are matched and the paired sem is
+    # the right one (1.5x tighter at `side`). The detection floor is printed because the binding
+    # constraint on this question is the benchmark's own run-to-run spread, not the effect size.
+    if {"ewc-block", "ewc-block-rand"} <= set(out["methods"]):
+        bio, rnd = out["methods"]["ewc-block"], out["methods"]["ewc-block-rand"]
+        print("\n  --- matched pair: biological partition vs its size-matched random control ---")
+        out["matched_pair"] = {}
+        for key in ("final_accuracy", "mean_forgetting"):
+            pc = paired_contrast([r[key] for r in bio["replicates"]],
+                                 [r[key] for r in rnd["replicates"]])
+            out["matched_pair"][key] = pc
+            line = (f"    {key:18} delta {pc['delta']:+.4f}  unpaired "
+                    f"{pc['sem_unpaired']:.4f} ({pc['sigma_unpaired']:.2f} sigma)")
+            if "sem_paired" in pc:
+                line += (f"  paired {pc['sem_paired']:.4f} ({pc['sigma_paired']:.2f} sigma)")
+            print(line)
+            if "min_detectable" in pc:
+                print(f"    {'':18} this run detects effects above {pc['min_detectable']:.3f}; "
+                      f"0.03 would need {pc['repeats_for_0.03']:.0f} repeats and 0.01 "
+                      f"{pc['repeats_for_0.01']:.0f}")
+
     out["timing_s"] = time.time() - t0
 
     print(f"\n  chance = {1.0 / suite[0].n_classes:.3f}   ({time.time()-t0:.0f}s)")
