@@ -346,6 +346,10 @@ def main(argv=None) -> int:
                         "penalty at the same lambda")
     p.add_argument("--pool-below", type=int, default=0,
                    help="merge annotation labels appearing in fewer than N neurons")
+    p.add_argument("--pool-buckets", type=int, default=1,
+                   help="split the merged sub-threshold labels over B groups instead of "
+                        "one; bounds the block Fisher's storage, which is sum_g s_g^2 and "
+                        "is otherwise dominated by a single (pooled x pooled) block")
     p.add_argument("--repeats", type=int, default=1,
                    help="independent training runs per method, for a standard error")
     p.add_argument("--json-out", type=Path, default=None)
@@ -381,7 +385,8 @@ def main(argv=None) -> int:
     if any(m.startswith("ewc-block") for m in args.methods.split(",")):
         labels = circ.labels[args.basis]
         bio = SynapsePartition.from_labels(labels, pre, post, name=args.basis,
-                                           pool_below=args.pool_below)
+                                           pool_below=args.pool_below,
+                                           pool_buckets=args.pool_buckets)
         partitions = {"bio": bio,
                       "rand": SynapsePartition.random_matched(
                           bio, np.random.default_rng(args.seed0))}

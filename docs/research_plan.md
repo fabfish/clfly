@@ -268,7 +268,7 @@ correlates +0.164 with interference).
 Limitation: ten pairs from five tasks. A benchmark with more tasks would test the
 prior on more pairs.
 
-### C2b — the network basis negative is not granularity-free
+### C2b — the network basis negative has never been asked at the rung that matters
 
 The rate-network line reports that a biological synapse partition never beats a
 size-matched random one, across five settings. Every one of those settings used
@@ -277,23 +277,41 @@ size-matched random one, across five settings. Every one of those settings used
 The negative is therefore a statement about one rung, not about biological synapse
 structure — the same confound E3b found on neurons.
 
-The ladder cannot currently be traced. `cell_type` with `pool_below = 0` is 0.9992
-constrained but is the diagonal wearing a finer label; the next available step,
-`pool_below = 2`, is 0.6165 constrained and **2.165 GB**, with **98.7% of that in a
-single `(pooled × pooled)` block** — merging every rare label into one shared group
-manufactures one enormous block, and pooling harder makes it bigger (3.98 GB at
-`pool_below = 64`). Nothing is affordable between 0.6165 and 0.9992.
+The synapse annotation ladder is real, has five rungs, and its ordering matches the
+neuron-level ordering exactly:
+
+| column | groups | largest | constrained | GB | neuron-level (E3) |
+|---|---|---|---|---|---|
+| `side` | 10 | 10,126 | **0.6947** | 1.724 | 0.501 |
+| `cell_class` | 100 | 5,509 | **0.9250** | 0.424 | 0.828 |
+| `ito_lee_hemilineage` | 2,148 | 601 | 0.9945 | 0.031 | 0.967 |
+| `supertype` | 9,938 | 452 | 0.9988 | 0.007 | 0.974 |
+| `cell_type` | 19,618 | 421 | 0.9992 | 0.004 | 0.979 |
+
+Three of the five rungs cost under 0.04 GB and all three sit near the diagonal — the
+affordable rungs are precisely the uninformative ones, which is E3b's crowding
+reproduced on synapses. **The coarsest rung, `side`, has never been run, and on neurons
+`side` was the strongest rung (28.8σ) and the best basis the vocabulary offered.**
+
+`pool_below` is not a substitute: it does nothing on `cell_class` (0.9250 → 0.9027), and
+on `cell_type` it jumps from 0.9992 (the diagonal wearing a label) straight to 0.6165
+because merging every rare label into *one* shared group manufactures a single
+`(pooled × pooled)` block holding **98.7%** of the partition's 2.165 GB. Bucketing the
+merged mass into ``B`` groups (now implemented, `pool_buckets`) does drop storage as
+``1/B`` — but it raises `constrained_fraction` back toward the diagonal by nearly as
+much (0.6165 → 0.9744 at ``B = 4``), so it buys the fine end, not the middle.
+
+What bounds the coarse end is **time, not memory** (33.6 GB available): block-Fisher
+accumulation cost also scales with ``sum_g s_g^2``, so a coarse rung takes minutes per
+run rather than seconds. That is affordable.
 
 **So the honest claim is: at `cell_class` granularity, biology does not beat matched
-random on synapses, in any setting tested — and no one has tested the interval where
-the neuron result found its effect.** Recorded in
-`docs/findings/2026-09-22-synapse-granularity-wall.md` while the neuron line was being
-used to argue the network line was settled.
+random on synapses, in any setting tested — and the rung the neuron result implicates is
+untested.** Recorded in `docs/findings/2026-09-22-synapse-annotation-ladder.md` while the
+neuron line was being used to argue the network line was settled.
 
-*Unblocking it:* merge sub-threshold labels into ``B`` buckets instead of one, which
-splits the oversized block into ``B^2`` smaller ones and drops storage roughly as
-``1/B``. The control is built from the same buckets, so capacity stays matched. Not yet
-implemented.
+*In flight:* `e8_rate_network` over all five rungs, `runs/e10_rung_*.json` — the first
+synapse basis comparison at more than one granularity.
 
 ## The benchmark — FlyCL v0
 
@@ -333,7 +351,7 @@ All of it has been run. The scripts as delivered:
 | `e8_rate_network.py` | — | the non-linear substrate, both settings, frozen-body control | done — replay 2.2–4.2σ, best when tuned |
 | `e3_basis_selection.py --ladder` × d=1874 | C2 | second configuration (support 150, d=1874), 12 seeds | **in flight** — `runs/e9_ladder_d1874.json` |
 | `e3_basis_selection.py --ladder` (re-run) | C2 | per-seed excesses for a paired shape test + determinism check | **in flight** — `runs/e3_ladder_v2.json` |
-| `e8_rate_network.py` synapse ladder | C2b | synapse granularity sweep | **blocked** — memory wall, see above |
+| `e8_rate_network.py` × 5 rungs | C2b | synapse annotation ladder (0.6947 → 0.9992), the untested rung `side` included | **in flight** — `runs/e10_rung_*.json` |
 | `e4_modularity.py` | C3 | never written | **C3 deprioritised** — its mechanism is contradicted by `e2` |
 
 Every figure carries its control arm, and every recall/precision number in this document

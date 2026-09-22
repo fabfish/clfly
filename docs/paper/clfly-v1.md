@@ -56,11 +56,11 @@ Four findings, one of them unexpected in direction.
    candidate tested. Fixed structures beat adaptive ones here.
 
 On a **trained connectome-constrained rate network**, the same question reverses: the
-biological synapse partition never beats a size-matched random one — though only at the one
-granularity that is affordable, `cell_class` at 0.925 constrained, because the synapse
-partition's storage is `sum_g s_g^2` and a finer pooling manufactures a single block holding
-98.7% of it. On that substrate
-EWC helps only when
+biological synapse partition never beats a size-matched random one — though only at the
+second-coarsest of the five annotation rungs, `cell_class` at 0.925 constrained, while
+`side` (0.6947), the rung that was strongest on neurons, has never been run, and the other
+three rungs all cost under 0.04 GB precisely because they sit near the diagonal. On that
+substrate EWC helps only when
 the read-out is narrow enough to make the plastic weights load-bearing, and replay —
 content memory — is the stronger method in every setting, with forgetting driven to zero
 or below. That confirms the theory's prediction that memory should dominate regularisation
@@ -572,16 +572,31 @@ advantage for the same grouping does not reproduce here under any setting tried.
 That granularity itself is not a variable in this comparison, and saying so is the point.
 Every one of the five settings used `--basis cell_class`, and sweeping `pool_below` over
 `cell_class` moves `constrained_fraction` from 0.9250 only to 0.9027 — the rung never moves.
-The granularity ladder that rescued the neuron result **cannot be run on synapses with the
-current construction**: `cell_type` at `pool_below = 0` is 0.9992 constrained but is the
-diagonal wearing a label, and the next step, `pool_below = 2`, is 0.6165 constrained and
-2.165 GB, **98.7% of it in one `(pooled × pooled)` block**, because merging every rare label
-into one shared group manufactures one huge block and pooling harder enlarges it further
-(3.98 GB at `pool_below = 64`). So the defensible claim is that biology does not help
-*synapse* anchoring at 0.925 constrained, and the interval where the neuron result found its
-effect is untested here. Unblocking it requires bucketing the pooled label into ``B`` rather
-than one group, which splits the oversized block into ``B^2`` smaller ones and drops storage
-roughly as ``1/B``, with the control built on the same buckets.
+The synapse annotation ladder is real and has five rungs, with the *same* ordering as the
+neuron level:
+
+| column | constrained | GB | neuron-level (E3) |
+|---|---|---|---|
+| `side` | **0.6947** | 1.724 | 0.501 |
+| `cell_class` | **0.9250** | 0.424 | 0.828 |
+| `ito_lee_hemilineage` | 0.9945 | 0.031 | 0.967 |
+| `supertype` | 0.9988 | 0.007 | 0.974 |
+| `cell_type` | 0.9992 | 0.004 | 0.979 |
+
+Three of the five rungs cost under 0.04 GB and all three sit near the diagonal — E3b's
+crowding, reproduced on synapses: the affordable rungs are the uninformative ones. And
+**`side`, the coarsest rung and the one that was strongest on neurons (28.8σ), has never been
+run on synapses.** The sub-rung dial is no substitute: `pool_below` does nothing on
+`cell_class`, and on `cell_type` it jumps from 0.9992 — the diagonal wearing a label — to
+0.6165, because merging every rare label into one shared group manufactures a single
+`(pooled × pooled)` block holding **98.7%** of the partition's 2.165 GB. Bucketing that merged
+mass into ``B`` groups does drop storage as ``1/B`` and is now implemented, but it raises
+`constrained_fraction` back toward the diagonal by nearly as much (0.6165 → 0.9744 at
+``B = 4``), so it buys the fine end, not the middle. What bounds the coarse end is **time, not
+memory** — block-Fisher accumulation cost also scales with ``sum_g s_g^2``, so a coarse rung
+costs minutes per run instead of seconds, which is affordable. So the defensible claim is that
+biology does not help *synapse* anchoring at 0.925 constrained, and the rung the neuron result
+implicates is untested.
 
 **One statement in this section is fully robust: the diagonal degrades as its Fisher
 estimate improves** (+0.010 → +0.028 → +0.035 as batches go 8 → 32 → 128, monotone;
@@ -773,16 +788,16 @@ the "replay is setting-dependent" claim (confounded with an untuned budget).
 
 ## 8. What we would do next
 
-1. **Replicate the granularity curve elsewhere, and do it on synapses.** The ladder is
-   measured on one circuit at d = 1307. The lesson — pool the rarest groups — should transfer
-   and its plateau should be re-measured on a second circuit and a second connectome. On the
-   network the replication is *blocked*, not merely undone: the synapse partition's storage is
-   `sum_g s_g^2` and merging every rare label into one shared group produces a single
-   `(pooled × pooled)` block holding 98.7% of it, so the mid-granularity interval costs
-   2.2–4.7 GB and the rung that would test the network negative is unaffordable. Bucketing the
-   pooled label into ``B`` groups instead of one splits that block into ``B^2`` and drops
-   storage roughly as ``1/B``; with that, the network basis negative can finally be asked at
-   more than one granularity.
+1. **Replicate the granularity curve elsewhere, and finish it on synapses.** The neuron
+   ladder is measured on one circuit at d = 1307; the lesson — pool the rarest groups — should
+   transfer and its plateau should be re-measured on a second circuit and a second connectome.
+   On the network the ladder exists but was never walked: the five annotation rungs span
+   0.6947 (`side`) to 0.9992 (`cell_type`), and the published negative used only the
+   second-coarsest. `side` is the rung the neuron result most implicates and the one that has
+   never been run; it is in flight. The sub-rung dial is not a substitute — `pool_below` does
+   nothing on `cell_class`, and on `cell_type` it manufactures a single `(pooled × pooled)`
+   block holding 98.7% of the partition, so bucketing it into ``B`` groups (`pool_buckets`,
+   implemented) buys the fine end rather than the middle.
 2. **Ask the reversed-ordering question properly.** On the hardened network the diagonal and
    the block Fisher are not distinguishable at 128 Fisher batches; a configuration in which
    the block's structure *is* well estimated (a smaller circuit, or a lower-rank task family)

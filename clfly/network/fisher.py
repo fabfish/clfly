@@ -52,7 +52,8 @@ class SynapsePartition:
     # -- constructors -------------------------------------------------------
     @classmethod
     def from_labels(cls, labels: np.ndarray, pre: np.ndarray, post: np.ndarray,
-                    name: str = "partition", pool_below: int | None = None
+                    name: str = "partition", pool_below: int | None = None,
+                    pool_buckets: int = 1
                     ) -> "SynapsePartition":
         """Group synapses by the ordered pair ``(labels[pre], labels[post])``.
 
@@ -60,12 +61,30 @@ class SynapsePartition:
         into one shared group.  Without it a fine annotation column produces a
         near-singleton partition — cell-type pairs have median group size 1 on this
         circuit — which is not a coarser basis at all but the diagonal.
+
+        ``pool_buckets`` splits that merged mass over ``B`` groups instead of one.  It
+        exists because the storage is ``sum_g s_g^2`` and a single shared pooled label
+        manufactures a single ``(pooled, pooled)`` group holding every synapse between
+        two rare cell types: on the standard circuit that one block is 16,342 of 26,568
+        synapses at ``pool_below=2``, i.e. **98.7%** of the partition's 2.165 GB.  With
+        ``B`` buckets the block becomes ``B^2`` blocks of a ``B``-th the side each, so
+        storage falls roughly as ``1/B`` and the mid-granularity range becomes
+        affordable.  The buckets carry no biological meaning; their only job is to bound
+        the projection's storage, and the matched-random control is built from the same
+        bucket sizes so the comparison stays capacity-matched.
         """
         if pool_below:
             counts = np.bincount(labels)
             keep = counts >= pool_below
             remap = np.cumsum(keep) - 1
-            labels = np.where(keep, remap, int(remap.max()) + 1)[labels]
+            if pool_buckets > 1:
+                rare = np.nonzero(~keep)[0]
+                newlab = np.empty(keep.size, dtype=np.int64)
+                newlab[keep] = remap[keep]
+                newlab[rare] = int(remap.max()) + 1 + np.arange(rare.size) % pool_buckets
+                labels = newlab[labels]
+            else:
+                labels = np.where(keep, remap, int(remap.max()) + 1)[labels]
         pair = labels[pre].astype(np.int64) * (labels.max() + 1) + labels[post]
         _, inv = np.unique(pair, return_inverse=True)
         order = np.argsort(inv, kind="stable")
