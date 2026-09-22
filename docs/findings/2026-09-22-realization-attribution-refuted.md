@@ -125,9 +125,22 @@ it, and the effective rank moves as a consequence. The clean test is `e5`'s inte
 drive concentration `kappa` *within* a fixed wiring, which moves the effective rank without touching
 the graph — and `e5` did not have a topology flag, so it had never been run at `swap2`. It does now
 (`--topology` / `--rewire-seed` added, `experiments/e37`), and the 2-point smoke test used to
-validate the new flag already goes the wrong way:
+validate the new flag appeared to go the wrong way:
 
-| `swap2`, cs = 300, `kappa` | effrank | flattening | gap vs oracle |
+> **CORRECTION, two fires later: the smoke test is withdrawn.** It was `--seeds 1`, and the finished
+> 3-seed run reproduces it in seed 0 *exactly* (1.1244 → 1.2572) while seeds 1 and 2 give
+> 1.0316 → 0.8206 and 1.3679 → 1.1040. The 3-seed means **fall** (1.1746 → 1.0606), so the table
+> below is one seed of three and the direction it shows is not the run's. At the only configuration
+> where the knob has leverage for this mechanism — `swap2`/cs = 300, travel/noise 30× — the prescribed
+> absolute metric gives ρ = **+0.143, +0.214, +0.357** across the three seeds, i.e. *the mechanism's*
+> direction, unanimously and none significant, over a non-monotone curve that rises again at
+> κ = 4. So §6b's premise ("the smoke test already contradicts the mechanism") was itself a
+> small-sample reading, and the mechanism's ordinal direction at `swap2` is **underpowered rather
+> than refuted**. What is refuted is its quantitative form (the shared log slope and the ±0.0034
+> bands) and the cross-circuit sign rule
+> (`docs/findings/2026-09-22-the-smoke-test-was-one-seed.md`).
+
+| `swap2`, cs = 300, `kappa` | effrank | flattening | gap vs oracle *(seed 0 only — withdrawn)* |
 |---|---|---|---|
 | 0 (uniform drive) | 16.6 | 0.2512 | **+1.1244** |
 | 1 | 11.0 | 0.1661 | **+1.2572** |
@@ -143,13 +156,20 @@ cs = 300 (`runs/e37_kappa_*.json`) — is what decides it, and if the direct int
 `e5`'s sign at both topologies then §6's mechanism paragraph should be withdrawn and the
 cross-size correlation read as a coincidence of five points.
 
-> **Outcome:** both §6 and the §7 coordinate below have since been **withdrawn**. The `cs700`
+> **Outcome:** the quantitative reading is **withdrawn**, and the ordinal one is **not**. The `cs700`
 > point that §9 pre-registered as the decisive test landed and **missed the stated ±0.0034 band by
 > 1.84×** (residual −0.00627), taking the six-point ρ from 1.000 to **+0.829** (exact p = 0.0292) and
 > the fit's in-sample maximum residual from 0.00296 to 0.00512. Three `swap2` realizations had
 > already failed the curve out of sample, and the cs=800 realization at effrank 5.853 fails the
 > **sign rule** at −10.0σ because it sits above the bracket the rule named as the start of the
 > positive region.
+>
+> But the sentence above — *"contradicted the moment concentration is moved directly"* — turned out to
+> rest on a 1-seed smoke test, and the full 3-seed intervention at `swap2`/cs = 300 (the only
+> configuration where the knob has leverage for this mechanism, 30× the seed noise) gives
+> **+0.143, +0.214, +0.357** on the prescribed absolute metric: the mechanism's direction,
+> unanimously, none significant. So **the law is refuted and the direction is underpowered rather
+> than refuted** (`2026-09-22-the-smoke-test-was-one-seed.md`).
 > (`2026-09-22-geometry-mechanism-refuted-on-the-realization-axis.md`,
 > `2026-09-22-cs700-rejects-the-geometry-reading.md`)
 

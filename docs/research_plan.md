@@ -126,29 +126,38 @@ degree-preserving family the gap moves *opposite* to interference — overlap ri
 > by **0.01902**, 6.4× its in-sample maximum residual.
 >
 > **And the intervention that was supposed to test the mechanism cannot run where the mechanism was
-> proposed.** `e37` has now finished the `kappa` sweep at `real` and is into it at `swap2`, and the
-> prior question — does the knob move the proposed carrier? — has a measurement: at `real` the knob
-> travels **0.68–0.73** in `flattening` across κ 0→4 against a seed-to-seed spread of 0.0026–0.0050,
-> i.e. **142–271× the noise**; at `swap2`/cs = 800 it travels **0.004–0.008** against 0.00042, i.e.
-> **9.4×, 20.2× and 5.3×** the noise. **~90× less travel**, because the carrier is *already*
-> collapsed (`effective_rank` 1.70 against `real`'s 55) and its precision is 99% off-diagonal. So the
-> correlation at that configuration is over noise and its sign means nothing either way — report it
-> as **untested, not null**. Where the knob does have leverage at `swap2` (one seed, ρ = −0.786,
-> p = 0.036) it gives the **`e5` direction**, i.e. the opposite of what the mechanism requires, which
-> is the same direction as the cs = 300 smoke test and the realization-axis refutation. **The
-> structural point is the generalisable one: the mechanism was stated in terms of the collapse, and
-> the collapse is what pins the variable the intervention acts on, so the mechanism is inert exactly
-> where it was proposed.** Four consecutive findings read a correlation at that configuration and
-> argued about its sign; none checked whether the knob had moved anything (plan rule 18).
-> **So the position is the one the project held three fires ago, arrived at with far more
-> evidence: `excess(swap2)` is not a stable quantity across circuits, and no coordinate tried so far
-> accounts for it.** What does carry weight is structural and unchanged over six circuits: the two
-> control topologies hold to **10.5%** (`real`) and **24.3%** (`swap0.5`) while `swap2` spans
+> proposed — but where it *can* run, it no longer contradicts it.** `e37` has finished all four
+> `kappa` sweeps. At `real` the knob travels **0.68–0.73** in `flattening` across κ 0→4 against a
+> seed-to-seed spread of 0.0026–0.0050, i.e. **142–271× the noise**; at `swap2`/cs = 800 it travels
+> **0.004–0.008** against 0.00044, i.e. **8.6–19.3×** — **~90× less travel**, because the carrier is
+> *already* collapsed (`effective_rank` 1.70 against `real`'s 55) and its precision is 99%
+> off-diagonal. So that configuration is **untested, not null** (plan rule 18).
+>
+> At **`swap2`/cs = 300** the knob *does* have leverage — **30×** the noise, driving `effective_rank`
+> from **16.6 → 2.35** — and there, on the prescribed absolute metric, the three seeds give
+> **+0.143, +0.214, +0.357**: the **mechanism's** direction, unanimously, none significant
+> (p ≥ 0.43), over a non-monotone curve that falls from 0.0766 to 0.0381 across κ 0→2.5 and then
+> **rises back to 0.0821 at κ = 4**.
+>
+> **So the mechanism's status splits, and the split is the finding.** Its *quantitative* form — a
+> shared log slope, ±0.0034 bands — is refuted (cross-family slopes 6.06σ apart, `cs700` 1.84×
+> outside its pre-registered band, realizations inside the fitted range missed by 0.01902), and so is
+> the cross-circuit sign rule (above its bracket at −10σ). Its *ordinal* direction at the
+> configuration it was proposed for is **underpowered, not refuted**: 3 of 3 seeds point its way at
+> p ≥ 0.43. The §6b smoke-test caveat that shaped this paragraph for two fires was **one seed of
+> three** — it reproduces seed 0 exactly (1.1244 → 1.2572) while seeds 1 and 2 fall, and the 3-seed
+> means fall too — so it is withdrawn. What would settle the direction is more seeds of the
+> `swap2`/cs = 300 sweep, not another coordinate.
+> **So the position on the instability itself is unchanged and now measured rather than argued:
+> `excess(swap2)` is not a stable quantity across circuits, and no coordinate tried so far accounts
+> for it quantitatively.** What does carry weight is structural and unchanged over six circuits: the
+> two control topologies hold to **10.5%** (`real`) and **24.3%** (`swap0.5`) while `swap2` spans
 > **166%** — measured seed-robust at 27/27 unanimous signs (`e47`) — and the Erdős–Rényi separation
 > remains a regime offset by a factor of eleven with its realization check done and passed.
 > (`docs/findings/2026-09-22-geometry-mechanism-refuted-on-the-realization-axis.md`,
 > `docs/findings/2026-09-22-cs700-rejects-the-geometry-reading.md`,
-> `docs/findings/2026-09-22-the-knob-is-inert-where-the-mechanism-was-proposed.md`)
+> `docs/findings/2026-09-22-the-knob-is-inert-where-the-mechanism-was-proposed.md`,
+> `docs/findings/2026-09-22-the-smoke-test-was-one-seed.md`)
 
 *Replacement, after `e5`: anisotropy, in the same direction Phase 1 found.* Vary
 the task's spectral concentration **directly**, at fixed topology, fixed support
@@ -733,7 +742,7 @@ All of it has been run. The scripts as delivered:
 | `e2_topology_gap.py --rewire-seed` | C1 | separate the swap *realization* from the circuit subsample | done — realization sd measured at 0.00125 for `swap2` (16× below the attributed 0.0205); ER moves by 0.00047, 0.33% of its own value |
 | `e2_topology_gap.py --circuit-size 700` | C1 | the sixth point of the size sweep, and the test of the geometry reading | **in flight** — prediction pre-registered in the `e36` finding |
 | `e36_geometry_carrier.py` | C1 | is the 367% spread a realization effect or a geometry effect? | done — geometry; the contrast's *sign* is a function of the effective rank of the task precision, ρ = +1.000, exact p = 0.0083 |
-| `e5_anisotropy_axis.py --topology` | C1 | `e5`'s concentration intervention applied at a *rewired* topology | **in flight** — `runs/e37_kappa_{real,swap2}_cs{800,300}.json`; the 2-point smoke test contradicts the `e36` mechanism |
+| `e5_anisotropy_axis.py --topology` | C1 | `e5`'s concentration intervention applied at a *rewired* topology | done, all four configurations — at `swap2`/cs = 800 the knob is **inert** (rule 18) so that config is untested; at `swap2`/cs = 300 it has **30×** leverage and the prescribed metric gives **+0.143, +0.214, +0.357**, the mechanism's *direction*, unanimously and none significant over a non-monotone curve |
 | `e38_variance_budget.py` | C2b | what limits the network benchmark, and is `--test 480` the lever? | done — it is learner seed-to-seed variability, not measurement; the pairing claim is unresolved (+0.02 [−0.65, +0.67] at n=9) and the `--test 480` gain is bounded at 1.28× |
 | `e41_anisotropy_seed_fragility.py` | C1 | does `e5`'s anisotropy association survive its artifact, its other seeds and the metric rule? | done — **no**: the cited file is the 3-seed rerun and disagrees with the table in 7 of 42 cells (all in the realized-error columns); one cell reproduces both headlines exactly; the association is 1 of 3 seeds, p = 0.216 pooled, **+0.040 (p = 0.86)** on the prescribed absolute metric |
 | `e43_e5_replication.py` | C1 | is the `e5` artifact live output or a stale file? | done — **live**: `e37`'s same-configuration arm reproduces all 21 `(seed, kappa)` points, worst 0.50× print-rounding tolerance, so the published table's discrepant cells are the stale thing |
@@ -913,7 +922,7 @@ Added 2026-09-22, after the headline metric was found to be chaotic
    mechanism was *proposed* for — the knob travels **0.004–0.008** in `flattening`
    against **0.68–0.73** at `real`, i.e. ~90× less, because the carrier is already
    collapsed (`effective_rank` 1.70 against 55). Measured against the seed-to-seed
-   spread the knob is **9.4×, 20.2× and 5.3×** the noise there, against **142–271×** at
+   spread the knob is **8.6–19.3×** the noise there, against **142–271×** at
    `real`. So the correlation it produces at `swap2` is over noise, and its sign means
    nothing in either direction. **Report such configurations as *untested*, not as
    null** — and note the shape of the trap: the mechanism was stated in terms of the
@@ -922,6 +931,22 @@ Added 2026-09-22, after the headline metric was found to be chaotic
    a correlation at that configuration and argued about its sign; none checked whether
    the knob had moved anything. The check costs one column and belongs with the
    pre-registration.
+   **And "untested" must not be read as "refuted"**: at the one configuration where the
+   knob *does* have leverage for that mechanism (`swap2`/cs = 300, 30× the noise,
+   `effective_rank` driven 16.6 → 2.35) the prescribed metric gives +0.143, +0.214,
+   +0.357 — the mechanism's own direction, unanimously, and none of the three
+   significant. The mechanism's *law* is refuted; its *direction* is underpowered.
+19. **A smoke test checks that a flag runs; it does not read a direction out of anything.**
+   Three readings in this sequence were taken off the smallest sample that could produce a
+   shape, and all three misled: an "alternating sign" from four points (`e36`), a pooled
+   statistic from a partial seed that moved p across 0.05 (`e45`), and — the clearest —
+   `e36` §6b's caveat that the `kappa` intervention "already went the wrong way", from a
+   **2-point, 1-seed** smoke test. The finished 3-seed run reproduces that smoke test in
+   seed 0 *exactly* (1.1244 → 1.2572) while seeds 1 and 2 go the other way, and the 3-seed
+   mean reverses it (1.1746 → 1.0606); the caveat then shaped the mechanism's status for two
+   fires, in the plan and in a finding. **If a smoke test's output is quoted anywhere, quote
+   its `n` beside it** — `--seeds` defaults to 1 in `e5` and this was not noticed while the
+   number was being read.
 
 ## Related work to differentiate against
 
