@@ -27,14 +27,15 @@ Four findings, one of them unexpected in direction.
    Kalman oracle is +33–63% on the connectome against **<1%** in LGCL's synthetic
    random-rotation family. "The diagonal approximation is almost free" is a property
    of random task geometry, not of EWC.
-2. **The connectome separates the tasks, and the mechanism behind the penalty is not
-   interference — though that conclusion is configuration-specific.** Task precision subspaces on
-   the real wiring are **7× more orthogonal than random subspaces** and rewiring destroys that
-   monotonically — yet at d = 1307 the diagonal's excess moves *opposite* to overlap, falling by a
-   resolved 32.7σ while overlap doubles. **At d = 952 the same contrast reverses** (+0.03525 at
-   21.8σ paired, with `real` and `swap0.5` replicating to within 4% and matched rewiring strength),
-   so the refutation holds at one circuit size and reverses at another, and the mechanism question
-   is open (§4.2).
+2. **The connectome separates the tasks — and the claim that this does *not* drive the penalty
+   does not survive.** Task precision subspaces on the real wiring are **7× more orthogonal than
+   random subspaces** and rewiring destroys that monotonically. The penalty's *opposition* to
+   interference rested on one contrast, `swap0.5 → swap2`, at 32.7σ — and across four circuit sizes
+   with matched rewiring strength that contrast is **+21.8σ, −4.8σ, +14.5σ, −32.7σ**: the sign
+   **alternates**, every step decisive, while `real` holds to 6.2% and `swap0.5` to 18%. So
+   `excess(swap2)` oscillates by a factor of ~3 between *adjacent* sizes and is not a stable
+   quantity; **neither the refutation nor its reversal survives**, and the mechanism question is open
+   (§4.2). This is the project's eighth retraction and its largest.
 3. **Biological anchoring bases beat capacity-matched random ones, and there is a
    working a-priori predictor.** The fly's own annotation vocabulary supplies five
    discrete rungs, and four of them sit in the top 15% of the granularity range; on a
@@ -890,16 +891,20 @@ the better buy. Both statements are true, and a paper reporting only the first w
 hiding the trade.
 
 **Claims that did not survive.** Reported as findings rather than buried: the interference
-mechanism behind C1 (refuted at 32.7σ); C3 as stated (deprioritised, its mechanism
+mechanism behind C1 (refuted at 32.7σ — **and then the refutation itself, which is a statement about
+one graph**: ±alternating sign across four circuit sizes with every step decisive, so neither the
+refutation nor its reversal survives); C3 as stated (deprioritised, its mechanism
 contradicted); the unimodal misalignment peak of the reference materials (not reproduced in
 the coordinate basis); the headline "granularity beats biology" (itself an artefact of where
 the vocabulary places its rungs); **its replacement**, "granularity locates you, biology sets the
 height" (withdrawn in turn — the curve's internal steps sit at the level of a control-draw spread
-that had never been measured, and are unresolvable in principle at this seed budget); the
-"4 of 5 rungs beat their matched control" reading (a metric artefact, and the
-honest figure is 4 of 5 only at the standard configuration and with a stable metric); and
-the "replay is setting-dependent" claim (confounded with an untuned budget). Seven, and each
-one is a finding entry rather than a footnote.
+that had never been measured); the
+"4 of 5 rungs beat their matched control" reading (a metric artefact); the "every point resolves
+individually" form of the wiring sign flip (one of the five does not, once the control-draw
+component is included); and the "replay is setting-dependent" claim (confounded with an untuned
+budget). **Eight**, and each one is a finding entry rather than a footnote. The count is a
+*minimum*: three of these were found by re-analysing a run whose original analysis used the wrong
+error formula.
 
 ## 8. What we would do next
 

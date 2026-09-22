@@ -71,11 +71,14 @@ The scientific programme is complete. A working paper draft consolidating it is 
   over the exact Kalman oracle is +33–63% here against **<1%** in LGCL's synthetic
   random-rotation family. "The diagonal is almost free" is a property of random task
   geometry, not of EWC.
-- **The fly's wiring separates the tasks — and that is not what drives the penalty.**
-  Task subspaces on the real connectome are **7× more orthogonal than chance**, and
-  rewiring destroys that monotonically. But the penalty moves *opposite* to
-  interference, falling by a resolved **32.7σ** while overlap doubles. Our own
-  hypothesis, refuted on the axis where it was cleanest to test.
+- **The fly's wiring separates the tasks — and the claim that interference is *not* what drives
+  the penalty does not survive.** Task subspaces on the real connectome are **7× more orthogonal
+  than chance**, and rewiring destroys that monotonically. The penalty's opposition to interference
+  rested on one contrast at 32.7σ; across four circuit sizes with matched rewiring strength that
+  contrast is **+21.8σ, −4.8σ, +14.5σ, −32.7σ** — the sign **alternates**, every step decisive,
+  while `real` holds to 6.2% and `swap0.5` to 18%. So `excess(swap2)` oscillates ~3× between
+  *adjacent* sizes: **neither the refutation nor its reversal survives**, and the mechanism question
+  is open again.
 - **Biological anchoring bases beat capacity-matched random ones — and the curve's *shape* is
   not established.** The fly's annotation vocabulary puts four of its five rungs in the
   top 15% of the constrained range. Replacing them with a continuous **granularity ladder**
@@ -132,17 +135,22 @@ The scientific programme is complete. A working paper draft consolidating it is 
 - **A sign test on differences below the noise floor is a random draw** — report the
   target's resolvability alongside any ranking or sign score.
 
-Seven of our own earlier conclusions were retracted or overturned as artefacts of these
-traps; all seven are in the findings log with the same prominence as the results.
+Eight of our own earlier conclusions were retracted or overturned as artefacts of these
+traps; all eight are in the findings log with the same prominence as the results.
 
 `docs/findings/` holds the dated logs — one per result, negative results included, because
-those are the useful kind. The seven retractions and refutations, in order:
+those are the useful kind. The eight retractions and refutations, in order:
 
 - **the unimodal misalignment peak** of the reference materials does **not** appear in the
   coordinate basis; the penalty is governed by task *anisotropy* (~500× larger for a steep
   spectrum), which a real connectome supplies and a random synthetic task does not;
 - **the interference mechanism** is refuted at **32.7σ** — the penalty moves *opposite* to
   task overlap;
+- **and then the refutation itself**: that 32.7σ is a statement about **one graph**. Across four
+  circuit sizes with matched rewiring strength the contrast is **+21.8σ, −4.8σ, +14.5σ, −32.7σ** —
+  the sign alternates, every step decisive, while `real` holds to 6.2% and `swap0.5` to 18%. So
+  `excess(swap2)` oscillates ~3× between *adjacent* sizes and **neither the refutation nor its
+  reversal survives**;
 - **"granularity beats biology"** was an artefact of the annotation vocabulary, which places
   four of its five rungs where biology contributes least;
 - **"granularity locates you, biology sets the height"** — the replacement headline — was
@@ -161,7 +169,9 @@ Plus the traps themselves, each found by falling into it: the **chaotic headline
 metric** (standard deviation exceeding its own mean, and a 1-ULP ARPACK start vector moving
 the result by several percent); the **frozen-body** failure; the **untuned-baseline**
 failure; the **unpaired shape test** (contrasts read from an alphabetically sorted table with
-the wrong error formula); and the **single-draw control**.
+the wrong error formula); the **single-draw control**; and the **unset hyperparameter** — a run
+that never passes a flag measures at a value nobody inspected, which is how two rungs came to sit
+300× above the project's own recommended λ.
 
 ## Reproduce the LGCL numbers
 
