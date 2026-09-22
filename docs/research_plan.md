@@ -79,15 +79,19 @@ degree-preserving family the gap moves *opposite* to interference — overlap ri
 8× while the gap falls by two-thirds. The first mechanism story was wrong.
 
 > **And that refutation is configuration-specific.** It rests on a single contrast,
-> `swap0.5 → swap2` (32.7σ at d = 1307). Re-measured at d = 952 with per-seed storage and matched
-> rewiring strength (swap fraction 0.912 against 0.924), the same contrast is **+0.03525 at 21.8σ
-> paired — the opposite sign**. `real` and `swap0.5` replicate between the two configurations to
-> within 4%; only the `swap2` endpoint moves, by a factor of 4.67 (37σ). So at d = 952 heavy
-> rewiring makes the penalty *worse*, which is what the interference story predicts, and at
-> d = 1307 it makes it better. **The honest status is "refuted at d = 1307, reversed at d = 952"**,
-> and the mechanism question is open again rather than settled
-> (`docs/findings/2026-09-22-c1-refutation-does-not-replicate.md`). A sweep over circuit size is the
-> cheap next step; `e2` already takes `--circuit-size`.
+> `swap0.5 → swap2`. Re-measured with per-seed storage and matched rewiring strength
+> (swap fraction 0.912–0.924), the contrast is **+0.03525 at d = 952 (21.8σ paired)**,
+> **−0.00304 at d = 1010 (4.8σ paired)**, and −0.01079 at d = 1307 (32.7σ unpaired). `real` and
+> `swap0.5` hold to **4–12%** across the whole sweep while `swap2` moves by a factor of **4.7** —
+> and 3.3× of that happens between d = 952 and d = 1010, a **6% change in circuit size**. So the
+> sign is positive at one point and negative at two, the gap between them spans an order of
+> magnitude, and neither conditioning (which behaves oppositely at the two extremes) nor subsample
+> composition (ruled out by the flat controls) explains it. **The honest status is "refuted at
+> d = 1307, reversed at d = 952, and not a stable object across the sweep"**, and the mechanism
+> question is open again rather than settled
+> (`docs/findings/2026-09-22-c1-refutation-does-not-replicate.md`,
+> `2026-09-22-swap2-scale-sweep-partial.md`). Three more sweep points are running and they decide
+> between "anomaly at d = 952" and "unstable across subsamples".
 
 *Replacement, after `e5`: anisotropy, in the same direction Phase 1 found.* Vary
 the task's spectral concentration **directly**, at fixed topology, fixed support
