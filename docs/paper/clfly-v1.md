@@ -736,10 +736,13 @@ number, the configuration was re-run (`e61`), and at per-step 8 it **reproduces*
 contrast **−0.08542 ± 0.01293 = 6.61σ** — *stronger* than the 4.2σ claimed, with 5/5
 replicates negative, a leave-one-out σ range of [5.19, 7.35] and no removal flipping the
 sign. The `naive` arm is bit-identical to `e8_hardened`'s, which is what makes the
-comparison like-for-like rather than approximate. Two limits, stated rather than implied:
-five replicates is provisional under the project's own rule 20, and the other two settings'
-pool-96 replay arms in the table below are *still* backed by no artifact. The
-"more replay is worse" inversion likewise awaits its per-step 16 and 48 arms.
+comparison like-for-like rather than approximate. **The claim's other half — that more replay is
+worse — reproduces too**: per-step 16 gives +0.0104 against the claimed +0.017, and the inversion as a
+*paired* contrast on the same five replicates is **+0.02292 ± 0.00390 = 5.88σ with all five signs
+agreeing**. (Per-step 16's own forgetting is only 1.58σ from zero, so it is the paired comparison and
+not the sign of a single arm that carries the shape.) Two limits, stated rather than implied: five
+replicates is provisional under the project's own rule 20, and the other two settings' pool-96 replay
+arms in the table below are *still* backed by no artifact. Per-step 48 is still running.
 
 **The memory accounting matters and is stated plainly.** At their tuned optima EWC stores
 26,568 floats (0.2 MB) for +0.010 forgetting, while replay stores 96 stimuli × 12 steps ×

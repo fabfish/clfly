@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-23
 **Script:** `experiments/e61_replay_recreation.py`
-**Artifact:** `runs/e61_replay96_step8.json` (per-step 16 and 48 still running)
+**Artifact:** `runs/e61_replay96_step{8,16}.json` (per-step 48 still running)
 **Context:** `2026-09-22-the-replay-result-has-no-artifact.md` (e62), `2026-09-22-replay-budget-inversion.md`, plan rules 8, 17, 20
 
 ---
@@ -88,13 +88,50 @@ The discipline is not a demolition device; it is what tells these two cases apar
   `e46`: LOO min σ 5.19 and leverage 0.77 leave no single replicate carrying the effect. A
   sixteen-replicate version of this one configuration is the obvious next run; note that this is
   exactly the move that killed `e46`'s −0.0648, so it is a real test and not a formality.
-- **The budget inversion is not yet checked.** Per-step 16 (claimed +0.017) and 48 (claimed +0.007)
-  are still running. Until they land, only half of the original finding — the effect, not the "more
-  replay is worse" shape — is under test.
+- **The budget inversion is half checked, and the half that is checked reproduces.** Per-step 16
+  (claimed +0.017, measured **+0.0104**) has landed; per-step 48 (claimed +0.007) is still running. See
+  §7, which is where the finding's second half now lives.
 - **The other arms' spread is not small.** `e54`'s census puts this `naive` computation in a cluster of
   its own (`shared_head`/`readout_size` differ from the main cluster), so the contrast carries both
   arms' spread; the paired sem handles what sharing the replicate seed can remove, and no more.
 - **Pool size is held at 96** throughout, as the finding names; "best when tuned" is not tested.
+
+## 7. The budget inversion, which is the other half of the claim, and it reproduces too
+
+The published finding made **two** assertions in one breath: that replay at pool 96 / per-step 8 drives
+forgetting negative, and that **more replay is worse** — per-step 8 → −0.010, 16 → +0.017, 48 → +0.007.
+The second is a claim about a *shape*, and `e62` found the artifact behind it missing along with the
+first.
+
+Per-step 16 has now landed:
+
+| per-step | replay forgetting | claimed | naive minus replay contrast | paired σ |
+|---|---|---|---|---|
+| 8 | **−0.01250** | −0.010 | −0.08542 ± 0.01293 | **6.61** |
+| 16 | **+0.01042** | +0.017 | −0.06250 ± 0.01545 | **4.05** |
+| 48 | — | +0.007 | — | — |
+
+So the shape holds where it is checkable: the smaller per-step amount is the better one, and it is the
+only one of the two that drives forgetting negative. The claimed +0.017 against the measured +0.0104 is
+a 0.007 discrepancy — with the claim carrying no error bar of its own, that is one replicate's worth.
+
+**And the inversion is itself a contrast, so it can be tested paired rather than compared as two
+means.** Both per-step arms of one configuration run on the *same* replicate seeds, so
+`forgetting(16) − forgetting(8)` is a matched quantity over five replicates:
+
+| contrast | delta | sem (paired) | σ | signs | LOO σ range | flips | leverage |
+|---|---|---|---|---|---|---|---|
+| **16 − 8** | **+0.02292** | 0.00390 | **5.88** | `+++++` | [4.70, 8.66] | no | 0.80 |
+
+**The inversion is 5.88σ on the same five replicates that the effect itself rests on, with all five
+signs agreeing and no leave-one-out removal changing it.** That is a stronger statement about the shape
+than the original finding made — it had three point estimates, and this has a paired σ.
+
+One distinction worth keeping, because the two numbers are easy to conflate: per-step 16's replay
+forgetting is **+0.01042 ± 0.0066, i.e. 1.58σ from zero** — it is *not* resolved as positive on its
+own — while its contrast against `naive` is −0.0625 at 4.05σ. So "per-step 16 is worse than per-step 8"
+is established at 5.88σ, and "per-step 16's forgetting is positive" is not. The comparison that carries
+the shape is the paired one, not the sign of a single arm.
 
 ## 6. Where the numbers live
 

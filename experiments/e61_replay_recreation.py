@@ -155,6 +155,42 @@ def main() -> None:
               f"{vals[0] < min(vals[1:]) if len(vals) > 1 else 'n/a'}")
         out["inversion"] = dict(claim_agrees=bool(inv_ok),
                                 measured=dict(zip(map(str, order), vals)))
+
+        #: The inversion is itself a contrast, and the per-step arms within one configuration run on
+        #: the SAME replicate seeds -- so it is paired, and its sigma is a fact about the sweep rather
+        #: than about two independent numbers.  `e46`'s lesson was that a pooled three-seed figure can
+        #: reverse; here every arm has five replicates and they share seeds, so the right test is
+        #: available and there is no reason to compare means unpaired.
+        print()
+        print("=" * 104)
+        print("3. THE INVERSION AS A PAIRED CONTRAST")
+        print("=" * 104)
+        print("   all per-step arms of one configuration share their replicate seeds, so the")
+        print("   difference between two per-step amounts is a paired quantity on 5 replicates.\n")
+        per_rep = {}
+        for step in sorted(ARTIFACTS):
+            d = load(ARTIFACTS[step])
+            if d is None:
+                continue
+            per_rep[step] = np.asarray([r["mean_forgetting"] for r in d["methods"]["replay"]["replicates"]])
+        print(f"   {'contrast':<24}{'delta':>11}{'sem(paired)':>13}{'sigma':>8}{'signs':>9}{'p':>9}")
+        inv_rows = []
+        steps = sorted(per_rep)
+        for s_a, s_b in zip(steps, steps[1:]):
+            va, vb = per_rep[s_a], per_rep[s_b]
+            n = min(va.size, vb.size)
+            dl = vb[:n] - va[:n]
+            st = paired_stats(dl)
+            print(f"   {f'{s_b} - {s_a}':<24}{st['delta']:>+11.5f}{st['sem']:>13.5f}"
+                  f"{st['sigma']:>8.2f}{st['signs']:>9}{st['sign_p']:>9.4f}")
+            print(f"   {'':<24}LOO sigma [{st['loo_min']:.2f}, {st['loo_max']:.2f}]  flips "
+                  f"{st['loo_flips']}  leverage {st['leverage']:.2f}")
+            inv_rows.append(dict(contrast=f"{s_b} - {s_a}", **st))
+        out["inversion_paired"] = inv_rows
+        if inv_rows:
+            best = max(inv_rows, key=lambda r: r["sigma"])
+            print(f"\n   the inversion's strongest adjacent contrast is {best['contrast']} at "
+                  f"{best['sigma']:.2f} sigma")
     else:
         print("\n   only one per-step draw has landed -- the inversion is not yet checkable")
 
