@@ -105,12 +105,12 @@ The scientific programme is complete. A working paper draft consolidating it is 
   included (see above), that holds at **12 of 12** even if the fine columns' draw sd is four
   times the estimate, with the sign record perfect at any multiplier from 0.1× to 10×. A predictor that merely recovered
   *granularity* would score 0/25, since matched pairs share it exactly.
-- **On a trained rate network the question reverses.** The biological synapse partition
-  never beats a size-matched random control — at `cell_class`, the second-coarsest of the five
-  annotation rungs (0.925 constrained). The ladder's ordering matches the neuron level exactly,
-  and **`side` (0.6947), the rung that was strongest on neurons, has never been run on
-  synapses**, while the other three rungs cost under 0.04 GB precisely because they sit near
-  the diagonal. On that substrate EWC helps only
+- **On a trained rate network the question reverses.** At `cell_class` (the second-coarsest of the
+  five annotation rungs, 0.925 constrained) the biological synapse partition is **worse** than a
+  size-matched random one: −0.0648 accuracy at **2.65σ** and +0.0903 forgetting at **2.73σ**,
+  *paired on the shared seeds*, in all three replicates. At the coarsest rung `side` (0.6947) — the
+  one the neuron result most implicates — the negative holds too (0.43σ paired), though that run is
+  underpowered for effects below 0.09 accuracy and its λ was never set. On that substrate EWC helps only
   when the read-out is narrow
   enough to make the plastic weights load-bearing; and **replay is the stronger method
   in every setting** (2.2–4.2σ), with forgetting driven to zero or below. That confirms

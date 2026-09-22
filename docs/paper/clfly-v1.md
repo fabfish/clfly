@@ -64,11 +64,12 @@ Four findings, one of them unexpected in direction.
    projection (spectral truncation, locally optimal at every step) is the worst
    candidate tested. Fixed structures beat adaptive ones here.
 
-On a **trained connectome-constrained rate network**, the same question reverses: the
-biological synapse partition never beats a size-matched random one — though only at the
-second-coarsest of the five annotation rungs, `cell_class` at 0.925 constrained, while
-`side` (0.6947), the rung that was strongest on neurons, has never been run, and the other
-three rungs all cost under 0.04 GB precisely because they sit near the diagonal. On that
+On a **trained connectome-constrained rate network**, the same question reverses: at `cell_class`
+(0.925 constrained) the biological synapse partition is **worse** than a size-matched random one —
+−0.0648 accuracy at **2.65σ** and +0.0903 forgetting at **2.73σ**, *paired on the shared seeds*, in
+all three replicates — and at `side` (0.6947), the coarsest rung and the one the neuron result most
+implicates, the negative holds as well (0.43σ paired), though that run is underpowered for effects
+below 0.09 accuracy and its λ was never set. On that
 substrate EWC helps only when
 the read-out is narrow enough to make the plastic weights load-bearing, and replay —
 content memory — is the stronger method in every setting, with forgetting driven to zero
@@ -638,6 +639,17 @@ synapse partition shows no advantage over its size-matched random control in any
 settings tested** (Fisher batches 8/32/128, λ 0.003/0.01/0.1), and its ordering against that
 control **flips sign between them** — the null-effect signature. The linear substrate's 12.1σ
 advantage for the same grouping does not reproduce here under any setting tried.
+
+**At one of those settings the correct analysis makes it a disadvantage rather than a null.** At
+λ = 0.1, batches = 8 — the published basis comparison — the biological arm is worse than its random
+control in **all three replicates**, on both metrics: −0.0648 accuracy (2.65σ) and +0.0903
+forgetting (2.73σ), **paired** on the shared seeds (r ≈ 0.56, worth 1.2–1.4× in sem). The published
+analysis was unpaired, read the same numbers as within-noise, and the project's summary became "no
+advantage". Raising λ to 1.0 shrinks the gap to 0.35σ, so the null reading holds at *that* λ rather
+than being λ-robust. Across every cell with three or more replicates, biology shows an advantage in
+exactly one — (0.003, 32) — and that cell's own 9-replicate replication reduced it to 0.5σ. The
+defensible form is therefore **significantly worse at (0.1, 8), and never reliably better anywhere
+measured** (`docs/findings/2026-09-22-bio-partition-worse-than-random.md`).
 
 That granularity itself is not a variable in this comparison, and saying so is the point.
 Every one of the five settings used `--basis cell_class`, and sweeping `pool_below` over

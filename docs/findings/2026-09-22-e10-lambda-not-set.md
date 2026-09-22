@@ -150,3 +150,24 @@ a rung effect; a grid can, and the answer decides whether `C2b`'s negative means
 The cheaper version if 5 hours is too much: the diagonal of the grid, {(0.003, 8), (0.1, 32),
 (1.0, 128)} — three runs, ~1.8 h, and it spans the effective-strength range rather than the nominal
 one.
+
+## 9. Update: two of the three points in the ladder's own λ arm already existed
+
+§8 proposed a grid. It turns out the λ arm **at the ladder's batches (8)** has two of three points
+already on disk, in files with no reason to have been compared:
+
+| λ | batches | artifact |
+|---|---|---|
+| 0.1 | 8 | `runs/e8_basis.json` — the published basis comparison |
+| 1.0 | 8 | `runs/e10_rung_cell_class.json` — the rung ladder |
+| 0.003 | 8 | `runs/e25_...` — running |
+
+All three share seeds, task draws, repeats and batch count. Analysing the first two
+(`docs/findings/2026-09-22-bio-partition-worse-than-random.md`) changes the network line's headline:
+at (0.1, 8) the biological partition is **worse** than its matched random control in all three
+replicates, on both metrics, at **2.65σ / 2.73σ paired** — and the published analysis of that same
+run was unpaired, read it as within-noise, and the project summarised it as "no advantage".
+
+So the "λ-confounded" framing of §2 was itself too narrow. The rung ladder is not merely at an
+unusual λ; **the λ arm it belongs to had never been assembled**, and assembling it from existing
+artifacts produced a resolved result that four fires of λ work had not surfaced.
