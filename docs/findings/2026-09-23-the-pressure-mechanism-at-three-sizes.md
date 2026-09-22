@@ -28,6 +28,23 @@ alignment's +0.170 is beaten at every size by a margin of 4.8× in *r*².
 | d = 1307 − d = 952 | −0.0166 ± 0.0198 | 0.84 | `-++---++-` | 1.0000 |
 | **d = 1874 − d = 1307** | **−0.0962 ± 0.0293** | **3.29** | **`+--------`** | **0.0391** |
 
+> **CORRECTED (`e87`, `docs/findings/2026-09-23-the-three-size-decay-is-not-resolved.md`).** The σ in that
+> table treat the nine partitions as nine independent observations, and **they are not**: all nine partitions
+> of one run see the **same six relabellings**, so a draw-level effect moves every partition's correlation
+> together. Resampling the **draws** instead — the unit that respects that — gives **4.0× the sem**, and
+> both intervals include zero:
+>
+> | comparison | mean | partition sem | **draw bootstrap sd** | σ, partition / **draw** | 95% interval |
+> |---|---|---|---|---|---|
+> | d = 1307 − d = 952 | −0.0166 | 0.0198 | **0.0790** | 0.84 / **0.45** | [−0.2303, +0.0728] |
+> | d = 1874 − d = 1307 | −0.0962 | 0.0293 | **0.1165** | 3.29 / **0.75** | [−0.3110, +0.1468] |
+>
+> So **the decay is a point estimate, not a measurement**, and the eight-of-nine sign record — which is
+> exactly what a shared-draw effect produces — was never independent evidence. Everything else in this
+> finding stands: the mechanism holds at three sizes, 81 of 81 seed-level correlations are positive, and
+> the alignment is beaten at every size. The word "measured" in §2 and the "not size-invariant" claim in §3
+> are withdrawn; the honest form is "68–85%, with the size dependence not resolved".
+
 ## 2. So the mechanism replicates — and it is not size-invariant
 
 **The first comparison is a null and the second is not.** Moving from d = 952 to d = 1307 changes nothing

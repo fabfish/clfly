@@ -518,11 +518,13 @@ prior the projection discards, **weighted by the task's measurement information 
 r² = 0.828** on the same relabelling at d = 1307, against **0.170 (r² 0.066)** for the bare alignment on the
 identical design (`e81`; the paired difference is +0.736 ± 0.061 with nine of nine partitions positive).
 **And it replicates at two other circuit sizes** — d = 952 gives *r* = 0.923 / *r*² 0.854 and d = 1874 gives
-**0.810 / 0.676**, with **all 81 seed-level correlations across the three sizes positive** — though it is
-**not size-invariant**: the step from d = 1874 down from d = 1307 is **−0.096 ± 0.029 = 3.29σ with eight of
-nine partitions declining**, while the d = 952 step is a null. So the honest range for the fraction of the
-draw-to-draw variance this explains is **68–85% depending on circuit size**, and the weakest partition at
-every size is `side`. All four failures were **subspace overlaps** — they ask where the drive *is* — and
+**0.810 / 0.676**, with **all 81 seed-level correlations across the three sizes positive** — though the
+apparent decline at the largest size is **not resolved**: the nine partitions share their six relabellings,
+so resampling the **draws** rather than the partitions gives an interval **4× wider** that spans zero
+(−0.096 ± 0.117), where the partition-level sem would have said 3.29σ. So the honest range for the fraction
+of the draw-to-draw variance this explains is **68–85% depending on circuit size, with the size dependence
+not resolved**, and the weakest partition at every size is `side`. All four failures were **subspace
+overlaps** — they ask where the drive *is* — and
 none could see `J_k`, which is what the spread turns out to be about. The draw sd is still **measured per
 rung** wherever a σ uses it, so nothing in this paper's numbers depends on the mechanism; but the error bar
 now has an explanation. See the note two paragraphs below and

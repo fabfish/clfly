@@ -43,6 +43,61 @@ def load(path: str):
         return json.load(fh)
 
 
+def residualise(x: np.ndarray, seeds: np.ndarray) -> np.ndarray:
+    """Remove each seed's own mean, so only the across-draw variation is left."""
+    out = x.astype(float).copy()
+    for s in np.unique(seeds):
+        m = seeds == s
+        out[m] -= out[m].mean()
+    return out
+
+
+def load_rows(path: str):
+    with open(path, encoding="utf-8") as fh:
+        return json.load(fh)["rows"]
+
+
+def r_on_draws(row: dict, draw_idx: np.ndarray) -> float:
+    """Within-seed co-movement for one partition, using a (possibly resampled) set of draws."""
+    P = np.asarray(row["pressure_values"], float)
+    E = np.asarray(row["excess_values"], float)
+    D = np.asarray(row["draw_index"], int)
+    S = np.asarray(row["seed_index"], int)
+    take = np.concatenate([np.where(D == d)[0] for d in draw_idx])
+    p, e, s = P[take], E[take], S[take]
+    pr, er = residualise(p, s), residualise(e, s)
+    if pr.std() == 0 or er.std() == 0:
+        return float("nan")
+    return float(np.corrcoef(pr, er)[0, 1])
+
+
+def mean_r(rows: list, draw_idx: np.ndarray) -> float:
+    return float(np.nanmean([r_on_draws(r, draw_idx) for r in rows]))
+
+
+def bootstrap_over_draws(rows_a: list, rows_b: list, n_boot: int = 4000,
+                         seed: int = 0) -> dict:
+    """Sampling interval for `mean r(B) - mean r(A)` that respects the shared draws.
+
+    The nine partitions of one run all see the **same six relabellings**, so their correlations are not
+    independent observations and a sem over the nine understates the uncertainty of their mean.  The
+    right resampling unit is the draw: resample the six draw slots with replacement once per run, recompute
+    all nine correlations on that resample, average, and take the difference.  Both runs get independent
+    resamples because their relabellings are different objects.
+    """
+    n_draws = len(set(np.asarray(rows_a[0]["draw_index"], int)))
+    rng = np.random.default_rng(seed)
+    diffs = np.empty(n_boot)
+    for i in range(n_boot):
+        ia = rng.integers(0, n_draws, n_draws)
+        ib = rng.integers(0, n_draws, n_draws)
+        diffs[i] = mean_r(rows_b, ib) - mean_r(rows_a, ia)
+    return dict(mean=float(diffs.mean()),
+                lo=float(np.percentile(diffs, 2.5)), hi=float(np.percentile(diffs, 97.5)),
+                frac_below_zero=float((diffs < 0).mean()), n_boot=n_boot,
+                sd=float(diffs.std(ddof=1)))
+
+
 def paired_stats(dl: np.ndarray) -> dict:
     n = dl.size
     mean = float(dl.mean())
@@ -60,6 +115,7 @@ def main() -> None:
     args = ap.parse_args()
 
     data = {}
+    out: dict = {}
     for label, path, cs in SIZES:
         d = load(path)
         if d is None:
@@ -124,6 +180,18 @@ def main() -> None:
               f"{st['sigma']:.2f}sigma   signs {st['signs']}   p = {st['p']:.4f}   (n = {st['n']})")
         print(f"      mean r: {np.mean([ra[l] for l in shared]):+.3f} -> {np.mean([rb[l] for l in shared]):+.3f}"
               f"   (shared labels only)")
+        boot = bootstrap_over_draws(data[a]["rows"], data[b]["rows"])
+        print(f"      BUT the nine partitions share their six draws, so the sem above treats correlated")
+        print(f"      numbers as independent.  Resampling the DRAWS instead: {boot['mean']:+.4f} "
+              f"[{boot['lo']:+.4f}, {boot['hi']:+.4f}], {boot['frac_below_zero']*100:.2f}% of resamples "
+              f"below zero")
+        print(f"      -> the shared-draw interval is {boot['sd']:.4f} wide against an independent-partition")
+        print(f"         sem of {st['sem']:.4f}, i.e. {boot['sd']/st['sem']:.1f}x wider"
+              if boot["sd"] > st["sem"] else
+              f"      -> the shared-draw interval is NARROWER than the independent-partition sem"
+              f" ({boot['sd']:.4f} against {st['sem']:.4f})")
+        out.setdefault("paired", []).append(dict(a=a, b=b, **{k: v for k, v in st.items()}))
+        out.setdefault("paired_bootstrap", []).append(dict(a=a, b=b, **boot))
 
     print()
     print("=" * 104)
@@ -135,8 +203,8 @@ def main() -> None:
         print(f"   {label:<9} pressure {s['mean_r']:+.3f} (r^2 {s['mean_r2']:.3f})   "
               f"beats it: {s['mean_r'] > ALIGNMENT_MEAN_R}")
 
-    out = {"sizes": summary, "artifacts": {l: p for l, p, _ in SIZES},
-           "alignment_mean_r": ALIGNMENT_MEAN_R}
+    out.update({"sizes": summary, "artifacts": {l: p for l, p, _ in SIZES},
+                "alignment_mean_r": ALIGNMENT_MEAN_R})
     Path(args.json_out).parent.mkdir(parents=True, exist_ok=True)
     with open(args.json_out, "w", encoding="utf-8") as fh:
         json.dump(out, fh, indent=1, default=str)
