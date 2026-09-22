@@ -42,7 +42,7 @@ from pathlib import Path
 
 import numpy as np
 
-from clfly.bench.analytic import expected_error_matrix, spearman
+from clfly.bench.analytic import expected_error_matrix, spearman, task_permutation_test
 from clfly.connectome import annotate, circuits, graph, tasks
 from clfly.lgcl.bases import Diagonal
 
@@ -176,6 +176,10 @@ def real_assemblies(args, conn, ann) -> dict:
     res["propagation_loo_min"] = float(np.min(loo))
     res["propagation_loo_max"] = float(np.max(loo))
     res["propagation_loo_range"] = float(np.max(loo) - np.min(loo))
+    # The pairs come from `n_tasks` tasks and are NOT independent: a permutation test over the
+    # pairs is far too narrow. This is the exact task-LABEL permutation, which is the null the
+    # design implies, and it cannot go below 1/(T!+1) however strong the association.
+    res["task_permutation_propagation"] = task_permutation_test(prop, inter, n_tasks=args.tasks)
 
     # Size confound: interference may simply track how much information the two
     # tasks carry, which is not an overlap effect at all.
@@ -231,6 +235,10 @@ def main(argv=None) -> int:
     print(f"  support overlap      vs interference: {r['spearman_overlap_vs_interference']:+.3f}")
     print(f"  propagation overlap  vs interference: {r['spearman_propagation_vs_interference']:+.3f}"
           f"   leave-one-out range [{r['propagation_loo_min']:+.3f}, {r['propagation_loo_max']:+.3f}]")
+    tp = r["task_permutation_propagation"]
+    print(f"    task-level permutation over {tp['n_tasks']} tasks: p = {tp['p_value']:.4f} "
+          f"of {tp['n_permutations']} labelings; the design cannot go below "
+          f"{tp['min_attainable_p']:.4f}, so p < 0.001 needs {tp['tasks_needed_for_p1e-3']} tasks")
     print(f"  support vs propagation overlap:       {r['spearman_overlap_vs_propagation']:+.3f}")
     print(f"  overlap vs task distance (confound):  {r['overlap_vs_distance']:+.3f}")
     print(f"  task SIZE vs interference (confound): {r['spearman_size_vs_interference']:+.3f}"

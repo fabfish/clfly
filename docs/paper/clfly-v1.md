@@ -470,7 +470,22 @@ The benchmark-design conclusion is concrete:
 
 This is a better result than the original claim, because "circuit overlap" was
 ambiguous between the two readings and the ambiguity turned out to be the finding.
-The limitation is ten pairs from five tasks.
+
+**The limitation is not merely that there are ten pairs from five tasks — it is that the ten pairs
+are not independent, and the design has a floor.** A permutation test over the pairs gives
+p = 0.0002, but it is the wrong test: every pair shares a task with four others, so the sample has
+an effective size nearer five. Permuting the **task labels** — of which there are only ``T!`` —
+is the test the design implies, and it gives **p = 0.0165**, so the naive figure overstates the
+significance by **83×** (ρ = +0.9394 sits at the 99.2nd percentile of the task-level null, with one
+of 120 labelings attaining it). The association is real at 5%; it was not at the level the earlier
+form implied.
+
+The floor generalises and is worth stating before the next benchmark is built: **a pair-level prior
+cannot report p < 0.001 with fewer than seven tasks**, whatever the effect, because there are only
+``T!`` labelings to permute (5 tasks → a floor of 0.0083, 6 → 0.0014, 7 → 0.0002). The constraint is
+the number of independent labelings, not the number of pairs — which grows as ``T(T−1)/2`` and
+flatters a small ``T``
+(`docs/findings/2026-09-22-task-permutation-c4.md`).
 
 ### 4.7 On a trained network, both methods work — and each needs its own hyperparameters swept
 

@@ -369,3 +369,50 @@ def contrast_of_contrasts(a: dict, b: dict) -> dict:
         "conservatism": sem_un / sem if sem else float("nan"),
     })
     return out
+
+
+def task_permutation_test(a, b, n_tasks: int, stat=None) -> dict:
+    """Exact permutation significance for a pair-level association whose pairs come from tasks.
+
+    ``a`` and ``b`` are pair-level values in upper-triangle order — ``(0,1), (0,2), ...,
+    (T-2,T-1)`` for ``T = n_tasks``.  Permuting the **pairs** is the obvious test and it is
+    wrong: pairs sharing a task are dependent, so a 10-pair sample from 5 tasks has an effective
+    size nearer 5, and the permutation null is far too narrow.  Permuting the **task labels**
+    preserves the within-task dependence exactly and gives the null the design actually implies.
+
+    There are ``T!`` such permutations, so ``1/(T!+1)`` is the **smallest p-value the design can
+    produce no matter how strong the association** — a fact worth knowing before designing a
+    benchmark, since claiming p < 0.001 needs ``T >= 7`` if the association is perfect and more
+    otherwise.
+
+    Returns the observed statistic, the p-value, the null's mean/sd/max, and that floor.
+    """
+    import itertools
+    import math
+
+    stat = stat or spearman
+    a = np.asarray(a, float)
+    pairs = [(i, j) for i in range(n_tasks) for j in range(i + 1, n_tasks)]
+    if a.size != len(pairs) or np.asarray(b, float).size != len(pairs):
+        raise ValueError(f"expected {len(pairs)} pair values for {n_tasks} tasks")
+
+    M = np.zeros((n_tasks, n_tasks))
+    for (i, j), v in zip(pairs, np.asarray(b, float)):
+        M[i, j] = M[j, i] = v
+    observed = float(stat(a, np.asarray(b, float)))
+    null = np.array([stat(a, np.array([M[perm[i], perm[j]] for i, j in pairs]))
+                     for perm in itertools.permutations(range(n_tasks))])
+    n_perm = null.size
+    return {
+        "n_pairs": len(pairs),
+        "n_tasks": n_tasks,
+        "observed": observed,
+        "p_value": float((np.sum(null >= observed) + 1) / (n_perm + 1)),
+        "n_permutations": int(n_perm),
+        "null_mean": float(null.mean()),
+        "null_sd": float(null.std()),
+        "null_max": float(null.max()),
+        "min_attainable_p": float(1.0 / (math.factorial(n_tasks) + 1)),
+        "tasks_needed_for_p1e-3": next((t for t in range(2, 12)
+                                        if 1.0 / (math.factorial(t) + 1) < 1e-3), None),
+    }

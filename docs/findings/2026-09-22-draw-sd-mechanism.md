@@ -280,3 +280,31 @@ Two consequences:
 
 `ito_lee_hemilineage` (concentration 0.032) is the second fine column and is still running; it is the
 last one needed to close the knee for every column the predictor uses.
+
+## 11. The fine-column set is complete: the interpolation is unreliable in the knee, and it does not matter
+
+`e17b` finished with `ito_lee_hemilineage`, so every annotation column the predictor uses now has a
+**measured** draw sd at d = 1307:
+
+| column | concentration | measured | interpolated | ratio |
+|---|---|---|---|---|
+| `cell_class` | 0.171 | 2.371e-4 | 1.881e-4 | 1.26× |
+| `supertype` | 0.026 | 8.35e-5 | 4.14e-5 | **2.03×** |
+| `ito_lee_hemilineage` | 0.032 | **4.16e-5** | 4.44e-5 | 0.94× |
+
+**The interpolation is not reliable in the knee** — 0.94× to 2.03× — and there is no ordering in
+concentration: `supertype` at 0.026 is **twice** `ito_lee_hemilineage` at 0.032. That is a second,
+independent confirmation of §7's conclusion that concentration orders **fine versus coarse** and
+nothing finer. It also means the "fine columns are ~4e-5" summary in §10 was over-general: the
+fine regime spans at least 4.2e-5 to 8.4e-5.
+
+**Substituting every measurement for every interpolation leaves the predictor's matched-pair count
+unchanged at 13 of 13.** Each of these columns has a seed sem an order of magnitude larger than its
+draw sd, so the draw term is negligible and the error cannot propagate. The headline is indifferent
+to the error — which is a useful thing to know and is *not* the same as the interpolation being
+good.
+
+So the knee is now bounded by three interior measurements and, for the claims that use it, does not
+need to be resolved further. The one place it still matters is the **budget calculation** for a rung
+whose concentration falls in 0.05–0.25 that has not been measured, and there is no such rung in the
+ladder.

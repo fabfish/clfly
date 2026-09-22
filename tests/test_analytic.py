@@ -280,3 +280,38 @@ def test_sigma_of_a_zero_effect_with_zero_sem_is_nan_not_infinite():
     assert _sigma(0.0, 1e-4) == 0.0
     assert _sigma(1e-3, 1e-4) == pytest.approx(10.0)
     assert _sigma(1e-3, 0.0) == float("inf")
+
+
+# --------------------------------------------------------------------------
+# the task-level permutation test: pairs from tasks are not independent
+# --------------------------------------------------------------------------
+def test_task_permutation_cannot_go_below_its_floor():
+    # the identity permutation is always in the null and attains the observed value, so the
+    # p-value can never be smaller than 1/(T!+1) -- that is the design's hard limit
+    from clfly.bench.analytic import task_permutation_test
+    a = np.array([1.0, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+    out = task_permutation_test(a, a.copy(), n_tasks=5)
+    assert out["observed"] == pytest.approx(1.0)
+    assert out["p_value"] >= out["min_attainable_p"]
+    assert out["p_value"] == pytest.approx(2 / 121)   # two permutations attain the maximum
+
+
+def test_task_permutation_floor_is_one_over_t_factorial():
+    from clfly.bench.analytic import task_permutation_test
+    a = np.arange(6.0)
+    out = task_permutation_test(a, a.copy(), n_tasks=4)
+    assert out["n_permutations"] == 24
+    assert out["min_attainable_p"] == pytest.approx(1 / 25)
+
+
+def test_task_permutation_rejects_a_mismatched_pair_count():
+    from clfly.bench.analytic import task_permutation_test
+    with pytest.raises(ValueError):
+        task_permutation_test(np.arange(9.0), np.arange(9.0), n_tasks=5)
+
+
+def test_task_permutation_says_how_many_tasks_a_target_needs():
+    from clfly.bench.analytic import task_permutation_test
+    out = task_permutation_test(np.arange(10.0), np.arange(10.0), n_tasks=5)
+    # 5! and 6! are too small for p < 1e-3; 7! = 5040 is the first that is
+    assert out["tasks_needed_for_p1e-3"] == 7

@@ -314,7 +314,15 @@ correlates +0.164 with interference).
 > measure their subspace alignment, and the prior is available before any training run.
 
 Limitation: ten pairs from five tasks. A benchmark with more tasks would test the
-prior on more pairs.
+prior on more pairs — and the reason is sharper than "more pairs are better": the
+pairs are not independent, so the test that matches the design permutes the **task
+labels**, of which there are only ``T!``. **The smallest attainable p-value is
+therefore ``1/(T!+1)``, so claiming p < 0.001 needs at least 7 tasks** (5 gives a floor
+of 0.0083) however perfect the association is. Measured on the present run, the
+task-level permutation gives **p = 0.0165** against 0.0002 for a naive pair
+permutation — the naive figure overstates the significance by **83×**, and the
+association is real but not as precise as it was implied to be
+(`docs/findings/2026-09-22-task-permutation-c4.md`).
 
 ### C2b — the network basis negative has never been asked at the rung that matters
 
@@ -537,6 +545,17 @@ Added 2026-09-22, after the headline metric was found to be chaotic
    the parameter you were about to spend compute measuring. Working that out
    first turned a 5-hour re-run into a 1.9-hour one over three rungs
    (`docs/findings/2026-09-22-draw-budget.md`).
+13. **Match the test to the design, and say the design's floor.** Four separate
+   comparisons in this project were reported with a formula that did not match how
+   they were built: matched rungs tested unpaired, a single control draw treated as
+   the population, a paired bio/control comparison reported unpaired, and a mean of
+   two sds used as the sd of a difference. The same omission errs **oppositely** in
+   two regimes — optimistic when the dominant noise is the control draw, conservative
+   when the arms share seeds — so "we used the unpaired formula" is not a diagnosis
+   on its own (`docs/findings/2026-09-22-sigma-audit.md`). And a design has a floor:
+   pairs from ``T`` tasks admit only ``T!`` labelings, so a pair-level prior cannot
+   report p < 0.001 with fewer than 7 tasks
+   (`docs/findings/2026-09-22-task-permutation-c4.md`).
 
 ## Related work to differentiate against
 
