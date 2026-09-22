@@ -9,6 +9,32 @@
 
 ## 1. The pre-registered prediction, and it held
 
+> **Update, after the last two realizations landed (`e33` finished; `e32` has one of six still
+> running).** The refinements below hold and the refutations sharpen, so the sections that follow are
+> read against these numbers:
+>
+> | scope | n | realization sd | ratio to the attributed 0.0205 | χ², P(sd this small │ 0.0205) | range |
+> |---|---|---|---|---|---|
+> | `swap2` | 5 | **0.00350** | **5.9×** | 0.1169 on 4 df, **p = 0.0016** | 0.00776 |
+> | `erdos_renyi` | 6 | **0.00320** | **6.4×** | 0.1215 on 5 df, **p = 0.00026** | 0.00763 |
+>
+> ER's six realizations span 0.00763, i.e. **5.3% of their own mean** (0.1439), against the 67% of
+> the mean that the withdrawn attribution required. The withdrawal therefore settles at a **~6×**
+> margin rather than the 16× of the three-realization estimate, and it is now measured at two
+> realization counts on two topologies.
+>
+> The **log-slope** mismatch persists at 6.06σ (`swap2` 0.0045 ± 0.0005 over 5 realizations against
+> ER 0.0359 ± 0.0052 over 6; the circuit sweep's own 0.0206 matches neither), and the **linear** form
+> turns out to be the sharper test: the two realization families agree on it to three significant
+> figures — **0.00116 and 0.00116 per unit effective rank** — while the circuit sweep gives
+> **0.00307**, i.e. 2.6× higher. So even the one functional form that two independent families agree
+> on fails across the axis the original claim was made on.
+>
+> And the **sign rule** fails further above its bracket: with 5 realization points the ordered
+> sequence is `───────+──+` with ρ = **+0.745** and the largest *negative* effective rank now
+> **8.155**, well above the 5.040 the rule named as the lower edge of the positive region.
+> §4's table is unaffected; only the margin grows.
+
 The previous fire measured the realization-to-realization sd of `excess(swap2)` at **0.00125 from
 three realizations** and pre-registered: *"`e32`'s remaining three realizations will turn the 3-point
 sd of 0.00125 into a 6-point one; if it moves above ~0.004 the 16× ratio shrinks to 5×, and the
@@ -47,6 +73,11 @@ points to 0.003 and misses the next one by 0.019 is not a predictor; the 8-point
 drops from 1.000 to **+0.810**.
 
 ## 3. The log-slope is not a shared constant either, at 13.6σ
+
+> **Update:** at 5 and 6 realizations the σ on the difference falls to **6.06σ** (the ER slope's own
+> standard error grows with n) — still decisive — and the **linear** slope becomes the sharper
+> statement: the two realization families agree to three significant figures (**0.00116** each) while
+> the circuit sweep gives **0.00307**. See §1's update.
 
 §6 of the previous fire read the five-point rank correlation as the *carrier*: swap2's task precision
 rank-collapses, and a collapsed precision is cheap to protect, so its excess tracks the collapse. If

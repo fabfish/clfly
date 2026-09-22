@@ -86,6 +86,9 @@ degree-preserving family the gap moves *opposite* to interference — overlap ri
 > I attributed that spread to re-drawing the swap realization; **measured directly at fixed circuit
 > size and fixed tasks, re-drawing moves `excess(swap2)` with sd 0.00303 at four realizations — 6.8×
 > less than the 0.0205 attributed** (χ² p = 0.0044), and ER's is 0.00353, 5.8× less (p = 0.0069).
+> The final counts settle it at a **~6×** margin: `swap2` **0.00350** over 5 realizations
+> (p = 0.0016) and ER **0.00320** over 6 (p = 0.00026), the latter spanning **5.3% of its own mean**
+> against the 67% the withdrawn attribution required.
 > So the sweep's spread is not realization noise, and `e34`'s "the 152σ becomes 4.5σ" is void.
 >
 > **And the coordinate I proposed for the sign does not work either.** Across those five circuits the
