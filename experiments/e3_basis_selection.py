@@ -318,14 +318,22 @@ def report(results: dict) -> None:
         extra = f", realized {wins_r}/{len(BIOLOGICAL_BASES)}" if has_realized else ""
         print(f"  -> resolved (>2 sigma, biology better): "
               f"analytic {wins_a}/{len(rungs)}{extra}")
-        print("     sigma assumes independent arms; sigma_p is paired on the seed, which is "
-              "the one to use for contrasts *between* rungs. Which is larger depends on the "
-              "sign of corr.")
+        print("     sigma assumes independent arms; sigma_p is paired on the seed. Both are SEED")
+        print("     axes only: a fixed control draw is a per-rung offset, so the draw component is")
+        print("     in neither -- and for a contrast that does NOT combine the two rungs, the draw")
+        print("     axis is what usually dominates. See")
+        print("     docs/findings/2026-09-22-paired-ladder-and-two-axes.md")
 
         # Does the curve have a *shape*? A rung's delta resolving from zero is a different
         # claim from two rungs' deltas differing, and only the second supports an optimum.
+        # NOTE: both columns are the SEED axis. A fixed control draw shifts each delta by a
+        # per-rung offset and contributes nothing to this variance, so the draw axis has to be
+        # added separately -- for a contrast it is hypot(sd_draw(c1), sd_draw(c2)), and at the
+        # measured draw sds it exceeds the paired sem several-fold for every internal step.
         if len(deltas) > 1:
-            print(f"\n  adjacent-rung contrasts in delta (does the curve have a shape?):")
+            print(f"\n  adjacent-rung contrasts in delta (does the curve have a shape?)")
+            print(f"    SEED axis only -- the independent draw axis is not in these columns, and")
+            print(f"    for every internal step it is the larger of the two")
             cols = [c for c in rungs if c in deltas]
             for c1, c2 in zip(cols, cols[1:]):
                 cc = contrast_of_contrasts(deltas[c1], deltas[c2])
