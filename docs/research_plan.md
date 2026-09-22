@@ -137,7 +137,11 @@ anisotropy axes is the main open theoretical question.
 > against the artifact it cites and found three things. The finding says "1 seed" but
 > `runs/e5_anisotropy.json` holds **three**, and the published table reproduces in **35 of 42
 > cells — every disagreement in the two realized-error columns** (`gap:EWC` 4, `bio−rand` 3) while
-> every geometry cell matches, which is rule 5 exactly. Substituting **one** published cell
+> every geometry cell matches, which is rule 5 exactly. `e43` then settled which side is stale:
+> `e37`'s `real` cs=800 arm re-ran the same configuration in another process and reproduces **all
+> 21** `(seed, kappa)` points of the artifact, worst deviation 0.5× the log's print-rounding
+> tolerance — so **the artifact is live and the published table is the stale thing.** Substituting
+> **one** published cell
 > (`gap:EWC` at `kappa = 0`, +0.139 for the stored +0.0621) reproduces the published Spearman
 > **−0.7500 exactly** *and* is what moves the curve's minimum from `kappa = 0` to `kappa = 0.5`, so
 > **the −0.75 and the "easy middle regime" are the same single cell; with the stored value there is
@@ -645,6 +649,8 @@ All of it has been run. The scripts as delivered:
 | `e5_anisotropy_axis.py --topology` | C1 | `e5`'s concentration intervention applied at a *rewired* topology | **in flight** — `runs/e37_kappa_{real,swap2}_cs{800,300}.json`; the 2-point smoke test contradicts the `e36` mechanism |
 | `e38_variance_budget.py` | C2b | what limits the network benchmark, and is `--test 480` the lever? | done — it is learner seed-to-seed variability, not measurement; the pairing claim is unresolved (+0.02 [−0.65, +0.67] at n=9) and the `--test 480` gain is bounded at 1.28× |
 | `e41_anisotropy_seed_fragility.py` | C1 | does `e5`'s anisotropy association survive its artifact, its other seeds and the metric rule? | done — **no**: the cited file is the 3-seed rerun and disagrees with the table in 7 of 42 cells (all in the realized-error columns); one cell reproduces both headlines exactly; the association is 1 of 3 seeds, p = 0.216 pooled, **+0.040 (p = 0.86)** on the prescribed absolute metric |
+| `e43_e5_replication.py` | C1 | is the `e5` artifact live output or a stale file? | done — **live**: `e37`'s same-configuration arm reproduces all 21 `(seed, kappa)` points, worst 0.50× print-rounding tolerance, so the published table's discrepant cells are the stale thing |
+| `e5_anisotropy_axis.py --seeds 12` | C1 | `e5` re-run with 12 seeds (`e42`) — the binding test for the replacement mechanism | **in flight** — `runs/e42_e5_reseed.json`; the point dict now stores the prescribed absolute excess and the report prints per-seed ρ |
 
 Every figure carries its control arm, and every recall/precision number in this document
 carries a resolvability check. The prediction scoreboard, including the refutations,

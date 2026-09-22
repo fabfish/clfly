@@ -110,7 +110,7 @@ a better metric.
 
 | statement | status |
 |---|---|
-| "Spearman(flattening, gap) = −0.75" | **not in the cited artifact** — the stored seed-0 value is −0.9643, and −0.7500 is reproduced exactly by substituting one published cell |
+| "Spearman(flattening, gap) = −0.75" | **not in the cited artifact, and the artifact is the correct one** — the stored seed-0 value is −0.9643, `e43` confirms all 21 points reproduce under an independent same-configuration run, and −0.7500 is reproduced exactly only by substituting one published cell |
 | "the gap dips to a minimum at `kappa ≈ 0.5` … an easy middle regime" | **withdrawn** — the stored minimum is at `kappa = 0`; the dip is the same substituted cell |
 | "more anisotropy gives a larger gap, the opposite sign to `e2`" | **not established** — real in 1 of 3 seeds, p = 0.216 pooled, and **+0.040 (p = 0.86)** under the prescribed absolute metric |
 | "`e5` corrects `e2`'s confounded trend" | **cannot carry that weight as it stands** — a correction resting on one of three realised sweeps is itself a single-draw result, which is the trap this project has fallen into four times |
@@ -120,10 +120,35 @@ I have been citing `e5`'s direction in the C1 write-ups. Those citations should 
 one-seed result from now on, and the plan's C1 and §C2 discussions that lean on `e5` are annotated
 accordingly.
 
-## 7. Limits
+## 7. Outcome of the first limit: the artifact is live, the published table is the stale thing
 
-- **The earlier run is gone.** `runs/` is gitignored with no history, so this finding establishes
-  that the cited artifact does not contain the published numbers, not what produced them.
+§7 originally recorded that the earlier run is gone, so this finding could establish only that the
+cited artifact does not contain the published numbers — not which side was stale. That is answerable
+by **replication rather than history**, and it has been answered.
+
+`e37`'s `real` cs=800 arm is `e5`'s exact configuration — circuit size 800, real topology, the same
+seven `kappa` values, seeds 0–2 — run in a different process, from a different script, hours later.
+Its progress log carries all 21 `(seed, kappa)` points, and **all 21 agree with
+`runs/e5_anisotropy.json`** on `flattening`, `effective_rank` and `gap_ewc`, worst deviation **0.50×
+the log's own print-rounding tolerance** (`experiments/e43_e5_replication.py`). So the artifact is a
+bit-reproducible output of the current code, and
+
+> **the published table's discrepant cells are the stale thing.** In particular the stored
+> `gap:EWC(kappa=0, seed=0) = +0.0621` is the correct value for the current code, the published
+> **+0.139** is not recoverable from it, and the −0.75 and the U-shape that depend on it must not be
+> quoted.
+
+The other half of §2's puzzle is what makes this decisive rather than merely suggestive: the table
+agrees with the artifact in **35 of 42** cells — including three of the seven `gap:EWC` cells to four
+decimals — so it is *not* a wholesale pre-fix computation that replication would leave unexplained.
+It is the artifact with a handful of realized-error cells different, one of them by 124%, and that
+one is the headline.
+
+## 8. Limits
+
+- **What produced the discrepant cells is still unknown.** That they are not the current code's
+  output is established; whether the table was transcribed by hand, or produced under an earlier
+  revision, is not, and the earlier revision is not recoverable.
 - **n = 3 seeds.** A within-seed Spearman on 7 `kappa` points has a wide interval: seed 0's −0.964 has
   p = 0.0004 and seed 1's −0.321 has p = 0.48, and three seeds is not enough to put an interval on
   the *between-seed* spread of ρ. Section 4's point is that the three disagree by more than any of
