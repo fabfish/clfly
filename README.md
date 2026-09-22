@@ -165,9 +165,11 @@ those are the useful kind. The ten retractions and refutations, in order:
   **0.01902** — 6.4× its in-sample maximum residual. The sign rule went with it: its separator was
   bracketed in [2.476, 5.040], and the first realization drawn *above* the bracket (effrank 5.853)
   gives a contrast of **−0.00377 at −10.0σ** where the rule requires positive, taking the nine-point
-  ρ from +1.000 to **+0.767**. The direct concentration intervention went the other way as well. What
-  is left is where this line started: `excess(swap2)` is not a stable quantity across circuits, and
-  no coordinate tried so far accounts for it;
+  ρ from +1.000 to **+0.767**. The pre-registered sixth circuit point, `cs700`, then **missed the
+  committed ±0.0034 band by 1.84×** and took the six-point ρ to **+0.829**. The direct concentration
+  intervention went the other way as well. What is left is where this line started, now measured on
+  six circuits: the controls hold to **10.5%** and **24.3%** while `swap2` spans **166%**, and no
+  coordinate tried so far accounts for that;
 - **"granularity beats biology"** was an artefact of the annotation vocabulary, which places
   four of its five rungs where biology contributes least;
 - **"granularity locates you, biology sets the height"** — the replacement headline — was

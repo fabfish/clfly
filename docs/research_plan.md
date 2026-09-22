@@ -94,25 +94,32 @@ degree-preserving family the gap moves *opposite* to interference — overlap ri
 > in d. But that is a property of the five points: the bracket has no coverage and the first
 > realization drawn **above** it (effrank 5.853) gives a contrast of **−0.00377 at −10.0σ** when the
 > rule requires positive, taking the nine-point ρ to **+0.767**. The sign is therefore neither
-> explained by the geometry nor reliably predicted by it.
+> explained by the geometry nor reliably predicted by it. (`cs700`, d = 1229, was the pre-registered
+> sixth point and **missed the stated ±0.0034 band by 1.84×**, residual −0.00627, which took the
+> six-point ρ from 1.000 to **+0.829** and the fit's own in-sample maximum residual from 0.00296 to
+> 0.00512. It landed *inside* the sign rule's bracket, so it tests neither the rule nor the mechanism
+> — and narrows the bracket's lower edge from 2.476 to 2.806.)
 >
 > The mechanism behind that coordinate is withdrawn at the same time, refuted on two further axes.
 > Re-drawing the rewiring at fixed circuit size, which moves the effective rank a second way, gives
 > log slopes **13.6σ apart** between `swap2` and ER (0.0047 ± 0.0009 against 0.0340 ± 0.0020) with the
-> circuit sweep's own 0.0202 matching neither; the linear-in-effrank form is the one the two
+> circuit sweep's own 0.0206 matching neither; the linear-in-effrank form is the one the two
 > realization families agree on (0.00147 against 0.00110) and it is 2–2.7× too shallow for the circuit
 > sweep. **No single monotone form fits all three families** — the implied slope depends on which
 > interval of effective rank you probe, which is what a shared confound looks like and a carrier does
-> not. And the five-point curve misses a realization whose effective rank lies *inside* its own fitted
-> range by **0.01902**, 6.4× its in-sample maximum residual. Independently, the direct concentration
+> not. And the curve misses realizations whose effective rank lies *inside* its own fitted range, worst
+> by **0.01902**, 6.4× its in-sample maximum residual. Independently, the direct concentration
 > intervention (`e5`'s `kappa` knob, now runnable at a rewired topology via the new `--topology` flag)
 > went the *other* way in a smoke test at cs = 300 — more concentration gave a *larger* gap, which is
 > `e5`'s sign at `real`, not `swap2`'s. Seven `kappa` values × 3 seeds at both topologies is running
-> (`e37`). **So the position is the one the project held two fires ago, arrived at with more
+> (`e37`). **So the position is the one the project held three fires ago, arrived at with far more
 > evidence: `excess(swap2)` is not a stable quantity across circuits, and no coordinate tried so far
-> accounts for it.** The structural contrast that does carry weight is the ER separation, a
-> regime offset by a factor of eleven.
-> (`docs/findings/2026-09-22-geometry-mechanism-refuted-on-the-realization-axis.md`)
+> accounts for it.** What does carry weight is structural and unchanged over six circuits: the two
+> control topologies hold to **10.5%** (`real`) and **24.3%** (`swap0.5`) while `swap2` spans
+> **166%**, and the Erdős–Rényi separation remains a regime offset by a factor of eleven with its
+> realization check done and passed.
+> (`docs/findings/2026-09-22-geometry-mechanism-refuted-on-the-realization-axis.md`,
+> `docs/findings/2026-09-22-cs700-rejects-the-geometry-reading.md`)
 
 *Replacement, after `e5`: anisotropy, in the same direction Phase 1 found.* Vary
 the task's spectral concentration **directly**, at fixed topology, fixed support

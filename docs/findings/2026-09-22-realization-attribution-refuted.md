@@ -143,7 +143,20 @@ cs = 300 (`runs/e37_kappa_*.json`) — is what decides it, and if the direct int
 `e5`'s sign at both topologies then §6's mechanism paragraph should be withdrawn and the
 cross-size correlation read as a coincidence of five points.
 
+> **Outcome:** both §6 and the §7 coordinate below have since been **withdrawn**. The `cs700`
+> point that §9 pre-registered as the decisive test landed and **missed the stated ±0.0034 band by
+> 1.84×** (residual −0.00627), taking the six-point ρ from 1.000 to **+0.829** (exact p = 0.0292) and
+> the fit's in-sample maximum residual from 0.00296 to 0.00512. Three `swap2` realizations had
+> already failed the curve out of sample, and the cs=800 realization at effrank 5.853 fails the
+> **sign rule** at −10.0σ because it sits above the bracket the rule named as the start of the
+> positive region.
+> (`2026-09-22-geometry-mechanism-refuted-on-the-realization-axis.md`,
+> `2026-09-22-cs700-rejects-the-geometry-reading.md`)
+
 ## 7. Where the geometry reading stops, stated before it is oversold
+
+*(withdrawn — see the outcome note in §6b; retained because it was written before the results and
+records what was expected)*
 
 - **It is ordinal, not calibrated.** The fit has 5 points and 2 parameters. Two genuine
   out-of-sample points are already in hand — `swap2` at the same circuit size, different rewiring —

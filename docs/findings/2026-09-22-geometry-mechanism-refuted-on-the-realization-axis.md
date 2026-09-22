@@ -145,9 +145,11 @@ the cross-bracket sign failure are the things that matter.
   about that. The guard is that the *prediction* was registered before the points landed (the ±0.0034
   band, and the sd-vs-0.004 threshold) and both failed in the pre-registered direction. The
   linear-versus-log comparison in §3 is post hoc and is labelled as such.
-- `cs700` is still running. It is now a test of a curve that has already failed out of sample, so a
-  miss there would be a third confirmation rather than a new finding — the decisive result is
-  already in.
+- `cs700` landed after this finding was written and **rejected the geometry band by 1.84×** (residual
+  −0.00627 against a pre-registered ±0.0034) while falling *inside* the sign-rule bracket, so it
+  tests neither the mechanism nor the rule. It did drop the six-point ρ from 1.000 to **+0.829**
+  (exact p 0.0292) and raise the fit's in-sample maximum residual from 0.00296 to 0.00512 —
+  `2026-09-22-cs700-rejects-the-geometry-reading.md`.
 - The nine-point sign sequence uses an **unpaired** convention for the four cs=800 realization points
   (the cs=800 `swap0.5` arm has no stored per-seed values, unlike the cs400/500/600 arms), matching
   the published cs800 figure. Each of the four is resolved at ≥ 10σ either way, so the sign is not in
