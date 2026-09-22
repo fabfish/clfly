@@ -28,6 +28,7 @@ from dataclasses import dataclass
 import numpy as np
 
 from ..connectome.circuits import Circuit
+from ..connectome.tasks import overlap_controlled_supports
 
 
 @dataclass
@@ -77,7 +78,9 @@ def make_task(circ: Circuit, name: str, input_spec: tuple[str, tuple[str, ...]],
               readout_spec: tuple[str, tuple[str, ...]] | None, n_classes: int = 4,
               n_train: int = 96, n_test: int = 48, tau: int = 12,
               noise: float = 1.0, cap: int = 220, seed: int = 0,
-              class_offset: int = 0, readout_all: bool = False) -> RateTask:
+              class_offset: int = 0, readout_all: bool = False,
+              readout_subset: np.ndarray | None = None,
+              input_support: np.ndarray | None = None) -> RateTask:
     """Build one task: fixed class templates, injected over ``tau`` timesteps.
 
     The stimulus is sustained rather than instantaneous, so the network's recurrent
@@ -95,9 +98,14 @@ def make_task(circ: Circuit, name: str, input_spec: tuple[str, tuple[str, ...]],
     """
     rng = np.random.default_rng(seed)
     n = circ.n_neurons
-    cols_in, vals_in = input_spec
-    inp = _population(circ, cols_in, vals_in, cap=cap, seed=seed)
-    if readout_all:
+    if input_support is not None:
+        inp = np.asarray(input_support, dtype=np.int64)
+    else:
+        cols_in, vals_in = input_spec
+        inp = _population(circ, cols_in, vals_in, cap=cap, seed=seed)
+    if readout_subset is not None:
+        out = np.asarray(readout_subset, dtype=np.int64)
+    elif readout_all:
         out = np.arange(n)
     else:
         cols_out, vals_out = readout_spec
@@ -132,16 +140,53 @@ SUITE_SPECS = (
 
 
 def make_suite(circ: Circuit, specs=SUITE_SPECS, shared_head: bool = False,
-               **kwargs) -> list[RateTask]:
+               readout_subset: np.ndarray | None = None, **kwargs) -> list[RateTask]:
     """Build the default behavioural suite against a circuit.
 
     ``shared_head`` switches to the **class-incremental** configuration: every task is
-    read out from the whole circuit through a single decoder, and the tasks' label sets
-    are made disjoint (``class_offset``).  The per-task-readout version is the
-    task-incremental baseline, where each task owns a decoder that is never touched
-    again after its turn.
+    read out through a single decoder, and the tasks' label sets are made disjoint
+    (``class_offset``).
+
+    ``readout_subset`` is what makes that setting *test the connectome*.  Reading out
+    from the whole circuit state gives a 12-way linear decoder every one of ~1300
+    features, and a frozen-body diagnostic showed that such a decoder solves the tasks
+    with the recurrent weights untouched — accuracy 0.944 frozen against 0.951 plastic,
+    with forgetting falling to exactly zero.  Restricting the read-out to a narrow
+    population forces the recurrent weights to *route* information to those neurons,
+    which is the condition under which they become load-bearing and forgetting can
+    arise.
     """
     return [make_task(circ, name, inspec, outspec, seed=i,
                       class_offset=i * kwargs.get("n_classes", 4),
-                      readout_all=shared_head, **kwargs)
+                      readout_all=shared_head and readout_subset is None,
+                      readout_subset=readout_subset, **kwargs)
             for i, (name, inspec, outspec) in enumerate(specs)]
+
+
+def make_overlap_suite(circ: Circuit, n_tasks: int = 3, support: int = 80,
+                       overlap: float = 0.0, shared_head: bool = True,
+                       readout_subset: np.ndarray | None = None,
+                       seed: int = 0, **kwargs) -> list[RateTask]:
+    """Tasks whose **input populations** have an exact, uniform overlap.
+
+    The default suite separates the tasks at the input by construction — each is driven
+    into a different circuit — and `e8e` found that this is why forgetting is mild even
+    under a shared decoder: the tasks' representations land in distinct parts of state
+    space, so the decoder can allocate near-orthogonal directions per task and nothing
+    competes.  This suite removes that separation in a controlled way, using the same
+    pool-plus-private-complement construction as `e7`, so the question can be asked
+    directly: **does raising input overlap raise forgetting?**
+
+    ``overlap = 0`` gives fully disjoint inputs (the default suite's structure, but with
+    randomly chosen neurons rather than identified circuits) and ``overlap = 1`` gives
+    every task the same input population — identical inputs, differing only in their
+    class templates.
+    """
+    rng = np.random.default_rng(seed)
+    supports = overlap_controlled_supports(circ.n_neurons, n_tasks, support, overlap, rng)
+    n_classes = kwargs.get("n_classes", 4)
+    return [make_task(circ, f"ov{overlap:g}_t{i}", None, None, seed=i,
+                      class_offset=i * n_classes, readout_all=shared_head and readout_subset is None,
+                      readout_subset=readout_subset,
+                      input_support=sup, **kwargs)
+            for i, sup in enumerate(supports)]

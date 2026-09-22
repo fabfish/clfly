@@ -41,7 +41,8 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 
 def train_task(model, heads, suite, k: int, iters: int, lr: float, batch: int,
                seed: int, ewc=None, block_ewc=None, replay: list | None = None,
-               replay_batch: int = 16, shared: bool = False):
+               replay_batch: int = 16, shared: bool = False,
+               frozen_body: bool = False):
     """Train on task ``k``; optionally with an EWC penalty or a replay buffer.
 
     ``heads`` is the list of decoders: one per task in the task-incremental default (the
@@ -59,7 +60,13 @@ def train_task(model, heads, suite, k: int, iters: int, lr: float, batch: int,
     task = suite[k]
     readout = heads[0] if shared else heads[k]
     rng = np.random.default_rng(seed)
-    params = [model.theta, model.bias] + list(readout.parameters())
+    # `frozen_body` is a diagnostic, not a method: it asks whether the plastic recurrent
+    # weights are being used at all. If a benchmark's accuracy is the same with the body
+    # frozen, it is measuring the decoder rather than the connectome.
+    if frozen_body:
+        params = list(readout.parameters())
+    else:
+        params = [model.theta, model.bias] + list(readout.parameters())
     opt = torch.optim.Adam(params, lr=lr)
     U = torch.from_numpy(task.u_train).float()
     Y = torch.from_numpy(task.y_train).long()
@@ -241,7 +248,8 @@ def run_method(conn_net, suite, method: str, args, seed: int,
                 method == "ewc" and fisher is not None) else None,
             block_ewc=(part, blocks, anchor_b, args.lam) if (
                 method.startswith("ewc-block") and blocks is not None) else None,
-            replay=(replay if method == "replay" else None), shared=shared))
+            replay=(replay if method == "replay" else None), shared=shared,
+            frozen_body=args.frozen_body))
         for j in range(k + 1):
             R[k, j] = evaluate(model, heads[0] if shared else heads[j], suite[j], shared)
 
@@ -301,6 +309,22 @@ def main(argv=None) -> int:
     p.add_argument("--train", type=int, default=96)
     p.add_argument("--test", type=int, default=48)
     p.add_argument("--seed0", type=int, default=0)
+    p.add_argument("--input-overlap", type=float, default=None,
+                   help="drive every task into input populations with this exact "
+                        "uniform overlap, instead of the default suite's disjoint "
+                        "circuits; the arm that tests whether input-level separation "
+                        "is why forgetting is mild")
+    p.add_argument("--noise", type=float, default=1.0, help="stimulus noise")
+    p.add_argument("--classes", type=int, default=4, help="classes per task")
+    p.add_argument("--readout-size", type=int, default=0,
+                   help="restrict the shared read-out to this many neurons; 0 keeps "
+                        "the whole state, which lets a linear decoder solve the tasks "
+                        "without the recurrent weights changing at all")
+    p.add_argument("--frozen-body", action="store_true",
+                   help="diagnostic: train only the decoder, to test whether the "
+                        "plastic recurrent weights are used at all")
+    p.add_argument("--support", type=int, default=80,
+                   help="input population size for the overlap suite")
     p.add_argument("--shared-head", action="store_true",
                    help="class-incremental: one decoder for every task read out from "
                         "the whole circuit, with disjoint class ranges")
@@ -325,8 +349,24 @@ def main(argv=None) -> int:
     conn = graph.build()
     ann = annotate.load_annotations()
     circ = circuits.extract(conn, ann, hops=0, max_neurons=args.circuit_size)
-    suite = rate_tasks.make_suite(circ, n_train=args.train, n_test=args.test,
-                                  shared_head=args.shared_head)
+    # A narrow read-out is what makes the plastic recurrent weights load-bearing; see
+    # the docstring of `rate_tasks.make_suite`.  None keeps the whole state.
+    rs = None
+    if args.readout_size and args.readout_size < circ.n_neurons:
+        rs = np.sort(np.random.default_rng(args.seed0).choice(
+            circ.n_neurons, size=args.readout_size, replace=False))
+    common = dict(n_train=args.train, n_test=args.test, noise=args.noise,
+                  n_classes=args.classes)
+    if args.input_overlap is None:
+        suite = rate_tasks.make_suite(circ, shared_head=args.shared_head,
+                                      readout_subset=rs, **common)
+        suite_label = "default (disjoint circuits)"
+    else:
+        suite = rate_tasks.make_overlap_suite(
+            circ, n_tasks=len(rate_tasks.SUITE_SPECS), support=args.support,
+            overlap=args.input_overlap, shared_head=args.shared_head,
+            readout_subset=rs, **common)
+        suite_label = f"overlap={args.input_overlap:g}"
     net = build_net(circ, RateConfig(seed=args.seed0))
 
     # Synapse partitions for the block-EWC variants, plus the matched random control.
@@ -343,7 +383,7 @@ def main(argv=None) -> int:
               f"{bio.n_entries:,} block entries ({bio.describe()['block_gb']:.2f} GB), "
               f"constrained {bio.constrained_fraction():.4f}")
 
-    print(f"circuit {circ.name}: {circ.n_neurons} neurons, "
+    print(f"circuit {circ.name}: {circ.n_neurons} neurons, suite: {suite_label}, "
           f"{net.n_params:,} trainable recurrent weights")
     for t in suite:
         print(f"  task {t.name:16} in={t.n_input:5} readout={t.n_readout:5} "

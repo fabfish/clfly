@@ -392,12 +392,36 @@ directions per task and there is no competition to create forgetting. **The conn
 separates the tasks at the input rather than at the head**, which is exactly how a fly
 avoids the problem.
 
-**The limiter is task difficulty, not method choice.** All tasks are learned to ~0.92–1.00
-against 0.25 chance, leaving almost no headroom for a method to demonstrate anything. The
-identified fixes are higher stimulus noise, more classes, and — most interestingly —
-driving tasks into *overlapping* input populations using the controlled-overlap machinery
-from §4.5, which would test directly whether input-level separation is why forgetting is
-mild.
+**The limiter was the benchmark, not the methods — and fixing it flipped a result.** The
+whole-state read-out let a 12-way linear decoder solve every task with the recurrent
+weights untouched: freezing them cost 0.007 accuracy and eliminated forgetting entirely.
+A `--frozen-body` control exposes this. Narrowing the read-out makes the weights
+load-bearing, and the plastic-minus-frozen accuracy gap then tracks forgetting in a clean
+monotone way (+0.007 → +0.009 → **+0.102** accuracy gap against +0.021 → +0.035 →
+**+0.066** forgetting, as the read-out narrows from 1307 to 128 to 32 neurons).
+
+**On the hardened configuration, diagonal EWC finally resolves** (5 replicates, λ=0.003):
+
+| method | final accuracy | mean forgetting |
+|---|---|---|
+| naive | 0.914 ± 0.013 | +0.073 ± 0.015 |
+| **EWC, diagonal** | **0.922 ± 0.010** | **+0.021 ± 0.015** (−0.052 ± 0.021, **2.5σ**) |
+| replay | 0.932 ± 0.008 | +0.050 ± 0.016 (1.0σ) |
+
+This **overturns** three fires of "no Fisher-anchoring variant does anything, at any
+basis, λ, or batch count" — those were measured where nothing could resolve, and replay's
+apparent advantage also disappears here. It does not overturn the theory: LGCL makes EWC a
+33%-lossy approximation, and on a benchmark where sequential training genuinely forgets
+(+0.073), an imperfect anchor still beats no anchor. The comparison is against naive, not
+against the Kalman oracle. What is genuinely surprising is that **replay stopped helping**,
+inverting LGCL v7's expectation that content memory dominates regularisation in the
+partially-observed regime — now the most interesting open question in the network line.
+
+The general rule the project now applies:
+
+> Measure the plastic-minus-frozen accuracy gap before believing any forgetting difference.
+> A benchmark whose frozen-body control matches its trained accuracy contains no
+> continual-learning problem, and every method comparison on it compares decoders.
 
 **The family is badly behaved as its curvature estimate improves.** Raising the Fisher
 batch count from 8 to 128 drives the diagonal's forgetting from +0.063 to **+0.250**
