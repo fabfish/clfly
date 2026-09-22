@@ -406,7 +406,7 @@ neuron line was being used to argue the network line was settled.
 | `ewc-block-rand` (matched control) | 0.8264 | 0.0212 | +0.0938 |
 
 Biological minus matched random: **−0.0116 accuracy, 0.43σ paired** — the biological partition is
-slightly *worse* and does not beat the naive baseline, so **the rung hypothesis is not supported**:
+slightly *worse* and does not beat the naive baseline, so *this rung*, at *this* λ, shows nothing:
 the network negative is not an artefact of having measured the wrong granularity. But the run only
 bounds the advantage at **≈0.09 accuracy**, because the benchmark's own per-repeat sd is 0.048
 (0.077 for forgetting). Detecting a 0.01 effect would take 86–202 repeats, i.e. **50–118 hours per
@@ -432,10 +432,29 @@ the one above.
 
 All three are nulls with intervals of roughly ±0.03 accuracy, and none beats the naive baseline. Two
 things about that: **λ = 1.0 is the λ at which the `cell_class` contrast is *smallest*** (−0.0185
-against −0.0648 at λ = 0.1), so the rungs have been sampled where the effect is weakest — `e28` is
-putting `side` at λ = 0.1 for that reason. And ±0.03 accuracy against a neuron-level effect of about
-10% of the oracle gap means a network effect of that relative size would be invisible here
+against −0.0648 at λ = 0.1), so the rungs had been sampled where the effect is weakest. And ±0.03
+accuracy against a neuron-level effect of about 10% of the oracle gap means a network effect of that
+relative size would be invisible here
 (`docs/findings/2026-09-22-ito-rung-and-degenerate-sigma.md`).
+
+**And at λ = 0.1 the rung contrast resolves — in the direction the neuron result predicts.** `e28`
+put the coarsest rung at that λ, and both runs share seeds, so the two deltas can be contrasted
+paired:
+
+| rung (λ = 0.1, batches 8) | constrained | Δ accuracy vs its own control | σ paired |
+|---|---|---|---|
+| `side` | 0.6947 | **+0.0069 ± 0.0145** | 0.48 |
+| `cell_class` | 0.9250 | **−0.0648 ± 0.0245** | **2.65** |
+| **`side` − `cell_class`** | | **+0.0718 ± 0.0336** | **2.13** (same sign in all 3 replicates) |
+
+So the coarse rung is better than the fine one at 2.13σ, opposite signs at the same λ — but **it wins
+because the finer rung loses, not because it gains**: `side`'s own delta is +0.0069 (0.48σ, nothing)
+while `cell_class`'s is a resolved *disadvantage*. Not the neuron-level mechanism, which had the
+coarse grouping genuinely better than random
+(`docs/findings/2026-09-22-rung-question-resolved-at-lambda-0.1.md`). Three open items: n = 3; the
+two intermediate rungs are still λ = 1.0 only; and the cross-run comparison assumes an `ewc-block`
+arm is independent of the run's method list, which is supported by five identical naive arms but
+**has not been checked directly** — `e31` is doing so.
 
 > **All of `e10` is λ-conditional, and λ was never set.** The rungs ran at **λ = 1.0**, the argparse
 > default — 300× the value the project's own sweep recommends (0.003) and beyond the range it swept
