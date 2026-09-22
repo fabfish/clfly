@@ -47,7 +47,7 @@ Per-seed `swap2 − swap0.5` over the six seeds:
 | leave-one-seed-out σ range | **[23.55, 39.70]** |
 | published (unpaired, n = 3) | −0.01079 at −32.7σ |
 
-**This is the check that `e5` failed and the C1 refutation passes.** With per-seed values the contrast
+**This is the check that `e5` failed and the C1 refutation passes — about these graphs.** (The same day's `e59` composed it with the realization component and put the rule-level reading at 2.7σ.) With per-seed values the contrast
 is *more* decisive, not less: every seed agrees on the sign, removing any single seed leaves it above
 23σ, and the paired σ is −28.85 against the published unpaired −32.7. The earlier number was honest but
 unverifiable; this one is neither.
@@ -56,7 +56,7 @@ So the C1 line's two halves end in opposite places and both are now measured:
 
 | claim | status |
 |---|---|
-| the `swap0.5 → swap2` **refutation** at cs = 800 | **established**: paired −28.9σ, 6/6 seeds, leave-one-out ≥ 23σ, and the column reproduces bit-for-bit |
+| the `swap0.5 → swap2` **refutation** at cs = 800 | **established about these graphs** (paired −28.9σ, 6/6 seeds, leave-one-out ≥ 23σ, column reproduces bit-for-bit) and **2.7σ about the rewiring rule** once the wiring draw is included — see `2026-09-22-two-sigmas-per-family.md`, which corrects this row |
 | the *explanation* of it (`e36`'s rank-collapse coordinate) | **the law refuted**; the ordinal direction survives within a circuit's realizations (`e53`, corrected p = 0.033) but not across circuits |
 | the `e5` anisotropy association | **reversed** on the prescribed metric at 12 seeds (`e42`) |
 

@@ -30,12 +30,22 @@ Four findings, one of them unexpected in direction.
 2. **The connectome separates the tasks — and the claim that this does *not* drive the penalty
    does not survive.** Task precision subspaces on the real wiring are **7× more orthogonal than
    random subspaces** and rewiring destroys that monotonically. The penalty's *opposition* to
-   interference rested on one contrast, `swap0.5 → swap2`, at 32.7σ — and across four circuit sizes
-   with matched rewiring strength that contrast is **+21.8σ, −4.8σ, +14.5σ, −32.7σ**: the sign
-   **alternates**, every step decisive, while `real` holds to 6.2% and `swap0.5` to 18%. So
-   `excess(swap2)` oscillates by a factor of ~3 between *adjacent* sizes and is not a stable
-   quantity; **neither the refutation nor its reversal survives**, and the mechanism question is open
-   (§4.2). This is the project's eighth retraction and its largest.
+   interference rested on one contrast, `swap0.5 → swap2`, and across **six** circuit sizes with
+   matched rewiring strength that contrast is **+21.8σ, −4.8σ, +14.5σ, −4.4σ, −18.7σ, −32.7σ**:
+   the sign does **not** alternate, and the ordering of its signs is a monotone function of
+   `swap2`'s task-precision rank — but that rank does not explain the contrast quantitatively, and
+   the sign rule fails above its own bracket at −10σ. `real` holds to 10.5% and `swap0.5` to 24.3%
+   across the same sweep while `swap2` spans **166%**. So `excess(swap2)` is not a stable quantity:
+   **neither the refutation nor its reversal survives**, and the mechanism question is closed
+   against the proposed explanation (§4.2). This is the project's largest retraction.
+
+   The refutation's *existence* is nonetheless now measured rather than assumed, and it is
+   **two numbers rather than one**: with per-seed values it is a **paired 28.8σ over six seeds with 6/6
+   agreeing in sign** and a leave-one-out range of [23.6, 39.7]σ — *about the cs = 800 graphs* — and
+   **2.7σ once the wiring draw is included**, which is the reading the claim actually needs. The whole
+   cs = 800 column reproduces bit-for-bit from a fresh run, the check that the project's other headline
+   figure failed. What died was the *explanation*, at four independent levels, plus the association that
+   was to replace it (§4.2.1).
 3. **Biological anchoring bases beat capacity-matched random ones, and there is a
    working a-priori predictor.** The fly's own annotation vocabulary supplies five
    discrete rungs, and four of them sit in the top 15% of the granularity range; on a
@@ -251,25 +261,94 @@ opposite to overlap:
 | `swap2` | 0.0594 | 1.069 | **+0.01237** |
 | `erdos_renyi` | 0.2892 | 5.207 | **+0.14187** |
 
-The fell from `swap0.5` to `swap2` is a **32.7σ** decrease while overlap doubles.
-The penalty is not tracking interference. Erdős–Rényi is a separate regime, separated
-from `swap2` by **152σ**; it also destroys the degree sequence and makes `(I − W)`
-near-singular, so it changes the conditioning of the dynamics rather than extending
-the same axis.
+The fall from `swap0.5` to `swap2` is a real decrease while overlap doubles. The penalty is not
+tracking interference. Erdős–Rényi is a separate regime, and it also destroys the degree sequence and
+makes `(I − W)` near-singular, so it changes the conditioning of the dynamics rather than extending the
+same axis.
 
-**Both of those σ are single-realization figures, and one of them has now been checked.**
-`excess(swap2)` moves with an sd of **0.0205** across four (circuit-size, realization) draws — 67% of
-its own mean — while the two control topologies hold to 6.2% and 18%. Substituting that realization
-sd for the seed sem, the **152σ separation becomes 4.5σ**, and 1.5× that sd takes it to 3σ. That is a
-sensitivity bound, not a correction — `excess(ER)`'s own realization sd is unmeasured — but it means
-the line's numbers are statements about *the particular graphs drawn* until a realization sweep says
-otherwise, and the same check that retired the 32.7σ has not been run on the 152σ
-(`docs/findings/2026-09-22-er-separation-realization-exposure.md`; `e33` is running it). The
-*structural* reading — a separate regime, offset by a factor of eleven — is the one that should carry
-the weight.
+**Every σ in this family is one of two, and the distinction decides how strong each claim is.** Both
+endpoints of every contrast here are the same six task seeds of **one** wiring, so there is a σ about
+*these graphs* — the paired within-seed sem, which cancels the task draw — and a σ about *the rewiring
+rule*, which composes it with each endpoint's realization sd, measured by sweeping six wirings at fixed
+circuit size. For `swap2` the realization sd is **0.00377** and for Erdős–Rényi **0.00320**, against
+seed sems of 0.00025 and 0.00047, so **98% or more of a single point's variance is the wiring draw**:
+
+| | gap | about these graphs | about the rewiring rule |
+|---|---|---|---|
+| **the ER separation** | 0.12959 | **364.9σ** (paired, n = 6) | **26.1σ** |
+| **the C1 contrast** | 0.01032 | **28.8σ** (paired, n = 6) | **2.7σ** |
+
+We previously reported these as 152σ and 32.7σ, both of them seed-only figures for single
+realizations. **The honest pair for the separation is a few hundred σ about these graphs and 26σ about
+the rule** — which leaves it by far the most robust quantity in the paper, and the only one whose
+*both* endpoints carry a measured realization sd. **And the C1 contrast is 2.7σ about the rule**, a
+lower bound because `swap0.5` has no realization sweep of its own; that is consistent with everything
+§4.2.1 found by three other routes.
+
+**And the exposure that both σ once had has now been measured, on both endpoints — in the opposite
+direction from what we first assumed.** We had attributed `excess(swap2)`'s 367% spread across circuit
+sizes to *re-drawing the swap realization*, and used that sd (0.0205) to argue the ER separation would
+fall to 4.5σ. Measured directly at fixed circuit size and fixed tasks, over six realizations each, the
+realization sd is **0.00377** for `swap2` (χ² p = 0.00059) and **0.00320** for ER — **5.4× and 6.4×
+below the attributed figure**, with Erdős–Rényi's six realizations spanning **5.3% of their own mean**
+against the 67% the attribution required. So the spread is a property of the **circuit**, not of the
+draw, and the 4.5σ bound is void: at ER's measured displacement the separation is not
+realization-fragile at all. Both endpoints now rest on six-seed, seed-robust figures.
+
+What the sweep's 367% *is* a function of we pursued for four further experiments and did not
+establish (§4.2.1).
 
 We report this as a refutation of our own hypothesis, on the axis where it was most
 cleanly testable.
+
+#### 4.2.1 What the 367% is — four attempts, none of which survived
+
+*(e36–e40, e49, e51, e53, e56.)* Having withdrawn the realization attribution, we spent six further
+experiments trying to say what the spread *is*, because "not the draw" is not an explanation. The
+proposed coordinate was `swap2`'s **task-precision rank collapse** — the effective rank of the task
+precision spectrum, which the runs record — and it failed as an explanation at four independent
+levels:
+
+- **as a law**, across families: re-drawing the rewiring at fixed circuit size moves the effective
+  rank a second way and gives **log slopes 6.06σ apart** (`swap2` 0.0045 ± 0.0005 against
+  Erdős–Rényi 0.0359 ± 0.0052) with the circuit sweep's own 0.0206 matching neither; the
+  linear-in-rank form is the one the two realization families agree on (0.00116 each) and it is
+  2.6× too shallow for the circuit sweep;
+- **as a predictor**, out of sample: a six-point fit with a 0.00296 in-sample maximum residual
+  misses a further realization whose effective rank lies *inside* its own fitted range by
+  **0.01902**, and the sixth circuit point `cs700` misses the pre-registered ±0.0034 band by
+  **1.84×**;
+- **as a sign rule**: the rule's separator was bracketed in [2.476, 5.040] from five points, and the
+  first realization drawn **above** it (effective rank 5.853) gives a contrast of **−0.00377 at
+  −10.0σ** where the rule requires positive, taking the nine-point rank correlation from 1.000 to
+  +0.767;
+- **as a testable mechanism**: the intervention that would test it — `e5`'s concentration knob —
+  is **inert where the mechanism was proposed**. At `swap2`/cs = 800 its travel in `flattening` is
+  0.004–0.008 against a seed spread of 0.00044, i.e. 8.6–19.3× the noise, versus **142–271×** at
+  `real`, because the carrier is already collapsed (effective rank 1.70 against 55). Report such
+  configurations as *untested*, not as null.
+
+Where the intervention **does** have leverage — `swap2`/cs = 300, 30× the noise, driving the
+effective rank from 16.6 to 2.35 — twelve seeds give a per-seed correlation of **6 positive,
+4 negative, 2 tied, sign p = 0.754, Wilcoxon p = 1.00**: the ordinal direction is **absent**. At
+`real`/cs = 800 the same twelve seeds give **9 positive, 2 negative, 1 tied** — the *opposite* of the
+published direction, marginally (sign p = 0.065, pooled p = 0.037). And the association `e5` was used
+to replace the interference story with is null on its own reported metric (7/5/0, p = 0.77) while the
+prescribed absolute metric reverses it — a pair of failures in opposite directions we traced to the
+oracle: `gap = excess/oracle`, the oracle's error falls with concentration at ρ = +0.79, and a rank
+decomposition of the relative gap gives a *negative* oracle coefficient at R² = 0.85.
+
+**What survives of the coordinate is ordinal and local.** Over all twelve points of one circuit's
+task draws, the effective rank orders `excess(swap2)` at a Holm-corrected p = 0.033, and over the
+pooled 24 points at 0.0008; across circuit sizes alone it does not (corrected p = 0.117, raw 0.058 at
+n = 6 — a power limit, not a refutation). So the honest statement is: **the effective rank orders the
+excess within a circuit's task draws, and nothing about it predicts or explains the excess across
+circuits.** Enumerating all eight recorded geometry coordinates on three axes, with the
+multiple-comparison structure reported rather than assumed, leaves that as the whole of it.
+
+We report this because it is the shape of the result rather than a caveat on it: four experiments of
+increasing precision narrowed a claim from "the statistic is noise" to "the statistic is stable, the
+explanation is not, and the one configuration where the explanation could be tested says nothing".
 
 ### 4.3 Biological anchoring bases win at matched capacity
 
@@ -923,9 +1002,13 @@ the better buy. Both statements are true, and a paper reporting only the first w
 hiding the trade.
 
 **Claims that did not survive.** Reported as findings rather than buried: the interference
-mechanism behind C1 (refuted at 32.7σ — **and then the refutation itself, which is a statement about
-one graph**: ±alternating sign across four circuit sizes with every step decisive, so neither the
-refutation nor its reversal survives); C3 as stated (deprioritised, its mechanism
+mechanism behind C1 (refuted at 32.7σ — **and then the refutation itself**, which turned out to be a
+statement about the particular graphs drawn rather than about a stable quantity: across **six**
+circuit sizes the contrast runs +21.8σ, −4.8σ, +14.5σ, −4.4σ, −18.7σ, −32.7σ, while `real` holds to
+10.5% and `swap0.5` to 24.3%); **and then the explanation of the refutation**, pursued for four more
+experiments and refuted at four independent levels (§4.2.1); **and then the association we proposed
+to replace it with**, which twelve seeds reverse on the metric this project's own measurement rule
+prescribes while saying nothing on the metric it reports; C3 as stated (deprioritised, its mechanism
 contradicted); the unimodal misalignment peak of the reference materials (not reproduced in
 the coordinate basis); the headline "granularity beats biology" (itself an artefact of where
 the vocabulary places its rungs); **its replacement**, "granularity locates you, biology sets the
@@ -934,9 +1017,25 @@ that had never been measured); the
 "4 of 5 rungs beat their matched control" reading (a metric artefact); the "every point resolves
 individually" form of the wiring sign flip (one of the five does not, once the control-draw
 component is included); and the "replay is setting-dependent" claim (confounded with an untuned
-budget). **Eight**, and each one is a finding entry rather than a footnote. The count is a
+budget). **Eleven**, and each one is a finding entry rather than a footnote. The count is a
 *minimum*: three of these were found by re-analysing a run whose original analysis used the wrong
-error formula.
+error formula, and four were found by applying a discipline — per-seed signs, leave-one-out,
+which-axis-carries-the-noise — that we had been applying to one line and not the others.
+
+**What that discipline found when we finally aimed it at the core claim.** All eleven retractions
+above are on the C1, C2b or C3 lines. Aiming the same three questions at C2 — the project's central
+result — produced a pass, and the strongest positive evidence in the paper: over the pool ladder's
+twelve seeds, **seven of eight rungs are unanimous in sign, no leave-one-seed-out removal flips any of
+them, the smallest leave-one-out figure is 6.6σ, and single-seed leverage is 0.51–0.80** on a scale
+whose ceiling is 1. So the discipline that dismantled the side lines does not touch the central one,
+which is the check that makes it worth having.
+
+**And the three lines turn out to have three different binding axes**, each found by a retraction:
+C1 by the **circuit/realization**, C2 by the **control draw** (seed sem 2×10⁻⁵ against a draw sd up to
+1.0×10⁻³), and C2b by the **learner's seeds** (62% of the per-replicate variance is the learner, not
+the test set). "The bracket is a bracket", "the control is one draw" and "the floor is 62% learner" are
+therefore three different corrections to three different lines, and none of them transfers — which is
+why no shared rule was available and each line needed its own check.
 
 ## 8. What we would do next
 
