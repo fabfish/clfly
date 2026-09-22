@@ -108,3 +108,45 @@ relevant ones in the results table, not bury them in a JSON blob.
 - Nothing here questions the *other* e10 results (the `side` rung, the power ceiling, the
   evaluation-noise decomposition); those are λ-conditional in the same way and are now labelled as
   such.
+
+## 7. The (λ, batches) plane has two lines through one point, and the ladder sits off both
+
+Reading the configs of every artifact that swept either axis:
+
+| artifact | λ | Fisher batches |
+|---|---|---|
+| `e8_fisher_batches` | 0.1 | 8, **32**, 128 |
+| `e8_tuned_lambda` | 0.003–0.3 (**32**) | 32 |
+| `e8_basis` | 0.1 | 8 |
+| **`e10` rungs** | **1.0** | **8** |
+| **`e25`** (running) | **0.003** | **8** |
+
+**The two sweeps are lines through the single shared point (λ = 0.1, batches = 32), not a grid.**
+The λ conclusion ("0.003 is the only useful setting") is a statement *at batches 32*, and the
+batches conclusion ("the diagonal degrades as its Fisher estimate improves") is a statement *at
+λ = 0.1*. Nobody has measured λ = 0.003 at batches 8 — which is exactly the cell `e25` now fills —
+and nobody has measured the batches axis at any λ other than 0.1.
+
+That matters because the two axes are not independent. The fisher-batches finding established that
+more batches is effectively a **stronger** penalty at fixed λ, so λ = 1.0 at batches 8 and λ = 0.1 at
+batches 32 are not far apart in effective strength, and **"0.003 is the only useful setting" was
+never tested in the regime the rung ladder runs in.** The early partial result from `e25` supports
+this reading: at λ = 0.003 the block method's accuracy is **0.840 ± 0.025** against **0.8426 ± 0.0101**
+at λ = 1.0 — the same to within noise — while its forgetting is **+0.087** against **+0.059**, i.e.
+*worse* at the tuned λ. That is the opposite of what the sweep's prose predicts for this
+configuration.
+
+A tuning effect that does not appear where the sweep says it should, in a cell the sweep never
+measured, is a reason to stop calling the rung result "λ-confounded" and start calling it
+"**untuned in an unmapped plane**".
+
+## 8. The experiment that would settle it
+
+A 3×3 grid, λ ∈ {0.003, 0.1, 1.0} × batches ∈ {8, 32, 128}, on `cell_class`, 3 repeats, 500
+iterations: **9 runs at ~35 minutes each ≈ 5 hours**, of which `e10` already supplies (1.0, 8) and
+`e25` is supplying (0.003, 8). Two lines through one point cannot distinguish a tuning artefact from
+a rung effect; a grid can, and the answer decides whether `C2b`'s negative means anything.
+
+The cheaper version if 5 hours is too much: the diagonal of the grid, {(0.003, 8), (0.1, 32),
+(1.0, 128)} — three runs, ~1.8 h, and it spans the effective-strength range rather than the nominal
+one.
