@@ -75,18 +75,23 @@ Four findings, one of them unexpected in direction.
    projection (spectral truncation, locally optimal at every step) is the worst
    candidate tested. Fixed structures beat adaptive ones here.
 
-On a **trained connectome-constrained rate network**, the same question reverses: at `cell_class`
-(0.925 constrained) the biological synapse partition is **worse** than a size-matched random one —
-−0.0648 accuracy at **2.65σ** and +0.0903 forgetting at **2.73σ**, *paired on the shared seeds*, in
-all three replicates — and at `side` (0.6947), the coarsest rung and the one the neuron result most
-implicates, the negative holds as well (0.43σ paired), though that run is underpowered for effects
-below 0.09 accuracy and its λ was never set. On that
-substrate EWC helps only when
-the read-out is narrow enough to make the plastic weights load-bearing, and replay —
-content memory — is the stronger method in every setting, with forgetting driven to zero
-or below. That confirms the theory's prediction that memory should dominate regularisation
-in this partially-observed regime, and it required tuning replay's own parameters, which
-had been fixed at the worst reasonable value for eight consecutive experiments.
+On a **trained connectome-constrained rate network**, the same question has a **null** answer: the
+biological synapse partition shows no advantage over its size-matched random control at `cell_class`
+(0.925 constrained), the rung where the neuron-level result is largest. A three-replicate run had put
+it *worse* than its control — −0.0648 accuracy at 2.65σ and +0.0903 forgetting at 2.73σ, paired on
+the shared seeds — and at the **sixteen** replicates the variance budget asks for, the same
+configuration gives **+0.0039 ± 0.0161 (0.24σ)** with a detection floor of 0.032: the first three
+seeds are the three most negative of the sixteen, and the effect dies at the sixth. The coarse rung
+`side`, where that three-replicate story also rested, is being re-measured at the same power. So the
+best-powered measurement in that line is a null, and being *well-powered* makes it a stronger
+negative than the reversal it replaced. On that substrate EWC helps only when the read-out is narrow
+enough to make the plastic weights load-bearing, and replay — content memory — is the stronger
+method in every setting, with forgetting driven to zero or below: at its tuned configuration,
+**−0.0854 ± 0.0129 = 6.6σ**, which is a number the project had to *recreate* — the published 4.2σ
+version had no artifact on disk, and the recreation reproduces it and strengthens it. That confirms
+the theory's prediction that memory should dominate regularisation in this partially-observed regime,
+and it required tuning replay's own parameters, which had been fixed at the worst reasonable value
+for eight consecutive experiments.
 
 Along the way the work produced methodological results we think are of independent use:
 the conventional relative-forgetting statistic is **unusable** on this substrate, with a
@@ -672,6 +677,21 @@ forgetting driven negative**. That confirms LGCL v7's prediction that content me
 regularisation in the partially-observed regime, and withdraws the earlier "replay is
 setting-dependent" claim as confounded.
 
+**That headline result had no artifact, and the artifact has now been produced.** The census
+in `e62` found that every one of the 77 stored runs used 16 stored stimuli per task and 16
+replayed samples per step, so the pool-96 / per-step-8 configuration — the source of *every*
+pool-96 number in this subsection — existed nowhere on disk, and the nearest instance that
+did exist gave the contrast at −1.17σ with signs `+----`. Rather than argue about the
+number, the configuration was re-run (`e61`), and at per-step 8 it **reproduces**: naive
++0.0729 ± 0.0151, replay −0.0125 ± 0.0039 at 0.9681 ± 0.0078 accuracy, and the paired
+contrast **−0.08542 ± 0.01293 = 6.61σ** — *stronger* than the 4.2σ claimed, with 5/5
+replicates negative, a leave-one-out σ range of [5.19, 7.35] and no removal flipping the
+sign. The `naive` arm is bit-identical to `e8_hardened`'s, which is what makes the
+comparison like-for-like rather than approximate. Two limits, stated rather than implied:
+five replicates is provisional under the project's own rule 20, and the other two settings'
+pool-96 replay arms in the table below are *still* backed by no artifact. The
+"more replay is worse" inversion likewise awaits its per-step 16 and 48 arms.
+
 **The memory accounting matters and is stated plainly.** At their tuned optima EWC stores
 26,568 floats (0.2 MB) for +0.010 forgetting, while replay stores 96 stimuli × 12 steps ×
 1307 neurons = 1.5M floats (**6.0 MB**) for −0.010. Replay is stronger in absolute terms and
@@ -731,16 +751,22 @@ settings tested** (Fisher batches 8/32/128, λ 0.003/0.01/0.1), and its ordering
 control **flips sign between them** — the null-effect signature. The linear substrate's 12.1σ
 advantage for the same grouping does not reproduce here under any setting tried.
 
-**At one of those settings the correct analysis makes it a disadvantage rather than a null.** At
-λ = 0.1, batches = 8 — the published basis comparison — the biological arm is worse than its random
-control in **all three replicates**, on both metrics: −0.0648 accuracy (2.65σ) and +0.0903
-forgetting (2.73σ), **paired** on the shared seeds (r ≈ 0.56, worth 1.2–1.4× in sem). The published
-analysis was unpaired, read the same numbers as within-noise, and the project's summary became "no
-advantage". Raising λ to 1.0 shrinks the gap to 0.35σ, so the null reading holds at *that* λ rather
-than being λ-robust. Across every cell with three or more replicates, biology shows an advantage in
-exactly one — (0.003, 32) — and that cell's own 9-replicate replication reduced it to 0.5σ. The
-defensible form is therefore **significantly worse at (0.1, 8), and never reliably better anywhere
-measured** (`docs/findings/2026-09-22-bio-partition-worse-than-random.md`).
+**The one cell that appeared to make it a disadvantage rather than a null does not survive its own
+sample size.** At λ = 0.1, batches = 8 — the published basis comparison — three replicates put the
+biological arm worse than its random control on both metrics: −0.0648 accuracy (2.65σ) and +0.0903
+forgetting (2.73σ), **paired** on the shared seeds (r ≈ 0.56, worth 1.2–1.4× in sem). Run to the
+replicate count the variance budget asks for, **sixteen**, the same configuration gives
+**Δ = +0.0039 ± 0.0161 (0.24σ)** with a detection floor of **0.032**: the first three seeds are the
+three most negative of the sixteen and **the effect dies at the sixth** — six seeds take it from
+−2.65σ to −0.07σ, and the sixteen-seed signs are **7 positive, 2 tied, 7 negative**. `e46`'s first
+three replicates equal the three-seed run's values bit-for-bit, so the configuration is identical and
+the retraction is clean rather than a comparison across configs. Raising λ to 1.0 shrinks the gap to
+0.35σ, so the null reading holds at *that* λ as well. Across every cell with three or more replicates,
+biology shows an advantage in exactly one — (0.003, 32) — and that cell's own 9-replicate replication
+reduced it to 0.5σ. The defensible form is therefore **a null at every rung and every λ now tested,
+with a floor of 0.032** — which is a *stronger* negative than the earlier statement, not a weaker one,
+because it is now the well-powered configuration that is null
+(`docs/findings/2026-09-22-the-c2b-rung-result-was-three-seeds.md`).
 
 That granularity itself is not a variable in this comparison, and saying so is the point.
 Every one of the five settings used `--basis cell_class`, and sweeping `pool_below` over
@@ -1016,13 +1042,19 @@ height" (withdrawn in turn — the curve's internal steps sit at the level of a 
 that had never been measured); the
 "4 of 5 rungs beat their matched control" reading (a metric artefact); the "every point resolves
 individually" form of the wiring sign flip (one of the five does not, once the control-draw
-component is included); and the "replay is setting-dependent" claim (confounded with an untuned
-budget). **Eleven**, and each one is a finding entry rather than a footnote. The count is a
+component is included); the "replay is setting-dependent" claim (confounded with an untuned
+budget); the λ = 0.1 rung contrast *resolving* (its main term was three seeds — the three most
+negative of sixteen — and is +0.0039 ± 0.0161 at the sixteen replicates the variance budget asks
+for); and the **provenance** of the tuned-replay headline, whose artifact turned out not to exist on
+disk at any of the three per-step draws. **Thirteen**, and each one is a finding entry rather than a
+footnote. The thirteenth is the only one on this list whose *number* survived the check — recreated
+as an artifact, it reproduces at 6.6σ — which is what makes the list a record of what was checked
+rather than of what was doubted. The count is a
 *minimum*: three of these were found by re-analysing a run whose original analysis used the wrong
 error formula, and four were found by applying a discipline — per-seed signs, leave-one-out,
 which-axis-carries-the-noise — that we had been applying to one line and not the others.
 
-**What that discipline found when we finally aimed it at the core claim.** All eleven retractions
+**What that discipline found when we finally aimed it at the core claim.** All thirteen retractions
 above are on the C1, C2b or C3 lines. Aiming the same three questions at C2 — the project's central
 result — produced a pass, and the strongest positive evidence in the paper: over the pool ladder's
 twelve seeds, **seven of eight rungs are unanimous in sign, no leave-one-seed-out removal flips any of
