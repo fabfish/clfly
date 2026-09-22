@@ -183,6 +183,17 @@ then using it as that factor's sd downstream. That last one is what made a 152σ
 like a 4.5σ one for a whole fire; the correct move is to fix the other factors and let the one you
 care about vary alone, which costs one flag.
 
+And an eighth, from the other direction: **a variance component quoted from three replicates.** The
+network benchmark's noise floor was decomposed into "evaluation, removable" and "training" on 2
+degrees of freedom, where the 95% interval on the training remainder spans a factor of four — and
+the pairing that was supposed to shrink the error bar rests on a correlation estimated with a
+standard error near 0.7. The cheap fix was already in the repository: one run had nine replicates,
+and it says the two arms are uncorrelated (+0.02, [-0.65, +0.67]) and the whole "bigger test set"
+lever is worth **1.28×**. Separately, the `naive` arm is bit-for-bit identical across five runs,
+which shows the spread is *learner* seed-to-seed variability, not measurement — so no measurement
+change reduces it, and the target effect size has to be the one the compute can actually resolve
+(0.03, not 0.01).
+
 ## Reproduce the LGCL numbers
 
 ```bash

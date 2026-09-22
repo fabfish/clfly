@@ -469,19 +469,35 @@ neuron line was being used to argue the network line was settled.
 | `ewc-block` (biological) | 0.8148 | 0.0346 | +0.0972 |
 | `ewc-block-rand` (matched control) | 0.8264 | 0.0212 | +0.0938 |
 
-Biological minus matched random: **−0.0116 accuracy, 0.43σ paired** — the biological partition is
+Biological minus matched random: **−0.0116 accuracy** — the biological partition is
 slightly *worse* and does not beat the naive baseline, so *this rung*, at *this* λ, shows nothing:
 the network negative is not an artefact of having measured the wrong granularity. But the run only
 bounds the advantage at **≈0.09 accuracy**, because the benchmark's own per-repeat sd is 0.048
 (0.077 for forgetting). Detecting a 0.01 effect would take 86–202 repeats, i.e. **50–118 hours per
-rung**, and five rungs remain. **Settling C2b is a benchmark-variance problem, not a rung problem**
-(`docs/findings/2026-09-22-e10-side-rung-underpowered.md`).
+rung** — but 0.01 is the wrong target: at **0.03** resolution the same arithmetic gives 5–16
+replicates, i.e. **0.2–6 hours depending on the rung**, which is one working session
+(`docs/findings/2026-09-22-network-variance-is-learner-variability.md`).
 
-Two consequences worth acting on. The rate-network JSON stores `replicates`, and the
-bio-versus-control comparison is **paired by construction** while the printed summary reports
-unpaired sems; the paired sem at `side` is 1.5× smaller, and the same lesson had to be learned
-independently on the neuron ladder. And the variance, not the effect size, is now the binding
-constraint on this question — which is the same shape as the frozen-body lesson.
+Two consequences worth acting on, both **corrected by `e38`**.
+
+The rate-network JSON stores `replicates`, and the bio-versus-control comparison shares a seed
+sequence, so the paired sem *looked* like the right error bar (1.5× tighter at `side`). **That is
+now unresolved rather than established**: at n = 3 a correlation is estimated with a standard error
+near 0.7, the six rung runs give estimates from **−0.98 to +0.97**, and the only run with enough
+replicates to measure it (`n = 9`, λ = 0.003 `cell_class`) gives **+0.02 with a 95% interval of
+[−0.65, +0.67]** — which contains all six and spans pairing gains from 0.83× to ~4×. So the choice
+of error bar moves σ by a factor of two in either direction, and the honest move is to report the
+replicate requirement as a function of the assumed correlation rather than to pick one.
+
+And the diagnosis was wrong even though the arithmetic was right. **The `naive` arm is bit-for-bit
+identical in every run** (0.8240740763, per-replicate [0.895833, 0.791667, 0.784722] in all five),
+which confirms the shared seed sequence *and* shows the benchmark is **deterministic given the
+seed**. The per-repeat spread is therefore not measurement noise but genuine learner seed-to-seed
+variability, and no measurement change reduces it: the plan's earlier reading of the 0.032
+evaluation floor as "44% of the variance, removable" is bounded at **1.28×** by `e38` on the one
+well-measured run (the floor is at most 43% of the *contrast's* variance there). `--test 480` is
+still worth running because it is nearly free and removes the only genuinely-measurable part — but
+the lever the plan wanted does not exist.
 
 *Remaining:* two rungs of the `e10` sweep are still queued, but they answer a weaker question than
 the one above.
@@ -585,6 +601,7 @@ All of it has been run. The scripts as delivered:
 | `e2_topology_gap.py --circuit-size 700` | C1 | the sixth point of the size sweep, and the test of the geometry reading | **in flight** — prediction pre-registered in the `e36` finding |
 | `e36_geometry_carrier.py` | C1 | is the 367% spread a realization effect or a geometry effect? | done — geometry; the contrast's *sign* is a function of the effective rank of the task precision, ρ = +1.000, exact p = 0.0083 |
 | `e5_anisotropy_axis.py --topology` | C1 | `e5`'s concentration intervention applied at a *rewired* topology | **in flight** — `runs/e37_kappa_{real,swap2}_cs{800,300}.json`; the 2-point smoke test contradicts the `e36` mechanism |
+| `e38_variance_budget.py` | C2b | what limits the network benchmark, and is `--test 480` the lever? | done — it is learner seed-to-seed variability, not measurement; the pairing claim is unresolved (+0.02 [−0.65, +0.67] at n=9) and the `--test 480` gain is bounded at 1.28× |
 
 Every figure carries its control arm, and every recall/precision number in this document
 carries a resolvability check. The prediction scoreboard, including the refutations,
