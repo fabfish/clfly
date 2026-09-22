@@ -515,13 +515,19 @@ groups. **That reading has since been refuted four times over** (`e67`, `e72`, `
 non-monotonicity), and what replaces it is a **mechanism rather than another candidate**: the
 draw-to-draw movement of the control's excess tracks `projection_pressure` — how much of the predicted
 prior the projection discards, **weighted by the task's measurement information `J_k`** — at **r = 0.906,
-r² = 0.828** on the same relabelling, against **0.170 (r² 0.066)** for the bare alignment on the identical
-design (`e81`; the paired difference is +0.736 ± 0.061 with nine of nine partitions positive). All four
-failures were **subspace overlaps** — they ask where the drive *is* — and none could see `J_k`, which is
-what the spread turns out to be about. The draw sd is still **measured per rung** wherever a σ uses it,
-so nothing in this paper's numbers depends on the mechanism; but the error bar now has an explanation.
-See the note two paragraphs below and
-`docs/findings/2026-09-23-the-pressure-mechanism.md`.
+r² = 0.828** on the same relabelling at d = 1307, against **0.170 (r² 0.066)** for the bare alignment on the
+identical design (`e81`; the paired difference is +0.736 ± 0.061 with nine of nine partitions positive).
+**And it replicates at two other circuit sizes** — d = 952 gives *r* = 0.923 / *r*² 0.854 and d = 1874 gives
+**0.810 / 0.676**, with **all 81 seed-level correlations across the three sizes positive** — though it is
+**not size-invariant**: the step from d = 1874 down from d = 1307 is **−0.096 ± 0.029 = 3.29σ with eight of
+nine partitions declining**, while the d = 952 step is a null. So the honest range for the fraction of the
+draw-to-draw variance this explains is **68–85% depending on circuit size**, and the weakest partition at
+every size is `side`. All four failures were **subspace overlaps** — they ask where the drive *is* — and
+none could see `J_k`, which is what the spread turns out to be about. The draw sd is still **measured per
+rung** wherever a σ uses it, so nothing in this paper's numbers depends on the mechanism; but the error bar
+now has an explanation. See the note two paragraphs below and
+`docs/findings/2026-09-23-the-pressure-mechanism.md`,
+`docs/findings/2026-09-23-the-pressure-mechanism-at-three-sizes.md`.
 
 **With one counterexample that matters, because `side` is one of those partitions.** The claim as
 written is keyed on group count, and `side` is a **4-group** partition — inside the coarse band, and so
