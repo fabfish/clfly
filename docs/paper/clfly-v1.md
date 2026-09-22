@@ -509,10 +509,14 @@ the seed sem, so a single-draw σ overstates the evidence several-fold — and *
 near-diagonal ones**, where it is negligible. The mechanism offered for that pattern was that permuting
 labels barely changes a partition made of singletons and changes a great deal when there are two to ten
 groups. **That reading has since been refuted four times over** (`e67`, `e72`, `e75`, and `e67`'s own
-non-monotonicity): the draw sd is measured per rung wherever a σ uses it, and no task-relative predictor
-of it has survived — the four candidates all failed, the two that came closest being plain
-partition-size scalars. See the note two paragraphs below and
-`docs/findings/2026-09-23-the-alignment-explains-six-percent.md`.
+non-monotonicity), and five candidates later the one that works is a **different kind of object**: the
+draw-to-draw spread of `projection_pressure` — how much of the predicted prior the projection discards,
+**weighted by the task's measurement information `J_k`** — ranks the draw spread at **+0.767 (p = 0.016)**
+while being only +0.317 with concentration. The four failures all used the task's *subspace*; this uses
+the task's *information*, which is what the spread turns out to be about. So the draw sd is
+**measured per rung** wherever a σ uses it, and the predictor is a lead rather than a substitute for that
+measurement. See the note two paragraphs below and
+`docs/findings/2026-09-23-pressure-spread-predicts-the-draw-spread.md`.
 
 **With one counterexample that matters, because `side` is one of those partitions.** The claim as
 written is keyed on group count, and `side` is a **4-group** partition — inside the coarse band, and so
