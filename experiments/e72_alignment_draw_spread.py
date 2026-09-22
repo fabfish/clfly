@@ -56,6 +56,14 @@ PREDICTED_RHO = 0.8
 CONCENTRATION_POINTS = {0.020: 6.8e-5, 0.325: 9.3e-4, 0.498: 2.2e-4, 0.678: 1.06e-3}
 
 
+def load(path: str):
+    p = Path(path)
+    if not p.exists():
+        return None
+    with open(p, encoding="utf-8") as fh:
+        return json.load(fh)
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--circuit-size", type=int, default=800)
@@ -66,6 +74,9 @@ def main() -> None:
                          "membership alone and cannot see the structure under test")
     ap.add_argument("--nulls", type=int, default=4, help="random subspaces per alignment call")
     ap.add_argument("--limit", type=int, default=0, help="run only the first N partitions (timing)")
+    ap.add_argument("--from-artifact", default=None,
+                    help="re-derive the analysis from an existing artifact instead of recomputing "
+                         "the alignments; the diagnosis is a pure function of the saved rows")
     ap.add_argument("--json-out", default="runs/e72_alignment_draw_spread.json")
     args = ap.parse_args()
 
@@ -81,7 +92,14 @@ def main() -> None:
     print(f"circuit {circ.n_neurons} neurons, {args.seeds} task seeds built ({time.time()-t0:.0f}s)\n")
 
     rows = []
-    specs = MEASURED[:args.limit] if args.limit else MEASURED
+    if args.from_artifact:
+        #: The diagnosis below is a pure function of these rows, so it can be re-derived from an
+        #: artifact written before it existed without re-running 400 alignment calls.
+        rows = load(args.from_artifact)["rows"]
+        print(f"loaded {len(rows)} partitions from {args.from_artifact} -- no alignments recomputed\n")
+        specs = []
+    else:
+        specs = MEASURED[:args.limit] if args.limit else MEASURED
     for label, column, min_size, target_sd, n_draws, source in specs:
         if column not in circ.labels:
             print(f"  {label:<22} column absent")
@@ -138,6 +156,20 @@ def main() -> None:
     print(f"   Spearman(raw alignment spread, measured sd)      {rho_raw:+.3f}")
     print(f"   Spearman(concentration, measured sd)             {rho_conc:+.3f}"
           f"   <- the refuted scalar")
+    #: The diagnosis, which is what makes the refutation useful rather than just negative: if the
+    #: candidate is a re-expression of a scalar already refuted, its failure is structural and no
+    #: amount of extra data will fix it.  Reported with p, because at n = 9 Spearman is blunt.
+    from scipy.stats import spearmanr
+    print()
+    print("   DIAGNOSIS -- what the candidate actually measures")
+    for other in ("concentration", "span_dim", "mean_alignment"):
+        rho, p = spearmanr([r["alignment_spread"] for r in rows], [r[other] for r in rows])
+        print(f"   Spearman(alignment spread, {other:<16}) {rho:+.3f}   p = {p:.4f}")
+    for key in ("raw_alignment_spread", "mean_alignment", "span_dim", "concentration"):
+        rho, p = spearmanr([r[key] for r in rows], y)
+        print(f"   Spearman({key:<21}, measured sd) {rho:+.3f}   p = {p:.3f}")
+    print(f"\n   the two-sided 0.05 critical |rho| at n = {len(rows)} is about 0.683, so a failure to")
+    print(f"   reach it is a statement about the sample size as much as about the candidate.")
 
     print()
     print("=" * 112)
@@ -158,6 +190,14 @@ def main() -> None:
            "spearman_alignment": rho_align, "spearman_raw_alignment": rho_raw,
            "spearman_concentration": rho_conc, "predicted_rho": PREDICTED_RHO,
            "prediction_met": bool(rho_align >= PREDICTED_RHO),
+           "falsifier_fired": bool(side and pool2 and side["alignment_spread"] > pool2["alignment_spread"]),
+           "diagnosis": {k: float(spearmanr([r["alignment_spread"] for r in rows],
+                                            [r[k] for r in rows]).statistic)
+                         for k in ("concentration", "span_dim", "mean_alignment")},
+           "against_target": {k: float(spearmanr([r[k] for r in rows], y).statistic)
+                              for k in ("raw_alignment_spread", "mean_alignment", "span_dim",
+                                        "concentration")},
+           "critical_rho_n9": 0.683,
            "labels": lab}
     Path(args.json_out).parent.mkdir(parents=True, exist_ok=True)
     with open(args.json_out, "w", encoding="utf-8") as fh:
