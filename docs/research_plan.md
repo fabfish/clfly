@@ -235,9 +235,30 @@ anisotropy axes is the main open theoretical question.
 > opposite-signed seed.)*
 > (`docs/findings/2026-09-22-e5-pattern-repeats-at-a-second-circuit.md`)
 >
+> ### ⚠ And with twelve seeds it is **reversed**, not merely absent
+>
+> `e42` ran the same configuration — cs = 800, `real`, the same seven `kappa`, `--seed0 0` — with
+> **twelve** seeds. On the **absolute** excess that rule 3 prescribes, per-seed ρ(·, flattening) is
+> **−0.929, +0.214, +0.071, −0.500, +0.643, +0.643, +0.929, +0.321, +0.429, +0.750, +0.607, 0.000**:
+> **9 of 12 positive**, mean **+0.265**, median +0.375, sign test **p = 0.0386**, and pooled over all
+> 84 points **ρ = +0.228, p = 0.037**. `e5` claims ρ < 0, so **the direction is reversed** — with
+> Wilcoxon (p = 0.13) and t (t = +1.69) dissenting, so the honest reading is *reversed, marginally*,
+> the disagreement living in two large negative seeds.
+>
+> **On the relative gap `e5` reports, the same twelve seeds say nothing**: 5 of 12 negative, sign
+> p = 0.77, pooled ρ = −0.071 (p = 0.52). **The metric rule 3 was written about decides whether this
+> experiment reports a null or a reversal — and it cuts against the project's own published number.**
+>
+> So `e45`'s "a minority of seeds carries it" is **superseded**: the per-seed distribution is centred
+> at a *positive* ρ with one strongly negative tail, not a mixture with a minority of hits. That
+> reading was itself an n = 3 shape, which `e45` §5 listed as its own limit. Seeds 0–2 of `e42`
+> reproduce the published artifact exactly (−0.964 / −0.321 / +0.107), so the three-seed sample was not
+> unlucky in any identifiable way — its mean was simply reported as the result for three fires.
+> (`docs/findings/2026-09-22-twelve-seeds-reverse-the-e5-direction.md`)
+>
 > Everything in the paragraph below about `swap2`'s opposite sign is unaffected — it rests on the
 > `e2` scale sweep, not on `e5` — but the sentence "two of three topologies follow `e5`" now compares
-> against a one-seed reference and should be read with that caveat.
+> against a reference whose direction is **reversed at 12 seeds** and should be read accordingly.
 
 *And the sign is not topology-free.* In the `e2` scale sweep — where the **wiring** is
 the variable and `flattening` is a consequence of it rather than an intervention —
@@ -783,11 +804,11 @@ All of it has been run. The scripts as delivered:
 | `e44_penalty_cost_scaling.py` | C2b | what actually bounds each rung's cost? | done — **two terms**: `28 µs x G + 7.6e-4 x sum_g s_g^2`, crossing at `G ~ sum_g s_g^2 / 40,000`; the fine rungs are dispatch-dominated (which is why `supertype` ate 3.5 CPU-hours) and a block-diagonal sparse route is 50–891× faster there but **slower** at the coarse end |
 | `e45_e5_seed_pattern_across_circuits.py` | C1 | does `e5`'s seed pattern repeat at a second circuit size? | done — **no rescue**: four pooled statistics over two circuit sizes and two metrics are **all null** (p = 0.216, 0.077, 0.862, 0.658), two with the opposite sign; exactly one seed of three is strong in each draw (−0.964 and −0.893 relative, −0.929 and −0.893 absolute), so the association is a per-seed event in a minority of seeds |
 | `e47_contrast_per_seed_signs.py` | C1 | is the C1 contrast seed-robust, or is it `e5` all over again? | done — **robust**: 27/27 task seeds agree with their contrast's sign, no leave-one-seed-out removal flips any, max single-seed leverage 0.58–0.77. **And it found a rule-8 hole**: `runs/e2_analytic.json` stores no per-seed values, so the 32.7σ figure is the one contrast that cannot be checked — `e48` launched to close it |
-| `e2_topology_gap --circuit-size 800 --seeds 6` | C1 | per-seed storage for cs = 800 (`e48`), the only contrast lacking it | **in flight** — `runs/e48_cs800_perseed.json` |
+| `e2_topology_gap --circuit-size 800 --seeds 6` | C1 | per-seed storage for cs = 800 (`e48`), the only contrast lacking it | done — **the column reproduces bit-for-bit from its first three seeds** (all four topologies) and the refutation becomes a **paired −28.85σ with 6/6 seeds negative**, leave-one-out ≥ 23σ, against the published unpaired −32.7σ |
 | `e49_kappa_leverage_by_topology.py` | C1 | does the concentration knob move the carrier where the mechanism was proposed? | done — **no**: travel/noise is **142–271×** at `real` and **9.4×, 20.2×, 5.3×** at `swap2`/cs = 800 because the carrier starts already collapsed (effrank 1.70 vs 55), so that configuration is **untested, not null**; the one `swap2` seed with leverage (−0.786, p = 0.036) gives the `e5` direction |
 | `e54_naive_seed_pool.py` | C2b | is the `naive` arm a free instrument, and how many seeds exist for one computation? | done — **six distinct `naive` computations** across 15 runs, the largest with **n = 9** (sd 0.0389, floor 62% of the variance, so 38% is the learner); agreement established from the data, not an assumed config key |
 | `e8_rate_network --lam 0.1 --repeats 16` | C2b | the properly-powered rung contrast at λ = 0.1 (`e46`), the λ where it resolves | **in flight** — `runs/e46_c2b_powered.json` |
-| `e5_anisotropy_axis.py --seeds 12` | C1 | `e5` re-run with 12 seeds (`e42`) — the binding test for the replacement mechanism | **in flight** — `runs/e42_e5_reseed.json`; the point dict now stores the prescribed absolute excess and the report prints per-seed ρ |
+| `e5_anisotropy_axis.py --seeds 12` | C1 | `e5` re-run with 12 seeds (`e42`) — the binding test for the replacement mechanism | done — **the direction is REVERSED on the prescribed metric**: 9 of 12 seeds positive, mean +0.265, sign p = 0.0386, pooled +0.228 (p = 0.037); on the relative gap the same seeds say nothing (5/12, p = 0.77). Seeds 0–2 reproduce the published artifact exactly |
 
 Every figure carries its control arm, and every recall/precision number in this document
 carries a resolvability check. The prediction scoreboard, including the refutations,
