@@ -531,6 +531,16 @@ now has an explanation. See the note two paragraphs below and
 `docs/findings/2026-09-23-the-pressure-mechanism.md`,
 `docs/findings/2026-09-23-the-pressure-mechanism-at-three-sizes.md`.
 
+**And the mechanism has two halves, of which only one is robust.** The *co-movement* — pressure and the
+excess moving together on the same relabelling — holds at three circuit sizes and survives the shared-draw
+bootstrap at **5.15σ with 100% of 4000 resamples above zero**, which is the same scrutiny that turned a
+size comparison from 3.29σ into 0.75σ. The *spread statistic* — the size of pressure's own variation
+ranking the size of the excess's — was **+0.767 against concentration's +0.617 at d = 1307 and +0.412
+against +0.832 at d = 952**, so `e80`'s headline was a one-size event and the second size *contradicts* it
+rather than merely failing to confirm it. **The predictor-shaped use of pressure is therefore not
+supported away from d = 1307; the explanatory use is, because that is the co-movement claim**
+(`docs/findings/2026-09-23-the-mechanisms-two-halves.md`).
+
 **With one counterexample that matters, because `side` is one of those partitions.** The claim as
 written is keyed on group count, and `side` is a **4-group** partition — inside the coarse band, and so
 credited with a 3–6× overstatement and a ~1.1e-3 draw sd. Measured directly over eight draws it is
