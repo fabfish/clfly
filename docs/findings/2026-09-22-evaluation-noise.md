@@ -123,10 +123,13 @@ repeats are bought** — a cheap test of whether the expensive plan is necessary
   roughly √2 times the accuracy se if the two evaluations were independent, which they are not), so
   only the accuracy decomposition is reported.
 - The **noise-floor** block is validated end to end (`runs/e20b_noisefloor_check.json`, `--iters 2`,
-  where it also exercised the above-100% branch). The **matched-pair** block's validation run
-  (`runs/e20_matchedpair_check.json`) is still in flight under CPU contention; until it lands, the
-  block's output shown in §4 is reproduced from `runs/e10_rung_side.json` by the committed
-  `paired_contrast`, not yet printed by a live run of `e8`.
+  where it also exercised the above-100% branch). The **matched-pair** block is validated at
+  `runs/e20_matchedpair_check.json` (`--iters 20`, 3 repeats): it printed both rows and stored both
+  in the JSON, and it produced a useful illustration of the pairing argument — the two arms
+  correlate at **r = 0.899**, so the paired sem is 0.0221 against an unpaired 0.0528 (**2.4×**),
+  turning 1.62σ into 3.88σ. **That run's deltas are not results**: at `--iters 20` the model is
+  barely trained (accuracy 0.63 against 0.72), so the sign and size of its reported difference are
+  artefacts of an undertrained network. Only the mechanics are being checked here.
 
 ## 7. A figure I published an hour earlier was wrong, and this is the correction
 
