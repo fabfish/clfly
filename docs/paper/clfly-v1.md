@@ -53,9 +53,12 @@ Four findings, one of them unexpected in direction.
    working a-priori predictor.** The fly's own annotation vocabulary supplies five
    discrete rungs, and four of them sit in the top 15% of the granularity range; on a
    continuous **granularity ladder** that pools the rarest cell types, **seven of eight
-   rungs resolve, at 4–9σ once the control is averaged properly** (§4.3; the single-draw
-   figure of 42.2σ overstates it several-fold, because a coarse matched-random control has
-   a draw-to-draw spread of its own that had never been measured). The biological advantage is
+   rungs favour biology and resolve at 4.0–13.7σ once the control is averaged properly and
+   the contrast is paired** (§4.3; the single-draw figure of 42.2σ overstates it several-fold,
+   because a coarse matched-random control has a draw-to-draw spread of its own that had never
+   been measured — and three of the eight rungs still have no measurement of that spread, so the
+   column is a floor). The eighth, the finest rung of all, is a **2.6σ disadvantage** rather than
+   the null it was reported as. The biological advantage is
    *larger* than any
    annotation rung showed (0.0041–0.0088 against 0.0015–0.0048). The advantage also **changes
    sign** as the wiring is randomised — negative on the real connectome and mildly rewired
@@ -530,10 +533,18 @@ than interpolation — and this table was then superseded in turn, because it us
 the unpaired sem is 27× too large for that rung. The "3–6× for coarse partitions" figure is wrong for
 every one of them: the real overstatements are **1.0–1.6×**. That figure came from *pooled `cell_type`*
 partitions, and it is precisely `side` — the rung whose σ this paper leans on most — that it
-over-penalises by the largest factor. It also reverses a comparison: the granularity ladder's corrected
-rungs sit at 4–9σ, so the five-rung table's best rung at **18σ** is *more* decisive than every corrected
-ladder rung, where the uncorrected tables made the ladder look an order of magnitude stronger. And at
-the *fine* end the correction is exactly nil — `cell_type` min 1's overstatement is 1.00×, because a
+over-penalises by the largest factor. **And the comparison with the granularity ladder has to be redone
+too, because the two families' tables were corrected by different procedures** — the ladder with
+unpaired sems and an assumed 1.0e-3 draw sd, the named rungs with paired sems and measured ones. On the
+same footing (`e73`) the ladder's σ about the rule are 2.6 / 8.1 / **13.7** / 6.7 / 7.5 / 7.4 / 5.7 /
+4.0 and the named family's are 18.1 / 12.1 / 3.8 / **26.1** / 13.3: **the best named rung is 26.1σ
+against the ladder's 13.7σ**, a factor of 1.9 rather than the order of magnitude the uncorrected tables
+implied — and three of the ladder's eight rungs carry an *upper* estimate for the draw sd, so its column
+is a floor. The pairing gain is what made the two tables incomparable: it is 0.9–1.1× across the ladder
+(except `pool1` at 19.6×) and 1.1–27.3× across the named rungs, because a pooled cell-type partition's
+two arms are far less correlated across task draws than a near-diagonal column's are
+(`docs/findings/2026-09-23-ladder-and-named-rungs-on-one-footing.md`). And at
+the *fine* end the draw correction is exactly nil — `cell_type` min 1's overstatement is 1.00×, because a
 near-diagonal partition's control is nearly the diagonal and relabelling it changes almost nothing — so
 what survives of the old coarse/fine story is a statement about the extremes of concentration and not
 about group count. Two rungs of the ladder are in
@@ -541,7 +552,10 @@ fact the *same partition* (`pool32` and `pool64`; only two cell types have ≥32
 controls disagree at 4.7σ, which is where this started.
 
 With the component included, the rung-level result becomes **4–9σ instead of 20–42σ** — still a
-result, and the claim that biology beats matched random over 0.32–0.67 constrained stands. But
+result, and the claim that biology beats matched random over 0.32–0.67 constrained stands. (Those
+figures used an *assumed* 1.0e-3 draw sd and unpaired sems; on measured draw sds and paired sems the
+same column reads 2.6–13.7σ, and it is a floor, since three of its eight rungs have no measurement of
+their own. See the paragraph above.) But
 the shape claims do not: the plateau, the location of the optimum, "`side` is uniquely weak",
 and the headline "granularity sets where you are on the curve, biology sets the height" all rest
 on differences between deltas of 0.0015–0.004, the same order as the draw spread. `pool2 →
