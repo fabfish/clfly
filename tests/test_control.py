@@ -100,3 +100,32 @@ def test_draws_needed_is_smaller_for_a_larger_effect():
     small = draws_needed(5e-4, 2e-4, 1e-3, contrast=True)
     large = draws_needed(5e-3, 2e-4, 1e-3, contrast=True)
     assert large < small
+
+
+# --------------------------------------------------------------------------
+# concentration: the scalar that predicts the control's draw sd
+# --------------------------------------------------------------------------
+def test_concentration_of_a_balanced_partition():
+    # four groups of a hundred, d = 400: 4*100^2 / 400^2
+    from clfly.bench.control import concentration
+    assert concentration(np.repeat(np.arange(4), 100)) == pytest.approx(0.25)
+
+
+def test_concentration_of_all_singletons_is_one_over_d():
+    from clfly.bench.control import concentration
+    # d singletons: d / d^2
+    assert concentration(np.arange(400)) == pytest.approx(1 / 400)
+
+
+def test_concentration_of_one_group_is_one():
+    from clfly.bench.control import concentration
+    assert concentration(np.zeros(50, dtype=int)) == pytest.approx(1.0)
+
+
+def test_concentration_ignores_label_names_and_is_monotone_in_coarseness():
+    from clfly.bench.control import concentration
+    labels = np.repeat(np.arange(8), 12)
+    relabelled = labels + 1000                      # same partition, different ids
+    assert concentration(relabelled) == pytest.approx(concentration(labels))
+    coarse = np.where(labels == 0, 0, 1)            # merge everything but one group
+    assert concentration(coarse) > concentration(labels)

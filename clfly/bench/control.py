@@ -107,3 +107,30 @@ def draws_needed(delta: float, sem_seed: float, sd_draw: float,
     if want <= floor:
         return float("inf")
     return float(factor * sd_draw ** 2 / (want - floor))
+
+
+def concentration(labels) -> float:
+    """``sum_g s_g^2 / d^2`` for a partition — how much of the covariance it constrains.
+
+    This is the quantity that predicts a matched-random control's **draw-to-draw** sd, better
+    than the group count does. Measured on this substrate (`docs/findings/2026-09-22-draw-sd-
+    mechanism.md`):
+
+    | ``sum s^2/d^2`` | 0.006 | 0.020 | 0.325 | 0.498 | 0.678 | 0.754 |
+    |---|---|---|---|---|---|---|
+    | draw sd | 9e-5 | 4e-5 | 9.3e-4 | *predicted ~1.0e-3* | 1.06e-3 | 1.08e-3 |
+
+    The mechanism is that a permutation changes little when the partition is made of singletons
+    (most of ``sum s^2`` is then in pairs that are identical under any permutation) and a great
+    deal when one group holds most of the neurons, because then the reshuffle decides *which*
+    neurons share that group. It is the concentration, not the number of groups, that sets the
+    scale — which is why `side`, a **balanced** 4-group partition at 0.498, belongs with the
+    coarse partitions rather than with the fine ones.
+
+    Exact and cheap: no filter is run.
+    """
+    labels = np.asarray(labels)
+    if labels.size == 0:
+        return 0.0
+    sizes = np.bincount(labels).astype(np.float64)
+    return float((sizes ** 2).sum() / labels.size ** 2)
