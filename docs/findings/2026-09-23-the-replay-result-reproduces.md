@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-23
 **Script:** `experiments/e61_replay_recreation.py`
-**Artifact:** `runs/e61_replay96_step{8,16}.json` (per-step 48 still running)
+**Artifact:** `runs/e61_replay96_step{8,16,48}.json` — the sweep is complete
 **Context:** `2026-09-22-the-replay-result-has-no-artifact.md` (e62), `2026-09-22-replay-budget-inversion.md`, plan rules 8, 17, 20
 
 ---
@@ -88,9 +88,9 @@ The discipline is not a demolition device; it is what tells these two cases apar
   `e46`: LOO min σ 5.19 and leverage 0.77 leave no single replicate carrying the effect. A
   sixteen-replicate version of this one configuration is the obvious next run; note that this is
   exactly the move that killed `e46`'s −0.0648, so it is a real test and not a formality.
-- **The budget inversion is half checked, and the half that is checked reproduces.** Per-step 16
-  (claimed +0.017, measured **+0.0104**) has landed; per-step 48 (claimed +0.007) is still running. See
-  §7, which is where the finding's second half now lives.
+- **The budget inversion is checked and reproduces.** All three per-step amounts have landed, all three
+  of the claim's point estimates match, and the inversion as a paired contrast is 5.88σ. Its fine
+  structure is not resolved: `48 − 16` is −0.93σ. See §7.
 - **The other arms' spread is not small.** `e54`'s census puts this `naive` computation in a cluster of
   its own (`shared_head`/`readout_size` differ from the main cluster), so the contrast carries both
   arms' spread; the paired sem handles what sharing the replicate seed can remove, and no more.
@@ -103,35 +103,45 @@ forgetting negative, and that **more replay is worse** — per-step 8 → −0.0
 The second is a claim about a *shape*, and `e62` found the artifact behind it missing along with the
 first.
 
-Per-step 16 has now landed:
+The **whole sweep has now landed**, and all three of the claim's point estimates reproduce:
 
-| per-step | replay forgetting | claimed | naive minus replay contrast | paired σ |
-|---|---|---|---|---|
-| 8 | **−0.01250** | −0.010 | −0.08542 ± 0.01293 | **6.61** |
-| 16 | **+0.01042** | +0.017 | −0.06250 ± 0.01545 | **4.05** |
-| 48 | — | +0.007 | — | — |
+| per-step | replay forgetting | claimed | vs `naive` (paired) | σ | replay's own σ from zero |
+|---|---|---|---|---|---|
+| **8** | **−0.01250** | −0.010 | −0.08542 ± 0.01293 | **6.61** | 3.21 |
+| 16 | **+0.01042** | +0.017 | −0.06250 ± 0.01545 | **4.05** | 1.58 |
+| 48 | **+0.00208** | +0.007 | −0.07083 ± 0.01693 | **4.19** | **0.34** |
 
-So the shape holds where it is checkable: the smaller per-step amount is the better one, and it is the
-only one of the two that drives forgetting negative. The claimed +0.017 against the measured +0.0104 is
-a 0.007 discrepancy — with the claim carrying no error bar of its own, that is one replicate's worth.
+So the shape holds: **the smallest per-step amount is the best one, and it is the only one that drives
+forgetting negative.** Replay helps against `naive` at all three amounts (6.61σ, 4.05σ, 4.19σ), and the
+*largest* help is at 8. The three discrepancies against the claim (0.003, 0.007, 0.005) are all of the
+order of one replicate, and the claim carried no error bars of its own.
 
-**And the inversion is itself a contrast, so it can be tested paired rather than compared as two
-means.** Both per-step arms of one configuration run on the *same* replicate seeds, so
-`forgetting(16) − forgetting(8)` is a matched quantity over five replicates:
+**And the inversion is itself a contrast, so it is tested paired rather than compared as two
+means.** All per-step arms of one configuration run on the *same* replicate seeds, so the differences
+are matched quantities over five replicates:
 
 | contrast | delta | sem (paired) | σ | signs | LOO σ range | flips | leverage |
 |---|---|---|---|---|---|---|---|
 | **16 − 8** | **+0.02292** | 0.00390 | **5.88** | `+++++` | [4.70, 8.66] | no | 0.80 |
+| 48 − 16 | −0.00833 | 0.00896 | **−0.93** | `-+--0` | [0.29, 2.32] | no | 0.81 |
 
 **The inversion is 5.88σ on the same five replicates that the effect itself rests on, with all five
 signs agreeing and no leave-one-out removal changing it.** That is a stronger statement about the shape
 than the original finding made — it had three point estimates, and this has a paired σ.
 
-One distinction worth keeping, because the two numbers are easy to conflate: per-step 16's replay
-forgetting is **+0.01042 ± 0.0066, i.e. 1.58σ from zero** — it is *not* resolved as positive on its
-own — while its contrast against `naive` is −0.0625 at 4.05σ. So "per-step 16 is worse than per-step 8"
-is established at 5.88σ, and "per-step 16's forgetting is positive" is not. The comparison that carries
-the shape is the paired one, not the sign of a single arm.
+One distinction worth keeping, because the numbers are easy to conflate: per-step 16's replay forgetting
+is **+0.01042 ± 0.0066, i.e. 1.58σ from zero** — it is *not* resolved as positive on its own — while its
+contrast against `naive` is −0.0625 at 4.05σ. So "per-step 16 is worse than per-step 8" is established at
+5.88σ, and "per-step 16's forgetting is positive" is not. The comparison that carries the shape is the
+paired one, not the sign of a single arm.
+
+**The sweep's fine structure is not resolved, and the published claim did not claim it either.** The
+`48 − 16` contrast is **−0.93σ** — per-step 16 and per-step 48 are indistinguishable, with one of the
+five paired differences exactly zero. So the reproducible content of the shape is *"8 is best"*, at
+5.88σ; the claim that 16 is worse than 48 rests on a difference the run cannot see. What *is* clear at
+48 is that replay's own forgetting is **+0.00208, i.e. 0.34σ from zero** — at that draw replay neither
+helps nor hurts in absolute terms, while still beating `naive` by 4.19σ. So the sweep's structure is
+one resolved step down from per-step 8 and a flat plateau after it, not a three-point curve.
 
 ## 6. Where the numbers live
 
@@ -140,5 +150,5 @@ uv run python -m experiments.e61_replay_recreation
 ```
 
 reads `runs/e61_replay96_step{8,16,48}.json` and writes
-`runs/e61_replay_recreation_analysis.json`. Adding the remaining two draws requires no code change —
-the script reports the inversion section as soon as a second artifact exists.
+`runs/e61_replay_recreation_analysis.json`. The sweep is complete, so this is the final form of the
+recreation; the script needs no further change.
