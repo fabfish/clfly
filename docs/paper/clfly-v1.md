@@ -793,15 +793,26 @@ number, the configuration was re-run (`e61`), and at per-step 8 it **reproduces*
 contrast **−0.08542 ± 0.01293 = 6.61σ** — *stronger* than the 4.2σ claimed, with 5/5
 replicates negative, a leave-one-out σ range of [5.19, 7.35] and no removal flipping the
 sign. The `naive` arm is bit-identical to `e8_hardened`'s, which is what makes the
-comparison like-for-like rather than approximate. **The claim's other half — that more replay is
-worse — reproduces too, on all three of its per-step points**: 8 → −0.0125, 16 → +0.0104, 48 → +0.0021
+comparison like-for-like rather than approximate. **And the whole result survives sixteen replicates,
+which is the test that killed the C2b rung's three-seed claim**: naive +0.0625 against replay −0.0052,
+a paired contrast of **−0.06771 ± 0.01006 = 6.73σ with sixteen of sixteen replicates agreeing in sign**
+and a leave-one-out minimum of 6.2σ — 6.73σ against 6.61σ at five replicates, so the effect neither
+collapsed nor grew as the sample did. What *did* weaken is the absolute claim: replay's own forgetting
+is **0.83σ from zero at sixteen replicates against 3.21σ at five**, so *"replay beats naive"* is
+established and *"replay drives forgetting below zero"* is not. **The claim's other half — that more
+replay is worse — reproduces too, on all three of its per-step points**: 8 → −0.0125, 16 → +0.0104,
+48 → +0.0021
 against the claimed −0.010 / +0.017 / +0.007, and the inversion as a *paired* contrast on the same five
 replicates is **`16 − 8` = +0.02292 ± 0.00390 = 5.88σ with all five signs agreeing**. (Per-step 16's own
 forgetting is 1.58σ from zero and per-step 48's is 0.34σ, so it is the paired comparison and not the sign
 of a single arm that carries the shape; and `48 − 16` is −0.93σ, so what is reproducible is "8 is best",
-not a three-point curve.) Two limits, stated rather than implied: five
-replicates is provisional under the project's own rule 20, and the other two settings' pool-96 replay
-arms in the table below are *still* backed by no artifact.
+not a three-point curve.) One limit, stated rather than implied: the other two settings' pool-96 replay
+arms in the table below are *still* backed by no artifact. And one discovery that scopes all of it: the
+benchmark is **not reproducible across thread counts** — the same command under a different
+`OMP_NUM_THREADS` trains to a different result (`e77`), so the `naive` arm is a determinism control
+*within* an environment rather than across environments, and the sixteen-replicate run is a **separate
+sample** of this configuration rather than an extension of the five-replicate one
+(`docs/findings/2026-09-23-the-replay-contrast-survives-sixteen-and-the-benchmark-is-not-thread-reproducible.md`).
 
 **The memory accounting matters and is stated plainly.** At their tuned optima EWC stores
 26,568 floats (0.2 MB) for +0.010 forgetting, while replay stores 96 stimuli × 12 steps ×
