@@ -506,9 +506,13 @@ the population of size-matched random partitions, and that population has a spre
 which was never measured. Measured now (`e12_control_spread`, 812-group and 8-group partitions,
 two circuits): the draw-to-draw sd is **~1.1e-3 for coarse partitions (2–10 groups)** — 3–6×
 the seed sem, so a single-draw σ overstates the evidence several-fold — and **~4e-5–9e-5 for
-near-diagonal ones**, where it is negligible. The mechanism is that permuting labels barely
-changes a partition made of singletons and changes a great deal when there are two to ten
-groups.
+near-diagonal ones**, where it is negligible. The mechanism offered for that pattern was that permuting
+labels barely changes a partition made of singletons and changes a great deal when there are two to ten
+groups. **That reading has since been refuted four times over** (`e67`, `e72`, `e75`, and `e67`'s own
+non-monotonicity): the draw sd is measured per rung wherever a σ uses it, and no task-relative predictor
+of it has survived — the four candidates all failed, the two that came closest being plain
+partition-size scalars. See the note two paragraphs below and
+`docs/findings/2026-09-23-the-alignment-explains-six-percent.md`.
 
 **With one counterexample that matters, because `side` is one of those partitions.** The claim as
 written is keyed on group count, and `side` is a **4-group** partition — inside the coarse band, and so
