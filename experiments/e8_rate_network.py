@@ -249,6 +249,7 @@ def run_method(conn_net, suite, method: str, args, seed: int,
             block_ewc=(part, blocks, anchor_b, args.lam) if (
                 method.startswith("ewc-block") and blocks is not None) else None,
             replay=(replay if method == "replay" else None), shared=shared,
+            replay_batch=args.replay_batch,
             frozen_body=args.frozen_body))
         for j in range(k + 1):
             R[k, j] = evaluate(model, heads[0] if shared else heads[j], suite[j], shared)
@@ -304,7 +305,12 @@ def main(argv=None) -> int:
     p.add_argument("--lr", type=float, default=3e-3)
     p.add_argument("--batch", type=int, default=32)
     p.add_argument("--lam", type=float, default=1.0, help="EWC strength")
-    p.add_argument("--replay-per-task", type=int, default=16)
+    p.add_argument("--replay-per-task", type=int, default=16,
+                   help="replay pool size per finished task -- the memory budget")
+    p.add_argument("--replay-batch", type=int, default=16,
+                   help="replayed samples mixed into each training step; distinct "
+                        "from the pool size, and the two are confounded if only one "
+                        "is swept")
     p.add_argument("--methods", default="naive,ewc,replay")
     p.add_argument("--train", type=int, default=96)
     p.add_argument("--test", type=int, default=48)

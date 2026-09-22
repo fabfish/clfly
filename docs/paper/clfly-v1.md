@@ -404,20 +404,40 @@ monotone way (+0.007 → +0.009 → **+0.102** accuracy gap against +0.021 → +
 
 | method | final accuracy | mean forgetting | vs naive |
 |---|---|---|---|
-| naive | 0.914 ± 0.013 | +0.073 ± 0.015 | — |
-| **EWC, diagonal** | 0.922 ± 0.010 | **+0.021 ± 0.015** | **−0.052 ± 0.021 (2.5σ)** |
-| EWC, block — biological cell-class pairs | 0.915 ± 0.020 | +0.060 ± 0.020 | −0.013 ± 0.025 (0.5σ) |
-| EWC, block — matched random pairs | 0.928 ± 0.009 | +0.044 ± 0.016 | −0.029 ± 0.022 (1.3σ) |
-| replay | 0.932 ± 0.008 | +0.050 ± 0.016 | −0.023 ± 0.022 (1.0σ) |
+| naive | 0.917 ± 0.022 | +0.066 ± 0.019 | — |
+| **EWC, diagonal** (λ=0.003, 8 Fisher batches) | 0.922 ± 0.010 | **+0.010 ± 0.010** | **−0.056 ± 0.021 (2.6σ)** |
+| EWC, block — biological | 0.915 ± 0.020 | +0.060 ± 0.020 | −0.013 ± 0.025 (0.5σ) |
+| EWC, block — matched random | 0.928 ± 0.009 | +0.044 ± 0.016 | −0.029 ± 0.022 (1.3σ) |
+| **replay** (pool 96, 8 per step) | **0.968 ± 0.013** | **−0.010 ± 0.006** | **−0.076 ± 0.018 (4.2σ)** |
 
 This **overturns** three fires of "no Fisher-anchoring variant does anything, at any
-basis, λ, or batch count" — those were measured where nothing could resolve, and replay's
-apparent advantage also disappears here. It does not overturn the theory: LGCL makes EWC a
-33%-lossy approximation, and on a benchmark where sequential training genuinely forgets
-(+0.073), an imperfect anchor still beats no anchor. The comparison is against naive, not
-against the Kalman oracle. What is genuinely surprising is that **replay stopped helping**,
-inverting LGCL v7's expectation that content memory dominates regularisation in the
-partially-observed regime — now the most interesting open question in the network line.
+basis, λ, or batch count" — those were measured where nothing could resolve. It does not
+overturn the theory: LGCL makes EWC a 33%-lossy approximation, and on a benchmark where
+sequential training genuinely forgets (+0.066), an imperfect anchor still beats no anchor.
+The comparison is against naive, not against the Kalman oracle.
+
+**Replay is the strongest method, and its earlier apparent failure was a budget artefact.**
+It had never been tuned: *every* replay result in the project's history used 16 stored
+stimuli per task and 16 replayed samples per step, which this table shows merely ties naive.
+Sweeping both knobs — pool 4/16/96 against per-step 8/16/48 — gives a monotone pool effect
+(+0.111 → +0.059 → +0.017 forgetting) and an optimum in the per-step amount (8 beats 16 and
+48), reaching **−0.010 ± 0.006 forgetting, 4.2σ, with the best accuracy in the table and
+forgetting driven negative**. That confirms LGCL v7's prediction that content memory beats
+regularisation in the partially-observed regime, and withdraws the earlier "replay is
+setting-dependent" claim as confounded.
+
+**The memory accounting matters and is stated plainly.** At their tuned optima EWC stores
+26,568 floats (0.2 MB) for +0.010 forgetting, while replay stores 96 stimuli × 12 steps ×
+1307 neurons = 1.5M floats (**6.0 MB**) for −0.010. Replay is stronger in absolute terms and
+uses 30× the memory; per byte the diagonal anchor is the better buy. Reporting only the
+absolute numbers would hide the trade.
+
+The general rule the project now applies:
+
+> Measure the plastic-minus-frozen accuracy gap before believing any forgetting difference,
+> and tune *every* method's parameters before comparing any of them. A benchmark whose
+> frozen-body control matches its trained accuracy contains no continual-learning problem;
+> a comparison in which one family has been swept and another has not is not a comparison.
 
 **And the basis ordering reverses — but only suggestively.** On the *linear* substrate the
 coarsest partition cut the excess error by 80% relative to the diagonal and `cell_class`
