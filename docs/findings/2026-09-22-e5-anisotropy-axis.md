@@ -108,3 +108,22 @@ location of the minimum is not established.
 Next: measure the off-diagonal share of `Σ_k` in the neuron basis along the same
 `kappa` sweep. It is one array operation per task, and it either explains the dip or
 kills the explanation.
+
+---
+
+## Correction (later): the negative association is a statement at *fixed topology*
+
+The scale sweep of `e2`'s swap family produces a configuration in which the **topology** is what
+varies and `flattening` is a consequence of it, and there `swap2` shows the **opposite** sign: the
+most anisotropic point (flattening 0.0235) has the *smallest* excess and the least anisotropic
+(0.2334) the largest. The other two topologies in the same sweep follow this finding's sign.
+
+So the negative association established here is a statement about **varying the task spectrum at
+fixed wiring**, and applying it to configurations where the wiring is the variable is not licensed.
+The first test of whether it generalises is this finding's own intervention applied at a rewired
+topology — vary the task spectrum at fixed wiring, at `swap2` as well as at `real` — and it has not
+been run (`docs/findings/2026-09-22-swap2-geometry-anomaly.md` §2–3).
+
+This is not evidence against the relation: three points per topology, all graph-dependent. It is
+recorded because it is the first place the sign has come out backwards, and because the U-shape
+noted in §"the intermediate dip has no mechanism yet" already says the relation is not a clean law.
