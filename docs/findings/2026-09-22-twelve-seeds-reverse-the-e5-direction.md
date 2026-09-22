@@ -18,6 +18,21 @@ Twelve seeds is the number that turns a per-seed statistic into a sign test: if 
 real with a uniform sign, 12/12 would be p = 0.0005 and 9/12 would be p = 0.073. So this run answers
 the question the previous three could only pose.
 
+
+> ### ⚠ CORRECTION, same day — this finding's sign test was wrong
+>
+> The first version quoted **p = 0.0386**. That came from `binomtest(2, 12)`, which counts the run's
+> **one tied seed (ρ = 0.000)** as a positive and asks about the two negatives. A tie is not a sign;
+> the standard treatment drops it, and `binomtest(9, 11)` = **0.0654**. Counting the tie *against* the
+> positives would give 0.146, so **0.065 is the middle convention and the one now used**.
+>
+> So the reversal is **less significant than first reported**: sign p = **0.065**, not 0.039. The other
+> three statistics are unaffected — the pooled ρ is over all 84 points and no convention applies —
+> and the summary stands as *reversed, marginally, on two of four tests*. The lesson is in
+> `e56`'s helper: the convention was **implicit**, and an implicit convention is one a reader cannot
+> audit.
+> (`docs/findings/2026-09-22-mechanism-null-at-12-seeds-and-my-sign-test-was-wrong.md`)
+
 ## 2. The answer, on the metric the project prescribes
 
 Per-seed `Spearman(flattening, ·)` over the sweep, on the **absolute excess** that rule 3 prescribes —
@@ -29,8 +44,8 @@ which the run stores directly:
 
 | statistic | value |
 |---|---|
-| seeds with ρ < 0 | **2 of 12** (one of them exactly 0) |
-| two-sided sign test | **p = 0.0386** |
+| seeds | **9 positive, 2 negative, 1 tied** |
+| two-sided sign test (ties dropped) | **p = 0.0654** — see the correction below |
 | mean ρ | **+0.265** |
 | median ρ | +0.375, IQR [+0.054, +0.643] |
 | pooled over all 84 points | ρ = **+0.228**, p = 0.037 |
@@ -38,7 +53,7 @@ which the run stores directly:
 | one-sample t | t = +1.69 (p ≈ 0.12) |
 
 **`e5`'s claim is that more anisotropy gives a larger gap, i.e. ρ(·, flattening) < 0. Twelve seeds
-give a mean of +0.265, 9 of 12 positive, and a sign test at p = 0.039.** The direction is not merely
+give a mean of +0.265, 9 of 11 untied seeds positive, and a sign test at p = 0.065.** The direction is not merely
 unsupported; it is **reversed**, and two of the four tests reach significance while two do not — so
 the honest reading is *reversed, marginally*, not *reversed decisively*. The distribution's shape is
 what the two families of tests disagree about: one strong negative outlier (−0.929) and one moderate
@@ -49,14 +64,18 @@ significant and the rank/mean tests not.
 
 | statistic | relative `gap_EWC` | absolute `excess_EWC` |
 |---|---|---|
-| seeds with ρ < 0 | 5 of 12 | **2 of 12** |
-| sign test p | 0.77 | **0.0386** |
+| seeds (positive / negative / tied) | 7 / 5 / 0 | **9 / 2 / 1** |
+| sign test p, ties dropped | 0.77 | **0.0654** |
 | mean ρ | +0.009 | **+0.265** |
 | pooled ρ (84 points) | −0.071 (p = 0.52) | **+0.228 (p = 0.037)** |
 
 So the metric choice — the one thing plan rule 3 was written about — decides whether this experiment
-reports a null or a *reversal*. That is the strongest vindication the rule has received, and it cuts
-against the project's own published number rather than for it.
+reports a null or a *reversal*. It cuts against the project's own published number rather than for it.
+**The rule's fuller vindication comes from the other configuration**: at `swap2`/cs = 300 the banned
+metric gives a strong negative (Wilcoxon p = 0.0068, pooled p = 4e-6) which the rank decomposition
+attributes to the oracle (ρ(oracle, flattening) = +0.79, and a *negative* oracle coefficient at
+R² = 0.85), while the prescribed metric gives an exact null. Both directions of the pathology are now
+measured (`e56`).
 
 ## 3. So the "mixing weight" question was the wrong shape
 

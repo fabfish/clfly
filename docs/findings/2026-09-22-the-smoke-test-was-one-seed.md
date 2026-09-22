@@ -76,6 +76,29 @@ The excess falls from 0.0766 to 0.0381 across κ 0→2.5 and then **rises back a
 at κ = 4**. So the relation is a U-shape, of the same kind `e5` found on the relative gap at `real`,
 and a rank correlation is a poor summary of it.
 
+> ### ⚠ SUPERSEDED, same day — the 3-seed "unanimous positive" was a subset of a null
+>
+> This finding read the `swap2`/cs = 300 intervention at **three** seeds as "+0.143, +0.214, +0.357 —
+> the mechanism's direction, unanimously, none significant" and re-scoped the mechanism to
+> *underpowered rather than refuted*. **`e52` has now run that configuration with twelve seeds, and
+> three of them are the three this finding used:**
+>
+> | seeds | per-seed ρ on the prescribed metric |
+> |---|---|
+> | 0–2 | +0.143, +0.214, +0.357 ← what this finding reported |
+> | 3–11 | +0.429, +0.821, 0.000, −0.286, +0.393, −0.643, −0.750, −0.786, 0.000 |
+>
+> At twelve seeds the counts are **6 positive, 4 negative, 2 tied**, sign p = **0.754**, mean
+> **−0.009**, Wilcoxon p = **1.00**, pooled ρ = +0.076 (p = 0.49). **The direction is absent, not
+> underpowered.** So this finding's §3 table row *"the ordinal direction at `swap2` — not refuted and
+> not established"* becomes **"null at 12 seeds"**, and the honest model is no longer "a per-seed
+> event in a minority of seeds" but "no effect on the metric the project prescribes".
+>
+> §1's withdrawal of the smoke test stands and is unaffected. This is the fourth instance in the
+> sequence of a shape read off the smallest sample that could produce one, and the second time the
+> culprit was **n = 3**.
+> (`docs/findings/2026-09-22-mechanism-null-at-12-seeds-and-my-sign-test-was-wrong.md`)
+
 ## 3. Re-scoping the mechanism: the law is refuted, the direction is not
 
 This separates two things the last four findings have run together.

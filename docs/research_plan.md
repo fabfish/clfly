@@ -139,15 +139,35 @@ degree-preserving family the gap moves *opposite* to interference — overlap ri
 > (p ≥ 0.43), over a non-monotone curve that falls from 0.0766 to 0.0381 across κ 0→2.5 and then
 > **rises back to 0.0821 at κ = 4**.
 >
-> **So the mechanism's status splits, and the split is the finding.** Its *quantitative* form — a
-> shared log slope, ±0.0034 bands — is refuted (cross-family slopes 6.06σ apart, `cs700` 1.84×
-> outside its pre-registered band, realizations inside the fitted range missed by 0.01902), and so is
-> the cross-circuit sign rule (above its bracket at −10σ). Its *ordinal* direction at the
-> configuration it was proposed for is **underpowered, not refuted**: 3 of 3 seeds point its way at
-> p ≥ 0.43. The §6b smoke-test caveat that shaped this paragraph for two fires was **one seed of
-> three** — it reproduces seed 0 exactly (1.1244 → 1.2572) while seeds 1 and 2 fall, and the 3-seed
-> means fall too — so it is withdrawn. What would settle the direction is more seeds of the
-> `swap2`/cs = 300 sweep, not another coordinate.
+> **So the mechanism's status splits.** Its *quantitative* form — a shared log slope, ±0.0034 bands —
+> is refuted (cross-family slopes 6.06σ apart, `cs700` 1.84× outside its pre-registered band,
+> realizations inside the fitted range missed by 0.01902), and so is the cross-circuit sign rule
+> (above its bracket at −10σ). The §6b smoke-test caveat that shaped this paragraph for two fires was
+> **one seed of three** — it reproduces seed 0 exactly (1.1244 → 1.2572) while seeds 1 and 2 fall, and
+> the 3-seed means fall too — so it is withdrawn.
+>
+> **And its *ordinal* direction is now measured at twelve seeds, not three, in both places it can be:**
+>
+> | configuration | metric rule 3 prescribes |
+> |---|---|
+> | `real`/cs = 800 — where `e5` was published | **reversed, marginally**: mean +0.265, 9 positive / 2 negative / 1 tied, sign p = **0.065**, pooled p = 0.037 |
+> | `swap2`/cs = 300 — where the mechanism is testable | **null**: mean −0.009, **6 positive / 4 negative / 2 tied**, sign p = **0.754**, Wilcoxon p = 1.00, pooled p = 0.49 |
+> | `swap2`/cs = 800 — where the mechanism was proposed | **untested** — the knob is inert there (rule 18) |
+>
+> The three seeds this paragraph previously cited as "3 of 3 point its way at p ≥ 0.43" are three of
+> the six positives of a null distribution. So the mechanism is **reversed in one place, absent in the
+> other, and untestable in the third**, and the honest summary of four fires is: **the effective rank
+> orders the excess within a circuit's task draws, and nothing about it predicts or explains the
+> excess across circuits.**
+>
+> **And the metric choice decides the answer in both directions.** At `real`/cs = 800 the banned
+> relative gap **hid** the reversal (mean +0.009, 7/5/0, p = 0.77 against the prescribed p = 0.065); at
+> `swap2`/cs = 300 it **manufactured** a strong negative association (3 positive / 9 negative,
+> Wilcoxon p = 0.0068, pooled p = 4e-6) which the rank decomposition attributes to the **oracle**:
+> ρ(oracle, flattening) = +0.79 and `rank(gap) = 32.0 − 0.66 rank(oracle) + 0.89 rank(excess)` at
+> R² = 0.85. Rule 3 now carries both directions of failure, which is what makes it auditable rather
+> than asserted.
+> (`docs/findings/2026-09-22-mechanism-null-at-12-seeds-and-my-sign-test-was-wrong.md`)
 >
 > **And the coordinate search is now enumerated rather than anecdotal.** All eight recorded geometry
 > coordinates, on three axes, with the multiple-comparison structure reported instead of assumed
@@ -240,7 +260,8 @@ anisotropy axes is the main open theoretical question.
 > `e42` ran the same configuration — cs = 800, `real`, the same seven `kappa`, `--seed0 0` — with
 > **twelve** seeds. On the **absolute** excess that rule 3 prescribes, per-seed ρ(·, flattening) is
 > **−0.929, +0.214, +0.071, −0.500, +0.643, +0.643, +0.929, +0.321, +0.429, +0.750, +0.607, 0.000**:
-> **9 of 12 positive**, mean **+0.265**, median +0.375, sign test **p = 0.0386**, and pooled over all
+> **9 of 12 positive**, mean **+0.265**, median +0.375, sign test **p = 0.0654** (9 positive, 2 negative, **1 tied** — ties dropped; see
+> the correction in that finding), and pooled over all
 > 84 points **ρ = +0.228, p = 0.037**. `e5` claims ρ < 0, so **the direction is reversed** — with
 > Wilcoxon (p = 0.13) and t (t = +1.69) dissenting, so the honest reading is *reversed, marginally*,
 > the disagreement living in two large negative seeds.
@@ -808,8 +829,9 @@ All of it has been run. The scripts as delivered:
 | `e49_kappa_leverage_by_topology.py` | C1 | does the concentration knob move the carrier where the mechanism was proposed? | done — **no**: travel/noise is **142–271×** at `real` and **9.4×, 20.2×, 5.3×** at `swap2`/cs = 800 because the carrier starts already collapsed (effrank 1.70 vs 55), so that configuration is **untested, not null**; the one `swap2` seed with leverage (−0.786, p = 0.036) gives the `e5` direction |
 | `e54_naive_seed_pool.py` | C2b | is the `naive` arm a free instrument, and how many seeds exist for one computation? | done — **six distinct `naive` computations** across 15 runs, the largest with **n = 9** (sd 0.0389, floor 62% of the variance, so 38% is the learner); agreement established from the data, not an assumed config key |
 | `e55_seed_resolution_of_excess.py` | — | is the "below ~0.05 not resolvable" figure still right, at n = 12? | done — **stale by 3× and the wrong shape**: the absolute metric's CV is 0.70–1.26, the same as the relative gap's, so it fixes the *ratio* not the spread; unpaired resolution is **0.0159 at n = 12** (0.0319 at n = 3) but **0.00100** as a within-seed difference, and the same topology's sd moves **11×** with the drive construction |
+| `e56_metric_pathology_both_ways.py` | C1 | where does the metric choice decide the answer, and in which direction? | done — **both directions measured**: at cs800/`real` the banned metric **hid** a reversal (prescribed p = 0.065 vs banned 0.77); at cs300/`swap2` it **manufactured** one (prescribed null at 6/4/2, p = 0.754; banned Wilcoxon p = 0.0068, pooled p = 4e-6) and the rank decomposition puts it on the **oracle** (ρ(oracle, flatten) = +0.79, negative oracle coefficient, R² = 0.85) |
 | `e8_rate_network --lam 0.1 --repeats 16` | C2b | the properly-powered rung contrast at λ = 0.1 (`e46`), the λ where it resolves | **in flight** — `runs/e46_c2b_powered.json` |
-| `e5_anisotropy_axis.py --seeds 12` | C1 | `e5` re-run with 12 seeds (`e42`) — the binding test for the replacement mechanism | done — **the direction is REVERSED on the prescribed metric**: 9 of 12 seeds positive, mean +0.265, sign p = 0.0386, pooled +0.228 (p = 0.037); on the relative gap the same seeds say nothing (5/12, p = 0.77). Seeds 0–2 reproduce the published artifact exactly |
+| `e5_anisotropy_axis.py --seeds 12` | C1 | `e5` re-run with 12 seeds (`e42`) — the binding test for the replacement mechanism | done — **the direction is REVERSED on the prescribed metric**: 9 positive / 2 negative / **1 tied**, mean +0.265, sign p = **0.0654** (ties dropped; an earlier 0.0386 was my error), pooled +0.228 (p = 0.037); on the relative gap the same seeds say nothing (7/5/0, p = 0.77). Seeds 0–2 reproduce the published artifact exactly |
 
 Every figure carries its control arm, and every recall/precision number in this document
 carries a resolvability check. The prediction scoreboard, including the refutations,
