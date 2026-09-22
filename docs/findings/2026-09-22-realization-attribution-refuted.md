@@ -107,6 +107,31 @@ one direction, protecting that direction is cheap and EWC lands near the oracle,
 On the level rather than the contrast, the same coordinate gives
 `excess(swap2) ≈ 0.00280 + 0.02016 · ln(effrank)`, max residual 0.00296 over a range of 0.04545.
 
+## 6b. And immediately, the first evidence against that mechanism
+
+The mechanism in §6 is a reading of a *confounded* sweep: circuit size moves, the wiring moves with
+it, and the effective rank moves as a consequence. The clean test is `e5`'s intervention — vary the
+drive concentration `kappa` *within* a fixed wiring, which moves the effective rank without touching
+the graph — and `e5` did not have a topology flag, so it had never been run at `swap2`. It does now
+(`--topology` / `--rewire-seed` added, `experiments/e37`), and the 2-point smoke test used to
+validate the new flag already goes the wrong way:
+
+| `swap2`, cs = 300, `kappa` | effrank | flattening | gap vs oracle |
+|---|---|---|---|
+| 0 (uniform drive) | 16.6 | 0.2512 | **+1.1244** |
+| 1 | 11.0 | 0.1661 | **+1.2572** |
+
+More concentration (effrank falls) gives a **larger** gap — which is `e5`'s direction at `real`, and
+the **opposite** of §6's cross-size relation, where a higher effrank goes with a higher excess. Two
+points and one circuit size is not evidence, and cs = 300 is exactly where `swap2` is *least*
+collapsed (effrank 16.6 against 1.7–2.5 at the negative-contrast points), so the regime may be the
+whole story. But it means §6's mechanism is, as of this fire, **the weaker of the two readings**: a
+cross-size rank correlation of ρ = 1 over 5 points, contradicted the moment concentration is moved
+directly. The full run — 7 `kappa` values × 3 seeds, at `real` and at `swap2`, at both cs = 800 and
+cs = 300 (`runs/e37_kappa_*.json`) — is what decides it, and if the direct intervention keeps
+`e5`'s sign at both topologies then §6's mechanism paragraph should be withdrawn and the
+cross-size correlation read as a coincidence of five points.
+
 ## 7. Where the geometry reading stops, stated before it is oversold
 
 - **It is ordinal, not calibrated.** The fit has 5 points and 2 parameters. Two genuine
@@ -121,7 +146,8 @@ On the level rather than the contrast, the same coordinate gives
   `swap2` (leverage 2.373) can test the slope at all.
 - **`effrank` is downstream.** It is computed from the same task build that produces the excess, so
   this is a diagnostic coordinate, not an intervention. The intervention that would license a causal
-  reading is `e5`'s, applied at `swap2` — still not run.
+  reading is `e5`'s, applied at `swap2` — now launched (see §5b), because the smoke test
+  **contradicted** the mechanism paragraph above.
 - **Five points.** ρ = 1.000 at n = 5 has exact p = 0.0083, and leave-one-out stays 1.0 in all five
   deletions, which is more than the n = 3 version two fires ago had — but the threshold is a
   *bracket* [2.476, 5.040], not an estimate, and `cs700` is the sixth point.

@@ -101,9 +101,14 @@ degree-preserving family the gap moves *opposite* to interference — overlap ri
 > for `real` (ρ = −0.10) and `swap0.5` (ρ = +0.40). **So neither the refutation nor its reversal
 > survives, now with a mechanism instead of a noise story**: the sign is set by a geometry that
 > varies with the circuit, which makes it predictable without a learning run but no more general.
-> The confound still to remove is that `effrank` is downstream of the task build; the intervention
-> that would license a causal reading is `e5`'s, applied at `swap2` — cheap, and not done
-> (`docs/findings/2026-09-22-realization-attribution-refuted.md`).
+> **And that mechanism is itself the weaker of the two readings**: it comes from a confounded sweep,
+> and the direct intervention (`e5`'s concentration knob, now runnable at a rewired topology via the
+> new `--topology` flag) already went the *other* way in a 2-point smoke test at cs = 300 — more
+> concentration gave a *larger* gap there, which is `e5`'s sign at `real`, not `swap2`'s. Seven
+> `kappa` values × 3 seeds at both topologies is running (`e37`); if the direct intervention keeps
+> `e5`'s sign at `swap2`, the cross-size correlation is a five-point coincidence and the mechanism
+> paragraph is withdrawn.
+> (`docs/findings/2026-09-22-realization-attribution-refuted.md`)
 
 *Replacement, after `e5`: anisotropy, in the same direction Phase 1 found.* Vary
 the task's spectral concentration **directly**, at fixed topology, fixed support
@@ -579,6 +584,7 @@ All of it has been run. The scripts as delivered:
 | `e2_topology_gap.py --rewire-seed` | C1 | separate the swap *realization* from the circuit subsample | done — realization sd measured at 0.00125 for `swap2` (16× below the attributed 0.0205); ER moves by 0.00047, 0.33% of its own value |
 | `e2_topology_gap.py --circuit-size 700` | C1 | the sixth point of the size sweep, and the test of the geometry reading | **in flight** — prediction pre-registered in the `e36` finding |
 | `e36_geometry_carrier.py` | C1 | is the 367% spread a realization effect or a geometry effect? | done — geometry; the contrast's *sign* is a function of the effective rank of the task precision, ρ = +1.000, exact p = 0.0083 |
+| `e5_anisotropy_axis.py --topology` | C1 | `e5`'s concentration intervention applied at a *rewired* topology | **in flight** — `runs/e37_kappa_{real,swap2}_cs{800,300}.json`; the 2-point smoke test contradicts the `e36` mechanism |
 
 Every figure carries its control arm, and every recall/precision number in this document
 carries a resolvability check. The prediction scoreboard, including the refutations,

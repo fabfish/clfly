@@ -43,7 +43,7 @@ from clfly.bench.oracle import (
     task_geometry,
     task_subspaces,
 )
-from clfly.connectome import annotate, circuits, graph, tasks
+from clfly.connectome import annotate, circuits, graph, rewiring, tasks
 from clfly.lgcl.bases import Diagonal, Partition, alignment_score, random_partition
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -60,6 +60,21 @@ def run(args) -> dict:
 
     for seed in range(args.seed0, args.seed0 + args.seeds):
         circ = circuits.extract(conn, ann, hops=0, max_neurons=args.circuit_size)
+        # The wiring is held fixed across the whole kappa sweep, which is what makes this an
+        # intervention on concentration rather than on topology.  `e2`'s finding is that the
+        # *effective rank* of the task precision orders the excess across rewired circuits; the
+        # question here is whether moving concentration directly, with the wiring untouched, moves
+        # the excess the same way -- and the `e30` finding pre-registered that the answer may differ
+        # between `real` and `swap2`.
+        if args.topology != "real":
+            W0 = circ.net.weights()
+            rw_seed = args.seed0 if args.rewire_seed is None else args.rewire_seed
+            W = rewiring.apply_null(W0, args.topology, np.random.default_rng(rw_seed))
+            changed = rewiring.swap_fraction(W0, W)
+            print(f"  topology {args.topology}: edges {W.nnz:,} (was {W0.nnz:,})  "
+                  f"targets changed {changed:.3f}  rewire_seed {rw_seed}")
+            out["swap_fraction"] = changed
+            circ.net = graph.Connectome(circ.net.n_neurons, circ.net.root_ids, W.tocsr())
         ref_V = None
         seq_by_kappa: dict[float, list] = {}
         for kappa in args.kappas:
@@ -174,6 +189,10 @@ def main(argv=None) -> int:
     p.add_argument("--seeds", type=int, default=1)
     p.add_argument("--seed0", type=int, default=0)
     p.add_argument("--q", type=float, default=0.02)
+    p.add_argument("--topology", default="real",
+                   help="rewire the circuit before building tasks; 'real' keeps the connectome")
+    p.add_argument("--rewire-seed", type=int, default=None,
+                   help="separates the swap realization from the task stream (default: --seed0)")
     p.add_argument("--kappas", default=",".join(str(k) for k in KAPPAS))
     p.add_argument("--json-out", type=Path, default=None)
     args = p.parse_args(argv)
