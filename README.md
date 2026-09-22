@@ -135,12 +135,13 @@ The scientific programme is complete. A working paper draft consolidating it is 
 - **A sign test on differences below the noise floor is a random draw** — report the
   target's resolvability alongside any ranking or sign score.
 
-Ten of our own earlier conclusions were retracted or overturned as artefacts of these
-traps — including, twice, my own explanation for why an earlier retraction happened. All ten
-are in the findings log with the same prominence as the results.
+Eleven of our own earlier conclusions were retracted or overturned as artefacts of these
+traps — including, twice, my own explanation for why an earlier retraction happened, and once a
+result that turned out never to have been in the file it cited. All eleven are in the findings log
+with the same prominence as the results.
 
 `docs/findings/` holds the dated logs — one per result, negative results included, because
-those are the useful kind. The ten retractions and refutations, in order:
+those are the useful kind. The eleven retractions and refutations, in order:
 
 - **the unimodal misalignment peak** of the reference materials does **not** appear in the
   coordinate basis; the penalty is governed by task *anisotropy* (~500× larger for a steep
@@ -182,7 +183,15 @@ those are the useful kind. The ten retractions and refutations, in order:
 - **"no Fisher-anchoring variant helps on the network"** was wrong, because the benchmark
   was measuring its decoder; and
 - **"replay is setting-dependent"** was confounded with a budget fixed at the worst
-  reasonable value across eight experiments.
+  reasonable value across eight experiments; and
+- **"more anisotropy gives a larger gap"** — the replacement mechanism for the refuted
+  interference story, and the project's most-quoted direction — is **carried by one seed of
+  three**. Its published Spearman of −0.75 is reproduced *exactly* by changing one cell of the
+  artifact it cites, and that same cell is what creates its headline U-shape; the cited file is the
+  three-seed re-run, not the one-seed run the finding claims, and it agrees with the published table
+  in 35 of 42 cells with **every** disagreement in the realized-error columns. Pooled over the
+  artifact: −0.282 (p = 0.216); on the absolute metric the plan itself prescribes: **+0.040
+  (p = 0.86)**.
 
 Plus the traps themselves, each found by falling into it: the **chaotic headline
 metric** (standard deviation exceeding its own mean, and a 1-ULP ARPACK start vector moving

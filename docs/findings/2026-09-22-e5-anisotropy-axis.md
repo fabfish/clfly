@@ -49,6 +49,26 @@ anisotropy gives a *larger* one — the opposite sign to E2's confounded trend
 concentration (`kappa ≈ 0.5`, gap +0.075) before rising steeply to +1.20 at
 `kappa = 4`. There is an easy middle regime that neither of the two ends shows.
 
+> ### ⚠ CORRECTION, same day — `2026-09-22-e5-does-not-reproduce-its-own-artifact.md`
+>
+> **This table is not in the artifact it cites.** `runs/e5_anisotropy.json` holds **three** seeds
+> (21 points, `config.seeds = 3`), not the one this header claims, and its seed-0 subset disagrees
+> with the table in **7 of 42 cells — every one of them in the two realized-error columns**
+> (`gap:EWC` 4, `bio−rand` 3) while **every geometry cell reproduces**. That split is measurement
+> rule 5.
+>
+> **Both headline claims are a single one of those cells.** Substituting only the published
+> `gap:EWC(kappa=0) = 0.139` for the stored `+0.0621` reproduces **−0.7500 exactly**, and that same
+> substitution is what moves the curve's minimum from `kappa = 0` to `kappa = 0.5`. **With the stored
+> value there is no U-shape**, and the stored seed-0 association is *stronger*: **−0.9643**.
+>
+> **And the association is carried by one seed of three.** Per-seed ρ(gap, flattening) on the stored
+> 21 points: **−0.964** (p = 0.0004), **−0.321** (p = 0.48), **+0.107** (p = 0.82); pooled −0.282
+> (p = 0.216). Under the metric rule 3 actually prescribes — the **absolute** excess — pooled is
+> **+0.040 (p = 0.86)** and the `kappa`-mean is +0.143 (p = 0.76). So §3's "the gap moves opposite to
+> richness" is **supported by one realisation and not established**; the direction may well be right,
+> but this artifact does not show it. Read §3 and §4 below as conditional on that.
+
 ## 3. What this means for the story
 
 **E2's proposed driver is wrong, and now for a second reason.** The first reason

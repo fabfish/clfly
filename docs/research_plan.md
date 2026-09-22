@@ -133,6 +133,29 @@ predicted signature is a fall in the off-diagonal share of `Σ_k` in the neuron
 basis around `kappa ≈ 0.5`. Unifying the fully-observed and rank-deficient
 anisotropy axes is the main open theoretical question.
 
+> **⚠ This replacement is a single-seed result and is now marked as such.** `e41` re-checked it
+> against the artifact it cites and found three things. The finding says "1 seed" but
+> `runs/e5_anisotropy.json` holds **three**, and the published table reproduces in **35 of 42
+> cells — every disagreement in the two realized-error columns** (`gap:EWC` 4, `bio−rand` 3) while
+> every geometry cell matches, which is rule 5 exactly. Substituting **one** published cell
+> (`gap:EWC` at `kappa = 0`, +0.139 for the stored +0.0621) reproduces the published Spearman
+> **−0.7500 exactly** *and* is what moves the curve's minimum from `kappa = 0` to `kappa = 0.5`, so
+> **the −0.75 and the "easy middle regime" are the same single cell; with the stored value there is
+> no U-shape.** And the association is carried by one seed of three: per-seed ρ(gap, flattening) is
+> **−0.964 (p = 0.0004), −0.321 (p = 0.48), +0.107 (p = 0.82)**, pooled **−0.282 (p = 0.216)**, and
+> under the metric rule 3 actually prescribes — the **absolute** excess — pooled **+0.040 (p = 0.86)**
+> and `kappa`-mean +0.143 (p = 0.76). **So "more anisotropy gives a larger gap" is supported by one
+> realisation and not established**; it is not refuted, and the direction may well be right, but it
+> cannot carry the corrections below until it is re-run with more seeds. Note also that the absolute
+> metric does **not** fix the seed variance here (CV 0.30–0.97 against the relative metric's
+> 0.18–0.94; at `kappa = 4` the absolute excesses are 0.0174, 0.0191, **0.0001**), so a re-run has to
+> buy seeds, not a better metric.
+> (`docs/findings/2026-09-22-e5-does-not-reproduce-its-own-artifact.md`)
+>
+> Everything in the paragraph below about `swap2`'s opposite sign is unaffected — it rests on the
+> `e2` scale sweep, not on `e5` — but the sentence "two of three topologies follow `e5`" now compares
+> against a one-seed reference and should be read with that caveat.
+
 *And the sign is not topology-free.* In the `e2` scale sweep — where the **wiring** is
 the variable and `flattening` is a consequence of it rather than an intervention —
 `swap2` shows the **opposite** sign: its most anisotropic point (flattening 0.0235) has
@@ -142,7 +165,15 @@ topology**, and applying it where the wiring varies is not licensed. `swap2`'s f
 also spans **895%** across the sweep against `real`'s 4.2%, which localises that anomaly
 to the propagated task spectrum rather than the filter
 (`docs/findings/2026-09-22-swap2-geometry-anomaly.md`). The test is `e5`'s own
-intervention applied at a rewired topology — cheap, and not done.
+intervention applied at a rewired topology — **now run** (`e5_anisotropy_axis.py
+--topology`, `e37`) because the smoke test already contradicted the sign `e37` was
+built to confirm.
+
+*And `e2`'s replacement is itself a single-draw result.* Everything immediately
+above about `swap2` rests on **one realization per topology** at one circuit size,
+which is why `e36`-`e40` went after it: five then six circuit sizes, four
+realizations per topology, and an intervention on concentration. All three axes
+rejected the coordinate — see the C1 section above.
 
 *Controls (all required, or the claim is uninterpretable):* degree-preserving
 double-edge swaps at several strengths, Erdős–Rényi at matched density, and a
@@ -613,6 +644,7 @@ All of it has been run. The scripts as delivered:
 | `e36_geometry_carrier.py` | C1 | is the 367% spread a realization effect or a geometry effect? | done — geometry; the contrast's *sign* is a function of the effective rank of the task precision, ρ = +1.000, exact p = 0.0083 |
 | `e5_anisotropy_axis.py --topology` | C1 | `e5`'s concentration intervention applied at a *rewired* topology | **in flight** — `runs/e37_kappa_{real,swap2}_cs{800,300}.json`; the 2-point smoke test contradicts the `e36` mechanism |
 | `e38_variance_budget.py` | C2b | what limits the network benchmark, and is `--test 480` the lever? | done — it is learner seed-to-seed variability, not measurement; the pairing claim is unresolved (+0.02 [−0.65, +0.67] at n=9) and the `--test 480` gain is bounded at 1.28× |
+| `e41_anisotropy_seed_fragility.py` | C1 | does `e5`'s anisotropy association survive its artifact, its other seeds and the metric rule? | done — **no**: the cited file is the 3-seed rerun and disagrees with the table in 7 of 42 cells (all in the realized-error columns); one cell reproduces both headlines exactly; the association is 1 of 3 seeds, p = 0.216 pooled, **+0.040 (p = 0.86)** on the prescribed absolute metric |
 
 Every figure carries its control arm, and every recall/precision number in this document
 carries a resolvability check. The prediction scoreboard, including the refutations,
