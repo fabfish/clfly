@@ -502,6 +502,35 @@ every training step; `make_penalty` binds it once per task, taking the `side` ru
 24.3 to 6.0 minutes of penalty calls
 (`docs/findings/2026-09-22-penalty-bound-once.md`).
 
+> **But the footprint is only *one* of the two cost terms, and it is the wrong one at the fine end.**
+> `e44` measured the per-step cost at the ladder's five real group counts and it is
+> **`cost(µs) = 28 x G + 7.6e-4 x sum_g s_g^2`** (two fits under load: 28.3 and 32.9 µs/group; max
+> relative residual 13–20%, against a pure `G^a` fit's 1.52 *in log*, i.e. a factor of 4.6). The
+> reason is that `make_penalty` loops in Python over every group, so there is a per-group dispatch
+> cost of tens of microseconds that is **independent of block size**, in addition to the dense matvec
+> that scales with the footprint. The two terms cross at `G ~ sum_g s_g^2 / 40,000`, which puts `side`
+> (10 groups) and `cell_class` (100) on the footprint side and `ito_lee_hemilineage` (2,148),
+> `supertype` (9,938) and `cell_type` (19,618) on the **dispatch** side. So the sentence above is
+> right where it was aimed and inverted at the fine end: the *fine* rungs are the most expensive per
+> step despite having the smallest footprint, which is why `supertype` consumed **3.5 CPU-hours**
+> finishing two of three arms while `ito_lee_hemilineage` finished all three in 46 minutes.
+>
+> The fix is to bind every block once into a single block-diagonal sparse matrix and replace the
+> loop with one sparse matvec: **50x at `ito_lee_hemilineage`, 357x at `supertype`, 891x at
+> `cell_type`** — and it **hurts** the coarse end (0.3x at `side`, 0.6x at `cell_class`), because a
+> block-diagonal matvec has to touch the whole footprint. So a single route is not the answer; the
+> right form is a hybrid keyed on the crossover. The measured numerical disagreement is 2.8e-15
+> relative, which is **not** the bit-agreement `make_penalty`'s docstring promises with
+> `penalty_tensor`, so the route is **not swapped here** — the measurement is the deliverable, and
+> the change belongs behind an explicitly-named opt-in.
+>
+> **Which makes the cheapest correct action the same one `e35`'s arithmetic already implied: do not
+> run `supertype` and `cell_type` at all.** They are the most expensive rungs *and* the ones whose
+> answer is fixed in advance (`supertype`'s measured `constrained` is 0.9988, i.e. the diagonal).
+> The five-rung ladder was a reasonable design before either fact was known; with both known, `side`
+> (0.6947), `cell_class` (0.9250) and `ito_lee_hemilineage` (0.9945) are the rungs that can carry a
+> claim (`docs/findings/2026-09-22-penalty-cost-has-two-terms.md`).
+
 **So the honest claim is: at `cell_class` granularity, biology does not beat matched
 random on synapses, in any setting tested.** Recorded in
 `docs/findings/2026-09-22-synapse-annotation-ladder.md` while the
@@ -639,7 +668,7 @@ All of it has been run. The scripts as delivered:
 | `e8_rate_network.py` | — | the non-linear substrate, both settings, frozen-body control | done — replay 2.2–4.2σ, best when tuned |
 | `e3_basis_selection.py --ladder` × d=1874 | C2 | second configuration (support 150, d=1874), 12 seeds | **in flight** — `runs/e9_ladder_d1874.json` |
 | `e3_basis_selection.py --ladder` (re-run) | C2 | per-seed excesses for a paired shape test + determinism check | **in flight** — `runs/e3_ladder_v2.json` |
-| `e8_rate_network.py` × 5 rungs | C2b | synapse annotation ladder (0.6947 → 0.9992) | four of five run — all nulls at λ = 1.0 with ≈±0.03 intervals; `e38` bounds what more replicates can buy |
+| `e8_rate_network.py` × 5 rungs | C2b | synapse annotation ladder (0.6947 → 0.9992) | four of five run — all nulls at λ = 1.0 with ≈±0.03 intervals; `e38` bounds what more replicates can buy; `e44` says stop after `ito_lee_hemilineage` |
 | `e4_modularity.py` | C3 | never written | **C3 deprioritised** — its mechanism is contradicted by `e2` |
 | `e12_control_spread.py` | C2 | how much of a matched-pair delta is the control *draw* | done — draw sd is ~1.1e-3 coarse, ~4e-5 fine; coarse-rung σ are provisional |
 | `e3 --control-draws K` | C2 | average the matched control over K draws | done — wiring validated; the K=3/K=4 runs are queued behind the CPU queue |
@@ -650,6 +679,7 @@ All of it has been run. The scripts as delivered:
 | `e38_variance_budget.py` | C2b | what limits the network benchmark, and is `--test 480` the lever? | done — it is learner seed-to-seed variability, not measurement; the pairing claim is unresolved (+0.02 [−0.65, +0.67] at n=9) and the `--test 480` gain is bounded at 1.28× |
 | `e41_anisotropy_seed_fragility.py` | C1 | does `e5`'s anisotropy association survive its artifact, its other seeds and the metric rule? | done — **no**: the cited file is the 3-seed rerun and disagrees with the table in 7 of 42 cells (all in the realized-error columns); one cell reproduces both headlines exactly; the association is 1 of 3 seeds, p = 0.216 pooled, **+0.040 (p = 0.86)** on the prescribed absolute metric |
 | `e43_e5_replication.py` | C1 | is the `e5` artifact live output or a stale file? | done — **live**: `e37`'s same-configuration arm reproduces all 21 `(seed, kappa)` points, worst 0.50× print-rounding tolerance, so the published table's discrepant cells are the stale thing |
+| `e44_penalty_cost_scaling.py` | C2b | what actually bounds each rung's cost? | done — **two terms**: `28 µs x G + 7.6e-4 x sum_g s_g^2`, crossing at `G ~ sum_g s_g^2 / 40,000`; the fine rungs are dispatch-dominated (which is why `supertype` ate 3.5 CPU-hours) and a block-diagonal sparse route is 50–891× faster there but **slower** at the coarse end |
 | `e5_anisotropy_axis.py --seeds 12` | C1 | `e5` re-run with 12 seeds (`e42`) — the binding test for the replacement mechanism | **in flight** — `runs/e42_e5_reseed.json`; the point dict now stores the prescribed absolute excess and the report prints per-seed ρ |
 
 Every figure carries its control arm, and every recall/precision number in this document
