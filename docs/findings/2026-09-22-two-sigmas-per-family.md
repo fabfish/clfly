@@ -55,6 +55,17 @@ bracket.
 sd of zero. A six-realization sweep of `swap0.5` is the single run that would settle the contrast's
 magnitude, and it is the one gap this exercise exposes.
 
+> **Closed, and the answer is 2.2σ (`e65`, `docs/findings/2026-09-23-the-c1-contrast-about-the-rewiring-rule.md`).**
+> The six-realization sweep was run. `swap0.5`'s realization sd is **0.00269** against `swap2`'s 0.00377,
+> so it is not negligible — the two rules have the *same order* of wiring spread, and the 1.9σ branch
+> above was the close one while the 2.7σ "lower bound" was the optimistic extreme. Three readings are
+> now reported rather than one: **28.8σ about the two graphs**, **2.2σ** on one redraw of each rule, and
+> **3.4σ** comparing the rules' mean excesses (**5.8σ** with each arm's worst draw dropped). Every rule
+> measured has a realization sd near 0.003 on the excess scale, so the separation between the ER
+> result's 26σ and this contrast's 2.2σ is the *size* of the effect, not the noise. One further lesson
+> from the sweep: at four draws `swap0.5`'s sd read 0.00054 and the bound looked exact; the fifth draw
+> alone multiplied it by five.
+
 ## 3. What this does and does not change
 
 **Changes:** the paper's 152σ should become *"364.9σ about these graphs, 26.1σ about the rewiring rule"*,

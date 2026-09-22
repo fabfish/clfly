@@ -42,7 +42,10 @@ Four findings, one of them unexpected in direction.
    The refutation's *existence* is nonetheless now measured rather than assumed, and it is
    **two numbers rather than one**: with per-seed values it is a **paired 28.8σ over six seeds with 6/6
    agreeing in sign** and a leave-one-out range of [23.6, 39.7]σ — *about the cs = 800 graphs* — and
-   **2.7σ once the wiring draw is included**, which is the reading the claim actually needs. The whole
+   **2.2σ once the wiring draw is included** (3.4σ comparing the two rules' mean excesses, 5.8σ if each
+   arm's worst draw is dropped), which is the reading the claim actually needs. The `swap0.5` sweep that
+   produced the 2.2σ also showed that every rule's wiring spread is ≈ 0.003 on the excess scale, so the
+   two rules differ by only 2–3 realization sds. The whole
    cs = 800 column reproduces bit-for-bit from a fresh run, the check that the project's other headline
    figure failed. What died was the *explanation*, at four independent levels, plus the association that
    was to replace it (§4.2.1).
@@ -281,14 +284,29 @@ seed sems of 0.00025 and 0.00047, so **98% or more of a single point's variance 
 | | gap | about these graphs | about the rewiring rule |
 |---|---|---|---|
 | **the ER separation** | 0.12959 | **364.9σ** (paired, n = 6) | **26.1σ** |
-| **the C1 contrast** | 0.01032 | **28.8σ** (paired, n = 6) | **2.7σ** |
+| **the C1 contrast** | 0.01032 | **28.8σ** (paired, n = 6) | **2.2σ** |
 
 We previously reported these as 152σ and 32.7σ, both of them seed-only figures for single
 realizations. **The honest pair for the separation is a few hundred σ about these graphs and 26σ about
 the rule** — which leaves it by far the most robust quantity in the paper, and the only one whose
-*both* endpoints carry a measured realization sd. **And the C1 contrast is 2.7σ about the rule**, a
-lower bound because `swap0.5` has no realization sweep of its own; that is consistent with everything
-§4.2.1 found by three other routes.
+*both* endpoints carry a measured realization sd. **And the C1 contrast is 2.2σ about the rule** on the
+reading that redraws one graph of each rule, **3.4σ** when the two rules' mean excesses are compared,
+and **5.8σ** if each arm's worst draw is dropped — a range, not a point, because the means reading moves
+that much on one draw. That is consistent with everything §4.2.1 found by three other routes.
+
+**The `swap0.5` sweep that produced the 2.2σ also removed the assumption the first version of this
+paragraph rested on.** `swap0.5`'s realization sd had been *assumed* zero (giving 2.7σ) or equal to
+`swap2`'s (giving 1.9σ); measured over six rewire seeds it is **0.00269** against `swap2`'s 0.00377 —
+the two rules have the **same order** of wiring spread, and the branch we called pessimistic was the
+close one. Every rule measured has a realization sd near **0.003** on the excess scale (`swap0.5`
+0.00269, `swap2` 0.00377, ER 0.00320), so the wiring draw outweighs the task draw by 4–19× for all of
+them, and the difference between the 26σ separation and the 2.2σ contrast is the *size* of the effect
+(0.13 against 0.010), not the noise. Two things are worth recording because they were got wrong out
+loud before the sweep finished: at four draws `swap0.5`'s sd read 0.00054 and the 2.7σ bound looked
+essentially exact, and the fifth draw — 0.01631, two sd below the six-draw mean — multiplied the sd by
+five on its own. **A four-draw realization sd is not an estimate of anything**, which is rule 15
+arriving on the realization axis rather than the seed axis
+(`docs/findings/2026-09-23-the-c1-contrast-about-the-rewiring-rule.md`).
 
 **And the exposure that both σ once had has now been measured, on both endpoints — in the opposite
 direction from what we first assumed.** We had attributed `excess(swap2)`'s 367% spread across circuit

@@ -137,10 +137,18 @@ def main() -> None:
 
         #: And the different question: do the two RULES have different mean excess?  Averaging over
         #: draws shrinks the wiring noise by sqrt(k) instead of merely accounting for it, so this
-        #: number is larger -- and it is the one more draws buy power for.
+        #: number is larger -- and it is the one more draws buy power for.  It is also the most
+        #: outlier-sensitive figure here, so it is computed with and without each arm's worst draw.
         delta_means = sb["mean"] - sa["mean"]
         means_sem = float(np.hypot(sa["sem_over_realizations"], sb["sem_over_realizations"]))
         sigma_rule_means = abs(delta_means) / means_sem
+        aa, bb = np.asarray(sa["realizations"], float), np.asarray(sb["realizations"], float)
+        ja, jb = int(np.argmax(np.abs(aa - aa.mean()))), int(np.argmax(np.abs(bb - bb.mean())))
+        a_wo, b_wo = np.delete(aa, ja), np.delete(bb, jb)
+        sem_wo = float(np.hypot(a_wo.std(ddof=1) / np.sqrt(a_wo.size),
+                                b_wo.std(ddof=1) / np.sqrt(b_wo.size)))
+        delta_wo = float(b_wo.mean() - a_wo.mean())
+        sigma_wo = abs(delta_wo) / sem_wo
 
         print(f"   at the PUBLISHED draw (both arms from `e48`): "
               f"excess({b}) - excess({a}) = {delta:+.6f}")
@@ -154,31 +162,42 @@ def main() -> None:
         print(f"   (iii) about the RULE, means of draws  sem {means_sem:.6f}  ->  "
               f"{sigma_rule_means:.1f} sigma")
         print(f"          ({sa['k']} draws of {a}, {sb['k']} of {b})")
+        print(f"          dropping each arm's worst draw: mean {delta_wo:+.6f} sem {sem_wo:.6f}"
+              f"  ->  {sigma_wo:.1f} sigma")
         print(f"\n   (i) and (ii) answer 'how solid is the published contrast'; (iii) answers 'do the two")
         print(f"   rules have different mean excess at all', which is the weaker question but the one")
         print(f"   that averaging over draws buys power for.")
         print(f"\n   e59 reported {E59['pair_sigma']} sigma about the graphs and "
               f"{E59['rule_sigma_lower_bound']} sigma about the rule,")
-        print(f"   as a lower bound, with {E59['rule_sigma_if_same_sd']} sigma if the unswept arm had a")
-        print(f"   {b}-sized realization sd.  Measured: {a}'s sd is {sa['sd_realization']:.6f} against")
-        print(f"   {b}'s {sb['sd_realization']:.6f} -- a factor of "
-              f"{sb['sd_realization']/sa['sd_realization']:.1f}, so the bound was ")
-        print(f"   {'TIGHT (within 5%)' if abs(sigma_rule - sigma_rule_lb) < 0.05 * sigma_rule_lb else 'NOT tight'}"
-              f" and the 'same sd' alternative is ruled out.")
+        print(f"   as the most favourable reading of it, with {E59['rule_sigma_if_same_sd']} sigma if the")
+        print(f"   unswept arm had a {b}-sized realization sd.  Measured: {a}'s sd is")
+        print(f"   {sa['sd_realization']:.6f} against {b}'s {sb['sd_realization']:.6f} -- a factor of only")
+        print(f"   {sb['sd_realization']/sa['sd_realization']:.1f}, so the bound was "
+              f"{'TIGHT (within 5%)' if abs(sigma_rule - sigma_rule_lb) < 0.05 * sigma_rule_lb else 'NOT tight'}")
+        print(f"   and the 'same sd' branch was the close one "
+              f"({sigma_rule_same:.1f} against the measured {sigma_rule:.1f}).")
+        print(f"\n   Outlier diagnostic, because (iii) moves more than (ii) does: the worst draw of {a} is")
+        print(f"   {aa[ja]:.6f} against a mean of {aa.mean():.6f} ({abs(aa[ja]-aa.mean())/aa.std(ddof=1):.1f} sd out),")
+        print(f"   and the worst of {b} is {bb[jb]:.6f} against {bb.mean():.6f} "
+              f"({abs(bb[jb]-bb.mean())/bb.std(ddof=1):.1f} sd out).")
 
         out["contrast"] = dict(
             rule_a=a, rule_b=b,
             published_delta=delta, pair_sem=pair_sem, sigma_pair=sigma_pair,
             rule_sem=rule_sem, sigma_rule_one_redraw=sigma_rule,
             sigma_rule_lower_bound=sigma_rule_lb, sigma_rule_if_same_sd=sigma_rule_same,
-            delta_of_means=delta_means, means_sem=means_sem, sigma_rule_means=sigma_rule_means)
+            delta_of_means=delta_means, means_sem=means_sem, sigma_rule_means=sigma_rule_means,
+            delta_of_means_drop_worst=delta_wo, means_sem_drop_worst=sem_wo,
+            sigma_rule_means_drop_worst=sigma_wo)
 
         print(f"\n   LIMITS, stated where the numbers are: the realization sd rests on {sa['k']} draws of")
         print(f"   {a} and {sb['k']} of {b}.  Plan rule 15 is that a variance cannot be decomposed at")
         print(f"   n = 3; at n = 6 an sd is still only pinned to about +/-30%, so (ii) is good to about")
-        print(f"   a factor of 1.3.  (iii) is far more sensitive: with {sa['k']} draws of {a} its sd has")
-        print(f"   {sa['k']-1} degree(s) of freedom, so (iii) should be read as provisional until the")
-        print(f"   sweep completes.")
+        print(f"   a factor of 1.3.  (iii) is far more sensitive, and the sensitivity is measurable here")
+        print(f"   rather than hypothetical: it moves from {sigma_rule_means:.1f} to {sigma_wo:.1f} sigma when each")
+        print(f"   arm's worst draw is dropped, so it should be quoted as that range and not as a point.")
+        print(f"   How much a single draw can move the sd is the other lesson: {a}'s first four draws gave")
+        print(f"   an sd of 0.000535, and the fifth alone multiplied it by five.")
 
     Path(args.json_out).parent.mkdir(parents=True, exist_ok=True)
     with open(args.json_out, "w", encoding="utf-8") as fh:
