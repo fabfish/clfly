@@ -7,6 +7,7 @@ these must run in an install without the optional ``network`` extra.
 from __future__ import annotations
 
 import numpy as np
+import pytest
 
 from clfly.network.fisher import SynapsePartition
 
@@ -108,3 +109,38 @@ def test_constrained_fraction_is_the_share_of_the_pair_matrix_that_is_dropped():
     part = SynapsePartition.from_labels(labels, pre, post)
     m = part.n_params
     assert part.constrained_fraction() == 1.0 - sum(len(g) ** 2 for g in part.groups) / (m * m)
+
+
+# --------------------------------------------------------------------------
+# the penalty: bound once per task, not per training step
+# --------------------------------------------------------------------------
+def test_make_penalty_agrees_with_penalty_tensor_bit_for_bit():
+    torch = pytest.importorskip("torch", reason="the penalty is a torch object")
+    labels, pre, post = _toy()
+    part = SynapsePartition.from_labels(labels, pre, post, pool_below=2, pool_buckets=2)
+    rng = np.random.default_rng(0)
+    theta = torch.tensor(rng.normal(size=part.n_params), dtype=torch.float32)
+    anchor = rng.normal(size=part.n_params)
+    blocks = rng.normal(size=part.n_entries)
+
+    for lam in (0.0, 0.003, 1.0):
+        per_step = part.penalty_tensor(blocks, theta, anchor, lam, torch)
+        bound = part.make_penalty(blocks, anchor, theta, lam, torch)(theta)
+        assert bound.item() == per_step.item()
+
+
+def test_bound_penalty_tracks_theta_and_is_zero_at_the_anchor():
+    torch = pytest.importorskip("torch", reason="the penalty is a torch object")
+    labels, pre, post = _toy()
+    part = SynapsePartition.from_labels(labels, pre, post, pool_below=2)
+    rng = np.random.default_rng(1)
+    anchor = rng.normal(size=part.n_params)
+    blocks = np.abs(rng.normal(size=part.n_entries))
+    theta = torch.tensor(anchor.copy(), dtype=torch.float64).requires_grad_(True)
+    p = part.make_penalty(blocks, anchor, theta, 0.5, torch)
+    assert p(theta).item() == pytest.approx(0.0)
+    shifted = torch.tensor(anchor + 0.3, dtype=torch.float64).requires_grad_(True)
+    out = p(shifted)
+    assert out.item() > 0
+    out.backward()
+    assert shifted.grad is not None and float(shifted.grad.abs().sum()) > 0

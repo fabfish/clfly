@@ -599,7 +599,10 @@ mass into ``B`` groups does drop storage as ``1/B`` and is now implemented, but 
 `constrained_fraction` back toward the diagonal by nearly as much (0.6165 → 0.9744 at
 ``B = 4``), so it buys the fine end, not the middle. What bounds the coarse end is **time, not
 memory** — block-Fisher accumulation cost also scales with ``sum_g s_g^2``, so a coarse rung
-costs minutes per run instead of seconds, which is affordable. So the defensible claim is that
+costs minutes per run instead of seconds, which is affordable. And part of that time was not
+granularity at all: the constant Fisher was re-converted from numpy to ``torch`` on every
+training step, and binding it once per task (`make_penalty`) takes the coarsest rung from 24.3
+to 6.0 minutes of penalty calls. So the defensible claim is that
 biology does not help *synapse* anchoring at 0.925 constrained, and the rung the neuron result
 implicates is untested.
 

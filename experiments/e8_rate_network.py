@@ -83,8 +83,8 @@ def train_task(model, heads, suite, k: int, iters: int, lr: float, batch: int,
             loss = loss + 0.5 * lam * torch.sum(
                 torch.from_numpy(fisher).float() * (model.theta - anchor) ** 2)
         if block_ewc is not None:
-            part, blocks, anchor_b, lam_b = block_ewc
-            loss = loss + part.penalty_tensor(blocks, model.theta, anchor_b, lam_b, torch)
+            # already bound to the blocks, anchor and lambda -- see `make_penalty`
+            loss = loss + block_ewc(model.theta)
         if replay:
             n = min(replay_batch, len(replay))
             pick = rng.integers(0, len(replay), size=n)
@@ -241,13 +241,18 @@ def run_method(conn_net, suite, method: str, args, seed: int,
     losses = []
 
     for k, task in enumerate(suite):
+        # Bind the block penalty ONCE per task, not once per training step. The Fisher and
+        # the anchor are constants while a task is trained; converting them inside the step
+        # loop is what made a coarse partition take hours rather than minutes.
+        block_pen = None
+        if method.startswith("ewc-block") and blocks is not None:
+            block_pen = part.make_penalty(blocks, anchor_b, model.theta, args.lam, torch)
         losses.append(train_task(
             model, heads, suite, k, iters=args.iters, lr=args.lr,
             batch=args.batch, seed=seed + k,
             ewc=(fisher, anchor, args.lam) if (
                 method == "ewc" and fisher is not None) else None,
-            block_ewc=(part, blocks, anchor_b, args.lam) if (
-                method.startswith("ewc-block") and blocks is not None) else None,
+            block_ewc=block_pen,
             replay=(replay if method == "replay" else None), shared=shared,
             replay_batch=args.replay_batch,
             frozen_body=args.frozen_body))

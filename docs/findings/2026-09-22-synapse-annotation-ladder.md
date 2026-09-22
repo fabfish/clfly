@@ -103,6 +103,12 @@ wants the fine-to-mid range, and because the negative result is worth having on 
 
 ## 4. What is blocked is time, not memory
 
+> **Revised.** The *time* claim survives; the reason for it does not. A 4× share of this cost
+> was a per-training-step numpy→torch conversion of the whole Fisher that had nothing to do
+> with granularity, and is now bound once per task — see
+> `docs/findings/2026-09-22-penalty-bound-once.md`. Granularity really does cost, but less than
+> this section implies.
+
 The machine has 33.6 GB, so 2.165 GB — or even 4.68 GB — is not a wall. The binding constraint
 is the block Fisher's **accumulation cost**, which also scales with ``sum_g s_g^2``: one block
 of 16,342² is 2.7e8 multiply-adds per accumulation, and there are `fisher_batches` × tasks of

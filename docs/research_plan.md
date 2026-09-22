@@ -303,7 +303,11 @@ much (0.6165 → 0.9744 at ``B = 4``), so it buys the fine end, not the middle.
 
 What bounds the coarse end is **time, not memory** (33.6 GB available): block-Fisher
 accumulation cost also scales with ``sum_g s_g^2``, so a coarse rung takes minutes per
-run rather than seconds. That is affordable.
+run rather than seconds. That is affordable. **And a 4× share of that time was not
+granularity at all** — the constant Fisher was being re-converted from numpy to torch on
+every training step; `make_penalty` binds it once per task, taking the `side` rung from
+24.3 to 6.0 minutes of penalty calls
+(`docs/findings/2026-09-22-penalty-bound-once.md`).
 
 **So the honest claim is: at `cell_class` granularity, biology does not beat matched
 random on synapses, in any setting tested — and the rung the neuron result implicates is
@@ -413,6 +417,14 @@ Added 2026-09-22, after the headline metric was found to be chaotic
    and re-deriving a two-hour run to recover them is avoidable: `analytic_excess`
    records `excess_per_seed`. `--report-from <json>` re-prints any finished run's
    report without recomputing it.
+9. **Time the pieces before calling a configuration untestable.** Twice now a
+   scientific conclusion rested on an implementation artefact — a benchmark that
+   measured its decoder, and a "coarse rungs are too slow" reading that was 4×
+   redundant work inside the step loop (a constant Fisher re-converted from numpy
+   on every step; `SynapsePartition.make_penalty` binds it once per task instead).
+   When something is too slow to run, profile it before concluding the science is
+   expensive. Related: a module with no tests hid a dtype crash one argument away
+   — the penalty was one float64 anchor from raising.
 
 ## Related work to differentiate against
 

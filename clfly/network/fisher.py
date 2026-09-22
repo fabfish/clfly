@@ -179,13 +179,58 @@ class SynapsePartition:
         Written to flow a gradient through ``theta``: the block ``F_g`` is a constant
         and only the difference ``(theta_g - anchor_g)`` is differentiated, which is the
         EWC construction.
+
+        **Do not call this inside a training loop.**  It converts every block from numpy
+        to ``torch`` on each call, and for a coarse partition that is hundreds of millions
+        of entries — which made the step loop, not the Fisher estimate, the runtime of the
+        whole benchmark.  Use :meth:`make_penalty`, which binds the conversion once.
         """
         total = torch_mod.zeros((), dtype=theta.dtype, device=theta.device)
+        # the anchor is a constant like the blocks, so downcast it once rather than
+        # letting `theta - anchor` pick the dtype by numpy promotion: a float64 anchor
+        # against a float32 theta raises in `addmv` instead of working
+        anchor_t = torch_mod.as_tensor(np.asarray(anchor), dtype=theta.dtype,
+                                       device=theta.device)
         for g, idx in enumerate(self.groups):
             s = len(idx)
             off = self._offsets[g]
             blk = torch_mod.from_numpy(
                 blocks[off:off + s * s].reshape(s, s)).to(theta.device).to(theta.dtype)
-            d = theta[idx] - anchor[idx]
+            d = theta[idx] - anchor_t[idx]
             total = total + d @ (blk @ d)
         return 0.5 * lam * total
+
+    def make_penalty(self, blocks: np.ndarray, anchor, theta, lam: float, torch_mod):
+        """Bind ``(blocks, anchor, lam)`` into a ``theta -> penalty`` callable.
+
+        The Fisher and the anchor are **constant while a task is trained**, so the
+        numpy-to-``torch`` conversion of every block — and of the anchor — is a one-off
+        cost and belongs here, outside the step loop.  Arithmetic is unchanged: the same
+        ``d @ (blk @ d)`` per group, in the same order, at the same dtype, so a run that
+        used :meth:`penalty_tensor` per step and one that uses this agree to the bit.
+
+        Kept separate from :meth:`penalty_tensor` rather than replacing it, because the
+        per-call version is the honest thing to reach for when the blocks *do* change
+        every step, and because a silent behavioural difference here would be far worse
+        than a slightly longer call.
+        """
+        blocks_t = [
+            torch_mod.from_numpy(blocks[self._offsets[g]:self._offsets[g] + len(idx) ** 2]
+                                 .reshape(len(idx), len(idx)))
+            .to(theta.device).to(theta.dtype)
+            for g, idx in enumerate(self.groups)
+        ]
+        anchor_t = torch_mod.from_numpy(np.asarray(anchor)).to(
+            theta.device).to(theta.dtype)
+        idxs = [torch_mod.from_numpy(np.asarray(idx, dtype=np.int64)) for idx in self.groups]
+        # the anchor slices are constants too, and indexing them per step recomputes them
+        anchors = [anchor_t[i] for i in idxs]
+
+        def penalty(theta_now):
+            total = torch_mod.zeros((), dtype=theta_now.dtype, device=theta_now.device)
+            for blk, idx, a_g in zip(blocks_t, idxs, anchors):
+                d = theta_now[idx] - a_g
+                total = total + d @ (blk @ d)
+            return 0.5 * lam * total
+
+        return penalty
