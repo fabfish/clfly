@@ -351,12 +351,34 @@ every training step; `make_penalty` binds it once per task, taking the `side` ru
 (`docs/findings/2026-09-22-penalty-bound-once.md`).
 
 **So the honest claim is: at `cell_class` granularity, biology does not beat matched
-random on synapses, in any setting tested — and the rung the neuron result implicates is
-untested.** Recorded in `docs/findings/2026-09-22-synapse-annotation-ladder.md` while the
+random on synapses, in any setting tested.** Recorded in
+`docs/findings/2026-09-22-synapse-annotation-ladder.md` while the
 neuron line was being used to argue the network line was settled.
 
-*In flight:* `e8_rate_network` over all five rungs, `runs/e10_rung_*.json` — the first
-synapse basis comparison at more than one granularity.
+*Update — `side` has now been run and the negative holds, but the test is too weak to be decisive.*
+
+| method at `side` | final accuracy | sem | mean forgetting |
+|---|---|---|---|
+| naive | 0.8241 | 0.0359 | +0.1007 |
+| `ewc-block` (biological) | 0.8148 | 0.0346 | +0.0972 |
+| `ewc-block-rand` (matched control) | 0.8264 | 0.0212 | +0.0938 |
+
+Biological minus matched random: **−0.0116 accuracy, 0.43σ paired** — the biological partition is
+slightly *worse* and does not beat the naive baseline, so **the rung hypothesis is not supported**:
+the network negative is not an artefact of having measured the wrong granularity. But the run only
+bounds the advantage at **≈0.09 accuracy**, because the benchmark's own per-repeat sd is 0.048
+(0.077 for forgetting). Detecting a 0.01 effect would take 94–238 repeats, i.e. **55–140 hours per
+rung**, and five rungs remain. **Settling C2b is a benchmark-variance problem, not a rung problem**
+(`docs/findings/2026-09-22-e10-side-rung-underpowered.md`).
+
+Two consequences worth acting on. The rate-network JSON stores `replicates`, and the
+bio-versus-control comparison is **paired by construction** while the printed summary reports
+unpaired sems; the paired sem at `side` is 1.5× smaller, and the same lesson had to be learned
+independently on the neuron ladder. And the variance, not the effect size, is now the binding
+constraint on this question — which is the same shape as the frozen-body lesson.
+
+*Remaining:* four rungs of the `e10` sweep are still queued, but they answer a weaker question than
+the one above.
 
 ## The benchmark — FlyCL v0
 
@@ -396,7 +418,7 @@ All of it has been run. The scripts as delivered:
 | `e8_rate_network.py` | — | the non-linear substrate, both settings, frozen-body control | done — replay 2.2–4.2σ, best when tuned |
 | `e3_basis_selection.py --ladder` × d=1874 | C2 | second configuration (support 150, d=1874), 12 seeds | **in flight** — `runs/e9_ladder_d1874.json` |
 | `e3_basis_selection.py --ladder` (re-run) | C2 | per-seed excesses for a paired shape test + determinism check | **in flight** — `runs/e3_ladder_v2.json` |
-| `e8_rate_network.py` × 5 rungs | C2b | synapse annotation ladder (0.6947 → 0.9992), the untested rung `side` included | **in flight** — `runs/e10_rung_*.json` |
+| `e8_rate_network.py` × 5 rungs | C2b | synapse annotation ladder (0.6947 → 0.9992) | `side` done — negative holds, but underpowered (bounds the advantage at ≈0.09 accuracy); four rungs queued |
 | `e4_modularity.py` | C3 | never written | **C3 deprioritised** — its mechanism is contradicted by `e2` |
 | `e12_control_spread.py` | C2 | how much of a matched-pair delta is the control *draw* | done — draw sd is ~1.1e-3 coarse, ~4e-5 fine; coarse-rung σ are provisional |
 | `e3 --control-draws K` | C2 | average the matched control over K draws | done — wiring validated; the K=3/K=4 runs are queued behind the CPU queue |
