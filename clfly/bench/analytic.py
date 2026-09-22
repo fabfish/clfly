@@ -319,8 +319,23 @@ def contrast_of_contrasts(a: dict, b: dict) -> dict:
 
     This is the function that decides whether a curve has a *shape*.  "The delta at rung
     X resolves from zero" and "the delta at X differs from the delta at Y" are different
-    claims, and only the second licenses a statement about an optimum.  When both inputs
-    came from the same set of seeds, the contrast is itself paired.
+    claims, and only the second licenses a statement about an optimum.
+
+    There are three defensible figures for such a contrast, depending on how much pairing
+    is granted, and this returns the **loosest and the tightest** of them:
+
+    - ``sem_unpaired`` — quadrature of the two arms' *unpaired* sems.  Grants no pairing
+      anywhere, so it is what a reader who distrusts the whole scheme would ask for.
+    - ``sem_paired`` — the sd of the per-seed difference of the two deltas.  Grants full
+      pairing: the arms share seeds *and* the two rungs share the same `bio`-side and
+      `rand`-side draws, so the covariance between the two deltas is in the data and is
+      used.  This is the figure to report.
+    - (the middle option, quadrature of the two *paired* sems, is deliberately not
+      returned: it corresponds to no natural assumption and only invites confusion with
+      the other two.)
+
+    The gap between the two returned figures is the price of not trusting the pairing, and
+    it is worth stating whenever a shape claim rests on a contrast near 2σ.
     """
     delta = a["delta"] - b["delta"]
     sem_un = float(np.hypot(a["sem_unpaired"], b["sem_unpaired"]))

@@ -243,3 +243,27 @@ def test_contrast_of_contrasts_without_per_seed_falls_back_to_unpaired():
     out = contrast_of_contrasts(pa, pc)
     assert "sem_paired" not in out
     assert out["sigma_unpaired"] > 0
+
+
+def _from(x):
+    x = np.asarray(x, float)
+    return {"excess_mean": float(x.mean()),
+            "excess_sem": float(x.std(ddof=1) / np.sqrt(x.size)),
+            "excess_per_seed": x.tolist()}
+
+
+def test_contrast_of_contrasts_uses_the_covariance_between_rungs():
+    # Both rungs' deltas are dominated by the same seed axis, so the *difference* of the
+    # two deltas cancels it. The fully paired figure must capture that; the loosest one
+    # cannot, which is exactly why a shape claim cannot rest on the loosest figure.
+    n, rng = 200, np.random.default_rng(7)
+    z = rng.normal(size=n)
+
+    def rung(mean):
+        bio = _from(mean + z + 0.2 * rng.normal(size=n))
+        rnd = _from(mean + z + 0.2 * rng.normal(size=n))
+        return paired_delta(bio, rnd)
+
+    cc = contrast_of_contrasts(rung(3.0), rung(1.0))
+    assert cc["sem_paired"] < 0.5 * cc["sem_unpaired"]
+    assert cc["conservatism"] > 2.0
