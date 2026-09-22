@@ -1185,6 +1185,20 @@ Added 2026-09-22, after the headline metric was found to be chaotic
    statistic at n = 3 could have shown. The cheap guard is `e47`'s and `e57`'s: compute the
    per-seed values and look at them **before** quoting the pooled number.
 
+21. **Quantify reproducibility; do not assert it.** "Bit-for-bit" and "bit-identical" were used
+   throughout this project and they are **wrong for its numbers**. `e77` measured what the same command
+   does under a different `OMP_NUM_THREADS`: on the **analytic** (numpy) path the results move at about
+   the **fourth significant digit** — 1.8e-4 relative on a per-seed excess, 9.3e-7 on an aggregate delta
+   — which is far below every σ the project quotes (the tightest is 1.29e-5 against a delta of 2.6e-4,
+   so the environment sits 40× below it) but is not zero. On the **network** (torch) path the phrase
+   fails outright: three replicates of 0.875 / 0.902778 / 0.909722 at the default setting against
+   0.826389 / 0.840278 / 0.930556 at four threads, sharing no value at all. So the form to use is
+   **"identical to N significant digits given an environment"**, with N measured. Two consequences the
+   project has already had to absorb: a determinism control is a control *within* an environment (no
+   artifact recorded one until this rule existed), and a run at a different replicate count but the same
+   configuration is a **separate sample**, not an extension, unless its earlier replicates are compared
+   and found equal (`e61` vs `e68` were not).
+
 ## Related work to differentiate against
 
 Four papers are close enough to require explicit positioning — all use fly
