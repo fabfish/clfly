@@ -73,9 +73,9 @@ the conventional relative-forgetting statistic is **unusable** on this substrate
 standard deviation exceeding its own mean, and an exact analytic expected error replaces it
 at ~8× better precision for the same compute; a benchmark can silently measure its decoder
 rather than its subject, for which the frozen-body control is the diagnostic; and a sign
-test on differences below the measurement's noise floor is a random draw. Six of our own
-earlier conclusions were retracted or overturned as artefacts of these three traps — one
-of them the headline.
+test on differences below the measurement's noise floor is a random draw. Seven of our own
+earlier conclusions were retracted or overturned as artefacts of these traps — two of them
+headlines, one after the other.
 
 ---
 
@@ -758,19 +758,27 @@ draws of the realisation.
   scale-independent by construction, but the effect sizes are specific to this
   `(W, assemblies)` configuration. Of the surviving rungs, `side` is robustly strong at
   both scales and `ito_lee_hemilineage` is if anything stronger at the larger one;
-  `cell_class` is **not** scale-robust and is reported as such.
+  `cell_class` is **not** scale-robust and is reported as such. Note that every coarse-rung σ
+  in this paper, including `side`'s (4 groups), is a **single-draw** figure and is inflated
+  several-fold by the control-draw component (§4.3, `e12`).
 - **d = 3150 is near the ceiling at this budget.** The exact oracle is O(d³), so a larger
   circuit costs 7× more per run than d = 1307. The "why not the whole brain" question is
   answered by conditioning (§3.3), not by choice.
 - **Two seeds at d = 3150** against five at d = 1307 and 18 for the headline basis result,
   so the larger-scale σ are themselves less well determined.
-- **The annotation vocabulary is not a granularity sweep.** Four of its five rungs sit in
-  the top 15% of the constrained range, so the five-rung ladder alone under-reports the
-  biological contribution by placing almost every rung where biology contributes least. The
-  granularity ladder (§4.3) corrects this at d = 1307 only, with 12 seeds; the coarse end of
-  the curve is also under-populated, since beyond `pool32` no further cell type meets the
-  size threshold on this circuit and `pool64`/`pool128` share a `constrained_fraction`. The
-  *shape* of the curve may be specific even if its lesson is not.
+- **The annotation vocabulary is not a granularity sweep, and the ladder's coarse end is
+  degenerate.** Four of the five annotation rungs sit in the top 15% of the constrained range,
+  so the five-rung ladder alone under-reports the biological contribution. The granularity
+  ladder (§4.3) corrects that at d = 1307 only, with 12 seeds — but it has **six distinct
+  partitions across eight rungs**: the pooling threshold is a *count* and the median cell type
+  has one neuron, so one group grows 723 → 867 → 952 → 968 → 1062 → 1167 while a 140-neuron cell
+  type never merges (`pool32` and `pool64` are bit-identical), and `pool128` is a 2-group
+  partition. Its two coarsest points are blunt instruments rather than fine resolution.
+- **The curve's fine structure is not resolvable, and that is a budget fact rather than a
+  to-do.** The internal steps span 0.0008–0.0021 against a control-draw spread of ~1.1e-3, and
+  averaging the control brings only the two largest steps (`pool2 → cell_class`, `side → pool4`)
+  inside 3σ at three draws each; the rest have a floor below 3σ under this 12-seed budget at
+  *any* number of draws. §4.3 therefore reports a broad band, not a shape.
 
 **The reduction is a reduction.** The connectome sets the *problem geometry* exactly, and
 the linear-Gaussian model buys an exact oracle — which is why it was worth doing first. But
@@ -779,7 +787,7 @@ the filters are the LGCL family, not a trained spiking network, and the network 
 demonstrably cannot tell you is which of its conclusions are artefacts of the linearisation;
 §4.7 is the beginning of that check, and it overturned three of them.
 
-**Two measurement traps, both of which the project fell into before finding them.**
+**Five measurement traps, every one of which the project fell into before finding it.**
 - **A benchmark can measure its decoder instead of its subject.** The network line spent
   four fires concluding that no method worked, on a benchmark whose plastic weights were
   never load-bearing: freezing them cost 0.007 accuracy and eliminated forgetting entirely.
@@ -789,6 +797,15 @@ demonstrably cannot tell you is which of its conclusions are artefacts of the li
   comparison.** EWC's λ and basis were swept across five fires; replay's two parameters were
   never touched, and the value they were fixed at turned out to be the worst reasonable
   choice. The strongest result in the network line appeared only when it was fixed.
+- **"Resolves from zero" is not "differs from its neighbour."** A claim about a curve's
+  *shape* needs contrasts between the curve's own points, paired on the seed, and the points
+  ordered by granularity before anything is called adjacent — an alphabetically sorted table
+  had been silently deciding which pairs those were.
+- **A matched-random control is a single draw from a population.** Its draw-to-draw spread is a
+  per-observation quantity, invisible to the seed sem and unreduced by more seeds; on this
+  substrate it is ~1.1e-3 for coarse partitions against seed sems of ~2e-4. Two rungs of the
+  ladder are in fact the *same partition*, and their controls disagreed at 4.7σ while the seed
+  sem called the curve's internal steps resolved.
 
 **The predictor.** Validated on five out-of-sample conditions, on the hardened network
 configuration, and on the granularity ladder — where it reaches **+0.995** across 17 bases
@@ -812,10 +829,13 @@ hiding the trade.
 mechanism behind C1 (refuted at 32.7σ); C3 as stated (deprioritised, its mechanism
 contradicted); the unimodal misalignment peak of the reference materials (not reproduced in
 the coordinate basis); the headline "granularity beats biology" (itself an artefact of where
-the vocabulary places its rungs, and replaced by "granularity locates you, biology sets the
-height"); the "4 of 5 rungs beat their matched control" reading (a metric artefact, and the
+the vocabulary places its rungs); **its replacement**, "granularity locates you, biology sets the
+height" (withdrawn in turn — the curve's internal steps sit at the level of a control-draw spread
+that had never been measured, and are unresolvable in principle at this seed budget); the
+"4 of 5 rungs beat their matched control" reading (a metric artefact, and the
 honest figure is 4 of 5 only at the standard configuration and with a stable metric); and
-the "replay is setting-dependent" claim (confounded with an untuned budget).
+the "replay is setting-dependent" claim (confounded with an untuned budget). Seven, and each
+one is a finding entry rather than a footnote.
 
 ## 8. What we would do next
 

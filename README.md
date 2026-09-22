@@ -128,7 +128,7 @@ The scientific programme is complete. A working paper draft consolidating it is 
 Seven of our own earlier conclusions were retracted or overturned as artefacts of these
 traps; all seven are in the findings log with the same prominence as the results.
 
-`docs/findings/` holds the dated logs — 28 of them, negative results included, because
+`docs/findings/` holds the dated logs — one per result, negative results included, because
 those are the useful kind. The seven retractions and refutations, in order:
 
 - **the unimodal misalignment peak** of the reference materials does **not** appear in the

@@ -375,7 +375,7 @@ All of it has been run. The scripts as delivered:
 | Script | Claim | Deliverable | Status |
 |---|---|---|---|
 | `e2_topology_gap.py` | C1 | excess vs topology along a swap family, four arms | done — mechanism refuted at 32.7σ |
-| `e3_basis_selection.py` | C2 | basis ranking at matched capacity, analytic effect size | done — 7 of 8 rungs on the `--ladder` sweep, up to 42.2σ |
+| `e3_basis_selection.py` | C2 | basis ranking at matched capacity, analytic effect size | done — 7 of 8 rungs resolve; 2.8–7.9σ once the control-draw component is included |
 | `e5_anisotropy_axis.py` | — | task spectral richness vs penalty, decoupled | done — e2's confounded trend corrected |
 | `e6_predictor.py` | C2 | candidate predictor, out-of-sample, with resolvability | done — +0.984 (+0.995 on the ladder), 13/13 measurable pairs |
 | `e7_interference.py` | C4 | circuit overlap vs measured interference | done — anatomy carries zero signal; post-propagation predicts at +0.94 |
