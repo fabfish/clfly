@@ -120,6 +120,19 @@ matched-spectrum random graph. Note Erdős–Rényi is a **separate regime**, no
 end of the swap axis: it also destroys the degree sequence and makes `(I − W)`
 near-singular, so the propagator conditioning changes too.
 
+*And every σ in this family is a single-realization figure.* Each topology is one draw of its
+rewiring rule, so the reported σ measures seed noise *within* that draw and says nothing about
+drawing another graph. The refutation's 32.7σ has been checked and did not survive
+(±alternating across four circuit sizes). The ER separation's 152σ has not, and the arithmetic is
+sobering: `excess(swap2)` moves with an sd of **0.0205** across four (size, realization) draws — 67%
+of its own mean — while the control topologies hold to 6.2% and 18%, and substituting that sd for the
+seed sem turns the **152σ into 4.5σ** (1.5× that sd takes it to 3σ). So the line's numbers are
+statements about *the particular graphs drawn*; the **structural** reading — a separate regime,
+offset by a factor of eleven — is what should carry the weight. `--rewire-seed` now separates the
+realization from the tasks, so the check costs ~12 minutes per realization per topology, and `e32`
+and `e33` are running it for `swap2` and Erdős–Rényi
+(`docs/findings/2026-09-22-er-separation-realization-exposure.md`).
+
 ### C2 — Basis selection *(the core contribution)*
 
 The best anchoring basis is a **biological module basis** — cell class, cell type,
