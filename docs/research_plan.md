@@ -394,7 +394,7 @@ Biological minus matched random: **−0.0116 accuracy, 0.43σ paired** — the b
 slightly *worse* and does not beat the naive baseline, so **the rung hypothesis is not supported**:
 the network negative is not an artefact of having measured the wrong granularity. But the run only
 bounds the advantage at **≈0.09 accuracy**, because the benchmark's own per-repeat sd is 0.048
-(0.077 for forgetting). Detecting a 0.01 effect would take 94–238 repeats, i.e. **55–140 hours per
+(0.077 for forgetting). Detecting a 0.01 effect would take 86–202 repeats, i.e. **50–118 hours per
 rung**, and five rungs remain. **Settling C2b is a benchmark-variance problem, not a rung problem**
 (`docs/findings/2026-09-22-e10-side-rung-underpowered.md`).
 
@@ -404,8 +404,19 @@ unpaired sems; the paired sem at `side` is 1.5× smaller, and the same lesson ha
 independently on the neuron ladder. And the variance, not the effect size, is now the binding
 constraint on this question — which is the same shape as the frozen-body lesson.
 
-*Remaining:* four rungs of the `e10` sweep are still queued, but they answer a weaker question than
+*Remaining:* three rungs of the `e10` sweep are still queued, but they answer a weaker question than
 the one above.
+
+> **All of `e10` is λ-conditional, and λ was never set.** The rungs ran at **λ = 1.0**, the argparse
+> default — 300× the value the project's own sweep recommends (0.003) and beyond the range it swept
+> (0.003–0.3), whose conclusion is that every λ ≥ 0.01 leaves EWC worse than naive. So the
+> biological-versus-random contrast above is **confounded with λ** and cannot carry the rung
+> conclusion until a tuned-λ arm exists. The power analysis and the pairing result are unaffected
+> (they are properties of the benchmark's variance, not the penalty strength).
+> `runs/e25_cell_class_lam0.003.json` supplies that arm on the same seeds and batch count
+> (`docs/findings/2026-09-22-e10-lambda-not-set.md`). **And the λ dependence is not even monotone** —
+> in the sweep, λ = 0.1 is worse than both 0.003 and 0.3 — so "0.003 is the only useful setting" is
+> itself a claim about one configuration at one seed.
 
 ## The benchmark — FlyCL v0
 
@@ -562,12 +573,25 @@ Added 2026-09-22, after the headline metric was found to be chaotic
    they were built: matched rungs tested unpaired, a single control draw treated as
    the population, a paired bio/control comparison reported unpaired, and a mean of
    two sds used as the sd of a difference. The same omission errs **oppositely** in
-   two regimes — optimistic when the dominant noise is the control draw, conservative
-   when the arms share seeds — so "we used the unpaired formula" is not a diagnosis
-   on its own (`docs/findings/2026-09-22-sigma-audit.md`). And a design has a floor:
+   two regimes — optimistic when the dominant noise is the control draw; when the
+   arms share seeds it depends on the sign of their correlation, which **must be
+   measured, not argued**: a variance-decomposition argument said `e2`'s must be
+   conservative and the measurement gave r = −0.27, making it mildly optimistic
+   (`docs/findings/2026-09-22-sigma-audit.md` §3 and its correction). So "we used the
+   unpaired formula" is not a diagnosis on its own. And a design has a floor:
    pairs from ``T`` tasks admit only ``T!`` labelings, so a pair-level prior cannot
    report p < 0.001 with fewer than 7 tasks
    (`docs/findings/2026-09-22-task-permutation-c4.md`).
+14. **Set every hyperparameter deliberately, and diff configs before comparing two
+   runs.** A run that never passes a flag is not measuring at "the default" — it is
+   measuring at a value nobody inspected. The rung ladder ran two rungs at λ = 1.0
+   (300× the recommended 0.003) because it never set `--lam`, and the mistake
+   survived reading the script, reading the config dict, and being written up as a
+   "reproducibility check"; the intended comparison against a λ = 0.1 run was
+   therefore invalid, and the `naive` arm matching bit-for-bit is what proved the
+   seeds were fine and the λ was not
+   (`docs/findings/2026-09-22-e10-lambda-not-set.md`). Comparing two artifacts field
+   by field is a one-line script and should precede any claim that two runs agree.
 
 ## Related work to differentiate against
 

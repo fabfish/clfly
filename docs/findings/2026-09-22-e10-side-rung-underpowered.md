@@ -119,3 +119,21 @@ reduce the variance, not to run more rungs.
 - No claim is made here about whether a variance reduction (more classes per task, more tasks,
   longer training, averaging decoders) would recover the power; that is the next experiment, not
   this one.
+
+---
+
+## Correction (later): this run is λ-conditional, and λ was never set
+
+The `side` rung ran at **λ = 1.0**, which is the argparse default. It never passed `--lam`. That is
+**300× the value the project's own λ sweep recommends (0.003)** and 10× beyond the range it swept
+(0.003–0.3), and the sweep's conclusion is that every λ ≥ 0.01 leaves EWC worse than naive on both
+metrics.
+
+So the negative reported above — "no advantage at the coarsest rung" — is **confounded with λ**. It
+cannot be read as "the rung is not the problem" until the same configuration is measured at a
+tuned λ. The *power* analysis (§3) and the *pairing* result (§4) are unaffected: they are properties
+of the benchmark's variance, not of the penalty strength. The *sign and significance of the
+biological-versus-random contrast* are affected.
+
+`runs/e25_cell_class_lam0.003.json` supplies the λ arm on the same seeds, task draws, batch count and
+repeats (`docs/findings/2026-09-22-e10-lambda-not-set.md`).
