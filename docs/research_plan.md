@@ -452,7 +452,11 @@ coarse grouping genuinely better than random
 (`docs/findings/2026-09-22-rung-question-resolved-at-lambda-0.1.md`). Three open items: n = 3; the
 two intermediate rungs are still λ = 1.0 only; and the cross-run comparison assumes an `ewc-block`
 arm is independent of the run's method list, which is supported by five identical naive arms but
-**has not been checked directly** — `e31` is doing so.
+**has since been verified, bit for bit** — `e31` reproduced both arms across the two method lists
+identically to the last decimal. Three open items remain: n = 3 (the sem carries ~50% relative
+error); the two intermediate rungs are still λ = 1.0 only, which is what decides between a gradient
+and a step; and the mechanism — the coarse rung wins because the fine one *loses to its own control*
+(−0.0648, 2.65σ), not because the coarse one gains (+0.0069, 0.48σ).
 
 > **All of `e10` is λ-conditional, and λ was never set.** The rungs ran at **λ = 1.0**, the argparse
 > default — 300× the value the project's own sweep recommends (0.003) and beyond the range it swept

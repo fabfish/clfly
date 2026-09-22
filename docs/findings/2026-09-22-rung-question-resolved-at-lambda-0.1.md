@@ -103,3 +103,40 @@ direction, with its mechanism unresolved**".
    decide between "a smooth gradient in granularity" and "a step", i.e. between §4's two mechanisms.
 3. **More repeats on the `side`/`cell_class` contrast**, since 2.13σ from three pairs is the weakest
    part of it.
+
+---
+
+## 8. The method-list assumption is now verified, bit for bit
+
+§6 named one assumption the whole cross-run comparison rests on: that an `ewc-block` arm depends
+only on its `seed`, not on which other methods the run contains. `e31` tested it directly —
+`--basis cell_class --methods ewc-block,ewc-block-rand --lam 0.1 --iters 500 --repeats 3`, the
+2-method version of the 5-method `e8_basis` run — and the arms are **identical to the last decimal
+in every replicate**:
+
+| arm | metric | published (5-method run) | `e31` (2-method run) |
+|---|---|---|---|
+| `ewc-block` | accuracy | 0.8263888756, 0.7708333333, 0.7291666667 | **same** |
+| `ewc-block` | forgetting | 0.1041666865, 0.1875, 0.2395833135 | **same** |
+| `ewc-block-rand` | accuracy | 0.8541666667, 0.8263888955, 0.8402777712 | **same** |
+| `ewc-block-rand` | forgetting | 0.0416666865, 0.1354166865, 0.0833333135 | **same** |
+
+So the caveat is removed: the paired cross-rung contrast of §3 — `side` minus `cell_class`,
++0.0718 ± 0.0336 at 2.13σ — is a comparison of two arms that differ only in their partition.
+
+It also settles a more general question the project had not checked. Every cross-run comparison in
+the network line (the λ arm assembled from `e8_basis`, `e10` and `e25`; the three-rung table; the
+λ-robustness of the `cell_class` negative) depends on this independence, and none of them could have
+detected a violation — because a violation would have looked like a difference between
+configurations, which is what they were measuring. **The check has to be run deliberately, and it
+had not been.**
+
+## 9. What remains open on the rung claim
+
+- **n = 3.** The 2.13σ rests on three paired replicates; the sem carries ~50% relative error.
+- **Mechanism.** The coarse rung wins because the fine one *loses to its own control* (−0.0648,
+  2.65σ), not because the coarse one gains (+0.0069, 0.48σ). Which means the next test is whether
+  the effect is a smooth gradient in granularity or a step: the two intermediate rungs
+  (`ito_lee_hemilineage` 0.9945, `supertype` 0.9988) are measured at λ = 1.0 only, and if the effect
+  is "fine partitions anchor badly" they should be at least as bad as `cell_class`.
+- **Scope.** Two rungs of five, one λ, one circuit.
