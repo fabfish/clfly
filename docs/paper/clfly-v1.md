@@ -336,6 +336,57 @@ This is a better result than the original claim, because "circuit overlap" was
 ambiguous between the two readings and the ambiguity turned out to be the finding.
 The limitation is ten pairs from five tasks.
 
+### 4.6 On a trained network, none of this helps — and that is what the theory predicts
+
+*(e8.)* Everything above sits on the linear-Gaussian reduction. The obvious objection is
+that the reduction, not the connectome, is doing the work. So the same questions were
+put to a **connectome-constrained rate network** trained end to end:
+
+    x_{t+1} = (1 - alpha) x_t + alpha * tanh( W x_t + b ),    W = M * theta
+
+with `M` the connectome's sign pattern as a fixed mask and `theta` its 27k trainable
+synapse strengths. Three behavioural tasks on distinct circuits — odour identity
+(stimulus into Kenyon cells, read out from MBONs), heading (central complex), odour input
+(antennal lobe → Kenyon cells) — each reaching ~0.92 accuracy against 0.25 chance in
+three independent runs. Whole experiment: minutes on CPU.
+
+| method | final accuracy | mean forgetting |
+|---|---|---|
+| naive | 0.824 ± 0.036 | +0.101 ± 0.049 |
+| EWC, diagonal Fisher | 0.843 ± 0.025 | +0.069 ± 0.028 |
+| EWC, block Fisher — **biological** cell-class synapse pairs | 0.838 ± 0.024 | +0.104 ± 0.024 |
+| EWC, block Fisher — size-matched **random** pairs | 0.850 ± 0.022 | +0.069 ± 0.049 |
+| replay (16 stimuli/task) | **0.903 ± 0.014** | **−0.000 ± 0.021** |
+
+**No Fisher-anchoring variant resolves a benefit over the naive baseline**, at any λ
+(0.01–100) or any Fisher batch count (8, 32, 128) tried. **Replay is the only method
+that clearly works**, at ~2σ, with the best accuracy, leaving earlier tasks slightly
+better than when they were learned.
+
+**And the basis finding does not transfer.** Grouping the 27k *synapses* by
+`(pre cell class, post cell class)` — the exact analogue of the partition that won on
+the linear substrate — shows no advantage over a size-matched random grouping at any
+setting, and the comparison flips sign across settings. The analogy between "block
+structure of the precision matrix over **neurons**" and "partition of the **synapses**
+by endpoint class" is not valid: they are different partitions of different spaces, and
+the linear result never required the second to behave like the first.
+
+**The family is badly behaved as its curvature estimate improves.** Raising the Fisher
+batch count from 8 to 128 drives the diagonal's forgetting from +0.063 to **+0.250**
+while its accuracy collapses from 0.826 to **0.701**: a better-estimated Fisher is a
+*stronger* penalty at fixed λ, and the method moves steadily into over-constraint. So λ
+is not transferable across Fisher quality any more than across partitions, and any EWC
+comparison on this benchmark must retune them jointly.
+
+This is what the theory predicts. LGCL says EWC *is* a Kalman filter whose posterior is
+projected onto the neuron coordinate basis, and §4.1 measured that projection to cost
+**+33% excess error** on this connectome. A method whose entire mechanism is that
+projection should not be expected to help — and making a better estimate of *which*
+projection to make does not fix a projection that should not be made at all. It also
+reproduces LGCL v7's regime finding from the other side: these tasks are partially
+observed, and in that regime content memory outvalues regularisation. Replay *is*
+content memory.
+
 ## 5. A working predictor
 
 LGCL's mechanism suggests the penalty is the covariance a projection discards. We

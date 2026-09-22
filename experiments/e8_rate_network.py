@@ -223,11 +223,19 @@ def run_method(conn_net, suite, method: str, args, seed: int,
             R[k, j] = evaluate(model, heads[j], suite[j])
 
         if method == "ewc":
-            f = diagonal_fisher(model, heads[k], task, seed=seed + k)
+            f = diagonal_fisher(model, heads[k], task, n_batches=args.fisher_batches, seed=seed + k)
+            # Normalise the diagonal the same way `trace_normalise` normalises the
+            # blocks.  Without this the two families sit at different effective
+            # strengths for the same lambda -- the block Fishers are rescaled to unit
+            # mean weight and the diagonal is not -- so comparing them would compare
+            # granularity against penalty strength.  Normalising per task also keeps
+            # tasks equally weighted as the Fisher accumulates.
+            if args.normalise_fisher and f.mean() > 0:
+                f = f / f.mean()
             fisher = f if fisher is None else fisher + f
             anchor = model.theta.detach().clone()
         if method.startswith("ewc-block"):
-            b = block_fisher(model, heads, suite, k, part, seed=seed + k)
+            b = block_fisher(model, heads, suite, k, part, n_batches=args.fisher_batches, seed=seed + k)
             if args.normalise_fisher:
                 b = part.trace_normalise(b)
             blocks = b if blocks is None else blocks + b
@@ -270,6 +278,10 @@ def main(argv=None) -> int:
     p.add_argument("--seed0", type=int, default=0)
     p.add_argument("--basis", default="cell_class",
                    help="annotation column for the synapse partition")
+    p.add_argument("--fisher-batches", type=int, default=8,
+                   help="minibatches used to estimate the Fisher; the block Fisher has "
+                        "5.3e7 entries to fill against the diagonal's 2.7e4, so this "
+                        "is the knob that tests whether its failure is estimation noise")
     p.add_argument("--normalise-fisher", action="store_true", default=True,
                    help="rescale block Fishers so lambda is comparable across "
                         "partitions; without it coarse partitions get a larger "
