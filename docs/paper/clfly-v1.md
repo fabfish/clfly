@@ -46,7 +46,8 @@ Four findings, one of them unexpected in direction.
    arm's worst draw is dropped), which is the reading the claim actually needs. The `swap0.5` sweep that
    produced the 2.2σ also showed that every rule's wiring spread is ≈ 0.003 on the excess scale, so the
    two rules differ by only 2–3 realization sds. The whole
-   cs = 800 column reproduces bit-for-bit from a fresh run, the check that the project's other headline
+   cs = 800 column reproduces from a fresh run — to about four significant digits, and not bit-for-bit;
+   see §9 for the measured sensitivity — the check that the project's other headline
    figure failed. What died was the *explanation*, at four independent levels, plus the association that
    was to replace it (§4.2.1).
 3. **Biological anchoring bases beat capacity-matched random ones, and there is a
@@ -1261,6 +1262,23 @@ recorded in the corresponding `runs/*.json`:
 
 The connectome data is not redistributed; `python -m clfly.connectome.fetch` clones it
 from its distributors and records the commit hashes.
+
+**What "reproduces" means here, measured.** Wherever this paper says a column "reproduces bit-for-bit",
+the measurement behind it is narrower than the phrase. Re-running the same command under a different
+`OMP_NUM_THREADS` — with everything else identical — changes the *analytic* (numpy) results at about the
+**fourth significant digit**: a per-seed excess moves by up to 1.8e-4 relative, an aggregate delta by
+9.3e-7. That is far below every standard error the paper quotes — the tightest is 1.29e-5 against a
+delta of 2.6e-4, so the environment sits **40× below it** — which is why no conclusion has ever moved.
+But the honest phrase is **"identical to about four significant digits given an environment"**, and the
+qualification attaches to every reproduction claim here including the ones stated most strongly.
+
+**On the network line the phrase fails entirely.** The same command under a different thread count
+trains to a *different answer* — three replicates of 0.875 / 0.902778 / 0.909722 at the default setting
+against 0.826389 / 0.840278 / 0.930556 at four threads, sharing no value. So that substrate is
+deterministic *given an environment* and not across environments, which is why the `naive` arm is a
+determinism control within a thread setting rather than across settings, and why the sixteen-replicate
+replay run is a **separate sample** of its configuration rather than an extension of the five-replicate
+one (`docs/findings/2026-09-23-the-replay-contrast-survives-sixteen-and-the-benchmark-is-not-thread-reproducible.md`).
 
 The artifacts are **strict JSON**. Python's `json` module writes `NaN` and `Infinity` by
 default and reads them back without complaint, so seven rate-network artifacts — whose retention
