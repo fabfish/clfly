@@ -101,3 +101,33 @@ Two things follow, and they pull in opposite directions:
   association", not for "would this recur on new tasks".
 - `runs/e23_e7_permcheck.json` validates the wiring at 3 tasks; the 5-task number above is computed
   from the stored artifact by the committed function, and the experiment now prints it too.
+
+## 7. A misnamed flag, and what it means for the "7 tasks" requirement
+
+Wiring the test into `e7_interference.py` crashed on the first attempt:
+
+```
+ValueError: expected 3 pair values for 3 tasks
+```
+
+The cause is that `--tasks` does **not** control the number of tasks in the pair analysis. It is
+passed to `controlled_sweep`, where it sets the number of overlap-controlled supports. The pair
+analysis calls `build_tasks(circ, support_size=..., q=..., seed=...)` with **no** `assemblies`
+argument, so it uses the module default `TASK_ASSEMBLIES`, which has **5** tasks — and `T` is then
+read off the sequence, not off the flag.
+
+Two consequences:
+
+- **The flag is a footgun** and now carries a help string saying what it actually does. A reader who
+  set `--tasks 7` expecting a seven-task prior would get a five-task one and no warning. (Passing
+  `args.tasks` to the test is what surfaced it, which is the useful part: the exercise of wiring it
+  up is what found the misnomer.)
+- **The "7 tasks" requirement is a statement about a design, not about this script.** The present
+  analysis cannot demonstrate the improvement, because it cannot vary `T` at all. The requirement
+  belongs in the benchmark section of the plan — where it now is — and it is a reason to extend the
+  task suite rather than a criticism of the current run.
+
+Also worth recording: running the 3-task configuration reproduced **p = 0.0165 exactly**, because
+the pair analysis ignores `--tasks` entirely. That is a stronger validation of the wiring than a
+3-task number would have been — it is the 5-task computation reproduced on a second invocation — but
+it is not the independent check the run was intended to be.

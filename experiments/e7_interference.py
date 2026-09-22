@@ -179,7 +179,7 @@ def real_assemblies(args, conn, ann) -> dict:
     # The pairs come from `n_tasks` tasks and are NOT independent: a permutation test over the
     # pairs is far too narrow. This is the exact task-LABEL permutation, which is the null the
     # design implies, and it cannot go below 1/(T!+1) however strong the association.
-    res["task_permutation_propagation"] = task_permutation_test(prop, inter, n_tasks=args.tasks)
+    res["task_permutation_propagation"] = task_permutation_test(prop, inter, n_tasks=T)
 
     # Size confound: interference may simply track how much information the two
     # tasks carry, which is not an overlap effect at all.
@@ -205,7 +205,12 @@ def main(argv=None) -> int:
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--circuit-size", type=int, default=800)
     p.add_argument("--support", type=int, default=80)
-    p.add_argument("--tasks", type=int, default=5)
+    p.add_argument("--tasks", type=int, default=5,
+                   help="assemblies in the CONTROLLED sweep only. The pair analysis that carries "
+                        "C4 uses the default suite, whose length is fixed by "
+                        "TASK_ASSEMBLIES in clfly.connectome.tasks and cannot be varied from "
+                        "here -- so the 'p < 0.001 needs 7 tasks' requirement is a design "
+                        "statement for a future benchmark, not something this script can show")
     p.add_argument("--seeds", type=int, default=3)
     p.add_argument("--seed0", type=int, default=0)
     p.add_argument("--q", type=float, default=0.02)
