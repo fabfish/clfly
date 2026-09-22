@@ -56,7 +56,11 @@ Four findings, one of them unexpected in direction.
    candidate tested. Fixed structures beat adaptive ones here.
 
 On a **trained connectome-constrained rate network**, the same question reverses: the
-biological synapse partition never beats a size-matched random one, EWC helps only when
+biological synapse partition never beats a size-matched random one — though only at the one
+granularity that is affordable, `cell_class` at 0.925 constrained, because the synapse
+partition's storage is `sum_g s_g^2` and a finer pooling manufactures a single block holding
+98.7% of it. On that substrate
+EWC helps only when
 the read-out is narrow enough to make the plastic weights load-bearing, and replay —
 content memory — is the stronger method in every setting, with forgetting driven to zero
 or below. That confirms the theory's prediction that memory should dominate regularisation
@@ -559,11 +563,25 @@ entries to fill from 1024 observations — was **tested and refuted**: a 16-fold
 estimate does not recover the block's position, so its disadvantage is not an artefact of a
 poor estimate.
 
-What does survive is narrower and still sharp: **the biological synapse partition shows no
-advantage over its size-matched random control in any of the five settings tested** (Fisher
-batches 8/32/128, λ 0.003/0.01/0.1), and its ordering against that control **flips sign
-between them** — the null-effect signature. The linear substrate's 12.1σ advantage for the
-same grouping does not reproduce here under any setting tried.
+What does survive is narrower and still sharp: **at `cell_class` granularity the biological
+synapse partition shows no advantage over its size-matched random control in any of the five
+settings tested** (Fisher batches 8/32/128, λ 0.003/0.01/0.1), and its ordering against that
+control **flips sign between them** — the null-effect signature. The linear substrate's 12.1σ
+advantage for the same grouping does not reproduce here under any setting tried.
+
+That granularity itself is not a variable in this comparison, and saying so is the point.
+Every one of the five settings used `--basis cell_class`, and sweeping `pool_below` over
+`cell_class` moves `constrained_fraction` from 0.9250 only to 0.9027 — the rung never moves.
+The granularity ladder that rescued the neuron result **cannot be run on synapses with the
+current construction**: `cell_type` at `pool_below = 0` is 0.9992 constrained but is the
+diagonal wearing a label, and the next step, `pool_below = 2`, is 0.6165 constrained and
+2.165 GB, **98.7% of it in one `(pooled × pooled)` block**, because merging every rare label
+into one shared group manufactures one huge block and pooling harder enlarges it further
+(3.98 GB at `pool_below = 64`). So the defensible claim is that biology does not help
+*synapse* anchoring at 0.925 constrained, and the interval where the neuron result found its
+effect is untested here. Unblocking it requires bucketing the pooled label into ``B`` rather
+than one group, which splits the oversized block into ``B^2`` smaller ones and drops storage
+roughly as ``1/B``, with the control built on the same buckets.
 
 **One statement in this section is fully robust: the diagonal degrades as its Fisher
 estimate improves** (+0.010 → +0.028 → +0.035 as batches go 8 → 32 → 128, monotone;
@@ -755,10 +773,16 @@ the "replay is setting-dependent" claim (confounded with an untuned budget).
 
 ## 8. What we would do next
 
-1. **Replicate the granularity curve elsewhere.** The ladder's shape (peak near 0.54,
-   sub-0.002 floor) is measured on one circuit at d = 1307. The lesson — pool the rarest
-   groups — should transfer; the optimum's location should be re-measured on a second
-   circuit, a second connectome, and in the rate-network substrate.
+1. **Replicate the granularity curve elsewhere, and do it on synapses.** The ladder is
+   measured on one circuit at d = 1307. The lesson — pool the rarest groups — should transfer
+   and its plateau should be re-measured on a second circuit and a second connectome. On the
+   network the replication is *blocked*, not merely undone: the synapse partition's storage is
+   `sum_g s_g^2` and merging every rare label into one shared group produces a single
+   `(pooled × pooled)` block holding 98.7% of it, so the mid-granularity interval costs
+   2.2–4.7 GB and the rung that would test the network negative is unaffordable. Bucketing the
+   pooled label into ``B`` groups instead of one splits that block into ``B^2`` and drops
+   storage roughly as ``1/B``; with that, the network basis negative can finally be asked at
+   more than one granularity.
 2. **Ask the reversed-ordering question properly.** On the hardened network the diagonal and
    the block Fisher are not distinguishable at 128 Fisher batches; a configuration in which
    the block's structure *is* well estimated (a smaller circuit, or a lower-rank task family)

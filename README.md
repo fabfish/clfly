@@ -96,7 +96,11 @@ The scientific programme is complete. A working paper draft consolidating it is 
   2σ, across five conditions it was not tuned on. A predictor that merely recovered
   *granularity* would score 0/25, since matched pairs share it exactly.
 - **On a trained rate network the question reverses.** The biological synapse partition
-  never beats a size-matched random control; EWC helps only when the read-out is narrow
+  never beats a size-matched random control — at the one granularity that is affordable
+  (`cell_class` at 0.925 constrained: the synapse partition's storage is `sum_g s_g^2`, and a
+  finer pooling manufactures a single block holding 98.7% of it, so the interval where the
+  neuron ladder found its effect is untested on synapses). On that substrate EWC helps only
+  when the read-out is narrow
   enough to make the plastic weights load-bearing; and **replay is the stronger method
   in every setting** (2.2–4.2σ), with forgetting driven to zero or below. That confirms
   the theory's prediction that content memory dominates regularisation in this
