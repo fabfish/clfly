@@ -325,9 +325,14 @@ neighbours". Contrasting deltas between adjacent rungs, `pool1 − pool2` is **1
 end collapses and the coarse end declines; what does not is a peak at 0.540. The defensible
 shape is **a flat-topped plateau spanning roughly 0.32–0.67 constrained**, invisible to the
 five-rung ladder because it has no rungs between 0.50 and 0.83. Those contrasts are computed
-unpaired and are therefore conservative (the rungs share seeds, so the true paired sems are
-smaller); the run did not retain per-seed values, and `clfly/bench/analytic.py` now records
-`excess_per_seed` so a paired test can be run.
+**unpaired**, and the rungs share seeds, so the true figures are paired: a difference of
+matched series has variance ``sd_a^2 + sd_b^2 − 2ρ sd_a sd_b``, which means pairing helps only
+when the seed correlation ρ > 0 — and the unpaired figure is *larger*, not smaller, when
+ρ < 0. "The unpaired figure is conservative" is therefore a guess about the sign of ρ, not a
+fact, and `analytic_excess` now records `excess_per_seed` so that `paired_delta` and
+`contrast_of_contrasts` can report ρ and both sems rather than assume one. The run analysed
+here did not retain per-seed values, so its contrasts remain the unpaired figures and the
+plateau may be sharper than 2.2σ between `pool2` and `pool4`.
 
 *The ladder's best rung beats the vocabulary's best rung at the vocabulary's own
 granularity.* `side` sits at 0.501 with excess +0.00391; `pool4` sits at 0.540 with excess

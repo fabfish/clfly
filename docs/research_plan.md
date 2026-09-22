@@ -399,6 +399,20 @@ Added 2026-09-22, after the headline metric was found to be chaotic
    driven. A predictor built on it cannot see spectral structure — the most likely
    reason the principal-angle alignment scalar failed in `e3`. Use
    `task_subspaces(..., top=k)` for a spectrally selected subspace.
+7. **"Resolves from zero" is not "differs from its neighbour".** A claim about the
+   *shape* of a curve — where an optimum sits, whether an advantage is monotone —
+   needs contrasts between the curve's own points, not a per-point σ against zero.
+   Contrasts must be **paired on the seed**, since every base in a run sees the same
+   task geometries in the same order: use `clfly.bench.analytic.paired_delta` and
+   `contrast_of_contrasts`, which report the seed correlation ρ and both sems. The
+   quadrature figure is not a bound — a matched difference has variance
+   ``sd_a^2 + sd_b^2 − 2ρ sd_a sd_b``, so it is the *larger* one when ρ < 0. And
+   order the points by granularity before contrasting them; an alphabetically sorted
+   table makes "adjacent" meaningless.
+8. **Store per-seed values.** A pooled mean and sem cannot be re-analysed paired,
+   and re-deriving a two-hour run to recover them is avoidable: `analytic_excess`
+   records `excess_per_seed`. `--report-from <json>` re-prints any finished run's
+   report without recomputing it.
 
 ## Related work to differentiate against
 

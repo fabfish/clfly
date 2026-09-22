@@ -20,8 +20,10 @@ import pytest
 
 from clfly.bench.analytic import (
     analytic_excess,
+    contrast_of_contrasts,
     expected_error_matrix,
     expected_oracle,
+    paired_delta,
     response_matrices,
     summarize_expected,
     trajectory_cov,
@@ -162,3 +164,82 @@ def test_analytic_excess_decomposition_is_consistent(drifting):
     out = analytic_excess([drifting], Diagonal(drifting.d))
     assert out["excess_mean"] == pytest.approx(out["ewc_mean"] - out["oracle_mean"])
     assert out["gap_of_means"] == pytest.approx(out["excess_mean"] / out["oracle_mean"])
+
+
+# --------------------------------------------------------------------------
+# paired contrasts -- the difference between "resolves from zero" and "differs
+# from its neighbour", which is what decides whether a curve has a shape
+# --------------------------------------------------------------------------
+def _arms(corr, n=200, sd_a=1.0, sd_b=1.0, mean_a=2.0, mean_b=1.0, seed=0):
+    """Two synthetic per-seed arms with a chosen correlation across seeds."""
+    rng = np.random.default_rng(seed)
+    z = rng.normal(size=n)
+    w = rng.normal(size=n)
+    a = mean_a + sd_a * z
+    b = mean_b + sd_b * (corr * z + np.sqrt(1 - corr ** 2) * w)
+    return ({"excess_mean": float(a.mean()), "excess_sem": float(a.std(ddof=1) / np.sqrt(n)),
+             "excess_per_seed": a.tolist()},
+            {"excess_mean": float(b.mean()), "excess_sem": float(b.std(ddof=1) / np.sqrt(n)),
+             "excess_per_seed": b.tolist()})
+
+
+def test_paired_delta_is_exact_for_perfectly_correlated_arms():
+    # with corr = 1 the difference is constant across seeds, so its sem is 0
+    a, b = _arms(corr=1.0)
+    out = paired_delta(a, b)
+    assert out["corr"] == pytest.approx(1.0)
+    assert out["sem_paired"] == pytest.approx(0.0, abs=1e-12)
+    assert out["delta"] == pytest.approx(a["excess_mean"] - b["excess_mean"])
+    assert out["conservatism"] > 1e6          # the unpaired figure paid a huge price
+
+
+def test_paired_delta_matches_the_unpaired_figure_when_arms_are_independent():
+    a, b = _arms(corr=0.0)
+    out = paired_delta(a, b)
+    assert out["corr"] == pytest.approx(0.0, abs=0.15)
+    assert out["sem_paired"] == pytest.approx(out["sem_unpaired"], rel=0.25)
+
+
+def test_pairing_helps_exactly_when_the_sample_correlation_is_positive():
+    # the quadrature figure is an upper bound only under independence. With a negative
+    # sample correlation the PAIRED sem is the larger one -- and it is the right one.
+    for corr in (0.0, 0.3, 0.6, 0.9, 1.0, -0.3, -0.9):
+        a, b = _arms(corr=corr)
+        out = paired_delta(a, b)
+        if out["corr"] > 1e-9:
+            assert out["sem_paired"] < out["sem_unpaired"]
+        elif out["corr"] < -1e-9:
+            assert out["sem_paired"] > out["sem_unpaired"]
+        else:
+            assert out["sem_paired"] == pytest.approx(out["sem_unpaired"], rel=0.05)
+
+
+def test_paired_delta_degrades_cleanly_without_per_seed_values():
+    a, b = _arms(corr=0.5)
+    del a["excess_per_seed"]
+    out = paired_delta(a, b)
+    assert "sem_paired" not in out and "corr" not in out
+    assert out["delta"] == pytest.approx(a["excess_mean"] - b["excess_mean"])
+    assert out["sigma_unpaired"] > 0
+
+
+def test_contrast_of_contrasts_is_paired_too():
+    # two rungs whose deltas share a seed axis: the contrast is far better resolved
+    # paired than not, which is the whole reason the shape test needs per-seed values
+    a, b = _arms(corr=0.9, mean_a=2.0, mean_b=1.0, seed=1)
+    c, d = _arms(corr=0.9, mean_a=1.9, mean_b=1.0, seed=2)
+    out = contrast_of_contrasts(paired_delta(a, b), paired_delta(c, d))
+    assert out["delta"] == pytest.approx((2.0 - 1.0) - (1.9 - 1.0), abs=0.4)
+    assert out["sem_paired"] <= out["sem_unpaired"]
+    assert out["conservatism"] >= 1.0
+
+
+def test_contrast_of_contrasts_without_per_seed_falls_back_to_unpaired():
+    a, b = _arms(corr=0.9, seed=3)
+    c, d = _arms(corr=0.9, seed=4)
+    pa, pc = paired_delta(a, b), paired_delta(c, d)
+    for pc_ in (pa, pc):
+        pc_.pop("per_seed_delta")
+    out = contrast_of_contrasts(pa, pc)
+    assert "sem_paired" not in out
+    assert out["sigma_unpaired"] > 0

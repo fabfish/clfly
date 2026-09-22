@@ -32,7 +32,13 @@ from pathlib import Path
 
 import numpy as np
 
-from clfly.bench.analytic import analytic_excess, projection_pressure, spearman
+from clfly.bench.analytic import (
+    analytic_excess,
+    contrast_of_contrasts,
+    paired_delta,
+    projection_pressure,
+    spearman,
+)
 from clfly.bench.oracle import (
     oracle_errors,
     paired_excess,
@@ -260,22 +266,28 @@ def report(results: dict) -> None:
             print(line)
 
         print("\n  paired contrast (biological minus size-matched random):")
-        hdr = f"  {'rung':24} {'analytic delta':>15} {'sigma':>7}"
+        hdr = f"  {'rung':24} {'analytic delta':>15} {'sigma':>7} {'sigma_p':>8} {'corr':>6}"
         if has_realized:
             hdr += f" | {'realized delta':>15} {'sigma':>7}"
         print(hdr)
         wins_a = wins_r = 0
-        rungs = [n[4:] for n in sorted(agg)
+        rungs = [n[4:] for n in agg
                  if n.startswith("bio:") and f"rand:{n[4:]}" in agg]
+        # ordered by granularity, finest first -- the alphabetical order is meaningless
+        # for a curve, and the adjacent-rung contrasts below depend on this being right
+        rungs.sort(key=lambda c: -agg[f"bio:{c}"]["constrained_fraction"])
+        deltas = {}
         for col in rungs:
             b, r = agg.get(f"bio:{col}"), agg.get(f"rand:{col}")
             if not b or not r:
                 continue
-            da = b["analytic"]["excess_mean"] - r["analytic"]["excess_mean"]
-            sa = float(np.hypot(b["analytic"]["excess_sem"], r["analytic"]["excess_sem"]))
-            za = abs(da) / sa if sa else float("inf")
+            pc = paired_delta(b["analytic"], r["analytic"])
+            deltas[col] = pc
+            da, za = pc["delta"], pc["sigma_unpaired"]
+            zp = pc.get("sigma_paired", float("nan"))
+            corr = pc.get("corr", float("nan"))
             wins_a += bool(da < 0 and za > 2)
-            line = f"  {col:24} {da:+15.5f} {za:7.2f}"
+            line = f"  {col:24} {da:+15.5f} {za:7.2f} {zp:8.2f} {corr:6.2f}"
             if has_realized:
                 dr = b["realized"]["excess_mean"] - r["realized"]["excess_mean"]
                 sr = float(np.hypot(b["realized"]["excess_sem"], r["realized"]["excess_sem"]))
@@ -286,6 +298,20 @@ def report(results: dict) -> None:
         extra = f", realized {wins_r}/{len(BIOLOGICAL_BASES)}" if has_realized else ""
         print(f"  -> resolved (>2 sigma, biology better): "
               f"analytic {wins_a}/{len(rungs)}{extra}")
+        print("     sigma assumes independent arms; sigma_p is paired on the seed, which is "
+              "the one to use for contrasts *between* rungs. Which is larger depends on the "
+              "sign of corr.")
+
+        # Does the curve have a *shape*? A rung's delta resolving from zero is a different
+        # claim from two rungs' deltas differing, and only the second supports an optimum.
+        if len(deltas) > 1:
+            print(f"\n  adjacent-rung contrasts in delta (does the curve have a shape?):")
+            cols = [c for c in rungs if c in deltas]
+            for c1, c2 in zip(cols, cols[1:]):
+                cc = contrast_of_contrasts(deltas[c1], deltas[c2])
+                sp = cc.get("sigma_paired", float("nan"))
+                print(f"    delta({c1:10}) - delta({c2:10}) = {cc['delta']:+.5f}"
+                      f"  unpaired {cc['sigma_unpaired']:5.1f}  paired {sp:5.1f} sigma")
 
         # Does the a-priori predictor recover the ordering and the matched-pair signs?
         # Reported separately for partitions and non-partition bases: the predictor
@@ -341,11 +367,20 @@ def main(argv=None) -> int:
                    help="also test non-partition candidates: spectral truncation "
                         "and the connectome eigenbasis")
     p.add_argument("--json-out", type=Path, default=None)
+    p.add_argument("--report-from", type=Path, default=None,
+                   help="re-print the report for a finished run's JSON instead of "
+                        "recomputing it; a full ladder is hours of compute and the "
+                        "analysis of its shape should not require re-running it")
     p.add_argument("--no-realized", action="store_true",
                    help="skip the realized-error arm; it is a cross-check already "
                         "done at d=1307 and costs about half the runtime")
     args = p.parse_args(argv)
     args.topologies = tuple(t for t in args.topologies.split(",") if t)
+
+    if args.report_from:
+        results = json.loads(args.report_from.read_text())
+        report(results)
+        return 0
 
     results = run(args)
     report(results)

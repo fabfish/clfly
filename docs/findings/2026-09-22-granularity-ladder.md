@@ -81,14 +81,18 @@ plateau is `pool4 − pool8` at 6.4σ, with `pool2 − pool4` at only 2.2σ. **T
 is a plateau spanning roughly 0.32–0.67 constrained, falling off at both ends** — not an
 optimum at 0.540.
 
-Two things bound that reading, in opposite directions. The deltas are *paired* — every basis
-in the run sees the same task geometries in the same seed order — so the sem of a delta
-computed unpaired, as here, is **conservative** whenever the two excesses are positively
-correlated across seeds, which they are (both are dominated by the task-geometry draw). The
-plateau may therefore be sharper than 2.2σ suggests. But this run did not store per-seed
-values, so the paired test could not be computed from it; `clfly/bench/analytic.py` now
-records `excess_per_seed` so that it can be, and a re-run is in flight. Until that lands, the
-plateau is what the artifact supports.
+One thing bounds that reading. The deltas are *paired* — every basis in the run sees the same
+task geometries in the same seed order — so the sem of a delta is the sem of the per-seed
+differences, and the unpaired formula used here differs from it by the sign of the seed
+correlation: the variance of a matched difference is ``sd_a^2 + sd_b^2 − 2ρ sd_a sd_b``, so
+pairing helps when ρ > 0 and the **unpaired figure is larger** when ρ < 0. "The unpaired
+figure is conservative" is thus a guess about ρ rather than a fact, and this run did not store
+per-seed values, so the guess could not be checked against it. `clfly/bench/analytic.py` now
+records `excess_per_seed`, and `paired_delta` / `contrast_of_contrasts` report ρ and both sems
+so the regime is measured; the re-run that supplies them is in flight
+(`docs/findings/2026-09-22-shape-needs-paired-contrasts.md`). Until it lands, the plateau is
+what the artifact supports, and the peak-versus-plateau question stays open in both
+directions.
 
 **And the ladder's best rung is beaten at its own granularity.** `side` sits at constrained
 0.501 with excess +0.00391; `pool4` sits at 0.540 with excess **+0.00156** — a **2.5×** smaller

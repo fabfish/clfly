@@ -268,3 +268,76 @@ def analytic_excess(sequences, basis: Basis | None = None,
         # usual case here -- both are dominated by the task-geometry draw.
         "excess_per_seed": [float(x) for x in excess],
     }
+
+def paired_delta(bio: dict, rand: dict) -> dict:
+    """Contrast two bases' excesses, **paired on the seed** where the data allows it.
+
+    Every basis in a run sees the same task geometries in the same seed order, so the
+    per-seed excesses are matched observations, not two independent samples.  The
+    difference of two matched series has sem ``sd(d)/sqrt(n)``, which is smaller than
+    combining the two sems in quadrature whenever the two arms are **positively**
+    correlated across seeds — the usual case here, since both are dominated by the
+    task-geometry draw, and the ``corr`` field reports it rather than assuming it.
+
+    It is not a universal bound, and treating it as one would be a mistake: the
+    quadrature figure is what the data support only when the arms are independent, and
+    with a *negative* sample correlation the paired sem is the **larger** of the two —
+    and the correct one.  Both are returned, plus ``conservatism`` (their ratio), so a
+    caller never has to guess which regime it is in.
+
+    ``summarize_expected``-style dicts carry ``excess_per_seed`` (see
+    :func:`analytic_excess`); when they do not, only the unpaired numbers are returned.
+    """
+    delta = bio["excess_mean"] - rand["excess_mean"]
+    sem_un = float(np.hypot(bio["excess_sem"], rand["excess_sem"]))
+    out = {
+        "delta": float(delta),
+        "sem_unpaired": sem_un,
+        "sigma_unpaired": abs(delta) / sem_un if sem_un else float("inf"),
+    }
+    a, b = bio.get("excess_per_seed"), rand.get("excess_per_seed")
+    if a is None or b is None or len(a) != len(b) or len(a) < 2:
+        return out
+    d = np.asarray(a, float) - np.asarray(b, float)
+    sem = float(d.std(ddof=1) / np.sqrt(d.size)) if d.size > 1 else float("nan")
+    corr = float(np.corrcoef(a, b)[0, 1]) if np.std(a) > 0 and np.std(b) > 0 else float("nan")
+    out.update({
+        "n": int(d.size),
+        "sem_paired": sem,
+        "sigma_paired": abs(delta) / sem if sem else float("inf"),
+        "corr": corr,
+        # how much the conservative figure cost, as a ratio of sems
+        "conservatism": sem_un / sem if sem else float("nan"),
+        # kept so that a *contrast of contrasts* can also be paired
+        "per_seed_delta": [float(x) for x in d],
+    })
+    return out
+
+
+def contrast_of_contrasts(a: dict, b: dict) -> dict:
+    """Difference between two :func:`paired_delta` results, paired where possible.
+
+    This is the function that decides whether a curve has a *shape*.  "The delta at rung
+    X resolves from zero" and "the delta at X differs from the delta at Y" are different
+    claims, and only the second licenses a statement about an optimum.  When both inputs
+    came from the same set of seeds, the contrast is itself paired.
+    """
+    delta = a["delta"] - b["delta"]
+    sem_un = float(np.hypot(a["sem_unpaired"], b["sem_unpaired"]))
+    out = {
+        "delta": float(delta),
+        "sem_unpaired": sem_un,
+        "sigma_unpaired": abs(delta) / sem_un if sem_un else float("inf"),
+    }
+    da, db = a.get("per_seed_delta"), b.get("per_seed_delta")
+    if da is None or db is None or len(da) != len(db) or len(da) < 2:
+        return out
+    d = np.asarray(da, float) - np.asarray(db, float)
+    sem = float(d.std(ddof=1) / np.sqrt(d.size)) if d.size > 1 else float("nan")
+    out.update({
+        "n": int(d.size),
+        "sem_paired": sem,
+        "sigma_paired": abs(delta) / sem if sem else float("inf"),
+        "conservatism": sem_un / sem if sem else float("nan"),
+    })
+    return out
