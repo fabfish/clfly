@@ -94,7 +94,10 @@ def run(args) -> dict:
                                               for s, r in zip(seqs, ranks)]))
                             for k in task_geometry(seqs[0], ranks[0])}}
         for name, b in bases.items():
-            agg[name] = {"realized": paired_excess(seqs, b),
+            # The realized arm is a single trajectory per seed and costs about half the runtime;
+            # the analytic estimator supersedes it everywhere a conclusion is drawn, so it is
+            # optional here for the same reason `e3` makes it optional (see `--no-realized`).
+            agg[name] = {"realized": ({} if args.no_realized else paired_excess(seqs, b)),
                          "analytic": analytic_excess(seqs, b)}
         out["topologies"][topology] = agg
 
@@ -114,13 +117,15 @@ def report(results: dict) -> None:
         ab, ar = a["bio:cell_class"]["analytic"], a["rand:cell_class"]["analytic"]
         delta = ab["excess_mean"] - ar["excess_mean"]
         sem = float(np.hypot(ab["excess_sem"], ar["excess_sem"]))
+        re = a["diagonal(EWC)"].get("realized") or {}
+        realized = (f"{re['excess_mean']:+9.5f} {re['excess_sem']:8.5f} | "
+                    if re else f"{'(no realized arm)':>30} | ")
         print(f"{t:14} {g['consecutive_alignment']:8.4f} "
               f"{g['consecutive_alignment']/g['chance_alignment']:8.3f} "
               f"{g['flattening']:8.3f} | "
               f"{a['diagonal(EWC)']['analytic']['excess_mean']:+9.5f} "
               f"{a['diagonal(EWC)']['analytic']['excess_sem']:8.5f} | "
-              f"{a['diagonal(EWC)']['realized']['excess_mean']:+9.5f} "
-              f"{a['diagonal(EWC)']['realized']['excess_sem']:8.5f} | "
+              + realized +
               f"{delta:+11.5f} {abs(delta)/sem if sem else float('inf'):6.2f}")
 
     print("\nmonotonicity along the null order (real -> erdos_renyi):")
@@ -129,10 +134,13 @@ def report(results: dict) -> None:
         ("overlap/chance", lambda a: a["geometry"]["consecutive_alignment"]
             / a["geometry"]["chance_alignment"]),
         ("EWC excess (analytic)", lambda a: a["diagonal(EWC)"]["analytic"]["excess_mean"]),
-        ("EWC excess (realized)", lambda a: a["diagonal(EWC)"]["realized"]["excess_mean"]),
         ("bio-rand (analytic)", lambda a: a["bio:cell_class"]["analytic"]["excess_mean"]
             - a["rand:cell_class"]["analytic"]["excess_mean"]),
     )
+    if all((results["topologies"][t]["diagonal(EWC)"].get("realized") or {}) for t in order):
+        readings = readings + (
+            ("EWC excess (realized)",
+             lambda a: a["diagonal(EWC)"]["realized"]["excess_mean"]),)
     for label, getter in readings:
         vals = [getter(results["topologies"][t]) for t in order]
         rising = all(b >= a - 1e-9 for a, b in zip(vals, vals[1:]))
@@ -149,14 +157,16 @@ def report(results: dict) -> None:
         for i in range(len(stats) - 1):
             a, b = stats[i], stats[i + 1]
             d = b["excess_mean"] - a["excess_mean"]
-            if "excess_per_seed" in a and "excess_per_seed" in b:
+            if "excess_per_seed" in a and "excess_per_seed" in b and len(a["excess_per_seed"]) > 1:
                 pc = paired_contrast(a["excess_per_seed"], b["excess_per_seed"])
                 parts.append(f"{order[i]}->{order[i+1]} {d:+.5f} "
                              f"({pc['sigma_paired']:.1f}s paired, {pc['sigma_unpaired']:.1f}s unpaired)")
             else:
                 s = float(np.hypot(b["excess_sem"], a["excess_sem"]))
+                n = len(a.get("excess_per_seed") or [])
+                why = "1 seed" if n == 1 else "no per-seed data"
                 parts.append(f"{order[i]}->{order[i+1]} {d:+.5f} "
-                             f"({abs(d)/s if s else float('inf'):.1f}s unpaired -- no per-seed data)")
+                             f"({abs(d)/s if s else float('inf'):.1f}s unpaired -- {why})")
         print(f"  {label:16} " + "  ".join(parts))
 
 
@@ -169,6 +179,9 @@ def main(argv=None) -> int:
     p.add_argument("--q", type=float, default=0.02)
     p.add_argument("--topologies", default=",".join(TOPOLOGY_ORDER))
     p.add_argument("--json-out", type=Path, default=None)
+    p.add_argument("--no-realized", action="store_true",
+                   help="skip the realized-error arm; the analytic estimator supersedes it "
+                        "everywhere a conclusion is drawn and the arm costs about half the runtime")
     args = p.parse_args(argv)
     args.topologies = tuple(t for t in args.topologies.split(",") if t)
 
