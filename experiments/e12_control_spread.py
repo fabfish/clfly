@@ -101,13 +101,21 @@ def run(args) -> dict:
     print(f"    per-draw means: " + " ".join(f"{m:+.5f}" for m in means))
     print(f"    mean over draws   {means.mean():+.5f} +- {sem_mean:.5f} (sem over draws)")
     print(f"    across-draw sd    {sd_draw:.5f}   <- the component a single-draw sem omits")
-    print(f"    within-draw sem   {sems.mean():.5f}   <- what the protocol reports today")
-    print(f"    inflation factor  {safe(sd_draw, sems.mean()):.1f}x  "
-          f"(<1 means the seed sem dominates; report it either way)")
+    print(f"    within-draw sem   {sems.mean():.5f}   <- the seed component, as the protocol reports it")
 
     delta = bio_ex["excess_mean"] - means.mean()
     sem_seed = float(np.hypot(bio_ex["excess_sem"], sems.mean()))
     sem_honest = float(np.hypot(bio_ex["excess_sem"], sem_mean))
+    # A single control draw's honest sem includes the draw it happened to get; the protocol's
+    # does not. The ratio of the two is the factor by which a single-draw sigma OVERSTATES the
+    # evidence, and it is quoted at this run's seed count -- it is not a fixed property of the
+    # partition, because the seed component shrinks with more seeds while the draw component
+    # does not. (An earlier version of this line printed sd_draw/sem_seed and called it
+    # "inflation", which is a different quantity and depends on seeds in the opposite way.)
+    sem_single_honest = float(np.hypot(sem_seed, sd_draw))
+    print(f"    a single-draw sigma overstates the evidence by "
+          f"{safe(sem_single_honest, sem_seed):.2f}x at {args.seeds} seeds "
+          f"(it grows with seeds; the draw term does not shrink)")
     print(f"\n  delta (biological minus matched-random): {delta:+.5f}")
     print(f"    sigma with a single control draw (protocol today): {safe(abs(delta), sem_seed):6.1f}")
     print(f"    sigma with the draw component included:            {safe(abs(delta), sem_honest):6.1f}")
@@ -124,7 +132,9 @@ def run(args) -> dict:
         "delta": float(delta),
         "sigma_single_draw": safe(abs(delta), sem_seed),
         "sigma_with_draw_noise": safe(abs(delta), sem_honest),
-        "inflation_factor": safe(sd_draw, float(sems.mean())),
+        # the factor by which a single-draw sigma overstates the evidence, AT THIS SEED COUNT
+        "single_draw_overstatement": safe(sem_single_honest, sem_seed),
+        "seed_sem": sem_seed,
         "timing_s": time.time() - t0,
     }
 

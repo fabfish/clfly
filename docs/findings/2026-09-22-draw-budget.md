@@ -183,3 +183,34 @@ claim needs at the central estimate and still enough at the pessimistic one.
 meaningless as a requirement, but it is the clearest illustration of why a claim whose floor is
 just above the target is not a claim: the cost of settling it is set by how far above the floor it
 sits, divided by everything else.
+
+## 8. First measurement replacing the interpolation
+
+`e14` measures the draw sd **at d = 1307, on the same circuit as the ladder**, by varying the
+pooling threshold — a direct check of the one quantity §4 had to interpolate. First result
+(`runs/e14_drawsd_min2.json`, min_size 2 → 90 groups, 3 seeds, 5 draws):
+
+| quantity | value |
+|---|---|
+| across-draw sd | **0.000929** |
+| interpolated value used in §4 | 0.0011 |
+| per-draw control means | 0.01141, 0.01253, 0.01213, 0.01285, 0.01392 |
+| spread of those means | **0.00251** |
+
+Two things follow.
+
+**The interpolation was good to 15%**, and the verdicts are unchanged: the honest σ for the
+`pool2` rung becomes 8.2σ rather than 7.0σ, and its required K stays below 1.
+
+**The spread of the control means is 0.00251, on the same scale as every shape contrast in §4**
+(0.0008–0.0048). That is the finding stated as a single number: the arbitrariness of *which*
+random partition you draw is as large as the differences three fires were arguing about.
+
+The `--seeds 3` in this run is deliberate but worth flagging: the draw sd is estimated from
+per-draw means that each average 3 seeds, so it carries a ``sigma_epsilon^2/3`` term that more
+seeds would shrink. It is therefore an *upper* estimate of the pure draw sd, which is the safe
+direction for a budget calculation.
+
+The remaining measurements (51, 29 and 12 groups) are in the same run. `side` is **not** covered —
+it is a balanced 4-group partition rather than an unbalanced pooled one, and §4 of
+`docs/findings/2026-09-22-artifacts-and-targeted-rungs.md` says why that may matter.
