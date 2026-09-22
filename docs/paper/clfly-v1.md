@@ -402,11 +402,13 @@ monotone way (+0.007 → +0.009 → **+0.102** accuracy gap against +0.021 → +
 
 **On the hardened configuration, diagonal EWC finally resolves** (5 replicates, λ=0.003):
 
-| method | final accuracy | mean forgetting |
-|---|---|---|
-| naive | 0.914 ± 0.013 | +0.073 ± 0.015 |
-| **EWC, diagonal** | **0.922 ± 0.010** | **+0.021 ± 0.015** (−0.052 ± 0.021, **2.5σ**) |
-| replay | 0.932 ± 0.008 | +0.050 ± 0.016 (1.0σ) |
+| method | final accuracy | mean forgetting | vs naive |
+|---|---|---|---|
+| naive | 0.914 ± 0.013 | +0.073 ± 0.015 | — |
+| **EWC, diagonal** | 0.922 ± 0.010 | **+0.021 ± 0.015** | **−0.052 ± 0.021 (2.5σ)** |
+| EWC, block — biological cell-class pairs | 0.915 ± 0.020 | +0.060 ± 0.020 | −0.013 ± 0.025 (0.5σ) |
+| EWC, block — matched random pairs | 0.928 ± 0.009 | +0.044 ± 0.016 | −0.029 ± 0.022 (1.3σ) |
+| replay | 0.932 ± 0.008 | +0.050 ± 0.016 | −0.023 ± 0.022 (1.0σ) |
 
 This **overturns** three fires of "no Fisher-anchoring variant does anything, at any
 basis, λ, or batch count" — those were measured where nothing could resolve, and replay's
@@ -416,6 +418,18 @@ apparent advantage also disappears here. It does not overturn the theory: LGCL m
 against the Kalman oracle. What is genuinely surprising is that **replay stopped helping**,
 inverting LGCL v7's expectation that content memory dominates regularisation in the
 partially-observed regime — now the most interesting open question in the network line.
+
+**And the basis ordering reverses.** On the *linear* substrate the coarsest partition cut
+the excess error by 80% relative to the diagonal and `cell_class` beat its matched control
+at 12.1σ. On the trained network the block Fisher is **worse** than the plain neuron
+diagonal (+0.039 ± 0.025, 1.6σ), and the biological partition still shows no advantage over
+its matched random control (0.6σ). So the project's central claim — that the coordinate
+basis is the wrong place to anchor a Fisher matrix — holds on the connectome's **neuron**
+geometry and **reverses on its synapse geometry**. Those are different spaces, and this is
+now a measured difference in direction rather than an appeal to the analogy being invalid.
+The likeliest mechanism is estimation noise (the block Fisher has 5.3e7 entries to fill
+from 1024 observations against the diagonal's 26,568), and it is testable on the hardened
+configuration by re-running the batch-count sweep.
 
 The general rule the project now applies:
 
