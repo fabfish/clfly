@@ -387,17 +387,43 @@ and with 5 seeds, d = 3150 with 2 seeds.)* Biological-minus-size-matched-random 
 | `cell_type` | 0.22 | 0.74 | 0.28 |
 
 At 18 seeds **four of the five rungs resolve** (`side` 28.8σ, `cell_class` 12.1σ,
-`hemilineage` 9.3σ, `supertype` 4.3σ); the fifth, `cell_type`, is the rung that is
-nearly the diagonal and shows nothing at any configuration. At d = 3150 (2 seeds only)
-two resolve.
+`hemilineage` 9.3σ, `supertype` 4.3σ). At d = 3150 (2 seeds only) two resolve.
 
-The standard errors fall as 1/√n as expected — `cell_class` goes from 3.7σ at 5 seeds
-to 12.1σ at 18 — which is why the earlier read of "3 of 5" was a statement about
-budget rather than about the effect. The d = 3150 run had only 2 seeds, so its weaker
+**The σ are the unpaired ones, and the pairing changes the table — for one rung so much that its
+verdict reverses.** Every basis in a run sees the same task geometries in the same order, so a
+biological rung and its size-matched control are matched observations and the correct contrast is
+paired; `e58` re-ran the 18-seed configuration with per-seed storage and `e66` applies it. The
+correction is governed by how correlated the two arms are across task draws, and for a near-diagonal
+partition they are the *same object to four decimal places* (ρ = 0.9987 for `cell_type`):
+
+| rung | corr(bio, rand) | pairing gain | **σ, paired (18 seeds)** | σ, about the rule (measured draw sd) |
+|---|---|---|---|---|
+| `side` | 0.210 | 1.1× | **31.7** | **18.1** |
+| `cell_class` | 0.832 | 2.3× | **27.8** | **12.1** |
+| `cell_type` | **0.9987** | **27.3×** | **20.3** | **3.8** |
+| `ito_lee_hemilineage` | 0.910 | 3.0× | **28.1** | **26.1** |
+| `supertype` | 0.959 | 4.8× | **20.7** | **13.3** |
+
+All five have **completely unanimous per-seed signs (18/18)**, no leave-one-seed-out removal flips
+any, the smallest leave-one-out σ is 19.1, and the largest single-seed leverage is 0.61 on a scale
+whose ceiling is 1 — so the discipline that dismantled the C1 line finds nothing wrong here.
+
+**And `cell_type` is not a null.** The unpaired sem for a rung whose two arms correlate at 0.9987 is
+**27× too large**: it measures the task geometry, which cancels in the contrast, rather than the
+contrast, which does not. Paired, the rung is **+0.000261 ± 0.0000129 = 20.3σ, 18/18 positive** — a
+real and precisely measured *disadvantage* of the biological partition, and one that survives the
+control-draw component at 3.8σ. So the finest annotation granularity is not inert; it is reliably
+worse than its matched control, which is what the ladder's collapsed fine end says as well. The
+"shows nothing at any configuration" reading is withdrawn: it was measurement arithmetic, not a
+property of the vocabulary (`docs/findings/2026-09-23-cell-type-is-not-a-null.md`). The spread between
+the best and worst rung narrows from 39× to **1.6×**, and `cell_type` is no longer the weakest rung.
+
+The standard errors fall as 1/√n as expected, which is why the earlier read of "3 of 5" was a
+statement about budget rather than about the effect. The d = 3150 run had only 2 seeds, so its weaker
 resolution there is not evidence against the claim; it is the same effect measured
 with 9× fewer draws. **The defensible summary is that four rungs beat capacity-matched
-random partitions at the standard configuration, and that the effect is large enough
-to be seen at every configuration tested.**
+random partitions at the standard configuration, that the fifth is reliably *beaten by* its control,
+and that the effect is large enough to be seen at every configuration tested.**
 
 **Granularity is the dominant term — and the vocabulary hides most of biology's
 contribution.** Ordered by how much of the covariance each basis constrains, the excess
@@ -489,27 +515,28 @@ measured draw sds run 6.8e-5, 9.3e-4, **2.16e-4**, 1.06e-3 as concentration rise
 either (`docs/findings/2026-09-23-side-draw-sd-refutes-the-concentration-model.md`). The four cs = 300
 conditions of §5's correction therefore remain interpolated rather than measured.
 
-**With the same sweep's second arm, all five named rungs can now be corrected with measurements
-rather than interpolation:**
+**With the same sweep's second arm, all five named rungs can be corrected with measurements rather
+than interpolation — and this table was then superseded in turn, because it uses the unpaired sem:**
 
-| rung | σ, seed-only | draw sd, measured | **σ with the draw component** | overstatement |
-|---|---|---|---|---|
-| `side` | 28.78 | 2.16e-4 (`e67`, 8 draws) | **17.54** | 1.64× |
-| `cell_class` | 12.14 | 2.37e-4 (`e17`, 5 draws) | **9.01** | 1.35× |
-| `ito_lee_hemilineage` | 9.32 | 4.16e-5 (`e17b`, 5 draws) | **9.25** | 1.01× |
-| `supertype` | 4.26 | 8.35e-5 (`e17b`, 5 draws) | **4.14** | 1.03× |
-| `cell_type` | 0.74 | 6.80e-5 (`e67`, 8 draws) | **0.73** | 1.02× |
+| rung | σ, seed-only (unpaired) | draw sd, measured | σ with the draw component | overstatement | **σ, paired (from §4.3)** |
+|---|---|---|---|---|---|
+| `side` | 28.78 | 2.16e-4 (`e67`, 8 draws) | 17.54 | 1.64× | **18.1** |
+| `cell_class` | 12.14 | 2.37e-4 (`e17`, 5 draws) | 9.01 | 1.35× | **12.1** |
+| `ito_lee_hemilineage` | 9.32 | 4.16e-5 (`e17b`, 5 draws) | 9.25 | 1.01× | **26.1** |
+| `supertype` | 4.26 | 8.35e-5 (`e17b`, 5 draws) | 4.14 | 1.03× | **13.3** |
+| `cell_type` | 0.74 | 6.80e-5 (`e67`, 8 draws) | 0.73 | 1.02× | **3.8** |
 
-Four of the five still resolve (17.5σ, 9.0σ, 9.3σ, 4.1σ; `cell_type` is a null either way), and the
-"3–6× for coarse partitions" figure is wrong for every one of them: the real overstatements are
-**1.0–1.6×**. That figure came from *pooled `cell_type`* partitions, and it is precisely `side` — the
-rung whose σ this paper leans on most — that it over-penalises by the largest factor. It also reverses
-a comparison: the granularity ladder's corrected rungs sit at 4–9σ, so the five-rung table's best rung
-at **17.5σ** is *more* decisive than every corrected ladder rung, where the uncorrected tables made the
-ladder look an order of magnitude stronger. And at the *fine* end the correction is exactly nil —
-`cell_type` min 1's overstatement is 1.00×, because a near-diagonal partition's control is nearly the
-diagonal and relabelling it changes almost nothing — so what survives of the old coarse/fine story is a
-statement about the extremes of concentration and not about group count. Two rungs of the ladder are in
+**All five resolve, in the paired column every one of them, including `cell_type`** — see §4.3 for why
+the unpaired sem is 27× too large for that rung. The "3–6× for coarse partitions" figure is wrong for
+every one of them: the real overstatements are **1.0–1.6×**. That figure came from *pooled `cell_type`*
+partitions, and it is precisely `side` — the rung whose σ this paper leans on most — that it
+over-penalises by the largest factor. It also reverses a comparison: the granularity ladder's corrected
+rungs sit at 4–9σ, so the five-rung table's best rung at **18σ** is *more* decisive than every corrected
+ladder rung, where the uncorrected tables made the ladder look an order of magnitude stronger. And at
+the *fine* end the correction is exactly nil — `cell_type` min 1's overstatement is 1.00×, because a
+near-diagonal partition's control is nearly the diagonal and relabelling it changes almost nothing — so
+what survives of the old coarse/fine story is a statement about the extremes of concentration and not
+about group count. Two rungs of the ladder are in
 fact the *same partition* (`pool32` and `pool64`; only two cell types have ≥32 neurons), and their
 controls disagree at 4.7σ, which is where this started.
 
@@ -545,6 +572,22 @@ has preferred directions, and they are a better place to anchor a Fisher matrix 
 the neuron coordinate basis is. The caveat is that the rotation is estimated from the
 same connectome that generates the tasks, so it is a favourable case; and a rotated
 diagonal needs `d(d−1)/2` rotation numbers, shared across tasks and computed once.
+
+**Both of these now have per-seed backing, which neither had.** The four non-partition candidates were
+included in `e58`'s 18-seed run with per-seed storage, and `e66` contrasts each against the diagonal at
+the *same task seed* — these are deterministic functions of the circuit, so no control draw exists and
+the task draw is the only axis sampled:
+
+| basis | delta vs the diagonal | σ (18 seeds, paired) | signs | LOO min σ | leverage |
+|---|---|---|---|---|---|
+| `rank4` | +0.00472 | **30.5** | 18/18 + | 28.7 | 0.54 |
+| `rank16` | +0.00469 | **30.2** | 18/18 + | 28.5 | 0.54 |
+| `rank64` | +0.00458 | **29.9** | 18/18 + | 28.2 | 0.55 |
+| **`eigbasis`** | **−0.00491** | **26.0** | **18/18 −** | 24.5 | 0.48 |
+
+**The eigenbasis's advantage is unanimous over eighteen seeds at 26.0σ**, and all three adaptive
+truncations are unanimously *worse* than the plain diagonal at ~30σ — the "fixed structures beat
+adaptive ones here" claim, with per-seed evidence rather than a pooled mean.
 
 **The three worst candidates are the adaptive ones.** Spectral truncation to the top
 `r` directions of the current posterior — locally optimal at every step — is the

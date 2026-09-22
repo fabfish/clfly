@@ -128,6 +128,16 @@ because a near-diagonal partition's control is nearly the diagonal and relabelli
 nothing. That is the one part of the old "coarse versus fine" story that survives, and it survives as a
 statement about concentration at the extremes rather than about group count.
 
+> **Superseded in turn, by the pairing (`e66`, `docs/findings/2026-09-23-cell-type-is-not-a-null.md`).**
+> The σ in the tables above are built on **unpaired** sems taken from `e3_seeds18`'s `excess_sem`.
+> `e58` has since given that configuration per-seed values, so the contrast is properly paired, and the
+> correction is governed by how correlated the two arms are: `side` (ρ = 0.21) barely moves, while
+> `cell_type` (ρ = 0.9987) moves **27×** and its verdict reverses from "0.73σ, a null" to
+> **"3.8σ about the rule, 20.3σ paired, with biology reliably worse"**. The paired rule-σ are
+> **18.1 / 12.1 / 26.1 / 13.3 / 3.8** for `side` / `cell_class` / hemilineage / `supertype` /
+> `cell_type`. The measurement of the draw sds in this section is unaffected and is what those numbers
+> use; only the seed-side term changes.
+
 ## 5. What it moves: the budget, in the safe direction
 
 `2026-09-22-draw-budget.md` computed that the `side → pool4` claim needs only K ≈ 1.4 control draws per
