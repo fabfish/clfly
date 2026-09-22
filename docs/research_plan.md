@@ -1216,7 +1216,11 @@ Added 2026-09-22, after the headline metric was found to be chaotic
    was written, and never re-derived from the artifacts, drifts in whichever direction the work moved. The
    check is mechanical — each row names a `runs/*.json` or a finding, and both either exist or do not —
    and two of the eight were invisible to any check on a *result*, because the duplicate row and the
-   "K = 4 was never run" claim are statements about the project's own bookkeeping
+   "K = 4 was never run" claim are statements about the project's own bookkeeping. **The same check was
+   then run on the paper and found five rows, one of which was a scientific error rather than a
+   bookkeeping one**: §7's limitations recorded `pool1`'s **resolved disadvantage** — 20.3σ paired — as a
+   null that had been "confirmed four times over", which is the hardest kind of drift to notice because a
+   limitations section is where a reader expects the conservative statement
    (`docs/findings/2026-09-23-the-programme-table-had-drifted.md`).
 
 ## Related work to differentiate against
