@@ -367,9 +367,18 @@ are what the annotation vocabulary offers, and four of them sit in the top 15% o
 >
 > **And the three lines have three different binding axes**: C1 the **circuit/realization**, C2 the
 > **control draw**, C2b the **learner's seeds**. So "the bracket is a bracket", "the control is one
-> draw" and "the floor is 62% learner" are three different corrections to three different lines, and
+> draw" and "the floor is the floor" are three different corrections to three different lines, and
 > none of them transfers — which is why each line needed its own check rather than a shared rule.
 > (`docs/findings/2026-09-22-c2-passes-the-per-seed-discipline.md`)
+>
+> **Corrected (`e71`):** `e57` wrote C2b's figure as "62% of the per-replicate variance is the
+> learner, not the test set". That is the inverse of the field it comes from — `e38`'s
+> `floor_share_of_variance` is **0.619 for the `naive` arm at n = 9**, i.e. the *test set's* binomial
+> sampling floor, so the learner is the other 38% there and **45%** in `e54`'s sixteen-replicate pool.
+> For the **contrast** — the quantity the axis argument is actually made on — the floor's share is
+> **43–46%** and the learner's at least 54%. The conclusion (seeds, not test size, are the lever) is
+> unchanged: ten times the test set divides the floor by `sqrt(10)` for a 1.41× gain and no more.
+> (`docs/findings/2026-09-23-the-62-percent-is-the-floor-not-the-learner.md`)
 granularity range. The earlier
 "consistent direction, ~1.3σ" reading was limited by the realized-error metric, not by
 the effect. Measured on the **analytic expected error** (exact, no sampling noise — see
@@ -929,6 +938,7 @@ All of it has been run. The scripts as delivered:
 | `e2_topology_gap.py --topologies swap0.5 --rewire-seed 0..5` | C1 | the `swap0.5` realization sweep (`e65`) — the one component missing from the two-σ decomposition | **in flight** — `runs/e65_swap05_rewire{0..5}.json`; without it the C1 contrast's rule-σ is the *lower bound* 2.7σ, and with a `swap2`-sized realization sd it would be 1.9σ |
 | `e12_control_spread.py --column {side,cell_type}` | C2 | measure the two draw-sds that the predictor's correction had to *interpolate* (`e67`) | **`side` done: the pre-registration is refuted.** The mechanism finding predicted `side`'s draw sd at ~1.0e-3 (concentration 0.498, interpolated between 0.325 and 0.678) and predicted that the 2-draw smoke value 9e-5 would not replicate. Eight draws give **2.16e-4** — 4.8× below the prediction and closer to the value it was written to overrule. The relation is also non-monotone: 3.9e-5 → 9.3e-4 → **2.16e-4** → 1.06e-3 as concentration rises 0.020 → 0.325 → 0.498 → 0.678. Consequence: the §5 correction of `side` (15.53σ → 4.47σ) is a 2.8× over-correction — with the measurement it is **12.74σ** — and the corrected five-rung table is 17.5 / 9.0 / 9.3 / 4.1σ with overstatements of 1.0–1.6×, not 3–6×; the predictor's 13 of 13 is untouched. `cell_type` still running |
 | `e66_named_bases_seed_robustness.py` | C2 | the **named annotation rungs** under the per-seed discipline, reporting σ(task) and σ(rule) side by side | queued behind `e58`; `e57` could only run this on the pool ladder, and the claim is stated on the named rungs |
+| `e71_variance_share_audit.py` | C2b | audit the "62% of the variance is the learner" figure against the artifact field it comes from | done — **the sentence is inverted in three documents**. `e38`'s `floor_share_of_variance` is **0.619** for the `naive` arm at n = 9, i.e. the *test set's* binomial floor; the learner is 38.1% there and **45.1%** in `e54`'s n = 16 pool (95% interval [0%, 77%]). For the **contrast** — what the axis argument is made on — the floor is 43–46%. Conclusion unchanged: ten times the test set buys **1.41×** and no more, so seeds remain the lever |
 | `e5_anisotropy_axis.py --seeds 12` | C1 | `e5` re-run with 12 seeds (`e42`) — the binding test for the replacement mechanism | done — **the direction is REVERSED on the prescribed metric**: 9 positive / 2 negative / **1 tied**, mean +0.265, sign p = **0.0654** (ties dropped; an earlier 0.0386 was my error), pooled +0.228 (p = 0.037); on the relative gap the same seeds say nothing (7/5/0, p = 0.77). Seeds 0–2 reproduce the published artifact exactly |
 
 Every figure carries its control arm, and every recall/precision number in this document

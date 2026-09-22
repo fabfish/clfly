@@ -1103,8 +1103,10 @@ which is the check that makes it worth having.
 
 **And the three lines turn out to have three different binding axes**, each found by a retraction:
 C1 by the **circuit/realization**, C2 by the **control draw** (seed sem 2×10⁻⁵ against a draw sd up to
-1.0×10⁻³), and C2b by the **learner's seeds** (62% of the per-replicate variance is the learner, not
-the test set). "The bracket is a bracket", "the control is one draw" and "the floor is 62% learner" are
+1.0×10⁻³), and C2b by the **learner's seeds** — where the evaluation floor is 55% of the `naive` arm's
+per-replicate variance (a 45% learner contribution) and at most 46% of the contrast's, so it is the
+*contrast*'s share that the replicate count is planned against and it is why ten times the test set buys
+only 1.41×. "The bracket is a bracket", "the control is one draw" and "the floor is the floor" are
 therefore three different corrections to three different lines, and none of them transfers — which is
 why no shared rule was available and each line needed its own check.
 

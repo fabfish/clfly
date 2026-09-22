@@ -92,11 +92,20 @@ Worth stating once, because each was found by a retraction:
 |---|---|---|
 | **C1** topology, neuron substrate | the **circuit / realization** | `e36`–`e40`: the coordinate that was to explain it failed on the realization axis, the pre-registered band, and above its own bracket |
 | **C2** basis, neuron substrate | the **control draw** | `e12`/`e14`/`e17`: seed sem 2e-05 against a draw sd up to 1.0e-03 |
-| **C2b** basis, rate network | the **learner's seeds** | `e38`/`e54`: 62% of the per-replicate variance is the learner, not the test set |
+| **C2b** basis, rate network | the **learner's seeds** | `e38`/`e54`: the floor's share of the `naive` arm's variance is 61.9% at n = 9 and 54.9% at n = 16, so the learner is 38–45% of the arm and ≥54% of the contrast |
 
-**So "the bracket is a bracket", "the control is one draw" and "the floor is 62% learner" are three
+**So "the bracket is a bracket", "the control is one draw" and "the floor is the floor" are three
 different corrections to three different lines, and none of them transfers.** That is the methodological
 result of this whole sequence, and it is why each line needed its own check rather than a shared rule.
+
+**One figure in the row above was inverted and is corrected here (`e71`).** This finding, the plan's
+binding-axes paragraph and the paper's retraction section all said "62% of the per-replicate variance is
+the learner, not the test set". The 62% is `e38`'s `floor_share_of_variance` for the `naive` arm — the
+*test set's* binomial sampling floor — so the learner's share is 38.1% at n = 9 and 45.1% at n = 16. The
+two quantities point opposite ways and both are right about their own: the floor is 55% of the *arm's*
+spread and 43–46% of the *contrast's*, and the axis argument is made on the contrast. The conclusion
+holds — ten times the test set buys 1.41× and no more, while more seeds remove the learner's share
+entirely (`docs/findings/2026-09-23-the-62-percent-is-the-floor-not-the-learner.md`).
 
 ## 6. Limits
 
