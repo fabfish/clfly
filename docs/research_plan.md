@@ -807,6 +807,7 @@ All of it has been run. The scripts as delivered:
 | `e2_topology_gap --circuit-size 800 --seeds 6` | C1 | per-seed storage for cs = 800 (`e48`), the only contrast lacking it | done — **the column reproduces bit-for-bit from its first three seeds** (all four topologies) and the refutation becomes a **paired −28.85σ with 6/6 seeds negative**, leave-one-out ≥ 23σ, against the published unpaired −32.7σ |
 | `e49_kappa_leverage_by_topology.py` | C1 | does the concentration knob move the carrier where the mechanism was proposed? | done — **no**: travel/noise is **142–271×** at `real` and **9.4×, 20.2×, 5.3×** at `swap2`/cs = 800 because the carrier starts already collapsed (effrank 1.70 vs 55), so that configuration is **untested, not null**; the one `swap2` seed with leverage (−0.786, p = 0.036) gives the `e5` direction |
 | `e54_naive_seed_pool.py` | C2b | is the `naive` arm a free instrument, and how many seeds exist for one computation? | done — **six distinct `naive` computations** across 15 runs, the largest with **n = 9** (sd 0.0389, floor 62% of the variance, so 38% is the learner); agreement established from the data, not an assumed config key |
+| `e55_seed_resolution_of_excess.py` | — | is the "below ~0.05 not resolvable" figure still right, at n = 12? | done — **stale by 3× and the wrong shape**: the absolute metric's CV is 0.70–1.26, the same as the relative gap's, so it fixes the *ratio* not the spread; unpaired resolution is **0.0159 at n = 12** (0.0319 at n = 3) but **0.00100** as a within-seed difference, and the same topology's sd moves **11×** with the drive construction |
 | `e8_rate_network --lam 0.1 --repeats 16` | C2b | the properly-powered rung contrast at λ = 0.1 (`e46`), the λ where it resolves | **in flight** — `runs/e46_c2b_powered.json` |
 | `e5_anisotropy_axis.py --seeds 12` | C1 | `e5` re-run with 12 seeds (`e42`) — the binding test for the replacement mechanism | done — **the direction is REVERSED on the prescribed metric**: 9 of 12 seeds positive, mean +0.265, sign p = 0.0386, pooled +0.228 (p = 0.037); on the relative gap the same seeds say nothing (5/12, p = 0.77). Seeds 0–2 reproduce the published artifact exactly |
 
@@ -842,6 +843,29 @@ Added 2026-09-22, after the headline metric was found to be chaotic
    Report `clfly.bench.oracle.paired_excess`: the **absolute** excess with its
    standard error across >= 3 seeds, plus `gap_of_means` if a ratio is wanted.
    At current settings, excess differences below ~0.05 are not resolvable.
+
+   > **Measured at n = 12 (`e55`), and corrected in two ways.**
+   >
+   > **The stated reason is not diagnostic.** The absolute excess's across-seed CV is
+   > **0.70–1.26** at the seven κ values, against the relative gap's **0.73–1.15** — the same.
+   > What the absolute metric fixes is the *ratio-of-two-close-numbers* pathology (the 1-ULP
+   > sensitivity and the 1.38 CV), **not the across-seed spread**. A reader who takes this rule as
+   > "the absolute excess is more stable across seeds" is wrong by a factor of one.
+   >
+   > **The 0.05 is stale and is the wrong kind of number.** The across-seed sd of the absolute excess
+   > has a median over κ of **0.01971**, so the unpaired minimum detectable difference (2.8 × sem,
+   > 80% power) is **0.0159 at n = 12** and **0.0319 at n = 3** — 3.1× and 1.6× below the quoted 0.05.
+   > **But the project's contrasts are within-seed differences**, where the same measurement on `e48`
+   > gives **0.00100** — and *not* because pairing cancels much (the arms correlate at only r = +0.29),
+   > but because the *difference* is stable relative to its signal while either arm is comparable to
+   > its own mean. So this rule needs a **pair** of numbers with the comparison named: the basis deltas
+   > the neuron ladder resolves (0.0015–0.0040) look unmeasurable against 0.0159 and are comfortably
+   > resolved against 0.0010.
+   >
+   > **And attach the configuration.** `excess(real)` at cs = 800 has an across-seed sd of 0.01971 in
+   > `e5`'s uniform-drive sweep and **0.00175** in `e2`'s default-drive run — the same topology, circuit
+   > and seed count, differing in the task construction. "At current settings" covers an 11× range.
+   > (`docs/findings/2026-09-22-the-resolution-figure-is-stale-and-wrong-shaped.md`)
 4. **Pin the spectral radius, and report it.** `stable_weights` must use a
    deterministic ARPACK start vector. With the default random start, `W` differs by
    1 ULP between identical calls and the reported gap moves by several percent.
