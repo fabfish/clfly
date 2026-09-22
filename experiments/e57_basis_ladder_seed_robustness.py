@@ -65,14 +65,19 @@ def load(path: str):
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--json-out", default="runs/e57_basis_seed_robustness.json")
+    #: Which ladder to dissect.  The second configuration (`e79`, d = 1874) needs exactly the same
+    #: treatment as the first, and parameterising this is the difference between a replication and a
+    #: second script that drifts from the first.
+    ap.add_argument("--artifact", default="runs/e3_ladder_v2.json")
+    ap.add_argument("--label", default="pool ladder, d=1307")
     args = ap.parse_args()
 
     out: dict = {}
 
     print("=" * 104)
-    print("1. THE POOL LADDER, PER SEED (the only C2 family whose artifact stores them)")
+    print(f"1. THE POOL LADDER, PER SEED -- {args.label}")
     print("=" * 104)
-    d = load("runs/e3_ladder_v2.json")
+    d = load(args.artifact)
     if d is None:
         print("   artifact absent")
     else:
@@ -127,8 +132,18 @@ def main() -> None:
     print("=" * 104)
     print("2. AND THE DRAW COMPONENT, WHICH IS THE ONE THAT BINDS")
     print("=" * 104)
-    print("   The bios' seed sem above is 2-3e-05.  The *control* arm is one draw from a population")
-    print("   of size-matched random partitions, and e12-e17 measured that population's spread:\n")
+    #: Computed, not hardcoded.  The first version of this line said "the bios' seed sem above is
+    #: 2-3e-05", which was true of the d = 1307 ladder and false by 10x for the d = 1874 one -- a
+    #: sentence that a second configuration turns into a wrong number.
+    ladder_rows_for_sem = out.get("pool_ladder") or []
+    if ladder_rows_for_sem:
+        sems = [r["seed_sem"] for r in ladder_rows_for_sem]
+        print(f"   The bios' seed sem above is {min(sems):.1e}-{max(sems):.1e}.  The *control* arm is one")
+        print(f"   draw from a population of size-matched random partitions, and e12-e17 measured that")
+        print(f"   population's spread:\n")
+    else:
+        print("   The *control* arm is one draw from a population of size-matched random partitions,")
+        print("   and e12-e17 measured that population's spread:\n")
     print(f"   {'measured on':<24}{'draws':>7}{'sd across draws':>17}{'sem over draws':>16}")
     draws = []
     for label, path in DRAW_SD_ARTIFACTS:
@@ -143,10 +158,20 @@ def main() -> None:
     out["draw_sds"] = draws
     if draws:
         mx = max(draws, key=lambda x: x["sd_across"])
-        print(f"\n   the largest is {mx['sd_across']:.6f} ({mx['label']}), i.e. more than ten times")
-        print(f"   the seed sem of any pool rung.  So for the pool ladder the binding axis is the")
-        print(f"   CONTROL DRAW, not the seed -- which is the opposite of the network benchmark,")
+        #: The ratio is computed, not asserted, and the cross-size caveat is stated: every artifact in
+        #: DRAW_SD_ARTIFACTS is a d = 1307 measurement, so comparing them to another ladder's seed sems
+        #: is a comparison across circuit sizes.  The first version of this line said "more than ten
+        #: times" flat, which the d = 1307 ladder satisfies and the d = 1874 one does not (its sems run
+        #: to 2.0e-04, making the ratio about five).
+        ratio = mx["sd_across"] / max(sems) if sems else float("nan")
+        print(f"\n   the largest is {mx['sd_across']:.6f} ({mx['label']}), i.e. {ratio:.1f}x the largest")
+        print(f"   seed sem of a pool rung in this ladder.  So for the pool ladder the binding axis is")
+        print(f"   the CONTROL DRAW, not the seed -- which is the opposite of the network benchmark,")
         print(f"   where e38/e54 found the learner's seeds dominate by 62% of the variance.")
+        if args.artifact != "runs/e3_ladder_v2.json":
+            print(f"\n   CAVEAT for this artifact: every draw sd listed above was measured at d = 1307, so")
+            print(f"   the ratio is a comparison across circuit sizes.  It is reported because the draw")
+            print(f"   component is the substantive point, not because the two numbers are commensurate.")
 
     print()
     print("=" * 104)
