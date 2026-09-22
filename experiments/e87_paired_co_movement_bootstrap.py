@@ -37,9 +37,9 @@ SIZES = [
     ("d = 1874", "runs/e82_pressure_comovement_d1500.json"),
 ]
 
-#: `e75`'s alignment run, for the paired `pressure − alignment` check.  Both artifacts index the same
-#: (draw, seed) grid because both were measured on the same relabellings.
-ALIGNMENT = "runs/e75_task_pair_spread.json"
+#: The alignment run.  `e88` is `e75` re-run after its output was fixed to keep the per-(draw, seed)
+#: alignment values; `e75`'s own artifact predates that fix and cannot be used for this check.
+ALIGNMENT = "runs/e88_alignment_perseed_rerun.json"
 PRESSURE_AT_D1307 = "runs/e81_pressure_comovement.json"
 
 
