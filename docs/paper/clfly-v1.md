@@ -257,6 +257,17 @@ from `swap2` by **152σ**; it also destroys the degree sequence and makes `(I �
 near-singular, so it changes the conditioning of the dynamics rather than extending
 the same axis.
 
+**Both of those σ are single-realization figures, and one of them has now been checked.**
+`excess(swap2)` moves with an sd of **0.0205** across four (circuit-size, realization) draws — 67% of
+its own mean — while the two control topologies hold to 6.2% and 18%. Substituting that realization
+sd for the seed sem, the **152σ separation becomes 4.5σ**, and 1.5× that sd takes it to 3σ. That is a
+sensitivity bound, not a correction — `excess(ER)`'s own realization sd is unmeasured — but it means
+the line's numbers are statements about *the particular graphs drawn* until a realization sweep says
+otherwise, and the same check that retired the 32.7σ has not been run on the 152σ
+(`docs/findings/2026-09-22-er-separation-realization-exposure.md`; `e33` is running it). The
+*structural* reading — a separate regime, offset by a factor of eleven — is the one that should carry
+the weight.
+
 We report this as a refutation of our own hypothesis, on the axis where it was most
 cleanly testable.
 
