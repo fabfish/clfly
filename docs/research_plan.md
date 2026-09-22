@@ -176,11 +176,13 @@ Interpolating the connectome toward a random graph by densifying **cross-module*
 edges increases forgetting monotonically, and re-partitioning the same graph into
 non-biological modules removes the benefit.
 
-*De-risking:* "modular networks forget less" is folk wisdom (PathNet and friends),
-so the claim must not be that. It must be the **quantitative interpolation curve
-plus the mechanism link to C2** — that the reason modularity helps is that it makes
-the module basis the aligned basis. The non-biological re-partition is the arm that
-separates the two stories.
+*Status: untested, and weakened by C1's refutation.* The claim assumed that task
+interference is what a modular wiring protects against. `e2` refuted that mechanism —
+along the degree-preserving swap family the diagonalisation penalty moves *opposite* to
+task overlap, falling by a resolved 32.7σ between `swap0.5` and `swap2` while overlap
+doubles — so the mechanism C3 was built on does not hold in the linear substrate. C3
+would now have to be restated as a claim about whatever *does* drive the penalty
+(anisotropy of the task precision), and that is not yet well enough understood to
 
 ### C4 — Circuit overlap predicts interference
 
