@@ -120,17 +120,18 @@ def draws_needed(delta: float, sem_claim: float, sd_claim: float,
 def concentration(labels) -> float:
     """``sum_g s_g^2 / d^2`` for a partition — how much of the covariance it constrains.
 
-    This **ranks** a matched-random control's draw-to-draw sd within one circuit, better than the
-    group count does. It does **not** set the absolute value across circuits: at a concentration
-    near 0.7 the d = 952 ladder gives a draw sd of 4.9e-4 where d = 1307 gives 1.06e-3, a factor
-    of two (`docs/findings/2026-09-22-e13-averaged-controls.md` §5). Use it to order rungs, and
-    measure if a number is needed.
+    This **separates fine partitions from coarse ones — roughly two orders of magnitude — but it
+    does not rank coarse partitions among themselves.** On d = 1307 the coarse range 0.325–0.678
+    measures 6.1e-4 to 1.06e-3 with no ordering (1.01e-3 at 0.395 against 6.1e-4 at 0.459, a
+    non-monotone 40% swing from two runs of the same experiment), and the *level* differs between
+    circuits — at a concentration near 0.7 the d = 952 ladder gives 4.9e-4 where d = 1307 gives
+    1.06e-3. Use it to tell fine from coarse; measure if a number is needed.
 
-    Measured, per circuit:
+    Measured, per circuit (K = 3–5 draws each, so ~25–40% relative error):
 
-    | ``sum s^2/d^2`` | 0.020 | 0.325 | 0.395 | 0.678 | (d = 1307) |
-    |---|---|---|---|---|---|
-    | draw sd | 3.9e-5 | 9.3e-4 | 1.01e-3 | 1.06e-3 | |
+    | ``sum s^2/d^2`` | 0.020 | 0.325 | 0.395 | 0.459 | 0.678 | (d = 1307) |
+    |---|---|---|---|---|---|---|
+    | draw sd | 3.9e-5 | 9.3e-4 | 1.01e-3 | 6.1e-4 | 1.06e-3 | |
 
     | ``sum s^2/d^2`` | 0.006 | 0.690 | 0.754 | 0.804 | (d = 952) |
     |---|---|---|---|---|---|
@@ -139,9 +140,10 @@ def concentration(labels) -> float:
     The mechanism is that a permutation changes little when the partition is made of singletons
     (most of ``sum s^2`` is then in pairs that are identical under any permutation) and a great
     deal when one group holds most of the neurons, because then the reshuffle decides *which*
-    neurons share that group. It is the concentration, not the number of groups, that orders the
-    scale — which is why `side`, a **balanced** 4-group partition at 0.498, belongs with the coarse
-    partitions rather than with the fine ones.
+    neurons share that group. That explains the two orders of magnitude. It does **not** explain the
+    residual factor of ~1.7 among coarse partitions, which no scalar here captures — so a budget
+    calculation should use the top of the observed coarse range (≈1e-3) rather than an
+    interpolation, which overstates the required K and has the merit of being right.
 
     Exact and cheap: no filter is run.
 

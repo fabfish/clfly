@@ -155,3 +155,44 @@ Also worth recording from the same run: at d = 952 the ladder reaches concentrat
 a single group — the `Full` basis, whose excess is exactly zero by construction. `pool64` and
 `pool128` are not granularity rungs at all there. `concentration` is a cheap way to detect that,
 and its docstring now says so.
+
+## 8. The d = 1307 curve is not even monotone, so the axis is only coarse-versus-fine
+
+`e14`'s third run is `min_size 4`, which is **the `pool4` rung itself** (29 groups, constrained
+0.5407 against the ladder's 0.5403 — the same partition). Concentration 0.459, and:
+
+| concentration | 0.020 | 0.325 | 0.395 | **0.459** | 0.678 | (d = 1307) |
+|---|---|---|---|---|---|---|
+| draw sd | 3.9e-5 | 9.29e-4 | 1.01e-3 | **6.1e-4** | 1.06e-3 |
+
+**That is non-monotone**: 1.01e-3 at 0.395 and 6.1e-4 at 0.459, a 40% drop in the middle of the
+rise, from two runs of the same experiment. With 5 draws each measurement carries ~35% relative
+error, so a 40% swing is within ~1.9σ of that — suggestive of real scatter rather than decisive
+either way, and either reading damages the same claim.
+
+So the axis has to be stated even more weakly than §7 did:
+
+> **Concentration separates fine partitions from coarse ones — roughly two orders of magnitude —
+> but it does not rank coarse partitions among themselves.** Across 0.325–0.678 the draw sd is
+> 6.1e-4 to 1.06e-3, a factor of 1.7, with no ordering.
+
+**What that means for the budget table: nothing, because the table used a constant.** Every coarse
+rung was assigned ~1.1e-3 regardless of its concentration. That crudeness is what makes the table
+robust — it is at the top of the observed range, so it *overstates* the required ``K`` rather than
+understating it. The measurements now bracket the true value between 6.1e-4 and 1.06e-3, and at
+6.1e-4 the claims get *easier*:
+
+| claim | with 1.1e-3 (the table) | with `pool4`'s measured 6.1e-4 |
+|---|---|---|
+| `pool4` delta resolves from zero | 7.9σ | **13.7σ** |
+| `side → pool4` | K = 1.28, σ at K=1 = 2.66 | **K = 0.81, σ at K=1 = 3.32** |
+
+The second row moves the claim across the line: at the measured draw sd for `pool4` and the
+predicted one for `side`, **`side → pool4` clears 3σ with the single draw the ladder already took**,
+which is why it belongs in the "worth buying" list only for the sake of a second confirmation.
+
+**And the `side` prediction survives for a better reason than interpolation.** It was ~1.0e-3 *by
+interpolation at concentration 0.498*. But every coarse partition measured on d = 1307 — 0.325,
+0.395, 0.459, 0.678 — lands between 6.1e-4 and 1.06e-3, so ~1.0e-3 is the right *order* for any
+coarse rung on that circuit without any interpolation at all. The prediction is now supported by
+the flatness of the range rather than by a curve fit through it.
