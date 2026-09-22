@@ -541,6 +541,30 @@ four times the estimate, with the sign record perfect at any multiplier from 0.1
 decisive one: a predictor that only recovered `constrained_fraction` would score 0/25,
 because matched pairs share it exactly.
 
+> **Two refinements from reading the stored `resolvable` column (`e63`), neither of which changes the
+> score.** The five conditions resolve **3, 4, 3, 0 and 3** of their five pairs, so the 13/13 above is
+> the whole of the evidence and the "24/25" form counts twelve sub-resolution calls.
+>
+> First, **the named "one failure" is an unresolved observation, not a wrong call with a large
+> margin.** In the `rewired-swap2` condition the five pairs sit at **0.09, 1.74, 0.06, 0.75 and
+> 0.23σ**; the disagreement is `cell_class` at **1.74σ**, the largest of the five, against a
+> confidently-predicted negative (pressure delta −0.911 vs an observed +0.0034). Reaching 3σ on the
+> seed component alone would need ≈18 seeds. So that condition is better described as **untested**:
+> **zero of its five pairs resolve**, and the predictor has never been tested on a rewired topology.
+>
+> Second, the resolvable calls are effectively about the **three coarser rungs**: `cell_type` never
+> resolves in any condition (0.03–0.26σ) and `supertype` in none either (1.5–2.2σ), so the score is
+> carried by `side`, `cell_class` and `ito_lee_hemilineage`. That is `e35`'s arithmetic bound
+> (`constrained ≤ 1 − 1/m`, hence a very fine partition *is* the diagonal) showing up in the
+> predictor's own score sheet.
+> (`docs/findings/2026-09-22-the-predictor-failure-is-unresolved.md`)
+
+**And one gap this exposes:** the pairs' deltas are stored as **six-seed means**, with a σ but no
+per-seed values, so whether any individual call is carried by one or two seeds is unchecked — the same
+rule-8 omission `e57` found for C2's headline family (closed by `e58`), `e54` for the network `naive`
+arm, and `e47` for the cs = 800 contrast. **The predictor's 13/13 is the last headline number in the
+project without a per-seed check.**
+
 Two honest limits. It is a **ranking** predictor, not a calibrated one — its dynamic
 range varies by more than an order of magnitude across conditions while the
 corresponding excess deltas stay of order 0.003–0.010. And it applies to **fixed**

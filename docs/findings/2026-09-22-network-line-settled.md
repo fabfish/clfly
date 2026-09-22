@@ -82,7 +82,10 @@ other's untouched.
 ## 6. What remains
 
 1. **The predictor's one failure** — on heavily rewired wiring the biological-vs-random sign is
-   called wrongly with a large margin, in the linear substrate. That is the last open question
+   called wrongly, in the linear substrate — **corrected by `e63`: the call is 1.74σ, the largest
+   of five σ's in a condition where nothing resolves (0.06–1.74σ), so it is a confident
+   prediction meeting an unresolved observation rather than a wrong call with a large margin,
+   and the condition is better described as UNTESTED**. That is the last open question
    with a specific, answerable form.
 2. **Paper consolidation.** The draft's §4.6 needs to carry this table, and §7's limitations
    need the memory asymmetry and the hyperparameter-tuning lesson.
