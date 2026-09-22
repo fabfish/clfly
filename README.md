@@ -135,11 +135,12 @@ The scientific programme is complete. A working paper draft consolidating it is 
 - **A sign test on differences below the noise floor is a random draw** — report the
   target's resolvability alongside any ranking or sign score.
 
-Eight of our own earlier conclusions were retracted or overturned as artefacts of these
-traps; all eight are in the findings log with the same prominence as the results.
+Ten of our own earlier conclusions were retracted or overturned as artefacts of these
+traps — including, twice, my own explanation for why an earlier retraction happened. All ten
+are in the findings log with the same prominence as the results.
 
 `docs/findings/` holds the dated logs — one per result, negative results included, because
-those are the useful kind. The nine retractions and refutations, in order:
+those are the useful kind. The ten retractions and refutations, in order:
 
 - **the unimodal misalignment peak** of the reference materials does **not** appear in the
   coordinate basis; the penalty is governed by task *anisotropy* (~500× larger for a steep
@@ -151,12 +152,17 @@ those are the useful kind. The nine retractions and refutations, in order:
   −32.7σ**, and **neither the refutation nor its reversal survives**;
 - **and then the *reason* I gave for that**: I attributed the contrast's spread to re-drawing the
   swap realization and fed that sd (0.0205) into the next fire's error bars. Measured directly at
-  fixed circuit size and fixed tasks, the realization sd is **0.00125** — 16× smaller — and
-  Erdős–Rényi moves by **0.33% of its own value**. It is the *circuit* that sets the spread,
-  through the rank collapse of `swap2`'s task precision: ordered by effective rank the
-  five contrast signs are `−, −, −, +, +` (**ρ = +1.000, exact p = 0.0083**), so the sign is
-  *predictable without a learning run* and the earlier "the sign alternates" was an artefact of
-  having exactly four points;
+  fixed circuit size and fixed tasks, the realization sd is **0.00303** at four realizations (ER's
+  is 0.00353) — 6× smaller, so the spread is a property of the *circuit*, and ordered by the
+  effective rank of `swap2`'s task precision the five contrast signs are `−, −, −, +, +`
+  (**ρ = +1.000, exact p = 0.0083**), making the sign *predictable without a learning run* and the
+  earlier "the sign alternates" an artefact of having exactly four points;
+- **and then that mechanism too**: the effective rank *describes* those five circuits without
+  explaining them. Moving it a second way — re-drawing the rewiring at fixed circuit size — gives log
+  slopes **13.6σ apart** between families (0.0047 against 0.0340) with the circuit sweep's own 0.0202
+  matching neither, no single monotone form fits all three, and the five-point curve then misses a
+  realization whose effective rank lies *inside* its fitted range by **0.01902** — 6.4× its in-sample
+  maximum residual. The direct concentration intervention went the other way as well;
 - **"granularity beats biology"** was an artefact of the annotation vocabulary, which places
   four of its five rungs where biology contributes least;
 - **"granularity locates you, biology sets the height"** — the replacement headline — was

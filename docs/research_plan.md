@@ -92,23 +92,31 @@ degree-preserving family the gap moves *opposite* to interference — overlap ri
 > the task precision, the same five points are `−, −, −, +, +` with every negative at effrank ≤ 2.476
 > and every positive at ≥ 5.040 (**Spearman ρ = +1.000, exact permutation p = 0.0083**, separator
 > bracketed in [2.476, 5.040]), and neither effrank nor the excess is monotone in d, so this is not
-> circuit size in disguise. `swap2` is the only topology whose task precision collapses (effrank
-> 1.7–15.4 against `real`'s 43.8–50.2); when the precision is dominated by one direction, protecting
-> it is cheap and EWC lands near the oracle, so `swap2`'s excess falls *below* its milder control's
-> and the contrast goes negative. Level-wise, `excess(swap2) ≈ 0.00280 + 0.02016 · ln(effrank)`, max
-> residual 0.00296 over a 0.04545 range — but **ordinal, not calibrated**: two out-of-sample
-> realization points already sit +0.00341 and −0.00773 off that curve, and the relation is absent
-> for `real` (ρ = −0.10) and `swap0.5` (ρ = +0.40). **So neither the refutation nor its reversal
-> survives, now with a mechanism instead of a noise story**: the sign is set by a geometry that
-> varies with the circuit, which makes it predictable without a learning run but no more general.
-> **And that mechanism is itself the weaker of the two readings**: it comes from a confounded sweep,
-> and the direct intervention (`e5`'s concentration knob, now runnable at a rewired topology via the
-> new `--topology` flag) already went the *other* way in a 2-point smoke test at cs = 300 — more
-> concentration gave a *larger* gap there, which is `e5`'s sign at `real`, not `swap2`'s. Seven
-> `kappa` values × 3 seeds at both topologies is running (`e37`); if the direct intervention keeps
-> `e5`'s sign at `swap2`, the cross-size correlation is a five-point coincidence and the mechanism
-> paragraph is withdrawn.
-> (`docs/findings/2026-09-22-realization-attribution-refuted.md`)
+> circuit size in disguise. Level-wise, `excess(swap2) ≈ 0.00280 + 0.02016 · ln(effrank)`, max
+> residual 0.00296 over a 0.04545 range. **So neither the refutation nor its reversal survives**, and
+> the sign is *predictable from a diagnostic that needs no learning run*.
+>
+> **But the coordinate describes those five circuits; it does not explain them.** The mechanism
+> reading — that `swap2`'s task precision rank-collapses, a collapsed precision is cheap to protect,
+> and that is why its excess falls below its milder control's — is **withdrawn**, refuted on two
+> independent intervention axes in the same day. Re-drawing the rewiring at fixed circuit size and
+> fixed tasks, which moves the effective rank a second way, gives log slopes **13.6σ apart** between
+> `swap2` and ER (0.0047 ± 0.0009 against 0.0340 ± 0.0020) with the circuit sweep's own 0.0202
+> matching neither; the linear-in-effrank form is the one the two realization families agree on
+> (0.00147 against 0.00110) and it is 2–2.7× too shallow for the circuit sweep. **No single monotone
+> form fits all three families** — the implied slope depends on which interval of effective rank you
+> probe, which is what a shared confound looks like and a carrier does not. And the five-point curve
+> misses a new realization whose effective rank lies *inside* the fitted range by **0.01902**, 6.4×
+> its in-sample maximum residual; the 8-point rank correlation falls from 1.000 to **+0.810**.
+> Independently, the direct concentration intervention (`e5`'s `kappa` knob, now runnable at a
+> rewired topology via the new `--topology` flag) went the *other* way in a smoke test at cs = 300 —
+> more concentration gave a *larger* gap, which is `e5`'s sign at `real`, not `swap2`'s. Seven
+> `kappa` values × 3 seeds at both topologies is running (`e37`).
+> (`docs/findings/2026-09-22-geometry-mechanism-refuted-on-the-realization-axis.md`)
+>
+> The realization attribution from the fire before that is also settled: the sd is **0.00303** at
+> four realizations of `swap2` and **0.00353** for ER (5.8–6.8× below the 0.0205 that was attributed
+> to it, χ² p = 0.004 / 0.007), exactly as pre-registered.
 
 *Replacement, after `e5`: anisotropy, in the same direction Phase 1 found.* Vary
 the task's spectral concentration **directly**, at fixed topology, fixed support

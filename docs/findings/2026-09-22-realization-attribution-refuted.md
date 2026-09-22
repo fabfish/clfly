@@ -98,11 +98,22 @@ effrank ≥ 5.040, every negative one ≤ 2.476 — so a separating threshold ex
 experiment at all*. And because neither effrank nor the excess is monotone in d (15.4, 2.2, 5.0,
 2.5, 1.7), this cannot be a restatement of "circuit size".
 
-The mechanism reads directly: `swap2` is the only topology in the family whose task precision
-**rank-collapses** (effrank 1.7–15.4 against `real`'s 43.8–50.2). When the precision is dominated by
-one direction, protecting that direction is cheap and EWC lands near the oracle, so its excess falls
-*below* its milder control's and the contrast turns negative. When the collapse does not happen
-(effrank 15.4 at d = 952) the penalty is the largest in the family and the contrast is positive.
+> **CORRECTION, same day, `2026-09-22-geometry-mechanism-refuted-on-the-realization-axis.md`.** The
+> mechanism paragraph that followed this table has been **withdrawn**. Re-drawing the rewiring at
+> fixed circuit size — a second way of moving the effective rank — gives log slopes **13.6σ apart**
+> between `swap2` and ER (0.0047 ± 0.0009 against 0.0340 ± 0.0020) with the circuit sweep's own
+> 0.0202 matching neither, and the five-point curve misses a new realization whose effective rank
+> lies *inside* the fitted range by **0.01902**, 6.4× its in-sample maximum residual. So the table
+> above is a true statement about five points and a useful **descriptive** coordinate; it is not
+> evidence that the effective rank *causes* the excess, and the paragraph below should be read as a
+> hypothesis that has since failed rather than as the finding.
+
+The mechanism reads directly *(withdrawn — see the correction above)*: `swap2` is the only topology
+in the family whose task precision **rank-collapses** (effrank 1.7–15.4 against `real`'s 43.8–50.2).
+When the precision is dominated by one direction, protecting that direction is cheap and EWC lands
+near the oracle, so its excess falls *below* its milder control's and the contrast turns negative.
+When the collapse does not happen (effrank 15.4 at d = 952) the penalty is the largest in the family
+and the contrast is positive.
 
 On the level rather than the contrast, the same coordinate gives
 `excess(swap2) ≈ 0.00280 + 0.02016 · ln(effrank)`, max residual 0.00296 over a range of 0.04545.
@@ -160,11 +171,13 @@ cross-size correlation read as a coincidence of five points.
 | "substituting that sd turns the 152σ ER separation into 4.5σ" | **void** — input withdrawn; ER's measured displacement is 0.00047 |
 | "the sign alternates, and every step is decisive" | **withdrawn at 5 points** — +, −, +, −, − |
 | "`swap2`'s association with anisotropy runs opposite to `e5`, n = 3, default not a finding" | **upgraded** — n = 5, ρ = +1.000, exact p = 0.0083, leave-one-out all 1.0; the inversion is not noise |
-| "the C1 refutation does not survive" | **survives, with a mechanism** — not because the statistic is noise, but because its sign is set by `swap2`'s rank collapse, which is a function of circuit size |
+| "the C1 refutation does not survive" | **survives as a description** — its sign across the five circuits is a monotone function of `swap2`'s effective rank |
+| §6's **mechanism** (rank collapse *causes* the excess, and hence the sign) | **withdrawn same day** — log slopes 13.6σ apart across families, and a realization inside the fitted range missed by 0.01902 (`2026-09-22-geometry-mechanism-refuted-on-the-realization-axis.md`) |
 
 Nothing in this fire restores the interference *hypothesis* either: the point is that the statistic
 which refuted it is a deterministic function of a geometry that varies with the circuit, so a single
-circuit's sign carries no general claim in either direction.
+circuit's sign carries no general claim in either direction — and, after the correction above, the
+geometry is a *description* of those five circuits rather than an explanation of them.
 
 ## 9. Pre-registered, for the next fire
 
@@ -180,3 +193,15 @@ circuit's sign carries no general claim in either direction.
 Also pre-registered: `e32`'s remaining three realizations will turn the 3-point sd of 0.00125 into a
 6-point one; if it moves above ~0.004 the 16× ratio shrinks to 5×, and the withdrawal stands either
 way but the margin changes.
+
+## 10. Outcomes of §9, recorded here so the prediction and its result sit together
+
+| pre-registered | outcome |
+|---|---|
+| realization sd stays below 0.004, so the ratio stays above 5× | **held** — 0.00303 at four realizations, ratio **6.8×**, χ² p = 0.0044. ER's is 0.00353, **5.8×**, p = 0.0069 |
+| `cs700` lands inside the ±0.0034 geometry band around `0.00280 + 0.02016·ln(effrank)` | **the curve had already failed before `cs700` landed** — three other realizations gave residuals **+0.00341, −0.00773, −0.01902**, the last of which is 6.4× the in-sample maximum and lies at an effective rank *inside* the fitted range. `cs700` is now a further confirmation rather than a test |
+| if `cs700`'s effrank < 3 the contrast sign must be negative | still open, and no longer load-bearing: the sign rule is a description of the five circuits, not a mechanism |
+
+The third row is the honest state: the sign rule was never the part at risk, and the mechanism that
+was supposed to explain it is the part that failed — see
+`2026-09-22-geometry-mechanism-refuted-on-the-realization-axis.md`.
