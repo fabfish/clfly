@@ -593,7 +593,7 @@ All of it has been run. The scripts as delivered:
 | `e8_rate_network.py` | — | the non-linear substrate, both settings, frozen-body control | done — replay 2.2–4.2σ, best when tuned |
 | `e3_basis_selection.py --ladder` × d=1874 | C2 | second configuration (support 150, d=1874), 12 seeds | **in flight** — `runs/e9_ladder_d1874.json` |
 | `e3_basis_selection.py --ladder` (re-run) | C2 | per-seed excesses for a paired shape test + determinism check | **in flight** — `runs/e3_ladder_v2.json` |
-| `e8_rate_network.py` × 5 rungs | C2b | synapse annotation ladder (0.6947 → 0.9992) | `side` done — negative holds, but underpowered (bounds the advantage at ≈0.09 accuracy); four rungs queued |
+| `e8_rate_network.py` × 5 rungs | C2b | synapse annotation ladder (0.6947 → 0.9992) | four of five run — all nulls at λ = 1.0 with ≈±0.03 intervals; `e38` bounds what more replicates can buy |
 | `e4_modularity.py` | C3 | never written | **C3 deprioritised** — its mechanism is contradicted by `e2` |
 | `e12_control_spread.py` | C2 | how much of a matched-pair delta is the control *draw* | done — draw sd is ~1.1e-3 coarse, ~4e-5 fine; coarse-rung σ are provisional |
 | `e3 --control-draws K` | C2 | average the matched control over K draws | done — wiring validated; the K=3/K=4 runs are queued behind the CPU queue |
@@ -734,6 +734,26 @@ Added 2026-09-22, after the headline metric was found to be chaotic
    seeds were fine and the λ was not
    (`docs/findings/2026-09-22-e10-lambda-not-set.md`). Comparing two artifacts field
    by field is a one-line script and should precede any claim that two runs agree.
+15. **Three replicates cannot decompose a variance, and cannot measure a correlation.**
+   The network benchmark's noise floor was split into "evaluation, removable" and
+   "training" from 3 replicates, where the 95% interval on the training remainder spans
+   a factor of four — the same computation on a longer run that already existed
+   (`n = 9`) narrows it 4× and puts the evaluation floor at 43% rather than 44% of the
+   wrong quantity. A correlation at `n = 3` has standard error near 0.7, so the six rung
+   runs' values from **−0.98 to +0.97** are what one true value looks like; the `n = 9`
+   estimate is +0.02 [−0.65, +0.67], which contains all of them. **Before quoting an
+   error bar that depends on an unmeasured nuisance parameter, check whether the
+   repository already contains a run with the degrees of freedom to measure it.**
+   Related and cheaper than it looks: an arm that is *indifferent to the manipulation*
+   (here `naive`, which carries no penalty and no basis) is bit-identical across every
+   run, so it is a free determinism control — and it settled the diagnosis here, showing
+   the spread is learner seed-to-seed variability rather than measurement noise
+   (`docs/findings/2026-09-22-network-variance-is-learner-variability.md`).
+16. **Long runs must be launched without the default timeout.** A four-topology ×
+   seven-`kappa` sweep was killed at ten minutes having produced 3 of its 21 points,
+   because the background default applied. Any run expected to exceed ~10 minutes needs
+   an explicit long timeout or none at all; otherwise the fire ends with a partial log
+   and no artifact, which looks like a slow run rather than a dead one.
 
 ## Related work to differentiate against
 
