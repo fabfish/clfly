@@ -237,7 +237,11 @@ the one where biology loses. Out of sample, across task width, drift rate, topol
 and circuit size, it holds at **mean Spearman +0.984**, with **13 of 13** correct on
 every matched pair whose excess difference clears 2σ (`experiments/e6_predictor.py`;
 the 24/25 headline count includes one pair that is not measurable — see
-`docs/findings/2026-09-22-predictor-no-unexplained-failure.md`). The sign test is the
+`docs/findings/2026-09-22-predictor-no-unexplained-failure.md`). That count was re-derived with
+the control-draw component included: it holds at **12 of 12** even if the fine columns' draw sd is
+four times the estimate, with the sign record perfect at any multiplier from 0.1× to 10×, while
+`side`'s individual σ at d=1307 falls from 15.53 to 4.47
+(`docs/findings/2026-09-22-predictor-survives-draw-correction.md`). The sign test is the
 decisive one: a predictor that only recovered `constrained_fraction` would score 0/25,
 because matched pairs share it exactly.
 

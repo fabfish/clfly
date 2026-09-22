@@ -48,9 +48,11 @@ Four findings, one of them unexpected in direction.
    predictor built from the projection loss of the *exact* filter's
    trajectory ranks candidate bases at Spearman **+0.995** over the ladder's 17 bases —
    including eight partitions of near-identical granularity told apart only by *which*
-   groups were merged — and identifies the better of each biological-versus-matched-random
-   pair on **13 of 13** pairs whose difference clears 2σ, across five conditions it was
-   not tuned on.
+   groups were merged — and identifies the better of each biological-versus-matched-random pair
+   on **13 of 13** pairs whose difference clears 2σ, across five conditions it was
+   not tuned on. That count was re-derived with the control-draw component included (§4.3) and
+   holds at **12 of 12** even if the interpolated draw sd for the fine annotation columns is four
+   times the estimate, with the sign record perfect at any multiplier from 0.1× to 10×.
 4. **The wiring's own eigenbasis beats the neuron diagonal at equal capacity** — a 28%
    reduction in excess error with no annotation involved at all — while *adaptive*
    projection (spectral truncation, locally optimal at every step) is the worst
@@ -704,6 +706,16 @@ the basis question unanswerable there.
 
 **So the standing result is 13 of 13 on every pair the excess metric can resolve**, alongside
 rank correlations of +0.97 to +0.99.
+
+**That count was then re-derived with the control-draw component included**, because every "clears
+2σ" in it had been computed from the seed-only sem — the quantity §4.3 shows understates the
+uncertainty several-fold for coarse partitions. It holds: **13 of 13 at the estimated draw sd, and
+12 of 12 if the fine columns' draw sd is four times the estimate**, with the sign record perfect at
+every multiplier from 0.1× to 10× (`docs/findings/2026-09-22-predictor-survives-draw-correction.md`).
+What does change is the individual σ: `side` at d = 1307 goes from 15.53σ to **4.47σ**, the largest
+correction in the study, because `side`'s concentration makes it a coarse partition. The 2σ line
+falls between `baseline/supertype` at 1.94 and `wider-tasks/supertype` at 2.17, so the count is
+13 ± 1 depending on an interpolated quantity — which is the honest form of the claim.
 
 Two limits, stated plainly. It is a **ranking** predictor, not a calibrated one: its
 dynamic range varies by more than an order of magnitude across conditions while the

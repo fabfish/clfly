@@ -96,7 +96,9 @@ The scientific programme is complete. A working paper draft consolidating it is 
   ladder's 17 bases, which it tells apart even when they share a granularity and differ
   only in *which* groups were merged — and identifies the better of each
   biological-versus-matched-random pair on **13 of 13** pairs whose difference clears
-  2σ, across five conditions it was not tuned on. A predictor that merely recovered
+  2σ, across five conditions it was not tuned on. Re-derived with the control-draw component
+  included (see above), that holds at **12 of 12** even if the fine columns' draw sd is four
+  times the estimate, with the sign record perfect at any multiplier from 0.1× to 10×. A predictor that merely recovered
   *granularity* would score 0/25, since matched pairs share it exactly.
 - **On a trained rate network the question reverses.** The biological synapse partition
   never beats a size-matched random control — at `cell_class`, the second-coarsest of the five
