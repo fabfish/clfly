@@ -1068,13 +1068,16 @@ Their *accuracy* contrasts are the cleanest numbers either arm has:
 **Replay resolves in all three settings**, always with the best accuracy and always with forgetting
 driven to **zero or below** — earlier tasks end up at least as well retained as when they were learned.
 The distinction matters and is measured: only the hardened setting's own forgetting is resolved *below*
-zero (−0.010 ± 0.006), while task-IL reaches −0.004 ± 0.009 and class-IL +0.006 ± 0.015, i.e. both sit at
+zero (**−0.0125 ± 0.0039**, 3.2σ, `runs/e61_replay96_step8.json` — the *sixteen*-replicate execution of the same
+configuration puts it 0.83σ from zero instead, which is what "a separate sample rather than an extension" means
+in practice), while task-IL reaches −0.0042 ± 0.0091 and class-IL +0.0063 ± 0.0150, i.e. both sit at
 zero. The
 earlier "replay is setting-dependent" claim is **withdrawn in full**.
 
 **EWC resolves in exactly one setting**, the hardened one, and requires the plastic weights to
 be load-bearing; where they are not, the diagonal anchor does nothing. **Replay beats EWC
-wherever both work.**
+wherever both work** — in the one setting where the diagonal has an artifact at this λ, by 6.6σ against
+2.47σ.
 
 This is what the theory predicted: LGCL v7 measured content memory to be **12.7× more valuable
 than regularisation** in the partially-observed regime, and every one of these tasks is
