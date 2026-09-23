@@ -1243,7 +1243,35 @@ can locate independently. **So `theta_drift` is this line's best instrument and 
 reproduces to 3% across forty replicates and 2.4% across four draws, it is monotone to three decimals, and it
 carries no information about the forgetting — **a quantity can be precise, monotone and irrelevant at once, and
 the way that was found out was to measure it**
-(`docs/findings/2026-09-24-the-metric-is-thirty-times-noisier.md`). And the sweep validates itself: its read-out-32 plastic row is the hardened
+(`docs/findings/2026-09-24-the-metric-is-thirty-times-noisier.md`).
+
+**And the route that handicap implies has been taken, and it is exhausted.** A tenfold test set (`--test 480`
+against the 48 of every run above) at forty replicates gives
+
+| run | mean | sem | **per-repeat sd** |
+|---|---|---|---|
+| read-out 128, test 48 | +0.0370 | 0.0051 | **0.0325** |
+| read-out 128, **test 480** | +0.0402 | 0.0035 | **0.0221** |
+| read-out 300, test 48 | +0.0232 | 0.0040 | **0.0252** |
+| read-out 300, **test 480** | +0.0269 | 0.0030 | **0.0188** |
+
+so the spread falls **1.47×** and **1.34×** — and the ceiling, solved for from the fact that the binomial part
+must fall by exactly √10 while the training part does not move, is **1.57×** and **1.41×**. **The tenfold test
+set therefore captured 94% and 95% of what is removable**, and the rest — **0.0207 and 0.0179** — is the
+substrate's own run-to-run variation, which is what §4.7 names as the binding limit, now decomposed and priced.
+**The handicap narrows from thirtyfold to eighteenfold** (the forgetting's per-repeat sd is 55% of its own value
+at 128, against the drift's 3%) — a factor of two of headroom existed and has been taken, and **the rest is not
+noise**. **And the run corrects how this section's own noise block should be read**: `evaluation_noise` is
+computed on the arm's **accuracy**, where the removable share at read-out 128 is **85%**; the **forgetting's**
+own share is **60%**, because the forgetting is a difference of two accuracies evaluated on the **same** test
+set, so hard items are hard in both, the test-set errors are positively correlated and **partly cancel**. The
+binomial arithmetic that governs a single accuracy therefore overstates what a bigger test set can do for a
+difference of them — measured, not argued: 85% predicted a 2.6× fall and the fall was 1.47×. **And the step
+survives the better metric and sharpens**: the plateau-to-128 difference is +0.0133 at **2.90σ** against 2.12σ
+before. **What that points at is a hypothesis about the substrate rather than the measurement**: if the residual
+is the training trajectory's, then five hundred iterations of SGD from a connectome-masked initialisation land
+in materially different places for different seeds, and **the test is whether converging further collapses it**
+(`docs/findings/2026-09-24-the-metric-noise-is-mostly-the-substrates.md`). And the sweep validates itself: its read-out-32 plastic row is the hardened
 configuration's `naive` and comes out at **+0.0729 ± 0.0151**, reproducing `e8_hardened_basis` to the last
 printed digit (`docs/findings/2026-09-23-the-unbacked-cells-measured.md` §1).
 
