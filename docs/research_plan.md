@@ -1376,6 +1376,21 @@ about (`docs/findings/2026-09-23-the-last-two-unaudited-sections-were-clean.md`)
    price. This is now stated in the paper's §4.7 and §7, and it is the conclusion of three findings
    (`docs/findings/2026-09-23-the-competing-explanation-is-not-excluded.md`).
 
+26. **Build the control into the manipulation, by checking what the manipulation cannot move.** `e101`
+   separated two candidate explanations for the network line's block-Fisher penalty at a cost of two runs
+   instead of the ~57 replicates per arm the alternative needed, and the reason is that the benchmark
+   contains arms that **cannot depend on the manipulated variable**: `naive` and `replay` consult no Fisher
+   matrix, so varying `--fisher-batches` leaves them **bit-identical** — which both fixes the forgetting
+   level by construction and proves it, since a level-based explanation is then unavailable. **The check is
+   one line: does this manipulation leave anything bit-identical, and is that thing sensitive to the effect I
+   am claiming?** The same property is an environment detector: `replay` came out identical between two new
+   runs and different at an older one, which is how the older point was identified as a different environment
+   (rule 21) — so **a Fisher-free arm is both the level control and the environment control, and neither role
+   needs new machinery**. And the trap it closes is a real one: `e99` and `e100` compared configurations
+   whose movements were inside their own error bars, and read two coincidences as confirmations of a
+   mechanism the paper had already ruled out
+   (`docs/findings/2026-09-23-the-conclusion-was-right-and-its-evidence-was-one-seed.md`).
+
 ## Related work to differentiate against
 
 Four papers are close enough to require explicit positioning — all use fly

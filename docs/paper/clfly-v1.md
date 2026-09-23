@@ -885,7 +885,7 @@ by endpoint class" is not valid: they are different partitions of different spac
 the linear result never required the second to behave like the first. Two candidate
 explanations were tested and both ruled out: the block Fisher's failure is not
 estimation noise (raising the batch count does not help, and the effect sizes *halve*
-under more replicates), and it is not a badly tuned λ (five values swept, with the
+under more replicates — **replicated at five replicates with the level held bit-identical, `e101**`), and it is not a badly tuned λ (five values swept, with the
 bio-versus-random ordering flipping between them).
 
 **A class-incremental variant makes the problem easier, not harder** *(shared head, one
@@ -1045,11 +1045,17 @@ The general rule the project now applies:
 coarsest partition cut the excess error by 80% relative to the diagonal and `cell_class`
 beat its matched control at 12.1σ. On the trained network the block Fisher is worse than the
 plain neuron diagonal at 32 Fisher batches (+0.039 ± 0.025, 1.6σ). **That reversal is
-suggestive, not established**: it is 0.9σ at 8 batches and absent at 128, and it was never
+suggestive, not established**: it is 0.5σ at 8 batches and 0.8σ at 128, and it was never
 above 2σ. The mechanism proposed for it — estimation noise, the block Fisher having 5.3e7
 entries to fill from 1024 observations — was **tested and refuted**: a 16-fold better
 estimate does not recover the block's position, so its disadvantage is not an artefact of a
-poor estimate.
+poor estimate. **And the refutation is now replicated rather than single-seed** (five replicates,
+`e101`): the block's gap against its size-matched control is **−0.0354 ± 0.0246 at 8 batches and
+−0.0167 ± 0.0160 at 128** — *negative* at both, i.e. it beats the control there — with the
+`naive` arm **identical to six decimals across all three batch counts** because it consults no Fisher
+matrix, so the forgetting level is **provably fixed** and no level-based reading is available. The
+earlier reading of this paragraph was one seed's, and its artifact no longer exists on disk
+(`docs/findings/2026-09-23-the-conclusion-was-right-and-its-evidence-was-one-seed.md`).
 
 What does survive is narrower and still sharp: **at `cell_class` granularity the biological
 synapse partition shows no advantage over its size-matched random control in any of the five
