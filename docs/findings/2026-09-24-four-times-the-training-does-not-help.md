@@ -29,9 +29,12 @@ which is what the pre-registration predicted from the drift's 2.9% relative repr
 
 **And P2's propagation held, including its direction**: the forgetting's sd rose with the accuracy's
 (0.0221 → 0.0305), so the two move together through `√(2(1−ρ))` as the diagnostic said. Solving for the
-correlation gives **ρ ≈ 0.14 at 500 iterations and ≈ 0.06 at 2000** — so longer training makes the two
-accuracies *less* correlated across seeds, which is the same statement as the spread rising: more training gives
-each seed more room to become itself.
+correlation gives **ρ ≈ 0.06 at 2000 iterations** and — *corrected 2026-09-24* — **ρ ≈ 0.36 at 500**, not the
+0.14 this sentence and the pre-registration both carried. The 2000 figure is right; the 500 figure does not
+follow from the formula's own inputs (see the amendment in the pre-registration and
+`docs/findings/2026-09-24-rule-34-had-a-second-instance.md`). So longer training makes the two accuracies *less*
+correlated across seeds by a factor of **six** rather than two and a half, which is the same statement as the
+spread rising: more training gives each seed more room to become itself.
 
 ## 2. And the walk has already saturated, which is independent evidence against "under-trained"
 

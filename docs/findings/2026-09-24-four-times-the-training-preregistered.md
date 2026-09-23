@@ -42,6 +42,18 @@ residual is the final accuracy's seed-to-seed variation, transmitted with a fact
 the two must move together: a change that does not reduce the arm's seed-to-seed accuracy spread cannot reduce
 the forgetting's.
 
+> **Amended 2026-09-24, after the run, as an amendment rather than an edit.** The `ρ ≈ 0.14` above **does not
+> follow from the formula's own inputs**. `ρ = 1 − (sd_forgetting / sd_accuracy)² / 2`, and on this
+> paragraph's own rounded input (`sd_accuracy ≈ 0.018`, `sd_forgetting = 0.0221`) that gives **0.246**; on the
+> artifacts' exact values — the accuracy's per-replicate sd **0.01963** and the forgetting's **0.02215**, both
+> from `runs/e119_r128_test480.json` at forty replicates — it gives **0.364**. So the stated 0.14 was out by a
+> factor of 1.8 against its own inputs and 2.6 against the measurement, and **the prediction it fed (P2, below)
+> is unaffected in direction and understated in size**: the corrected propagation is
+> `√(2(1 − 0.364)) = 1.128`, which is what the forgetting's sd actually shows (`0.02215/0.01963 = 1.128`).
+> The `≈ 0.018` for the accuracy was also a slight understatement of 0.01963, which is where part of the drift
+> entered. Nothing else in the registration changes, and the run's own result is reported against the corrected
+> value (`docs/findings/2026-09-24-rule-34-had-a-second-instance.md`).
+
 **That gives this fire a second read on its own result**, and it is why the run's `final_sem` matters as much as
 its `forgetting_sem`.
 
@@ -50,7 +62,7 @@ its `forgetting_sem`.
 | | prediction |
 |---|---|
 | **P1** | at 2000 iterations the **final accuracy's per-replicate sd does not fall substantially** — by a factor below **1.3×** — because the distance travelled is already reproducible to 2.9% and the disagreement is directional |
-| **P2** | consequently the **forgetting's sd stays near 0.022**, following the accuracy's through √(2(1−ρ)) with ρ ≈ 0.14; a fall of ≥1.3× in the forgetting *without* one in the accuracy would contradict the propagation and be a finding in itself |
+| **P2** | consequently the **forgetting's sd stays near 0.022**, following the accuracy's through √(2(1−ρ)) with ρ ≈ 0.14 *(**corrected to 0.36 by the amendment in §2**; the direction of the prediction — that the two move together — is unaffected, and the run's own result is read against 0.36)*; a fall of ≥1.3× in the forgetting *without* one in the accuracy would contradict the propagation and be a finding in itself |
 | **C1, the manipulation check** | the **drift** should grow — roughly doubling or more, since four times the iterations is four times the walk in the same direction — and stay reproducible in relative terms (≤5%). If the drift does **not** grow, the manipulation did not change the trajectory and the run cannot test anything |
 | **Falsifier** | the accuracy's sd falls **≥1.3×**. The substrate's residual is then **under-convergence**, the benchmark at 500 iterations is **under-trained**, and §4.7's *"the binding limit is the benchmark's own per-repeat spread"* becomes an artefact of a mis-specified training budget rather than a property of the connectome |
 

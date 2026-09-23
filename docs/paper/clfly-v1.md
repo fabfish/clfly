@@ -1307,8 +1307,18 @@ times the iterations at the same configuration and forty replicates:
 
 **The accuracy's seed-to-seed sd does not fall — it rises slightly** (a factor of 0.88 against a pre-registered
 bound of 1.3), and the forgetting's rises with it through the `√(2(1−ρ))` propagation the same fire had
-predicted (ρ ≈ 0.14 at 500 iterations, ≈ 0.06 at 2000 — longer training gives each seed more room to become
-itself). **And the walk has already saturated**: four times the steps move the body only **1.16×** further, and
+predicted (ρ ≈ **0.36** at 500 iterations, ≈ 0.06 at 2000 — longer training gives each seed more room to become
+itself). ***Corrected 2026-09-24: this said ρ ≈ 0.14 at 500, which does not follow from the formula's own inputs
+and is out by a factor of 2.6.*** From the artifacts — the accuracy's per-replicate sd **0.01963** and the
+forgetting's **0.02215**, both at forty replicates, so `ρ = 1 − (0.02215/0.01963)²/2` — the value is **0.364**;
+the registration quoted an accuracy sd of ≈ 0.018 and *even then* the same formula gives 0.246, so 0.14 followed
+from neither. **The 2000-iteration figure is right** (0.062), so the mechanism survives with a much larger
+magnitude than stated: **0.36 → 0.06 is a factor of six, not two and a half.** And a third artifact gives the
+reading that makes sense of both: at **test 48** the same propagation gives **ρ = −0.014**, i.e. the two
+accuracies are *uncorrelated across seeds when the test set is coarse* and become correlated once its sampling
+noise is removed — which is the same statement as the shared model difference being invisible under a noisy
+measurement (`docs/findings/2026-09-24-rule-34-had-a-second-instance.md`). **And the walk has already saturated**:
+four times the steps move the body only **1.16×** further, and
 its relative reproducibility is unchanged (2.92% → 2.66%), which refutes the convergence hypothesis by a second
 route and makes the drift series of the previous column a series of *converged* distances rather than snapshots
 of an interrupted optimisation. **What four times the compute buys is +0.0060 accuracy and +0.0059 forgetting,

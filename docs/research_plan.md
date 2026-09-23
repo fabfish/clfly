@@ -1585,6 +1585,25 @@ about (`docs/findings/2026-09-23-the-last-two-unaudited-sections-were-clean.md`)
    that **a named mechanism in a docstring is a hypothesis until a pair of artifacts measures it**
    (`docs/findings/2026-09-24-the-nominal-removable-share-is-not-the-achievable-one.md`).
 
+   **And the rule found a second instance within the same session, which is the evidence that it has yield.**
+   `e120`'s pre-registration derived a seed-to-seed correlation from the forgetting's and the accuracy's sd's —
+   **naming its own formula, `sd_forgetting = sd_accuracy·√(2(1−ρ))`** — and reported **ρ ≈ 0.14**. On the
+   paragraph's own rounded input that formula gives **0.246** and on the artifacts' exact values
+   (**0.01963** and **0.02215**, both from `runs/e119_r128_test480.json`) it gives **0.364**; the `≈ 0.018` it
+   used was itself a slight understatement of 0.01963, which is where part of the drift entered. **The
+   2000-iteration value in the same pair is right** (0.062 against a reported 0.06), so this was one wrong
+   number and not a wrong method — and **the correction strengthens the mechanism rather than weakening it**:
+   the drop is **0.364 → 0.062**, a factor of six against the 2.5 the wrong number implied. A third reading
+   explains both: **at test 48 the same propagation gives ρ = −0.014**, so the two accuracies are uncorrelated
+   across seeds when the test set is coarse and correlated once its sampling noise is removed, which is the
+   ordering the mechanism predicts and which was invisible while one of the three values was wrong. **All four
+   of this project's audits were green on it** — `e97` reads artifact existence, `e105` table closure, `e126`
+   counts, `e127` the programme table — because it is a sentence (`docs/findings/2026-09-24-rule-34-had-a-second-instance.md`).
+   **What the rule cannot catch, stated because a rule that looks total is dangerous: it applies only where the
+   text names its own formula.** `e128`'s `2.6×` named none and was caught by recomputing anyway; a claim whose
+   model the reader cannot reconstruct from the sentence is invisible to this check, and there the only defence
+   is that **a number quoted beside its input is worth more than a number quoted alone**.
+
 ## Related work to differentiate against
 
 Four papers are close enough to require explicit positioning — all use fly
