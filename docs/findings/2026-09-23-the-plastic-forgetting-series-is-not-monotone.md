@@ -64,7 +64,40 @@ recorded environment — all twelve artifacts carry the same `environment` block
 when the runs it would have explained were made. Recording it costs nothing per run and it is the difference
 between "these twelve agree" and "these twelve agree, in this environment, as recorded".
 
-## 3. What this closes and what it opens
+## 3. The two-value `naive` discrepancies across configurations, explained in two of three cases
+
+A registered follow-up from the control audit was that each of §4.4's upper settings has a `naive` with two
+values in two executions, and that a further execution would settle which environment is which. The artifacts
+already on disk answer most of it, and one configuration answers a *different* question that the earlier fires
+had assumed the other way:
+
+| configuration | recorded environment | `naive` forgetting | accuracy | method set |
+|---|---|---|---|---|
+| hardened, read-out 32 | **unset** (20 threads) | **+0.0729** | 0.9139 | `naive,ewc,ewc-block,ewc-block-rand,replay` |
+| hardened, read-out 32 | `OMP_NUM_THREADS=1` | **+0.0792** | 0.9097 | same five |
+| hardened, read-out 32 | `OMP_NUM_THREADS=4` | **+0.0792** | 0.9097 | same five |
+| class-IL, whole state | **unset** (20 threads) | **+0.0437** | 0.9361 | `naive,ewc` |
+| class-IL, whole state | **unset** (20 threads) | **+0.0437** | 0.9361 | **five arms** |
+| class-IL, whole state | `OMP_NUM_THREADS=3` (per `e84`'s finding) | **+0.0688** | 0.9194 | `naive,replay` |
+| task-IL, whole state | **unset** (20 threads) | **+0.1062** | 0.8319 | `naive,ewc` |
+| task-IL, whole state | `OMP_NUM_THREADS=3` (per `e84`'s finding) | **+0.1000** | 0.8417 | `naive,replay` |
+
+**Setting the thread count explicitly raises `naive`'s forgetting in two of the three configurations** — by
++0.0063 on the hardened one (1 and 4 indistinguishable) and by +0.0251 on class-IL — **and lowers it in the
+third** (−0.0062 on task-IL). So the thread count is the best available explanation for two of the three
+discrepancies, is not a universal direction, and the third has no explanation in this record. The attribution
+for `e84`'s two rows is **second-hand**: `OMP_NUM_THREADS=3` is stated in that finding's prose and recorded
+nowhere, because the field did not exist — which is the same defect the field was added to stop.
+
+**And one row pair settles a question the earlier fires had assumed the other way.** The class-IL `naive` is
+**bit-identical across two different method sets** (+0.0437 / 0.9361 in both a two-arm and a five-arm run), so
+`naive` is **not** sensitive to the composition of the process's other arms — which matters because `replay`
+apparently is (`e102`). The task-IL discrepancy therefore cannot be the method set, and is the environment,
+which is what makes it a genuine third instance of the thread effect rather than a fourth instance of the
+arm-set effect. **The two roles are different, and this is the cleanest evidence for it**: `naive` is stable
+across arm sets and mobile across environments; `replay` is mobile across both.
+
+## 4. What this closes and what it opens
 
 - **Closed:** §4.2's plastic-forgetting monotonicity. It was flagged as refuted-but-unresolved last fire; four
   executions per point with sd zero make it refuted, and the paper no longer prints the series as monotone.
@@ -78,7 +111,7 @@ between "these twelve agree" and "these twelve agree, in this environment, as re
   needed; or read-out 128 is simply an easier regime for the plastic body, with more capacity left over per
   task. Separating them is a new experiment rather than a reading.
 
-## 4. What this does not do
+## 5. What this does not do
 
 - **Three read-outs is one axis.** The result is that the printed series is not monotone on the three points
   the paper chose; whether some other three-point subset would be monotone is not a question this measurement
