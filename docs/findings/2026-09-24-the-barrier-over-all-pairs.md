@@ -1,6 +1,17 @@
-# `e124`: the barrier over all 66 pairs of a dozen seeds — one connected set, and the barrier is not the disagreement
+# `e124`: the barrier over all 66 pairs of a dozen seeds — one connected set at read-out 128, and the barrier is not the disagreement
 
 **Date:** 2026-09-24
+
+> **Qualified 2026-09-24 by `e130`, which ran this finding's own P1 at read-out 32 and saw it fail.** Every
+> claim below is about **read-out 128** and stands there. At read-out 32 — the narrowest read-out, where this
+> axis's per-repeat spread is largest — **21 of the 66 final-checkpoint pairs exceed the 25% threshold**, the
+> worst chord peaks at **0.4419** of chance against 0.1252 here, and the margin to a wall thins from **11.1×**
+> below chance to **3.1×**. The falsifier did not fire at either read-out (nothing reached 50%), so the
+> connected-set claim is **qualified and not overturned**: the set is connected where the seeds differ least and
+> comes closest to not being so where they differ most, which is the ordering the geometry predicts
+> (`docs/findings/2026-09-24-the-connected-set-claim-is-read-out-dependent.md`). The sentence this paragraph
+> qualifies — *"every one of the 132 pair-checkpoints"* — is kept below as written because the numbers are right;
+> **the scope is a read-out, not the benchmark.**
 **Script:** `experiments/e124_barrier_distribution.py` (new; imports `e122`'s chord instrument rather than
 reimplementing it); artifact `runs/e124_barrier_12seeds.json`.
 **Comparators:** `runs/e122_path_geometry.json` (C0), `runs/e116_r128_40reps.json` (the free extension control).

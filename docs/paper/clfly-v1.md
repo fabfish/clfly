@@ -1392,10 +1392,25 @@ paragraph opened with was **typical, not lucky**. Two further readings: the medi
 number of tasks** (0.0284 after task 1 to 0.0445 after task 3), which is what more interference should do to the
 path between two solutions; and **the barrier is not the pair's disagreement** — across the 66 pairs it
 correlates at only **r = +0.144** with the pair's own forgetting difference, and the third-worst chord joins two
-seeds whose forgetting differs by **0.0104** while the pair with the *largest* difference is fifth. So the seeds'
-solutions are **one connected set**, they are **not interchangeable**, and **no measured quantity says which
-point of the set a seed lands on** — the sixth such quantity, after the drift, the gap, the two interference
-terms and the fit depth (`docs/findings/2026-09-24-the-barrier-over-all-pairs.md`).
+seeds whose forgetting differs by **0.0104** while the pair with the *largest* difference is fifth
+(`docs/findings/2026-09-24-the-barrier-over-all-pairs.md`).
+
+**And the claim is scoped to a read-out, which the same fire's own registered replication then showed by
+failing.** The identical grid at **read-out 32** — the narrowest, where this axis's per-repeat spread is largest
+at **0.0556** against 0.0325 — puts **21 of the 66 final-checkpoint pairs above the 25% threshold**, with the
+worst chord at **0.4419** of chance: a margin of **3.1×** below a solution that has learned nothing rather than
+**11.1×**. **The falsifier did not fire at either read-out** — nothing reached 50% — so the set is **connected
+where the seeds differ least and comes closest to not being so where they differ most**, which is the ordering
+the geometry predicts. Two things make the failure interpretable rather than merely negative: it is **entirely
+at the final checkpoint** (after one task all 66 pairs are below the threshold at both read-outs, with maxima of
+0.1221 and 0.1342, a factor of 1.10), and the barrier's **growth with the number of tasks is 1.57× at read-out
+128 against 3.98× at read-out 32**. So the barrier is a property of the read-out **jointly with** the number of
+tasks, and **a practitioner choosing the narrowest read-out is choosing the configuration in which the seeds'
+solutions come closest to being separated**
+(`docs/findings/2026-09-24-the-connected-set-claim-is-read-out-dependent.md`). **What survives unchanged is the
+part this section is about**: the seeds' solutions are **one connected set** in every configuration tested, they
+are **not interchangeable**, and **no measured quantity says which point of the set a seed lands on** — the sixth
+such quantity, after the drift, the gap, the two interference terms and the fit depth.
 
 **On the hardened configuration, diagonal EWC finally resolves** (5 replicates, λ=0.003, 32 Fisher batches):
 
