@@ -1216,7 +1216,34 @@ read-out 128 is a property of the read-out *size* and not of which 128 neurons w
 restored is the *interpretation* — the axis can be read as a size axis — rather than the withdrawn claim, which
 the two fires before had already replaced with the plateau. **Three revisions of one sentence in four fires**
 (optimum at 300 → flat trough → plateau), and the first whose confound has been measured rather than assumed
-(`docs/findings/2026-09-24-the-draw-is-not-detectable.md`). And the sweep validates itself: its read-out-32 plastic row is the hardened
+(`docs/findings/2026-09-24-the-draw-is-not-detectable.md`).
+
+**And the reason all of this is hard to pin down is now measured as a ratio.** At forty replicates per read-out,
+**the body's drift is monotone in the read-out to three decimals** — 0.0191, 0.0216, 0.0236, 0.0260, 0.0309,
+0.0395, 0.0497 — **and every value is measured to 2.6–3.5% of itself**, while **the forgetting is a plateau
+whose every value is measured to 74–134% of itself**. **The two quantities differ in relative precision by a
+factor of about thirty**, which is not an effect size but a difference in the **estimator**: the drift is a
+Euclidean norm over 26,568 numbers and averages out a 26-millifold of independent contributions; the forgetting
+is a difference of accuracies over 48 held-out decisions, twice, so its own granularity is `1/240` and its
+replicate-to-replicate swing is the same order as the differences this section argues about. **§4.7 already says
+the binding limit is the benchmark's own per-repeat spread; this measures the ratio that makes it binding.**
+**Which reframes the mechanism search rather than repeating it**: the four mechanical quantities tried here all
+failed for a reason diagnosed as *shape*, and that diagnosis is incomplete — a plateau is also **what a signal
+looks like when the noise is thirty times the effect**, and the two facts are one fact seen from two sides.
+
+**And the one decoupling that the axis cannot provide closes the drift question in its strongest form.** Across
+the seven read-outs the drift is monotone and the forgetting is not, but they are perfectly confounded — the
+drift *is* a function of the read-out size. The **four independent draws at read-out 128** break that confound
+(size fixed, draw varying, drift recorded): the drift is 0.0395 / 0.0382 / 0.0376 / 0.0396 (**sd 0.00095,
+2.4%**) beside forgettings of 0.0370 / 0.0469 / 0.0411 / 0.0349 (**sd 0.0053, 14%**). **The same drift sits
+beside forgettings spanning 0.0349 to 0.0469, so forgetting is not a function of how far the body moved** — and
+a tempting reading of the axis alone, *"forgetting is flat until the body has moved more than ≈ 0.031 and rises
+after"*, is an artefact of the drift being a re-parameterisation of the read-out rather than a threshold anyone
+can locate independently. **So `theta_drift` is this line's best instrument and its least useful predictor**: it
+reproduces to 3% across forty replicates and 2.4% across four draws, it is monotone to three decimals, and it
+carries no information about the forgetting — **a quantity can be precise, monotone and irrelevant at once, and
+the way that was found out was to measure it**
+(`docs/findings/2026-09-24-the-metric-is-thirty-times-noisier.md`). And the sweep validates itself: its read-out-32 plastic row is the hardened
 configuration's `naive` and comes out at **+0.0729 ± 0.0151**, reproducing `e8_hardened_basis` to the last
 printed digit (`docs/findings/2026-09-23-the-unbacked-cells-measured.md` §1).
 
