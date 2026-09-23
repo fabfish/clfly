@@ -120,10 +120,12 @@ def test_an_inline_contrast_no_pair_of_its_cells_gives_is_reported():
 
 
 def test_a_contrast_column_naming_a_comparator_the_table_does_not_have_is_reported():
+    """Not as a failure: the check cannot tell a forgotten row from a comparator in another artifact."""
     t = table(["rung", "vs the diagonal"], ["side", "+0.021"])
     got = check_closure(t)["findings"][0]
-    assert got["status"] == "no row matches this comparator"
-    assert got["kind"] == "missing comparator row"
+    assert got["kind"] == "comparator value not in the table"
+    assert "not checkable" in got["status"]
+    assert "rows" not in got
 
 
 def test_a_delta_column_is_not_checkable_rather_than_a_failure():
@@ -131,26 +133,46 @@ def test_a_delta_column_is_not_checkable_rather_than_a_failure():
 
     §4.4's basis table is the case: four deltas against the diagonal, and the diagonal's own +0.01762 is in the
     prose below. Counting it as a failure inflated check (a)'s headline by one, which is the number a reader
-    takes away -- so the two shapes are reported apart, and this one keeps its reason.
+    takes away -- so the shapes are reported apart, and each keeps its reason.
     """
     t = table(["basis", "delta vs the diagonal", "signs"],
               ["`rank4`", "+0.00472", "18/18 +"],
               ["**`eigbasis`**", "-0.00491", "18/18 -"])
     got = check_closure(t)["findings"][0]
-    assert got["kind"] == "external reference"
+    assert got["kind"] == "delta column (external reference)"
     assert "not checkable" in got["status"]
     assert "rows" not in got
 
 
-def test_the_two_shapes_are_counted_apart():
-    """A defect and an uncheckable column must not land in one number: the first is the check's headline."""
-    defect = check_closure(table(["rung", "vs the diagonal"], ["side", "+0.021"]))
-    uncheckable = check_closure(table(["basis", "delta vs the diagonal"], ["rank4", "+0.00472"]))
+def test_a_header_naming_two_columns_is_not_a_contrast_column():
+    """"absolute pressure sd vs measured sd" compares two cells of one row; it has no comparator row."""
+    t = table(["size", "absolute pressure sd vs measured sd", "concentration vs measured sd"],
+              ["d = 952", "+0.412", "+0.832"])
+    kinds = [f["kind"] for f in check_closure(t)["findings"]]
+    assert kinds == ["two-column comparison", "two-column comparison"]
+
+
+def test_a_correlation_header_is_skipped_by_its_own_word_not_only_by_a_1_000_diagonal():
+    """The corpus's six `Spearman vs X` columns name a *column*, so no 1.000 row exists to catch them."""
+    t = table(["candidate", "Spearman vs measured sd", "p"],
+              ["absolute pressure sd", "+0.767", "0.016"])
+    got = check_closure(t)["findings"][0]
+    assert got["kind"] == "correlation"
+    assert "not a difference" in got["status"]
+
+
+def test_the_not_checkable_kinds_are_counted_apart():
+    """One number for four reasons is the defect the previous pass fixed one level up."""
+    delta = check_closure(table(["basis", "delta vs the diagonal"], ["rank4", "+0.00472"]))
+    two_col = check_closure(table(["size", "raw vs measured sd"], ["d = 952", "+0.412"]))
     closing = check_closure(table(["method", "mean forgetting", "vs naive"],
                                   ["naive", "+0.0729", "—"],
                                   ["ewc", "+0.0208", "-0.0521"]))
-    counts = closure_counts([({}, defect), ({}, uncheckable), ({}, closing)])
-    assert counts == {"failures": 1, "not_checkable": 1, "rows_closed": 1, "contrast_columns": 3}
+    counts = closure_counts([({}, delta), ({}, two_col), ({}, closing)])
+    assert counts["failures"] == 0
+    assert counts["not_checkable"] == 2 and counts["rows_closed"] == 1 and counts["contrast_columns"] == 3
+    assert counts["not_checkable_by_kind"] == {"delta column (external reference)": 1,
+                                               "two-column comparison": 1}
 
 
 def test_a_failing_row_still_counts_as_a_failure_whatever_the_header_says():
@@ -159,6 +181,44 @@ def test_a_failing_row_still_counts_as_a_failure_whatever_the_header_says():
               ["ewc", "+0.0208", "-0.0100"])          # -0.0521 is what the cells give
     counts = closure_counts([({}, check_closure(t))])
     assert counts["failures"] == 1 and counts["not_checkable"] == 0
+
+
+def test_a_reference_value_in_the_header_makes_the_column_checkable():
+    """`vs printed naive (+0.066)` carries the comparator, so the column closes -- and it does in the corpus.
+
+    Two columns of `2026-09-23-the-frozen-body-control-is-in-no-artifact.md` were unverifiable until this rule;
+    they close on all four rows against +0.066 and +0.0729.
+    """
+    t = table(["row", "cell", "vs printed `naive` (+0.066)", "printed"],
+              ["EWC, diagonal", "+0.010", "−0.0560", "−0.056"],
+              ["`replay`", "−0.010", "−0.0760", "−0.076"])
+    got = check_closure(t)["findings"][0]
+    assert got["comparator_source"] == "value in the header"
+    assert [r["verdict"] for r in got["rows"]] == ["closes", "closes"]
+
+
+def test_a_number_in_the_comparator_s_own_name_is_not_a_reference():
+    """`contrast vs swap0.5` names a rewiring level; its 0.5 is not a value to subtract from.
+
+    Reading it as one made four rows of a real table "fail" against an arithmetic nobody had written, so only a
+    *parenthesised* number counts as the reference.
+    """
+    t = table(["rewiring", "effrank(`swap2`)", "contrast vs `swap0.5`"],
+              ["rw0", "1.706", "−0.01062"],
+              ["rw1", "1.436", "−0.00967"])
+    got = check_closure(t)["findings"][0]
+    assert got["kind"] == "delta column (external reference)"
+    assert "rows" not in got
+
+
+def test_a_decorated_row_label_still_matches_its_comparator():
+    """A table whose naive row is written `— (naive)` has its comparator; the label just is not bare."""
+    t = table(["pool (per task)", "mean forgetting", "vs naive"],
+              ["— (naive)", "+0.066", "—"],
+              ["4", "+0.111", "+0.045"])
+    got = check_closure(t)["findings"][0]
+    assert got["comparator_source"] == "decorated row label"
+    assert [r["verdict"] for r in got["rows"]] == ["closes"]
 
 
 def test_a_table_without_a_contrast_column_is_not_checked():
@@ -259,3 +319,26 @@ def test_the_scan_reports_zero_when_there_is_nothing_to_report(tmp_path):
     got = scan_findings(tmp_path, [], 0.25)
     assert got["n_documents"] == 1
     assert got["with_closure_failures"] == []
+
+
+def test_the_corpus_scan_counts_the_columns_it_could_not_check(tmp_path):
+    """A finding with no `rows` used to be skipped here entirely, so 15 columns were invisible to the corpus.
+
+    A failing *row* is the only defect the check claims; every column it could not check is counted with its
+    reason, because "0 failures" means nothing unless the denominator of uncheckable columns is beside it.
+    """
+    from experiments.e105_table_audit import scan_findings
+
+    (tmp_path / "delta.md").write_text("| basis | delta vs the diagonal |\n|---|---|\n| rank4 | +0.00472 |\n",
+                                       encoding="utf-8")
+    (tmp_path / "corr.md").write_text("| candidate | Spearman vs measured sd |\n|---|---|\n| absolute | +0.767 |\n",
+                                      encoding="utf-8")
+    (tmp_path / "clean.md").write_text("| method | mean forgetting | vs naive |\n|---|---|---|\n"
+                                       "| naive | +0.0729 | — |\n| ewc | +0.0208 | −0.0521 |\n",
+                                       encoding="utf-8")
+    got = scan_findings(tmp_path, [], 0.25)
+    assert got["n_documents"] == 3
+    assert got["with_closure_failures"] == []
+    assert [d["document"] for d in got["with_not_checkable_columns"]] == ["corr.md", "delta.md"]
+    kinds = sorted(e["kind"] for d in got["with_not_checkable_columns"] for e in d["not_checkable"])
+    assert kinds == ["correlation", "delta column (external reference)"]

@@ -34,10 +34,16 @@ NUMBER = re.compile(r"([+\-−]?\d+\.\d+)")
 SEPARATOR = re.compile(r"^\s*\|[\s:|-]+\|\s*$")
 #: a column header naming the row it contrasts against: "vs naive", "delta vs naive", "vs `naive`"
 CONTRAST_HEADER = re.compile(r"(?:vs\.?|versus)\s*`?\**([A-Za-z][\w \-]*)", re.I)
-#: ... and the same header saying the column's cells *are* differences: "delta vs the diagonal". Closure is not
-#: well-posed for those, because the comparator is a reference outside the table and the table holds no absolute
-#: value to subtract from -- see `check_closure`. Distinguished from a missing comparator row, which is a defect.
-DELTA_HEADER = re.compile(r"\b(delta|change|difference|\u0394)\b", re.I)
+#: ... and the same header saying the column's cells *are* differences: "delta vs the diagonal", "gap vs oracle",
+#: "contrast vs swap0.5". Closure is not well-posed for those, because the comparator is a reference outside the
+#: table and the table holds no absolute value to subtract from -- see `check_closure`. Distinguished from a
+#: header naming two columns, which is not a contrast column at all, and from a correlation, which is not a
+#: difference.
+DELTA_HEADER = re.compile(r"\b(delta|change|difference|gap|contrast|\u0394)\b", re.I)
+#: a header naming a *correlation* rather than a difference. "Spearman vs measured draw sd" compares two columns
+#: of the same row, so its second half is a column name and there is no comparator row to close against -- which
+#: is how the corpus's six such columns were being read as contrasts against rows that do not exist.
+CORRELATION_HEADER = re.compile(r"\b(spearman|pearson|correlation|corr|rank)\b", re.I)
 #: the inline form §4.4 prints, in two typographies: `(-0.1042, 6.3σ)` and the arrow form `→ +0.0000 (0.00σ, tie)`.
 #: Coverage is *presentation-dependent*, which is why the check prints how many contrasts it examined: an edit
 #: that changes how a table prints its contrasts can take this check's coverage to zero without failing
@@ -85,8 +91,14 @@ def number_of(cell: str):
 
 
 def tolerance(*tokens: str) -> float:
-    """Half a unit in the last place of each printed number, summed: both sides of a subtraction are rounded."""
-    return sum(0.5 * 10.0 ** (-len(t.split(".")[1])) for t in tokens) + 1e-9
+    """Half a unit in the last place of each printed number, summed: both sides of a subtraction are rounded.
+
+    A token without a decimal point contributes nothing rather than raising: the tolerance is called with a
+    comparator cell, and a column that carries a contrast against a value the *header* holds passes an empty
+    string there.
+    """
+    return sum(0.5 * 10.0 ** (-len(t.split(".")[1]))
+               for t in tokens if "." in t) + 1e-9
 
 
 def label(cell: str) -> str:
@@ -103,28 +115,70 @@ def check_closure(table: dict) -> dict | None:
     for j, cell in enumerate(header):
         m = CONTRAST_HEADER.search(cell)
         if m:
-            targets[j] = m.group(1).strip().rstrip(":")
+            targets[j] = {"comparator": m.group(1).strip().rstrip(":"), "start": m.start()}
     if not targets:
         return None
 
     body = table["rows"][1:]
     findings = []
-    for j, comparator in targets.items():
+    for j, t in targets.items():
+        comparator, start = t["comparator"], t["start"]
+        head_cell = header[j]
+        # A header containing a correlation word names a *correlation*, not a difference -- "Spearman vs
+        # measured draw sd" compares two columns of the same row and has no comparator row to close against.
+        # The row-based version of this (a comparator row holding 1.000) is handled below; this one catches the
+        # case where the second half of the header is a column name rather than a row name, which is how the
+        # corpus's six `Spearman vs X` columns were being read as contrasts against missing rows.
+        if CORRELATION_HEADER.search(head_cell):
+            findings.append({"contrast_column": j, "comparator": comparator, "kind": "correlation",
+                             "status": "skipped: the header names a correlation, so the column is a correlation "
+                                       "and not a difference against a comparator row"})
+            continue
+        # A comparator row may be written with decoration -- "— (naive)" in a table whose naive row is anonymous
+        # -- so an exact label match is tried first and a whole-word containment second. The arithmetic still
+        # has to close afterwards, so a wrong match shows up as a failing row rather than as a silent pass.
         cmp_rows = [i for i, r in enumerate(body) if any(label(c) == label(comparator) for c in r[1])]
+        loose = False
         if not cmp_rows:
+            pat = re.compile(r"\b" + re.escape(re.sub(r"[`*\s]", " ", comparator).strip()) + r"\b", re.I)
+            cmp_rows = [i for i, r in enumerate(body)
+                        if any(pat.search(re.sub(r"[`*]", " ", c)) for c in r[1])]
+            loose = bool(cmp_rows)
+        # ... and the header itself may carry the comparator's value, as "vs printed `naive` (+0.066)" does. Then
+        # closure IS checkable: the reference is the number in the parentheses, and every other column is
+        # subtracted from it. This is how two of the corpus's flagged tables turned out to close all along.
+        # **Only a parenthesised number counts**: a bare number in the header is part of the comparator's *name*
+        # far more often than it is a value -- `contrast vs swap0.5` names a rewiring level, and reading its 0.5
+        # as a reference made four rows of that table "fail" against an arithmetic nobody had written.
+        ref = None
+        if not cmp_rows:
+            m_ref = re.search(r"\(\s*([+\-\u2212]?\d+\.\d+)", head_cell[start:])
+            ref = float(ascii_token(m_ref.group(1))) if m_ref else None
+        if not cmp_rows and ref is None:
             # Two shapes reach here and they are not the same claim. A column headed `vs X` whose table has no
             # `X` row is a **defect**: the contrast has no comparator to close against. A column headed
-            # **`delta vs X`** is a different object -- its cells *are* the differences, and the reference's
-            # absolute value lives in the surrounding prose, so no pair of the table's own cells can produce
-            # them however the table is written. Reporting the second as the first inflated this check's
-            # headline count by one on §4.4's basis table; the count is what a reader takes away, so the two are
-            # now counted apart, and the not-checkable one is printed with its reason rather than dropped.
-            external = bool(DELTA_HEADER.search(header[j]))
-            findings.append({"contrast_column": j, "comparator": comparator,
-                             "kind": "external reference" if external else "missing comparator row",
-                             "status": ("not checkable: the column carries deltas against a comparator that is "
-                                        "not a row of this table, so the reference's own value is not here to "
-                                        "subtract" if external else "no row matches this comparator")})
+            # **`delta vs X`** -- or `gap vs X`, `contrast vs X` -- is a different object: its cells *are* the
+            # differences, and the reference's absolute value lives in the surrounding prose, so no pair of the
+            # table's own cells can produce them however the table is written. A third shape reaches here too
+            # and is neither: a header naming **two columns** ("absolute pressure sd vs measured sd") describes a
+            # within-row comparison, so it is not a contrast column at all. Reporting all three as the first
+            # inflated this check's headline, which is the number a reader takes away -- so they are counted
+            # apart and each is printed with its reason rather than dropped.
+            prefix = head_cell[:start].strip().rstrip("(`*")
+            if prefix and not DELTA_HEADER.search(prefix):
+                kind, status = "two-column comparison", (
+                    "skipped: the header names two quantities rather than a comparator row, so the column "
+                    "compares cells within a row and is not a contrast against a row")
+            elif prefix:
+                kind, status = "delta column (external reference)", (
+                    "not checkable: the column carries differences against a comparator that is not a row of "
+                    "this table, so the reference's own value is not here to subtract")
+            else:
+                kind, status = "comparator value not in the table", (
+                    "not checkable: the comparator's value is in no row of this table and the header does not "
+                    "carry it either -- which is a table whose comparator is in another artifact as readily as "
+                    "it is a table that forgot to print it, and this check cannot tell the two apart")
+            findings.append({"contrast_column": j, "comparator": comparator, "kind": kind, "status": status})
             continue
         # A blocked table has one comparator row per block -- §4.4's spans three settings -- so each row is
         # checked against the nearest *preceding* comparator, falling back to the first. Using a single
@@ -134,18 +188,22 @@ def check_closure(table: dict) -> dict | None:
         # *correlation*, whose comparator row holds 1.000 by construction. Reading that as a difference made
         # the check report a correlation matrix as failing, so a self-correlation diagonal is skipped with the
         # reason recorded rather than guessed at.
-        diagonal = first_number(body[cmp_rows[0]][1][j]) if j < len(body[cmp_rows[0]][1]) else None
+        diagonal = (first_number(body[cmp_rows[0]][1][j])
+                    if cmp_rows and j < len(body[cmp_rows[0]][1]) else None)
         if diagonal == 1.0:
-            findings.append({"contrast_column": j, "comparator": comparator, "status":
+            findings.append({"contrast_column": j, "comparator": comparator, "kind": "correlation",
+                             "status":
                              "skipped: the comparator row holds 1.000 in this column, so it is a correlation "
                              "diagonal rather than a difference"})
             continue
+        # With the reference taken from the header there is no comparator row to subtract, so the tolerance's
+        # comparator side is empty and the check runs against the header's own value for every column.
+        cmp_source = body[cmp_rows[0]] if cmp_rows else (0, [""] * len(header))
         rows = []
         for i, r in enumerate(body):
             if i in cmp_rows:
                 continue
-            cmp_row = max((c for c in cmp_rows if c < i), default=cmp_rows[0])
-            cmp_row = body[cmp_row]
+            cmp_row = body[max((c for c in cmp_rows if c < i), default=cmp_rows[0])] if cmp_rows else cmp_source
             printed_cell = r[1][j] if j < len(r[1]) else ""
             printed_all = numbers_of(printed_cell)
             if not printed_all:
@@ -154,7 +212,8 @@ def check_closure(table: dict) -> dict | None:
             for k in range(1, len(header)):
                 if k == j:
                     continue
-                got, base = first_number(r[1][k]), first_number(cmp_row[1][k])
+                got = first_number(r[1][k])
+                base = ref if ref is not None else first_number(cmp_row[1][k])
                 if got is None or base is None:
                     continue
                 expected = got - base
@@ -172,31 +231,37 @@ def check_closure(table: dict) -> dict | None:
             rows.append({"line": r[0], "printed": printed_all[0][1], "closes": closes, "fails": fails,
                          "verdict": "closes" if closes else ("fails" if fails else "not checkable")})
         findings.append({"contrast_column": j, "comparator": comparator,
-                         "comparator_line": cmp_rows[0] if cmp_rows else None, "rows": rows})
+                         "comparator_line": cmp_rows[0] if cmp_rows else None,
+                         "comparator_source": ("row" if not loose else "decorated row label")
+                                             if ref is None else "value in the header",
+                         "rows": rows})
     return {"table": [table["start"], table["end"]], "header": header, "findings": findings}
 
 
 def closure_counts(closures: list[tuple[dict, dict]]) -> dict:
     """The headline numbers of check (a), kept in one place so that they are not re-counted by hand.
 
-    ``failures`` is the sharp count: a row whose printed contrast no pair of cells gives, or a column naming a
-    comparator the table does not have. ``not_checkable`` counts the columns that are *differences against an
-    external reference* -- a `delta vs X` column -- which no arithmetic inside the table could check and which
-    are therefore reported rather than counted as failures.
+    ``failures`` is the sharp count, and after the corpus evidence it is the *only* defect class the check can
+    claim: **a row whose printed contrast no pair of its own cells gives**. A contrast column with no comparator
+    row is reported as **not checkable** with its reason rather than as a failure, because the tool cannot tell a
+    table that forgot its comparator row from one whose comparator lives in another artifact -- and claiming the
+    first when it is the second is exactly the false positive that inflated this check's headline on §4.4.
+    ``not_checkable`` is the count of those columns, broken down by reason so that a change in the mix is
+    visible: a `delta vs X` column, a comparator whose value is nowhere in the table, a header naming two
+    quantities, and a correlation.
     """
-    failures = not_checkable = rows_closed = 0
+    failures = rows_closed = 0
+    by_kind: dict[str, int] = {}
     for _t, c in closures:
         for f in c["findings"]:
             if "rows" not in f:
-                if f.get("kind") == "missing comparator row":
-                    failures += 1
-                else:
-                    not_checkable += 1
+                by_kind[f.get("kind", "unspecified")] = by_kind.get(f.get("kind", "unspecified"), 0) + 1
                 continue
             fails = [r for r in f["rows"] if r["verdict"] == "fails"]
             failures += len(fails)
             rows_closed += len([r for r in f["rows"] if r["verdict"] == "closes"])
-    return {"failures": failures, "not_checkable": not_checkable, "rows_closed": rows_closed,
+    return {"failures": failures, "not_checkable": sum(by_kind.values()), "not_checkable_by_kind": by_kind,
+            "rows_closed": rows_closed,
             "contrast_columns": sum(len(c["findings"]) for _t, c in closures)}
 
 
@@ -305,7 +370,7 @@ def scan_findings(directory: Path, index: list, share: float) -> dict:
     for path in sorted(directory.glob("*.md")):
         tables = parse_tables(path.read_text(encoding="utf-8", errors="replace"))
         doc = {"document": path.name, "tables": len(tables), "closure_failures": [], "mixed": [],
-               "matched": 0, "unmatched": 0}
+               "not_checkable": [], "matched": 0, "unmatched": 0}
         for t in tables:
             for r in check_inline_contrasts(t):
                 if r["verdict"] != "closes":
@@ -313,6 +378,18 @@ def scan_findings(directory: Path, index: list, share: float) -> dict:
             c = check_closure(t)
             if c:
                 for f in c["findings"]:
+                    if "rows" not in f:
+                        # The corpus mode used to skip every finding without rows, which made **all** of these
+                        # invisible here -- a `delta vs X` column, a header naming two columns, a correlation,
+                        # and a column naming a comparator its table does not have, which *is* the shape the
+                        # corpus's own count called zero. Now the same split as the paper's mode: a failing row
+                        # is the only defect the check claims, and every unchecked column is counted with its
+                        # reason.
+                        entry = {"lines": [t["start"], t["end"]],
+                                 "token": f"column {f['contrast_column']}: {f['comparator']}",
+                                 "kind": f.get("kind")}
+                        doc["not_checkable"].append(entry)
+                        continue
                     for row in f.get("rows", []):
                         if row["verdict"] == "fails":
                             doc["closure_failures"].append(
@@ -336,7 +413,8 @@ def scan_findings(directory: Path, index: list, share: float) -> dict:
         docs.append(doc)
     return {"documents": docs, "n_documents": len(docs),
             "with_closure_failures": closure_failures, "with_mixed_tables": mixed,
-            "entirely_unlocated": silent}
+            "entirely_unlocated": silent,
+            "with_not_checkable_columns": [d for d in docs if d["not_checkable"]]}
 
 
 def main(argv=None) -> int:
@@ -403,10 +481,12 @@ def main(argv=None) -> int:
           f"gives them: {inline_bad}")
 
     counts = closure_counts(closures)
+    kinds = ", ".join(f"{v} {k}" for k, v in sorted(counts["not_checkable_by_kind"].items()))
     print(f"\n   check (a) failures: {counts['failures']}, over {counts['contrast_columns']} contrast "
           f"column(s) and {counts['rows_closed']} row(s) that close;")
-    print(f"   check (a) NOT CHECKABLE: {counts['not_checkable']} -- a `delta vs X` column holds the "
-          f"differences themselves, so no pair of its own cells can give them;")
+    print(f"   check (a) NOT CHECKABLE: {counts['not_checkable']} column(s) -- reported with the reason rather "
+          f"than counted as failures, because the check cannot tell a missing comparator row from one whose "
+          f"value is in another artifact: {kinds or 'none'};")
     print(f"   check (b) failures: {inline_bad} of {inline_checked}")
 
     print()
@@ -443,6 +523,13 @@ def main(argv=None) -> int:
         print(f"   with a table that is >= {args.share:.0%} located and has cells that do not locate: "
               f"{len(findings['with_mixed_tables'])}")
         print(f"   with tables but not one number locating: {len(findings['entirely_unlocated'])}")
+        by_kind: dict[str, int] = {}
+        for d in findings["with_not_checkable_columns"]:
+            for e in d["not_checkable"]:
+                by_kind[e["kind"]] = by_kind.get(e["kind"], 0) + 1
+        print(f"   with a contrast column whose arithmetic could NOT be checked, i.e. not a failure and not a "
+              f"verification: {len(findings['with_not_checkable_columns'])} document(s)")
+        print(f"     by reason: {by_kind or 'none'}")
         print()
         print("   closure failures (a contrast no pair of its own row's cells gives):")
         for doc in findings["with_closure_failures"]:

@@ -32,6 +32,13 @@ failures: 1" — was wrong.**
 - **A `delta vs X` column is not checkable, and that is a property of the column, not a fault in the table.**
   The cell is the answer; the question is elsewhere.
 
+**(*superseded later the same day, on the first bullet*: opening the corpus mode showed that the tool cannot tell
+a table that forgot its comparator row from one whose comparator is a row of another table — both of the two
+columns that shape produced in the whole corpus were the second case — so the missing row is now reported as
+**not checkable** rather than as a failure, and a failure is only a row whose arithmetic does not close. See
+`docs/findings/2026-09-24-the-corpus-count-was-blind-to-fifteen-columns.md` §3. The distinction below is still
+the reason the two shapes are counted apart; only which bucket the first one lands in has changed.)**
+
 Counting them together meant that the *reason* for the headline was invisible, which is the same defect the
 check's own output already guards against one level down (`check (b)` prints its denominator, `0 of 4` rather
 than `0`, so that a check which never fired cannot look like a clean bill). **The count of a check is itself a
