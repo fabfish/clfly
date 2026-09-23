@@ -159,6 +159,23 @@ def environment() -> dict:
     }
 
 
+def relative_drift(before: np.ndarray, after: np.ndarray) -> float:
+    """``||after - before|| / ||before||`` -- how far a weight vector moved, in units of its own size.
+
+    Every network-line claim in this paper is about *accuracy*, and none of them has measured how far the
+    recurrent body actually moves between tasks. That is the quantity the forgetting has to come from, and it
+    is cheap to record: the body is 26,568 numbers and the drift is one subtraction. Relative rather than
+    absolute, because the connectome's weight scale is a property of the circuit rather than of the training,
+    and because a drift of 0.7 in units of ``||theta||`` is comparable across configurations while an absolute
+    one is not.
+    """
+    before = np.asarray(before, dtype=np.float64)
+    after = np.asarray(after, dtype=np.float64)
+    scale = float(np.linalg.norm(before))
+    delta = float(np.linalg.norm(after - before))
+    return delta / scale if scale else float("nan")
+
+
 def evaluate(model, readout, task, shared: bool = False) -> float:
     """Held-out accuracy at the final timestep."""
     import torch
@@ -272,6 +289,7 @@ def run_method(conn_net, suite, method: str, args, seed: int,
     T = len(suite)
     R = np.full((T, T), np.nan)
     losses = []
+    drifts = []                                            # ||theta after|| / ||theta before|| per task
 
     for k, task in enumerate(suite):
         # Bind the block penalty ONCE per task, not once per training step. The Fisher and
@@ -280,6 +298,7 @@ def run_method(conn_net, suite, method: str, args, seed: int,
         block_pen = None
         if method.startswith("ewc-block") and blocks is not None:
             block_pen = part.make_penalty(blocks, anchor_b, model.theta, args.lam, torch)
+        theta_before = model.theta.detach().cpu().numpy().copy()
         losses.append(train_task(
             model, heads, suite, k, iters=args.iters, lr=args.lr,
             batch=args.batch, seed=seed + k,
@@ -289,6 +308,7 @@ def run_method(conn_net, suite, method: str, args, seed: int,
             replay=(replay if method == "replay" else None), shared=shared,
             replay_batch=args.replay_batch,
             frozen_body=args.frozen_body))
+        drifts.append(relative_drift(theta_before, model.theta.detach().cpu().numpy()))
         for j in range(k + 1):
             R[k, j] = evaluate(model, heads[0] if shared else heads[j], suite[j], shared)
 
@@ -333,6 +353,7 @@ def run_method(conn_net, suite, method: str, args, seed: int,
         "learned": [float(R[j, j]) for j in range(T)],
         "final_per_task": [float(x) for x in final],
         "losses": losses,
+        "theta_drift": drifts,
     }
 
 
@@ -454,6 +475,7 @@ def main(argv=None) -> int:
             "learned": [float(x) for x in np.mean([r["learned"] for r in reps], axis=0)],
             "forgetting_per_task": [float(x) for x in
                                     np.mean([r["forgetting_per_task"] for r in reps], axis=0)],
+            "theta_drift": [float(x) for x in np.mean([r["theta_drift"] for r in reps], axis=0)],
             "replicates": reps,
         }
         out["methods"][method] = agg
@@ -462,6 +484,7 @@ def main(argv=None) -> int:
               f"{['%.3f' % v for v in np.mean([r['retention'][-1] for r in reps], axis=0)]}")
         print(f"    learned (diagonal):  {['%.3f' % x for x in agg['learned']]}")
         print(f"    forgetting per task: {['%+.3f' % x for x in agg['forgetting_per_task']]}")
+        print(f"    theta drift per task: {['%.3f' % x for x in agg['theta_drift']]}")
         print(f"    -> final accuracy {agg['final_accuracy']:.3f} ± {agg['final_sem']:.3f},  "
               f"mean forgetting {agg['mean_forgetting']:+.3f} ± {agg['forgetting_sem']:.3f}")
 

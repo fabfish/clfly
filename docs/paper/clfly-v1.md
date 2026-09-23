@@ -949,7 +949,29 @@ them holds**: the accuracy gap is monotone (−0.0111 → +0.0167 → +0.1000, t
 read-out 128 the body *is* load-bearing and forgets **less** than at the whole state where training actively
 hurt. The quantity the principle needs is the gap; the forgetting series was an accompanying observation that
 does not survive
-(`docs/findings/2026-09-23-the-plastic-forgetting-series-is-not-monotone.md`). And the sweep validates itself: its read-out-32 plastic row is the hardened
+(`docs/findings/2026-09-23-the-plastic-forgetting-series-is-not-monotone.md`).
+
+**And the body's own motion has now been measured, which removes the two obvious explanations for it.** No run
+in this project had ever recorded how far the recurrent weights travel; they do now
+(`‖θ_after − θ_before‖ / ‖θ_before‖`, validated by the frozen arm giving exactly `0.0000`):
+
+| read-out | **mean θ drift** | **mean forgetting** | accuracy gap | frozen accuracy |
+|---|---|---|---|---|
+| **0** (whole, 1307) | **0.0195** | **+0.0479** | **−0.0111** | 0.9444 |
+| **128** | **0.0391** | **+0.0333** | **+0.0167** | 0.9167 |
+| **32** | **0.0493** | **+0.0729** | **+0.1000** | 0.8139 |
+
+**The drift is monotone in the read-out** (a factor of 2.5 from the whole state to 32) and so is the gap — and
+**forgetting is monotone in neither**, failing at a *different step* against each: at read-out 128 the body
+moves **twice as far** as at the whole state and forgets **less**, while at 32 it moves 2.5× as far and forgets
+**more**. So the body does **not** drift freely in the slack the read-out leaves — it moves *least* where it is
+least needed — and **forgetting is not a monotone function of either "the body moved" or "the body mattered"**.
+The per-task structure narrows it further: the drift is near-constant across tasks within a configuration
+(spreads of 0.0014, 0.0056, 0.0033) while forgetting varies **sevenfold** across those same tasks, so the three
+tasks do not differ in how far they move the body, and what differs is how much of that motion costs an earlier
+task. The surviving candidate is therefore **interaction-shaped** — the overlap between what a task changes and
+what an earlier task uses, which the *linear* line has measured all along and the network line never has
+(`docs/findings/2026-09-23-the-bodys-drift-is-monotone-and-forgetting-is-not.md`). And the sweep validates itself: its read-out-32 plastic row is the hardened
 configuration's `naive` and comes out at **+0.0729 ± 0.0151**, reproducing `e8_hardened_basis` to the last
 printed digit (`docs/findings/2026-09-23-the-unbacked-cells-measured.md` §1).
 

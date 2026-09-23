@@ -171,3 +171,21 @@ def test_the_artifact_payload_includes_the_environment():
 
     src = inspect.getsource(e8_rate_network.main)
     assert '"environment": environment()' in src
+
+
+def test_relative_drift_is_scale_free_and_zero_for_a_body_that_does_not_move():
+    """The quantity the network line has never recorded: how far the recurrent body moved.
+
+    Every claim in the paper is about accuracy, and forgetting has to come from the weights. A frozen body is
+    the case that makes the measurement checkable -- it cannot move, so its drift must be exactly zero, and
+    that is also the control for the instrument itself.
+    """
+    import numpy as np
+
+    from experiments.e8_rate_network import relative_drift
+
+    theta = np.array([1.0, -2.0, 3.0, 0.5])
+    assert relative_drift(theta, theta.copy()) == 0.0          # a frozen body
+    assert relative_drift(theta, 2.0 * theta) == 1.0           # relative, not absolute
+    assert relative_drift(theta, theta + np.array([1.0, 0, 0, 0])) == pytest.approx(
+        1.0 / np.linalg.norm(theta))
