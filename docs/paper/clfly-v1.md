@@ -586,8 +586,14 @@ credited with a 3–6× overstatement and a ~1.1e-3 draw sd. Measured directly o
 **2.16e-4**, an overstatement of **1.22×**, and it is not group count that decides: at d = 1307 the
 measured draw sds run 6.8e-5, 9.3e-4, **2.16e-4**, 1.06e-3 as concentration rises 0.020 → 0.325 →
 0.498 → 0.678, so the spread is not monotone in the scalar the project substituted for group count
-either (`docs/findings/2026-09-23-side-draw-sd-refutes-the-concentration-model.md`). The four cs = 300
-conditions of §5's correction therefore remain interpolated rather than measured.
+either (`docs/findings/2026-09-23-side-draw-sd-refutes-the-concentration-model.md`). **The four cs = 300
+conditions of §5's correction did not have interpolated denominators as this sentence used to say — they
+had the *d = 1307 measured* ones applied to them**, because the table supplying them is keyed by rung and
+not by circuit size: **20 of the 25 pairs in that count carry a d = 1307 draw sd, and zero of those twenty
+carry one measured at cs = 300.** The distinction is not pedantic, because a borrowed denominator can be
+replaced by measurement wherever the configuration matches and an interpolation cannot, and the one
+condition where a later run supplied the measurement (`baseline`) was re-derived without moving the count
+(`docs/findings/2026-09-23-the-predictors-denominators-came-from-the-other-circuit.md`).
 
 **With the same sweep's second arm, all five named rungs can be corrected with measurements rather
 than interpolation — and this table was then superseded in turn, because it uses the unpaired sem:**
@@ -1120,8 +1126,12 @@ at all. The interpolation fails as a *model* too. At d = 1307 the measured point
 concentration 0.020, 9.3e-4 at 0.325, **2.16e-4 at 0.498**, 1.06e-3 at 0.678 — up, down by 4.3×, up
 again — so the scalar that replaced group count is not the axis either
 (`docs/findings/2026-09-23-side-draw-sd-refutes-the-concentration-model.md`). The four cs = 300 rows
-of the correction are not confirmed by this: `side`'s spread has not been measured at d = 952, and the
-model that produced those rows mispredicts by 4.8× at the one point where it can be checked. The
+of the correction are not confirmed by this: their denominators were not measured at cs = 300 at all —
+**20 of the 25 pairs in the count carry a d = 1307 draw sd, and zero of those 20 carry one measured at
+cs = 300** — and the one condition whose configuration a later run did match (`baseline`) was re-derived
+from measurement without moving the count, the largest single correction being a σ that falls by **2.3×**
+from 11.26 to 4.92 and stays four times above the line. See the paragraph below and
+`docs/findings/2026-09-23-the-predictors-denominators-came-from-the-other-circuit.md`. The
 headline count is untouched — `side` resolves above 12σ under either sd, and the 2σ line sits on
 fine-column pairs this measurement says nothing about.
 
