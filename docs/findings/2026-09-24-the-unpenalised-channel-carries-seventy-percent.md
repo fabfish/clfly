@@ -90,7 +90,36 @@ constraint of the body removes, in a channel the penalty never looks at.
 - **C0b passes exactly**, and it is the flag's own control: **every `bias_norms` entry is exactly 0.0 across all
   forty replicates** (both `step` and `from_zero`, all three tasks) **while `theta_drift` is non-zero at every
   task and replicate** (minimum **0.0507**). The first half alone would pass for a run that froze everything.
-- **`e125_r32_frozenbody.json`** — the third arm — is the `e104` control repeated at this power.
+- **`e125_r32_frozenbody.json`** — the third arm — is the `e104` control at eight times the power, and it is a
+  **structural zero**: forgetting is exactly **0.0000 at all forty replicates** (one distinct value, sd 0.0000),
+  with every `bias_norms` entry 0.0 and every `theta_drift` 0.0, and the fit loss is two orders above the plastic
+  arm's (0.2147 / 0.3311 / 0.1745 against 0.0046 / 0.0052 / 0.0055). **The load-bearing gap replicates**:
+  plastic 0.9125 − frozen-body 0.8134 = **+0.0991** against `e104`'s **+0.1000** at five replicates.
+
+## 4b. And it cuts the benchmark's own per-repeat spread — in one unit and not the other
+
+The three arms at forty replicates give a result this fire did not register and that bears directly on §4.7's
+sentence that the binding limit is the **per-repeat spread**:
+
+| arm | forgetting | per-repeat sd | **relative sd** |
+|---|---|---|---|
+| naive | 0.0750 | **0.0556** | **74.1%** |
+| frozen-bias | 0.0227 | **0.0207** | **91.2%** |
+| frozen-body | 0.0000 | 0.0000 | — |
+
+**The absolute spread falls 2.69×** — from 0.0556 to 0.0207, and the plastic arm's worst replicate forgets
+**+0.2500** where the frozen-bias arm's worst is **+0.0729** — **while the relative spread rises 1.23×**, because
+the mean falls **3.30×** and faster than the sd.
+
+**Both statements are true and only one of them is what `e118` measured.** That section's handicap is a
+*relative* precision (74–134% of its own value against the drift's 2.6–3.5%), so on that scale removing the
+channel makes the forgetting **harder** to measure — the effect shrinks faster than its noise. On the absolute
+scale it makes the benchmark quieter. **Registering only the second would have been the `e123` unit error in a
+third costume**, which is why the table carries the column `e118` used.
+
+And it puts a qualifier on §4.7's "binding limit": the limit is the per-repeat spread, **and the spread is
+partly self-inflicted** — a channel carrying 70% of the forgetting also carries most of the variance, because a
+global 800-parameter offset is exactly the kind of parameter that lands differently for different seeds.
 
 ## 5. What this cannot settle
 
