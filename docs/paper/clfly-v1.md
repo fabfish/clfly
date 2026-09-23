@@ -940,10 +940,16 @@ The **frozen accuracies reproduce to three decimals** (0.9444 / 0.9167 / 0.8139 
 so the unbacked series was right; **the gap is monotone** (−0.0111 → +0.0167 → +0.1000), with the whole-state
 end point **negative** rather than +0.007, which strengthens the principle rather than weakening it; and
 **freezing the body drives forgetting to exactly `+0.0000 ± 0.0000` at all three read-outs**, fifteen
-replicates agreeing to the last digit. **One half of the claim is refuted**: the plastic forgetting series was
-printed monotone at **+0.021 → +0.035 → +0.066**, and measured it is **+0.0479 → +0.0333 → +0.0729** — the
-1307 → 128 step *falls*, unresolved at sems of 0.0343 and 0.0125 but below the whole-state level, which the
-printed series cannot be. And the sweep validates itself: its read-out-32 plastic row is the hardened
+replicates agreeing to the last digit. **One half of the claim is refuted, and this time it is not noise.** The plastic forgetting series was printed
+monotone at **+0.021 → +0.035 → +0.066**, and measured it is **+0.0479 → +0.0333 → +0.0729** — the 1307 → 128
+step *falls*. **Four executions at each read-out** (`e106`), all twelve recording the same environment, give
+those three values with a run-to-run sd of **exactly zero**, so the 0.0146 fall is a property of the benchmark
+and not of the measurement. **And the section printed two monotone relationships as a pair when only one of
+them holds**: the accuracy gap is monotone (−0.0111 → +0.0167 → +0.1000, the design principle), while at
+read-out 128 the body *is* load-bearing and forgets **less** than at the whole state where training actively
+hurt. The quantity the principle needs is the gap; the forgetting series was an accompanying observation that
+does not survive
+(`docs/findings/2026-09-23-the-plastic-forgetting-series-is-not-monotone.md`). And the sweep validates itself: its read-out-32 plastic row is the hardened
 configuration's `naive` and comes out at **+0.0729 ± 0.0151**, reproducing `e8_hardened_basis` to the last
 printed digit (`docs/findings/2026-09-23-the-unbacked-cells-measured.md` §1).
 
