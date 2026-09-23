@@ -794,8 +794,17 @@ three independent runs. Whole experiment: minutes on CPU.
 | replay (16 stimuli/task) | **0.903 ± 0.014** | **−0.000 ± 0.021** |
 
 **No Fisher-anchoring variant resolves a benefit over the naive baseline**, at any λ
-(0.01–100) or any Fisher batch count (8, 32, 128) tried. **Replay** is the only method
+(0.01–100) or any Fisher batch count tried among **8 and 32** — *a 128-batch count is stated elsewhere in this
+section and in §8 and appears in no artifact at all, and the same correction applies at both places*
+(`docs/findings/2026-09-23-the-fisher-batch-sweep-is-a-stitch-of-first-replicates.md`). **Replay** is the only method
 that resolves anything, at ~2σ, and only in the task-incremental configuration.
+
+> **And the table above and the prose below disagreed about the same experiment.** Every value in this table
+> is a three-replicate mean, and the `EWC diagonal` row's **+0.069 ± 0.028** is exactly what
+> `runs/e8_fisher_batches.json` holds — while the paragraph that follows, fifteen lines down, quoted the
+> **first replicate of that same artifact** as the diagonal's 32-batch result (**+0.125**), and a 128-batch
+> value that exists nowhere. So this section contained the right number and the wrong number for one
+> measurement, and the correction is to delete the second rather than to reconcile them.
 
 **The basis finding does not transfer.** Grouping the 27k *synapses* by
 `(pre cell class, post cell class)` — the exact analogue of the partition that won on
@@ -1022,10 +1031,18 @@ to 6.0 minutes of penalty calls. So the defensible claim is that
 biology does not help *synapse* anchoring at 0.925 constrained, and the rung the neuron result
 implicates is untested.
 
-**One statement in this section is fully robust: the diagonal degrades as its Fisher
-estimate improves** (+0.010 → +0.028 → +0.035 as batches go 8 → 32 → 128, monotone;
-+0.063 → +0.250 on the unhardened configuration). A better-estimated Fisher is a *stronger*
-penalty at fixed λ, so EWC walks into over-constraint. The best configuration found is
+**The claim that the diagonal degrades as its Fisher estimate improves has no artifact behind it, and that
+is corrected here.** It came from a sweep (`e8c`) reported as *single seed, sweeping the batch count*, whose
+record no longer exists: `runs/e8_fisher_batches.json` was later overwritten by a three-repeat 32-batch run,
+**no artifact on disk carries a 128-batch Fisher at all**, and **none of the four figures (+0.028, +0.035,
++0.250, +0.063) appears in any artifact's `ewc` arm** — a ±0.006 scan over every `runs/*.json` returns zero
+hits. What *is* measured is the middle point: **at 32 batches and λ = 0.1 the diagonal forgets +0.069 ± 0.028
+at 0.843 accuracy over three replicates**, its first replicate being **+0.125 (0.792)** — and that first
+replicate is what the sweep reported, for all four of its methods. So *a better-estimated Fisher is a
+stronger penalty at fixed λ, so EWC walks into over-constraint* remains a plausible reading and is **not
+established by the record**; `e96` is re-measuring the three points
+(`docs/findings/2026-09-23-the-fisher-batch-sweep-is-a-stitch-of-first-replicates.md`). The best configuration
+found is
 therefore both *weaker and coarser* than a careful practitioner would choose: λ = 0.003 with
 the Fisher estimated from 8 batches gives +0.010 ± 0.010 forgetting against naive's
 +0.066 ± 0.019, a **2.6σ** advantage. "Anchor gently, and do not estimate the curvature too
@@ -1037,12 +1054,16 @@ The general rule the project now applies:
 > A benchmark whose frozen-body control matches its trained accuracy contains no
 > continual-learning problem, and every method comparison on it compares decoders.
 
-**The family is badly behaved as its curvature estimate improves.** Raising the Fisher
-batch count from 8 to 128 drives the diagonal's forgetting from +0.063 to **+0.250**
-while its accuracy collapses from 0.826 to **0.701**: a better-estimated Fisher is a
-*stronger* penalty at fixed λ, and the method moves steadily into over-constraint. So λ
-is not transferable across Fisher quality any more than across partitions, and any EWC
-comparison on this benchmark must retune them jointly.
+**The family is badly behaved as its curvature estimate improves — and the measurement that used to stand
+here has been withdrawn.** The sentence this replaces said raising the batch count from 8 to 128 drives the
+diagonal's forgetting from +0.063 to **+0.250** while its accuracy collapses from 0.826 to **0.701**; none of
+those four numbers has an artifact, and no 128-batch Fisher exists on disk. What the record supports is the
+32-batch point, where over three replicates the diagonal forgets **+0.069 ± 0.028 at 0.843** — better than
+its own single-seed first replicate (+0.125 at 0.792) suggested, and better than `naive`'s +0.101 ± 0.049, so
+at that batch count the diagonal is *not* obviously over-constrained. Whether it becomes so as the Fisher
+improves is exactly what `e96` is re-measuring, and until it lands the prescription above — anchor gently,
+and do not estimate the curvature too carefully — rests on the λ and granularity measurements, not on this
+one.
 
 This is what the theory predicts. LGCL says EWC *is* a Kalman filter whose posterior is
 projected onto the neuron coordinate basis, and §4.1 measured that projection to cost
@@ -1369,7 +1390,9 @@ why no shared rule was available and each line needed its own check.
    block holding 98.7% of the partition, so bucketing it into ``B`` groups (`pool_buckets`,
    implemented) buys the fine end rather than the middle.
 2. **Ask the reversed-ordering question properly.** On the hardened network the diagonal and
-   the block Fisher are not distinguishable at 128 Fisher batches; a configuration in which
+   the block Fisher are not distinguishable at 32 Fisher batches — *this item said 128, and no
+   artifact on disk carries a 128-batch Fisher at all; every one of the 25 rate-network runs
+   used 8 or 32, so the number was wrong as well as unsourced*; a configuration in which
    the block's structure *is* well estimated (a smaller circuit, or a lower-rank task family)
    would settle whether coarser anchoring helps or hurts on synapses, which is currently
    unresolved rather than answered.

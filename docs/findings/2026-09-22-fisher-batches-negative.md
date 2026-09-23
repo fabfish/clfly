@@ -5,6 +5,19 @@
 **Artifacts:** `runs/e8_fisher_batches.json`
 **Setup:** circuit `mb+cx+al@n1307`, 3 tasks, λ = 0.1, 500 iterations, chance 0.25
 
+> **Correction (2026-09-23).** The artifact named above **no longer holds this sweep**. It now holds a
+> three-repeat, 32-batch run written later (`config`: `fisher_batches: 32, repeats: 3`, against this
+> document's "single seed, sweeping the Fisher batch count"), and **no artifact on disk carries a 128-batch
+> Fisher at all** — every `fisher_batches` value under `runs/` is 8 or 32. Reading that artifact's stored
+> `replicates` identifies §2's table exactly: its **32-batch row is replicate #0 for all four methods**, and
+> the artifact's own three-replicate means differ, for the diagonal substantially — **+0.069 ± 0.028, against
+> the +0.125 this document reports**, the first replicate being the worst of the three (+0.125, +0.031,
+> +0.052). The 8-batch row's two block arms are replicate #0 of `e31_methodlist_check.json`; its `ewc` cell
+> matches no replicate anywhere; and the 128-batch row matches nothing. **The table is left standing here
+> because it is the only surviving trace of those numbers**, and the conclusion it was written to support —
+> that the negative is not estimation noise — is now being re-measured by `e96` rather than resting on it
+> (`docs/findings/2026-09-23-the-fisher-batch-sweep-is-a-stitch-of-first-replicates.md`).
+
 ---
 
 ## 1. The hypothesis being tested
