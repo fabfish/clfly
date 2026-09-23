@@ -1,19 +1,42 @@
 # `e123`: the loss-valued retention matrix buys **nothing** — 2.2× noisier, or identical, depending on the units
 
 **Date:** 2026-09-24
-**Script:** `experiments/e123_loss_metric.py` (new); artifacts `runs/e123_r128_test480.json` (40 replicates,
-read-out 128, `--test 480`, run after the pre-registration) and `runs/e123_analysis.json`.
-**C0's comparator:** `runs/e119_r128_test480.json` — the identical configuration from an earlier epoch.
+**Script:** `experiments/e123_loss_metric.py` (new); artifacts `runs/e123_r128_test480.json` and
+`runs/e123_r300_test480.json` (40 replicates each, `--test 480`, run after the pre-registration) plus
+`runs/e123_analysis.json`.
+**C0's comparators:** `runs/e119_r128_test480.json` and `runs/e119_r300_test480.json` — the identical
+configurations from an earlier epoch.
 **Setup:** circuit `mb+cx+al@n1307` (cs = 800), 3 tasks, chance 0.25, `--methods naive --shared-head
---input-overlap 0.0 --noise 1.0 --iters 500 --lr 3e-3 --batch 32 --test 480 --readout-size 128 --circuit-size
-800 --repeats 40`.
-**Pre-registration:** `docs/findings/2026-09-24-the-loss-metric-preregistered.md`, committed before the run.
+--input-overlap 0.0 --noise 1.0 --iters 500 --lr 3e-3 --batch 32 --test 480 --readout-size {128, 300}
+--circuit-size 800 --repeats 40`.
+**Pre-registration:** `docs/findings/2026-09-24-the-loss-metric-preregistered.md`, committed before the runs.
 **Context:** `docs/findings/2026-09-24-the-metric-is-thirty-times-noisier.md` — the reported metric is measured to
 **74–134% of its own value** against `theta_drift`'s 2.6–3.5%, a **thirty-fold** handicap that `e118` attributed
 partly to the estimator's **granularity of 1/240**, and which `e119`'s tenfold test set cut to eighteenfold,
 leaving a residual that is "not noise to be removed but a floor under the estimator".
 
 ---
+
+## 0. The whole table, both read-outs, because the registration named two and both ran
+
+| | read-out 128 | read-out 300 |
+|---|---|---|
+| **C0** vs the same read-out's `e119` artifact | **bit-identical**, max \|difference\| = 0.000e+00, per-task rows identical | **bit-identical**, same |
+| accuracy forgetting | 0.04021 ± 0.02215 — **55.1%** | 0.02687 ± 0.01880 — **69.9%** |
+| loss forgetting (nats) | 0.09561 ± 0.04790 — **50.1%** | 0.05405 ± 0.03434 — **63.5%** |
+| log-ratio companion | sd 0.4932 → **1.64×** multiplicative | sd 0.5507 → **1.73×** |
+| `sd_loss / sd_acc` (cross-unit) | 2.163 | 1.827 |
+| **relative-sd ratio (like-for-like)** | **0.910** | **0.908** |
+| P1, P2 as registered | FAIL, FAIL | FAIL, FAIL |
+| falsifier (`>= 1`) | **FIRED** | **FIRED** |
+| P1 on the like-for-like reading | HOLDS | HOLDS |
+
+**The like-for-like ratio agrees to 0.002 across the two read-outs**, so the registered second read-out
+**replicates the negative result rather than adding a second anecdote**: the loss-valued matrix is about 9%
+*better* in relative precision at both, which is to say the same thing twice. The two read-outs' relative
+precisions differ (55/50% against 70/64%) because read-out 300's forgetting is smaller — 0.0269 against 0.0402 —
+so the same absolute spread is a larger fraction of it; **the ratio between the two estimators is what is
+stable, and it is 0.91.**
 
 ## 1. C0 is bit-identity, and then the registered hypothesis fails
 
@@ -129,9 +152,12 @@ metric is badly chosen, it is that *forgetting* is a coarse thing to measure her
 
 **Cannot settle, in advance:**
 
-- **One read-out.** The registration names 128 **and 300**, and only 128 has run. The 300 arm is launched and its
-  comparison is *within* that run, so it needs no comparator of its own — but read-out 300's own per-repeat sd
-  differs from 128's, and a ratio that is 0.91 at one read-out is a point rather than a law.
+- **Two read-outs, and that is a line rather than a law.** The registration named 128 **and 300** and both have
+  now run, with the like-for-like ratio at **0.910** and **0.908** — so "about 9% better in relative precision"
+  is replicated rather than a point estimate. But two read-outs on one axis is still two points, and both are at
+  `--test 480`; the estimator's behaviour at read-out 32, where the per-repeat spread is **0.0556** against
+  0.0325 here, is untested, and read-out 32 is the case where a metric that is twice as coarse *relative to its
+  own effect* has the most room to change the answer.
 - **The loss is measured on the training split**, whose 96 samples are the ones every seed interpolates
   (`e121`), so its sampling floor is not something a bigger test set can remove; the ratio is a comparison of two
   precisions, not a decomposition into components the way `e119`'s variance budget was.

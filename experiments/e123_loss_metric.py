@@ -152,8 +152,19 @@ def analyse(run_path: Path, reference_path: Path | None) -> dict:
         "P2_ratio_below_0.71": bool(ratio < 0.71),
         "falsifier_fired": bool(ratio >= 1.0),
     }
-    if reference_path and reference_path.exists():
-        out["C0"] = extension_control(run, json.loads(reference_path.read_text(encoding="utf-8")))
+    if reference_path and reference_path.is_file():
+        ref = json.loads(reference_path.read_text(encoding="utf-8"))
+        # C0 is a bit-identity claim, so the comparator has to be the same configuration in every field that can
+        # change the numbers -- and the one this script can check without guessing is the read-out size. Passing
+        # the read-out-128 comparator for a read-out-300 run produces a "** DIFFERS **" flag that is entirely the
+        # invoker's, which happened on this script's first multi-read-out use.
+        ref_ro = ref.get("config", {}).get("readout_size")
+        if ref_ro is not None and ref_ro != run["config"]["readout_size"]:
+            out["C0"] = {"attempted": False, "skipped": "read-out mismatch",
+                         "run_readout": run["config"]["readout_size"], "reference_readout": ref_ro,
+                         "reference": str(reference_path)}
+        else:
+            out["C0"] = extension_control(run, ref)
     return out
 
 
@@ -189,12 +200,29 @@ def main(argv=None) -> int:
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--run", type=Path, action="append", required=True,
                    help="an e123 artifact; repeat for several read-outs")
-    p.add_argument("--reference", type=Path, default=None,
-                   help="the C0 comparator, e.g. runs/e119_r128_test480.json at read-out 128")
+    p.add_argument("--reference", type=Path, action="append", default=None,
+                   help="a C0 comparator; repeat for several read-outs. Each run is matched to the comparator "
+                        "whose read-out size it shares, and a run with no matching comparator has C0 skipped "
+                        "with a note rather than silently compared against the wrong configuration")
     p.add_argument("--json-out", type=Path, default=None)
     args = p.parse_args(argv)
 
-    results = [analyse(r, args.reference) for r in args.run]
+    def comparator_for(run_path: Path) -> Path | None:
+        if not args.reference:
+            return None
+        ro = json.loads(run_path.read_text(encoding="utf-8"))["config"].get("readout_size")
+        for ref in args.reference:
+            if ref.is_file() and json.loads(ref.read_text(encoding="utf-8"))["config"].get(
+                    "readout_size") == ro:
+                return ref
+        return None
+
+    results = []
+    for r in args.run:
+        ref = comparator_for(r)
+        if args.reference and ref is None:
+            print(f"  NOTE: no comparator supplied at {r.name}'s read-out -- C0 will be skipped")
+        results.append(analyse(r, ref))
     for r in results:
         report(r)
     if args.json_out:

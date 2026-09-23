@@ -5,7 +5,9 @@
 measurement needed no new run.
 **Artifacts:** `runs/e116_r128_40reps.json` (read-out 128, `--test 48`, 40 replicates) and
 `runs/e123_r128_test480.json` (read-out 128, `--test 480`, 40 replicates). **Their configs differ in exactly one
-field**, `test` — verified field by field, and the two `json_out` paths.
+field**, `test` — verified field by field, and the two `json_out` paths. **And since the first version of this
+finding, a second read-out's pair has run**: `runs/e115_r300_40reps.json` (read-out 300, `--test 48`) against
+`runs/e123_r300_test480.json`, reported in §2b.
 **Context:** `docs/paper/clfly-v1.md` §4.2 and `docs/findings/2026-09-24-the-metric-noise-is-mostly-the-substrates.md`,
 which read `evaluation_noise` for the accuracy (**85% removable at read-out 128**) and for the forgetting
 (**60%**) and explained the difference structurally: the forgetting is a difference of two accuracies on the same
@@ -59,6 +61,54 @@ split was *solved for* by assuming the removable component falls by √10, so of
 the accuracy, whose 85% is computed directly from the binomial formula and whose predicted fall is **not**
 observed. **So the binomial model fails for the single accuracy, and the correlation between two accuracies is
 not the mechanism** — the mechanism is upstream of it, in the held-out decisions themselves.
+
+## 2b. And it replicates at read-out 300, where the nominal model gives up entirely
+
+The second pair is `runs/e115_r300_40reps.json` (read-out 300, `--test 48`, 40 replicates) against
+`runs/e123_r300_test480.json` — the same seeds, the same everything, differing in `test`. **Their configs also
+differ in one key, `frozen_bias`**, which `e115`'s artifact predates (rule 27): the flag defaults to `False` and
+this arm is `naive`, so the training path is untouched — and that is not an assumption but a measurement, since
+**`runs/e123_r300_test480.json`'s per-replicate forgetting is bit-identical to `runs/e119_r300_test480.json`'s**,
+an artifact from *before* the flag existed.
+
+Read-out 300 in the same shape as §1's table, one row per quantity with the operands in **separate columns** and
+the ratio in its own — because `e105` checks a ratio against the cells of its own row, and a table that keeps its
+operands inside one cell is a table whose arithmetic **cannot be checked at all** (the first version of this
+section did exactly that, and the audit named it):
+
+| read-out 300 | test 48 | test 480 | ratio |
+|---|---|---|---|
+| `n_eval` | 144 | 1,440 | 10.0 |
+| nominal binomial sem | 0.01983 | 0.00670 | **2.96** |
+| accuracy's per-replicate sd | 0.01877 | 0.01642 | **1.143** |
+
+And the two read-outs side by side, with the pairs' own derived quantities rather than their operands:
+
+| | read-out 128 | read-out 300 |
+|---|---|---|
+| **nominal `variance_fraction` at test 48** | 0.8528 | **1.1165** |
+| sd fall the nominal model predicts | 2.074 | **undefined** |
+| effective binomial sem *(against its nominal)* | 0.01229 *(0.02109)* | 0.00957 *(0.01983)* |
+| effective sem's shortfall | **1.72** | **2.07** |
+| **effective `n_eval`** *(nominal 144)* | **48.9** | **33.5** |
+| **achievable removable share** *(against nominal)* | **29%** *(85%)* | **26%** *(112%)* |
+
+**Two things this adds.** First, **the result replicates**: at a second read-out the effective number of
+independent held-out decisions is about a third of the nominal count, and the achievable removable share is about
+a quarter of it — 49 and 29% at read-out 128, 34 and 26% at read-out 300.
+
+Second, and more sharply, **at read-out 300 the nominal model is not merely optimistic — it is incoherent**:
+`variance_fraction` is **1.1165**, i.e. the binomial sem it computes (0.01983) **exceeds the observed
+per-replicate sd** (0.01877). A model that says the sampling noise is 112% of the total spread, and then some,
+has no prediction to make, which is exactly why the runner's own else-branch prints *"this run cannot separate
+them"* instead of a fraction there — and it is why the predicted sd fall in the table above is **undefined**
+rather than a number. **The two-point solve is well-posed anyway** and returns 26%, because it never uses the
+nominal sem as an input: it uses the two observed sds and the one fact the design licenses, that the sampling
+component falls by √10.
+
+**So the nominal block fails in two different ways at two read-outs** — optimistic at 128, incoherent at 300 —
+and the honest form of the sentence it was quoted for is that **the removable share is unknown from the block
+alone and measurable from a pair.**
 
 ## 3. The paper's `2.6×` was stitched from a second artifact, and it is wrong as arithmetic too
 
