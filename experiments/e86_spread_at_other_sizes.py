@@ -136,7 +136,7 @@ def main() -> None:
               f"** {best['rho'] >= PREDICTED_RHO} **")
         verdicts[label] = dict(rows=rows, tests=res, beats_concentration=bool(beats),
                                meets_threshold=bool(best["rho"] >= PREDICTED_RHO))
-        out["sizes"][label] = dict(n=len(rows), tests=res,
+        out["sizes"][label] = dict(n=len(rows), rows=rows, tests=res,
                                    beats_concentration=bool(beats),
                                    meets_threshold=bool(best["rho"] >= PREDICTED_RHO))
 
@@ -153,6 +153,41 @@ def main() -> None:
               f"beats conc: {v['beats_concentration']}   "
               f"meets >= {PREDICTED_RHO:+.1f}: {v['meets_threshold']}")
     print(f"\n   the d = 1307 row is `e80`'s own result, repeated here so the three are read together.")
+
+    #: The nine labels are the same at every size, but they are **not the same partitions**: a pooling
+    #: that leaves 29 groups at d = 1307 leaves a handful at d = 952, so the sizes sample different
+    #: regions of partition space.  When that happens a rank correlation over "the same nine rows" is
+    #: comparing different objects, so the region each size covers is reported and the comparison is
+    #: redone on the overlap.
+    print()
+    print("=" * 104)
+    print("AND WHETHER THE SIZES ARE COMPARING THE SAME PARTITIONS AT ALL")
+    print("=" * 104)
+    ranges = {label: (min(r["concentration"] for r in v["rows"]),
+                      max(r["concentration"] for r in v["rows"]))
+              for label, v in verdicts.items() if v}
+    for label, (lo, hi) in ranges.items():
+        print(f"   {label:<9} concentration {lo:.3f} to {hi:.3f}")
+    if len(ranges) >= 2:
+        lo = max(r[0] for r in ranges.values())
+        hi = min(r[1] for r in ranges.values())
+        print(f"   overlap:            {lo:.3f} to {hi:.3f}")
+        for label, v in verdicts.items():
+            if not v:
+                continue
+            keep = [r for r in v["rows"] if lo <= r["concentration"] <= hi]
+            if len(keep) < 4:
+                print(f"   {label:<9} only {len(keep)} rows inside the overlap -- not computable")
+                continue
+            y2 = [r["measured_sd"] for r in keep]
+            a = spearmanr([r["pressure_sd"] for r in keep], y2)
+            c = spearmanr([r["concentration"] for r in keep], y2)
+            print(f"   {label:<9} inside the overlap (n = {len(keep)}): absolute pressure sd "
+                  f"{a.statistic:+.3f} (p = {a.pvalue:.3f}) against concentration "
+                  f"{c.statistic:+.3f} (p = {c.pvalue:.3f})")
+            out.setdefault("overlap", {})[label] = dict(
+                n=len(keep), rho_pressure=float(a.statistic), p_pressure=float(a.pvalue),
+                rho_concentration=float(c.statistic), p_concentration=float(c.pvalue))
 
     Path(args.json_out).parent.mkdir(parents=True, exist_ok=True)
     with open(args.json_out, "w", encoding="utf-8") as fh:

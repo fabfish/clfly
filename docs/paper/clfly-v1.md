@@ -556,10 +556,15 @@ excess moving together on the same relabelling — holds at three circuit sizes 
 bootstrap at **5.15σ with 100% of 4000 resamples above zero**, which is the same scrutiny that turned a
 size comparison from 3.29σ into 0.75σ. The *spread statistic* — the size of pressure's own variation
 ranking the size of the excess's — was **+0.767 against concentration's +0.617 at d = 1307 and +0.412
-against +0.832 at d = 952**, so `e80`'s headline was a one-size event and the second size *contradicts* it
-rather than merely failing to confirm it. **The predictor-shaped use of pressure is therefore not
-supported away from d = 1307; the explanatory use is, because that is the co-movement claim**
-(`docs/findings/2026-09-23-the-mechanisms-two-halves.md`).
+against +0.832 at d = 952**, so it has one complete circuit size in its favour and one against. **And
+neither test is over the same partitions**: the same nine labels denote concentration ranges of
+0.006–0.754 at d = 952 and 0.020–0.536 at d = 1307, and the d = 952 reversal is a **bimodal design** —
+four near-duplicate coarse rows occupying four of nine ranks — under which all three candidates tie once
+the fine end is taken alone (+0.900, n = 5). **The predictor-shaped use of pressure is therefore supported
+at exactly one circuit size and untested elsewhere; the explanatory use is supported, because that is the
+co-movement claim**
+(`docs/findings/2026-09-23-the-mechanisms-two-halves.md`,
+`docs/findings/2026-09-23-the-cross-size-test-is-not-well-posed.md`).
 
 **With one counterexample that matters, because `side` is one of those partitions.** The claim as
 written is keyed on group count, and `side` is a **4-group** partition — inside the coarse band, and so
