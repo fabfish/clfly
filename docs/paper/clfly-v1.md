@@ -131,7 +131,13 @@ penalty**. The effect is not one configuration's accident: at read-out 128 it re
 forgetting at **6.40σ**, leaving a residual **2.3σ from zero**. So *"EWC helps where the body is
 load-bearing"* is true **and** the baseline it is measured against is mostly a channel the penalty cannot see
 (`docs/findings/2026-09-24-the-unpenalised-channel-carries-seventy-percent.md`,
-`docs/findings/2026-09-24-the-bias-effect-is-not-a-read-out-32-artefact.md`).
+`docs/findings/2026-09-24-the-bias-effect-is-not-a-read-out-32-artefact.md`). **And the penalty does not remove that adaptation — it relocates it.** At the same forty
+seeds, diagonal EWC's recurrent weights move **28% less** than naive's (`theta_drift` 0.0357 against 0.0498,
+**25.24σ**) while its 800 offsets move **25% MORE** (`from_zero` 2.5027 against 2.0005, **9.48σ**), so
+constraining the weights by 28% buys nothing on the forgetting **because the adaptation moved to the channel
+carrying 70% of it**. A penalty that also covered the offsets would act on **100%** of the body rather than
+97.1% of it, which makes §8's bias-penalty arm a different method rather than a refinement of the λ sweep
+(`docs/findings/2026-09-24-the-penalty-relocates-the-adaptation.md`).
 (The strongest evidence for that contrast is at sixteen replicates, where it is **−0.0677 ± 0.0101 =
 6.73σ with sixteen of sixteen replicates agreeing**, though replay's own forgetting there is 0.83σ from
 zero rather than resolved below it.) **The other two settings had no artifact either, and their
