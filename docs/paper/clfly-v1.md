@@ -1271,7 +1271,35 @@ survives the better metric and sharpens**: the plateau-to-128 difference is +0.0
 before. **What that points at is a hypothesis about the substrate rather than the measurement**: if the residual
 is the training trajectory's, then five hundred iterations of SGD from a connectome-masked initialisation land
 in materially different places for different seeds, and **the test is whether converging further collapses it**
-(`docs/findings/2026-09-24-the-metric-noise-is-mostly-the-substrates.md`). And the sweep validates itself: its read-out-32 plastic row is the hardened
+(`docs/findings/2026-09-24-the-metric-noise-is-mostly-the-substrates.md`).
+
+**And the second route — the training budget — does not help either, which leaves the limit intrinsic.** Four
+times the iterations at the same configuration and forty replicates:
+
+| run | forgetting | **sd (per repeat)** | accuracy | **accuracy sd** | drift |
+|---|---|---|---|---|---|
+| 500 iters | +0.0402 | **0.0221** | 0.9215 | **0.0196** | 0.0395 |
+| **2000 iters** | +0.0461 | **0.0305** | 0.9276 | **0.0222** | 0.0460 |
+
+**The accuracy's seed-to-seed sd does not fall — it rises slightly** (a factor of 0.88 against a pre-registered
+bound of 1.3), and the forgetting's rises with it through the `√(2(1−ρ))` propagation the same fire had
+predicted (ρ ≈ 0.14 at 500 iterations, ≈ 0.06 at 2000 — longer training gives each seed more room to become
+itself). **And the walk has already saturated**: four times the steps move the body only **1.16×** further, and
+its relative reproducibility is unchanged (2.92% → 2.66%), which refutes the convergence hypothesis by a second
+route and makes the drift series of the previous column a series of *converged* distances rather than snapshots
+of an interrupted optimisation. **What four times the compute buys is +0.0060 accuracy and +0.0059 forgetting,
+and no reduction in spread at all** — smaller than one per-repeat sd of either quantity.
+
+**So §4.7's sentence now has a mechanism and has survived both attempts to remove its cause**: more replicates
+remove the sem (by 40×) and leave the per-repeat sd; a tenfold test set removes **94% of the removable
+evaluation noise** and leaves 40% of the variance in the training trajectory; four times the training removes
+nothing and the sd rises. **Forty seeds of one configuration, trained four times as long, still disagree about
+the forgetting by 0.0305 — 74% of the value they are disagreeing about** — so the limit is **intrinsic to the
+connectome-constrained optimisation**, which is the sharpest form this paper's oldest network-line caveat has
+taken. **Both members of the "improve the measurement" family are now closed** (the metric and the budget), and
+what is left is what the earlier fire named second: **a statement that does not need the metric to be ordered,
+which is what the plateau already is**
+(`docs/findings/2026-09-24-four-times-the-training-does-not-help.md`). And the sweep validates itself: its read-out-32 plastic row is the hardened
 configuration's `naive` and comes out at **+0.0729 ± 0.0151**, reproducing `e8_hardened_basis` to the last
 printed digit (`docs/findings/2026-09-23-the-unbacked-cells-measured.md` §1).
 
