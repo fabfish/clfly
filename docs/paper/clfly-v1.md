@@ -1031,6 +1031,22 @@ the next candidate must be a quantity that is not a function of the read-out at 
 task-pair structure rather than at any further aggregate over that axis
 (`docs/findings/2026-09-23-the-interference-term.md`).
 
+**And the term's failure has a second cause, measured afterwards, which is more specific than the read-out
+monotonicity: the instrument reads one channel and the forgetting lives in another.** The term is built from
+`<grad_j(θ_final), θ_final − θ_after_j>` — **`theta` alone** — while the trained body is **two** parameter sets
+and §4.2 below measures that the **800 per-neuron offsets** carry **70%** of this configuration's forgetting. So
+the term's failure to order the forgetting is not only that it is dominated by two read-out-axis magnitudes; it is
+that **it is evaluated over the half of the body where most of the damage is not**, and the two accounts agree
+about what to do next. **The evidence is a manipulation rather than a correlation, which is what makes it
+stronger than the ordering failure above**: contrast `naive` with diagonal EWC at forty paired seeds and the
+`theta`-only first-order term **falls 98%** — `+0.2336 → +0.0052`, **10.34σ** — with the cosine falling 96%
+(**14.41σ**) and the displacement 25% (**28.25σ**), while **the forgetting, on the same artifact and the same
+seeds, moves 1.21σ**. **A quantity that can be moved forty-five-fold by an intervention, with the effect it
+exists to predict not moving, is not the effect's carrier** — and no correlation can show that as cleanly. The
+runner now records the same one-line account over **both** halves of the body beside the `theta`-only form, with
+the two halves stored separately, so that the old record stays readable
+(`docs/findings/2026-09-24-the-interference-instrument-is-channel-blind.md`).
+
 **The second-order term is the first candidate that is not monotone in that axis, and it is not yet a
 confirmation.** `½ΔθᵀHΔθ` was pre-registered on a structural argument — a quadratic form is positive by
 construction, so the first-order term's sign failure cannot recur — **and that argument is refuted: the
@@ -2061,11 +2077,11 @@ the filters are the LGCL family, not a trained spiking network, and the network 
 demonstrably cannot tell you is which of its conclusions are artefacts of the linearisation;
 §4.7 is the beginning of that check, and it overturned three of them.
 
-**Eight measurement traps, every one of which the project fell into before finding it.** *(This heading read
+**Nine measurement traps, every one of which the project fell into before finding it.** *(This heading read
 "Two" until commit `1743573`, which rewrote it to "**Five**" while adding two bullets to the two that were
 there — so it said five and listed four from the day it was written until 2026-09-24. That commit's own message
-is about stale aggregate statements, and this is the defect it was fixing, born in the fix. The count is now eight
-because the four newest traps are the ones `e122`, `e125`, `e133` and the session that found the last one added.)*
+is about stale aggregate statements, and this is the defect it was fixing, born in the fix. The count is now nine
+because the five newest traps are the ones `e122`, `e125`, `e133`, `e139` and the session that found the last one added.)*
 - **A benchmark can measure its decoder instead of its subject.** The network line spent
   four fires concluding that no method worked, on a benchmark whose plastic weights were
   never load-bearing: freezing them cost 0.007 accuracy and eliminated forgetting entirely.
@@ -2119,6 +2135,15 @@ because the four newest traps are the ones `e122`, `e125`, `e133` and the sessio
   **two resolved components cancel inside the aggregate** — which is what a *trade* between tasks looks like and
   what a benchmark with three tasks will always be able to produce
   (`docs/findings/2026-09-24-diagonal-ewc-does-not-survive-its-own-configuration.md`).
+- **An instrument assembled from part of the object reports a null about the part it read.** The first-order
+  interference term is built from `theta` alone, and the body is two parameter sets — so when §4.2 measures that
+  the offsets carry 70% of the forgetting, the term's five-fire inability to order the forgetting becomes a
+  statement about the half it does not read. **The measurement that shows this is a manipulation, not a
+  correlation**: a diagonal penalty cuts the term by **98%** (**10.34σ**) with the forgetting moving **1.21σ**,
+  and a quantity movable forty-five-fold by an intervention, with its effect unmoved, is not the effect's
+  carrier. A correlation could never settle it here, because everything on this axis is monotone in the read-out
+  and a correlation across configurations inherits exactly that confound
+  (`docs/findings/2026-09-24-the-interference-instrument-is-channel-blind.md`).
 - **A benchmark can measure its methods against a baseline that forgets through a channel they do not
   address.** The plastic body is **two** parameter sets — 26,568 connectome-masked weights and 800 per-neuron
   offsets — and `train_task` optimises both while every penalty in this paper covers the weights alone. Holding

@@ -1688,6 +1688,28 @@ about (`docs/findings/2026-09-23-the-last-two-unaudited-sections-were-clean.md`)
    is why all three cases happened here and not elsewhere
    (`docs/findings/2026-09-24-the-bias-effect-is-not-a-read-out-32-artefact.md`).
 
+36. **An instrument assembled from *part* of the object reports a null about the part it read, and a
+   manipulation shows that where a correlation cannot.** The first-order interference term is
+   `<grad_j(theta_final), theta_final - theta_after_j>` — built from **`theta` alone** — and `e108` found it
+   unable to order the forgetting across configurations, which the project recorded for five fires as *"the term
+   is dominated by two magnitudes that are themselves monotone in the read-out"*. **Both accounts are true and
+   the second one explains the first**: the body is **two** parameter sets, `e125` measured that the 800 offsets
+   carry **70%** of this configuration's forgetting, and `e137` that the penalty's effect on `theta` is matched by
+   an **opposite movement** in them — so a term reading `theta` is evaluated over the half of the body where most
+   of the damage is not, and **its failure to order the effect is not evidence about the effect**. The measurement
+   that settles it is a **manipulation**: at forty paired seeds diagonal EWC cuts the `theta`-only term by **98%**
+   (`+0.2336 → +0.0052`, **10.34σ**) with the cosine down 96% (**14.41σ**) and the displacement down 25%
+   (**28.25σ**), while **the forgetting moves 1.21σ**. **A quantity that can be moved forty-five-fold by an
+   intervention, with the effect it exists to predict not moving, is not the effect's carrier** — and the
+   contrast with a correlation is the point: a correlation across configurations can be confounded by anything
+   monotone along the axis being varied, which is exactly what this project's read-out axis is, while a 45-fold
+   manipulation cannot be. **So when a quantity is assembled from a subset of a model's parameters, its null is a
+   null about that subset until the subset's share of the effect is measured** — and the repair is to extend the
+   instrument and keep the old form beside the new one, which is what `whole_body_grad` and the `interference`
+   block's `theta_only_cumulative` / `bias_only_cumulative` split do, so that five fires of record stay readable
+   rather than being overwritten
+   (`docs/findings/2026-09-24-the-interference-instrument-is-channel-blind.md`).
+
 ## Related work to differentiate against
 
 Four papers are close enough to require explicit positioning — all use fly
