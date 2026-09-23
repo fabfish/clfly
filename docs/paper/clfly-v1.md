@@ -1299,7 +1299,34 @@ connectome-constrained optimisation**, which is the sharpest form this paper's o
 taken. **Both members of the "improve the measurement" family are now closed** (the metric and the budget), and
 what is left is what the earlier fire named second: **a statement that does not need the metric to be ordered,
 which is what the plateau already is**
-(`docs/findings/2026-09-24-four-times-the-training-does-not-help.md`). And the sweep validates itself: its read-out-32 plastic row is the hardened
+(`docs/findings/2026-09-24-four-times-the-training-does-not-help.md`).
+
+**And the reason the limit is intrinsic is that this benchmark interpolates its training data at every read-out
+it uses.** The runner records the loss at each task's last training step, so it measures how well the body has
+fitted; for four classes chance is **ln 4 = 1.386** and the measured values are
+
+| read-out | 1307 | 900 | 700 | 512 | 300 | 128 | 32 |
+|---|---|---|---|---|---|---|---|
+| **final training loss** | 0.00014 | 0.00022 | 0.00028 | 0.00035 | 0.00067 | 0.00158 | 0.00451 |
+
+— **a factor of 300 to 10,000 better than chance at every read-out, including the narrowest**, where the tasks
+are still fitted to 0.005. With 96 training samples per task against 26,568 body parameters this is roughly
+**300 parameters per training sample**: **no read-out tested is capacity-limited.** **And the fit depth is
+itself monotone in the read-out (a factor of 32 from the whole state to 32)** — a **fourth** quantity that is
+monotone along this axis while the forgetting is a plateau, alongside the drift, the gap and the first-order
+term. **So the seeds agree on the fit and disagree on the generalization**: all forty drive the training loss to
+~10⁻⁴ while their held-out metrics differ by 0.0196 and 0.0221, and **how well a seed fits carries no
+information about what it retains** (across forty replicates the correlations of loss with forgetting are −0.05
+and +0.34, disagreeing in sign between budgets, with the aggregates at zero) — a **fifth** quantity tested and a
+fifth failure, and the first that is a property of the endpoint rather than of the trajectory. **One seed-level
+structure did appear**: the two tasks' fits correlate **−0.35** and **−0.31** at the two budgets, both at the 5%
+threshold for n = 40 and agreeing in sign — a **capacity-allocation** trade-off, and the first seed-level
+correlation this line has found. **And the qualifier it puts on the design principle is this**: "load-bearing"
+means the **read-out cannot carry the task**, not that the body is near its capacity, because the body still
+interpolates at 32 neurons — **the benchmark is over-parameterised at every read-out this section uses**, which
+is the same fact that produces the plateau: in a regime where every seed interpolates, the forgetting is a
+property of **which interpolant** the run lands in, and no trajectory-level quantity has purchase on that
+(`docs/findings/2026-09-24-the-benchmark-interpolates-its-training-data.md`). And the sweep validates itself: its read-out-32 plastic row is the hardened
 configuration's `naive` and comes out at **+0.0729 ± 0.0151**, reproducing `e8_hardened_basis` to the last
 printed digit (`docs/findings/2026-09-23-the-unbacked-cells-measured.md` §1).
 
