@@ -57,6 +57,15 @@ def load_arm(path: Path, method: str) -> dict | None:
         "bias_path": np.array([sum(b["step"] for b in r["bias_norms"]) for r in reps]),
         "bias_from_zero": np.array([r["bias_norms"][-1]["from_zero"] for r in reps]),
         "theta_drift": np.array([r["theta_drift"][-1] for r in reps]),
+        # The mechanism numbers. A forgetting that falls while neither channel's total displacement moves is a
+        # statement about *where* the adaptation went, and the two places to look are per task: the diagonal of
+        # the retention matrix (did the arm learn as well?) and the per-task movements of both channels. A mean
+        # forgetting over the first two tasks is silent about the last task's accuracy, which is where a penalty
+        # can pay for its retention -- so the final row of the matrix is recorded beside it.
+        "learned": np.array([r.get("learned", [np.nan] * 3) for r in reps], dtype=float),
+        "retention_final": np.array([r.get("retention", [[np.nan] * 3] * 3)[-1] for r in reps], dtype=float),
+        "bias_step_per_task": np.array([[b["step"] for b in r["bias_norms"]] for r in reps]),
+        "theta_drift_per_task": np.array([r["theta_drift"] for r in reps]),
         "accuracy": float(m["final_accuracy"]),
         "n": len(reps),
     }
@@ -65,8 +74,14 @@ def load_arm(path: Path, method: str) -> dict | None:
 def paired(a: np.ndarray, b: np.ndarray) -> dict:
     d = a - b
     sem = float(d.std(ddof=1) / math.sqrt(len(d))) if len(d) > 1 else float("nan")
+    # A zero difference with zero spread is zero sigma from zero, not 0/0: the arms that share task 0 by
+    # construction (C0a) produce exactly this, and printing `nan` there reads like a failed measurement.
+    if sem:
+        sigma = float(abs(d.mean()) / sem)
+    else:
+        sigma = 0.0 if float(d.mean()) == 0.0 else float("nan")
     return {"a": float(a.mean()), "b": float(b.mean()), "change": float(d.mean()), "sem": sem,
-            "sigma": float(abs(d.mean()) / sem) if sem else float("nan"), "n": len(d)}
+            "sigma": sigma, "n": len(d)}
 
 
 def monotone_decreasing(values: list[float]) -> bool:
@@ -182,6 +197,52 @@ def main(argv=None) -> int:
             continue
         per = a["per_task"].mean(axis=0)
         print(f"   {k:11} " + "  ".join(f"task {j} {per[j]:+.4f}" for j in range(len(per))))
+
+    print("\n== the mechanism: if the forgetting falls and neither channel's total displacement does, WHERE? ==")
+    print("   (a) did the arm learn as well?  the retention matrix's diagonal, per task:")
+    for k in ("unanchored", "scale_1.0", "scale_33.2"):
+        a = arms.get(k)
+        if a is None or not np.isfinite(a["learned"]).any():
+            continue
+        print(f"   {k:11} " + "  ".join(f"task {j} {a['learned'][:, j].mean():.4f}"
+                                        for j in range(a["learned"].shape[1])))
+        if k != "unanchored":
+            for j in range(a["learned"].shape[1]):
+                c = paired(a["learned"][:, j], arms["unanchored"]["learned"][:, j])
+                out.setdefault("mechanism", {}).setdefault("learned", {})[f"{k}_task_{j}"] = c
+                print(f"      minus unanchored, task {j}: {c['change']:+.4f} +/- {c['sem']:.4f} = "
+                      f"{c['sigma']:5.2f} sigma")
+    print("\n   (b) the same for the retention matrix's last row -- the task a penalty pays its retention from:")
+    for k in ("unanchored", "scale_1.0", "scale_33.2"):
+        a = arms.get(k)
+        if a is None or not np.isfinite(a["retention_final"]).any():
+            continue
+        print(f"   {k:11} " + "  ".join(f"task {j} {a['retention_final'][:, j].mean():.4f}"
+                                        for j in range(a["retention_final"].shape[1])))
+        if k != "unanchored":
+            for j in range(a["retention_final"].shape[1]):
+                c = paired(a["retention_final"][:, j], arms["unanchored"]["retention_final"][:, j])
+                out.setdefault("mechanism", {}).setdefault("retention_final", {})[f"{k}_task_{j}"] = c
+                print(f"      minus unanchored, task {j}: {c['change']:+.4f} +/- {c['sem']:.4f} = "
+                      f"{c['sigma']:5.2f} sigma")
+    print("\n   (c) the two channels' per-task movement, which is where a reallocation would show:")
+    for k in ("unanchored", "scale_1.0", "scale_33.2"):
+        a = arms.get(k)
+        if a is None:
+            continue
+        print(f"   {k:11} bias step " + " ".join(f"{x:.4f}" for x in a["bias_step_per_task"].mean(axis=0))
+              + "   theta drift " + " ".join(f"{x:.4f}" for x in a["theta_drift_per_task"].mean(axis=0)))
+        if k != "unanchored":
+            for j in range(a["bias_step_per_task"].shape[1]):
+                c = paired(a["bias_step_per_task"][:, j], arms["unanchored"]["bias_step_per_task"][:, j])
+                out.setdefault("mechanism", {}).setdefault("bias_step_per_task", {})[f"{k}_task_{j}"] = c
+                print(f"      bias step task {j}: {c['change']:+.4f} +/- {c['sem']:.4f} = {c['sigma']:5.2f} sigma")
+            for j in range(a["theta_drift_per_task"].shape[1]):
+                c = paired(a["theta_drift_per_task"][:, j], arms["unanchored"]["theta_drift_per_task"][:, j])
+                out.setdefault("mechanism", {}).setdefault("theta_drift_per_task", {})[f"{k}_task_{j}"] = c
+                print(f"      theta drift task {j}: {c['change']:+.4f} +/- {c['sem']:.4f} = {c['sigma']:5.2f} sigma")
+    print("\n   A learning difference on the LAST task does not enter the mean forgetting at all, because that")
+    print("   mean is over the first T-1 tasks -- so a last-task cost is a cost that the headline cannot show.")
 
     print("\nNOTE: one read-out (32), one lambda, one circuit, three tasks; the bias's share is read-out")
     print("      dependent (e134: 70/89/83% at read-outs 32/128/1307), so a result here is a result where the")
