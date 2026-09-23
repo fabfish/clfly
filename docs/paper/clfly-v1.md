@@ -1444,16 +1444,21 @@ why no shared rule was available and each line needed its own check.
 ## 9. Reproducibility
 
 Every number above is produced by a committed script, with the seed and configuration
-recorded in the corresponding `runs/*.json`:
+recorded in the corresponding `runs/*.json`. **Two rows of this table used to name the command
+behind a *superseded* number**, which is worse than naming none: a reader following them would
+have reproduced the value the section above had already corrected. Each row now names the
+artifact as well, so the command's output can be checked rather than assumed.
 
-| result | command |
-|---|---|
-| §4.1, §4.3 | `python -m experiments.e3_basis_selection --json-out runs/e3_analytic.json` |
-| §4.3 ladder | `python -m experiments.e3_basis_selection --ladder --no-realized --json-out runs/e3_ladder.json` |
-| §4.3 control-draw spread | `python -m experiments.e12_control_spread --min-size 1 --seeds 2 --draws 5` |
-| §4.2, §4.4 | `python -m experiments.e2_topology_gap --json-out runs/e2_analytic.json` |
-| §5 | `python -m experiments.e6_predictor --json-out runs/e6_predictor.json` |
-| §6 | `python -m clfly.lgcl.repro`, `pytest -q` |
+| result | command | artifact |
+|---|---|---|
+| §4.1, §4.3 | `python -m experiments.e3_basis_selection --json-out runs/e3_analytic.json` | `runs/e3_analytic.json` |
+| §4.3 ladder | `python -m experiments.e3_basis_selection --ladder --no-realized --json-out runs/e3_ladder.json` | `runs/e3_ladder.json` |
+| §4.3 draw sds, named rungs | `python -m experiments.e12_control_spread --column <rung> --min-size 1 --seeds 3 --draws 5 --json-out …`, as `e86` ran it for the two other circuits; the d = 1307 rungs come from `e67` (8 draws), `e17` and `e17b` (5 each) | `runs/e86_drawsd_*`, `runs/e67_drawsd_*`, `runs/e17*_*drawsd.json` |
+| §4.3 control-draw spread, **first** measurement | `python -m experiments.e12_control_spread --min-size 1 --seeds 2 --draws 5` — **no `--json-out`, so this command leaves no artifact.** It is the original 1.1e-3 measurement that §4.3 then refutes, and it stood here as if it backed the current figure | *(none)* |
+| §4.2, §4.4 | `python -m experiments.e2_topology_gap --json-out runs/e2_analytic.json` | `runs/e2_analytic.json` |
+| §5, **the corrected count** (three steps) | `python -m experiments.e6_predictor --seeds 6 --json-out runs/e64_predictor_6_perseed.json` → `python -m experiments.e64_predictor_per_seed` → `python -m experiments.e94_predictor_denominators` | `runs/e64_predictor_per_seed_analysis.json`, `runs/e94_predictor_denominators.json` |
+| §5, the **unpaired** σ this section supersedes | `python -m experiments.e6_predictor --json-out runs/e6_predictor.json` | `runs/e6_predictor.json` |
+| §6 | `python -m clfly.lgcl.repro`, `pytest -q` | — |
 
 The connectome data is not redistributed; `python -m clfly.connectome.fetch` clones it
 from its distributors and records the commit hashes.
