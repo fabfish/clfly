@@ -122,10 +122,15 @@ itself a step that should be done once, in code, and reviewed.
   declares **no `Artifacts:` line at all**, so whether a run existed and was overwritten, or was never run at
   that configuration, cannot be recovered. `e8c`'s artifact was reused at its own path; that is one mechanism
   and not the only one that produces this signature.
-- **No replacement is proposed for the seven unbacked cells.** The honest table says "no artifact", and filling
-  them is a new experiment rather than a correction: `--methods naive,ewc` at the two upper settings and
-  `--frozen-body` at the three read-out sizes, all of them minutes each, which is the cheapest repair available
-  in this project and the reason it should be run rather than argued about.
+- **No replacement was proposed for the seven unbacked cells, and six of them have since been measured.**
+  Filling them was a new experiment rather than a correction, which is why it was named as the cheapest
+  available repair and left to be run: `e104` ran it in eight executions of a few minutes each, and **the
+  control this document found absent turned out to be right** — the frozen accuracies reproduce to three
+  decimals and the plastic-minus-frozen gap is monotone, with one half of the printed series refuted (the
+  plastic forgetting does not rise monotonically from 1307 to 128) and one sign corrected (the whole-state gap
+  is −0.0111, not +0.007). So the finding's verdict on the *record* stands and its verdict on the *measurement*
+  does not: **an unbacked number is not thereby a wrong one, and the way to tell is to run it, which here cost
+  minutes** (`docs/findings/2026-09-23-the-unbacked-cells-measured.md`).
 - **The frozen-body series is not refuted, only unbacked.** The flag exists, the effect sizes printed are
   plausible and monotone, and the paper's principle may well be right — but the record contains no run that
   tests it, and the paper's *imperative* form ("must use a narrow read-out") is stronger than what the record
