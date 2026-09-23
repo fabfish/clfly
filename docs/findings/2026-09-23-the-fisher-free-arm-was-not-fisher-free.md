@@ -170,10 +170,11 @@ experiment spanning 0.799 to 0.896 in accuracy on the `naive` arm across `OMP_NU
 *stable*, so if it is the thread count it is a different setting or a second mechanism. The test is two runs
 and it is registered before its result:
 
-    OMP_NUM_THREADS=1 ... --fisher-batches 8 --json-out runs/e102_rate_fb8_omp1.json     # in flight
-    OMP_NUM_THREADS=4 ... --fisher-batches 8 --json-out runs/e102_rate_fb8_omp4.json     # in flight
+    OMP_NUM_THREADS=1 ... --fisher-batches 8 --json-out runs/e102_rate_fb8_omp{1,4}.json   # in flight
 
-(the remaining flags as in §1, `--repeats 5`). **If the values land on `e101`'s single-run vector, the variable
+(the remaining flags as in §1, `--repeats 5`; the brace names the two runs `_omp1` and `_omp4`, which is also how
+they are written so that a corpus scan does not read them as citations of files that do not exist yet.) **If the
+values land on `e101`'s single-run vector, the variable
 is the thread count and the previous fire's "different environment" was right about the kind of thing and wrong
 about which run; if they land on the majority vector** — the one two independent runs already agree on — **the
 thread count is not the carrier and the search continues.** Either answer narrows the same open question, and

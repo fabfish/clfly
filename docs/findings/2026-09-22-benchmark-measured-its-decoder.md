@@ -5,6 +5,17 @@
 **Artifacts:** `runs/e8_hardened.json`
 **Setup:** circuit `mb+cx+al@n1307`, 3 tasks, shared head, chance 0.25
 
+> **Correction (2026-09-23).** **The `--frozen-body` sweep this document is built on is in no artifact.** Not
+> one of the 204 files under `runs/` has `frozen_body: true`, a `frozen` arm, or a frozen-body result anywhere
+> in its payload — and the artifact declared above, `runs/e8_hardened.json`, has `naive`, `ewc` and `replay` and
+> no frozen row. So **§5's six-row table has three rows nothing backs**, and with them the two series the paper
+> quotes from it (+0.007 → +0.009 → +0.102 accuracy gap against +0.021 → +0.035 → +0.066 forgetting). This is
+> not a missing capability: this document *is* the commit that added `--frozen-body` (09-22 10:18), so the runs
+> were made in this fire and printed rather than saved. The diagnostic may well be sound — it is a measurement
+> that was never written down, which is why the paper's design principle now carries the qualifier that it is
+> asserted and not yet measured here
+> (`docs/findings/2026-09-23-the-frozen-body-control-is-in-no-artifact.md` §1).
+
 ---
 
 ## 1. What this fire set out to do

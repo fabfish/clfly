@@ -921,22 +921,39 @@ weights untouched: freezing them cost 0.007 accuracy and eliminated forgetting e
 A `--frozen-body` control exposes this. Narrowing the read-out makes the weights
 load-bearing, and the plastic-minus-frozen accuracy gap then tracks forgetting in a clean
 monotone way (+0.007 → +0.009 → **+0.102** accuracy gap against +0.021 → +0.035 →
-**+0.066** forgetting, as the read-out narrows from 1307 to 128 to 32 neurons).
+**+0.066** forgetting, as the read-out narrows from 1307 to 128 to 32 neurons). **And none of
+those six numbers is in an artifact**: not one of the 204 files under `runs/` has `frozen_body: true`, a
+`frozen` arm, or a frozen-body result anywhere in its payload, so the control this section's conclusion rests
+on — and the design principle §7 draws from it — has no measurement behind it in the record, though the flag
+has existed since `e8f` (09-22 10:18) and the runs were made in that fire and printed rather than saved
+(`docs/findings/2026-09-23-the-frozen-body-control-is-in-no-artifact.md` §1).
 
-**On the hardened configuration, diagonal EWC finally resolves** (5 replicates, λ=0.003):
+**On the hardened configuration, diagonal EWC finally resolves** (5 replicates, λ=0.003, 32 Fisher batches):
 
 | method | final accuracy | mean forgetting | vs naive |
 |---|---|---|---|
-| naive | 0.917 ± 0.022 | +0.066 ± 0.019 | — |
-| **EWC, diagonal** (λ=0.003, 8 Fisher batches) | 0.922 ± 0.010 | **+0.010 ± 0.010** | **−0.056 ± 0.021 (2.6σ)** |
-| EWC, block — biological | 0.915 ± 0.020 | +0.060 ± 0.020 | −0.013 ± 0.025 (0.5σ) |
-| EWC, block — matched random | 0.928 ± 0.009 | +0.044 ± 0.016 | −0.029 ± 0.022 (1.3σ) |
-| **replay** (pool 96, 8 per step) | **0.968 ± 0.013** | **−0.010 ± 0.006** | **−0.076 ± 0.018 (4.2σ)** |
+| naive | 0.9139 ± 0.0131 | **+0.0729 ± 0.0151** | — |
+| **EWC, diagonal** | 0.9222 ± 0.0147 | **+0.0208 ± 0.0147** | **−0.0521 ± 0.0211 (2.47σ)** |
+| EWC, block — biological | 0.9153 ± 0.0196 | +0.0604 ± 0.0201 | −0.0125 ± 0.025 (0.5σ) |
+| EWC, block — matched random | 0.9278 ± 0.0090 | +0.0438 ± 0.0156 | −0.0291 ± 0.022 (1.3σ) |
+| **replay** (pool 96, 8 per step) | **0.9681 ± 0.0078** | **−0.0125 ± 0.0039** | **−0.0854 ± 0.0129 (6.6σ)** |
+
+**And every cell of this table is now from one run or is named.** It previously printed `naive` = +0.066 ± 0.019
+beside a column headed "vs naive" whose four cells subtracted **two different baselines** — +0.0729 for the two
+block rows and +0.066 for the EWC and replay rows — so the column was not a column, and the `naive` row, the
+diagonal row and the replay row all matched no artifact, while the two block rows were correct
+(`docs/findings/2026-09-23-the-frozen-body-control-is-in-no-artifact.md` §3). The artifact-backed values are
+from `runs/e8_hardened_basis.json` (which reproduces on 280 of 280 fields, twice), `runs/e101_rate_fb32.json`
+and `runs/e61_replay96_step8.json`; the diagonal's **2.47σ** is the same figure §4.7 quotes — the two sections
+previously stated this one measurement as 2.6σ here and 2.47σ there, and only §4.7's came from a run.
+
+**And the `--frozen-body` control this section leans on is in no artifact either** — see below, and
+`docs/findings/2026-09-23-the-frozen-body-control-is-in-no-artifact.md` §1.
 
 This **overturns** three fires of "no Fisher-anchoring variant does anything, at any
 basis, λ, or batch count" — those were measured where nothing could resolve. It does not
 overturn the theory: LGCL makes EWC a 33%-lossy approximation, and on a benchmark where
-sequential training genuinely forgets (+0.066), an imperfect anchor still beats no anchor.
+sequential training genuinely forgets (+0.0729), an imperfect anchor still beats no anchor.
 The comparison is against naive, not against the Kalman oracle.
 
 **Replay is the strongest method, and its earlier apparent failure was a budget artefact.**
@@ -1000,27 +1017,48 @@ absolute numbers would hide the trade.
 **Both methods work once every hyperparameter is tuned — and replay is the stronger.** The
 last fire showed that *every* replay result in the project's history had been taken at 16
 stored stimuli per task, which merely ties naive, while EWC's λ had been swept. Re-running all
-three settings with **every method tuned**:
+three settings with **every method tuned**, and with each cell now required to come from an artifact:
 
-| setting | naive | EWC, diagonal | replay |
+| setting | `naive` | EWC, diagonal | `replay` |
 |---|---|---|---|
-| task-incremental (per-task heads) | +0.101 ± 0.049 | +0.128 ± 0.061 (**worse**) | **−0.004 ± 0.009 (−0.104, 6.32σ)** †|
-| class-incremental (shared head, whole state) | +0.059 ± 0.028 | +0.063 ± 0.010 (tie) | **+0.006 ± 0.015 (−0.063, 3.79σ)** †|
-| class-incremental, hardened (32-neuron read-out) | +0.066 ± 0.019 | **+0.010 ± 0.010 (−0.056, 2.6σ)** | **−0.010 ± 0.006 (−0.076, 4.2σ)** |
+| task-incremental (per-task heads) | +0.1000 ± 0.0212 | **no artifact** | **−0.0042 ± 0.0091 (−0.1042, 6.3σ)** |
+| class-incremental (shared head, whole state) | +0.0688 ± 0.0296 | **no artifact** | **+0.0063 ± 0.0150 (−0.0625, 3.8σ)** |
+| class-incremental, hardened (32-neuron read-out) | +0.0729 ± 0.0151 | **+0.0208 ± 0.0147 (−0.0521, 2.47σ)** | **−0.0125 ± 0.0039 (−0.0854, 6.6σ)** |
 
-*(mean forgetting; replay at pool 96 / per-step 8, EWC at λ = 0.003 / 8 Fisher batches.)*
+*(mean forgetting; the first two rows from `runs/e84_replay96_{task,class}IL_5reps.json`, the third from
+`runs/e61_replay96_step8.json`, `runs/e8_hardened_basis.json` and `runs/e101_rate_fb32.json`; EWC at
+λ = 0.003.)*
 
-**† The two upper rows are re-measurements, not restorations.** Both had **no artifact**, and the
-recreations' `naive` fingerprints **failed** — 0.8417 against `e10_rung_*`'s stored 0.8241 for task-IL,
-0.9194 against `e8_class_incremental`'s 0.9361 for class-IL — with large *mixed-sign* per-seed
-differences, which is the signature of a different training trajectory rather than a wrong parameter. The
-cause is the environment: these runs went out with `OMP_NUM_THREADS=3` and the originals' settings are
-recorded nowhere, so **a missing artifact cannot be restored across environments** (plan rule 21,
-`docs/findings/2026-09-23-the-missing-replay-arm-is-a-re-measurement.md`). What the re-measurements give,
-at five replicates: task-IL's contrast is **6.32σ** against the claimed 3.1σ with replay's own forgetting
-at **−0.004 ± 0.009**, and class-IL's is **3.79σ** against 2.2σ with **every one of the claim's four
-numbers inside the measured interval** — the closest reproduction in this paper, on the row whose
-configuration could not be pinned. Their *accuracy* contrasts are the cleanest numbers either arm has:
+**And this table is a correction, because six of its nine cells previously matched no artifact at all**
+(`docs/findings/2026-09-23-the-frozen-body-control-is-in-no-artifact.md`). Every cell was searched against every arm
+of all 204 artifacts under `runs/`, and **the three cells that resolved were all three `replay` cells** — which
+has a history rather than a cause: `e62` and `e84` re-measured the *replay* arm in all three settings, so
+`replay` acquired artifacts while the `naive` and EWC columns beside it were never re-measured, because no one
+was asking about them. Two of the four replacements are therefore **not** corrections but re-measurements' own
+numbers (the `naive` cells, whose sems move by 2.3× and 1.1×), and the two EWC cells in the first two rows are
+**left empty**, because no diagonal arm exists on disk for those settings at this λ — which means **"EWC does
+nothing where the body is not load-bearing" is established for one setting and merely asserted for the other
+two.** Two cells the previous summary rested on were the worst: the hardened row's EWC cell (+0.010 ± 0.010) is
+**below every one of the 17 diagonal arms on disk**, whose minimum is +0.0208, and its `naive` cell
+(+0.066 ± 0.019) is matched by no artifact, where seven artifacts of that configuration agree on
++0.0729 ± 0.0151. **So the sentence "replay beats EWC wherever both work — 4.2σ against 2.6σ on the hardened
+configuration" was computed against a `naive` no run contains**, and §1 already prints the same contrast
+correctly as **−0.0854 = 6.6σ** against `e61`'s own `naive`; the 4.2σ is `e62`'s pre-recreation figure, and the
+run launched to replace it was entered in §1 and not in this table.
+
+**† The two upper rows' source finding declares no `Artifacts:` line at all**
+(`2026-09-22-network-line-settled.md`), so whether a run existed and was overwritten, or was never run at that
+configuration, cannot be recovered from the corpus. Their recreations' `naive` fingerprints **failed** — 0.8417
+against `e10_rung_*`'s stored 0.8241 for task-IL, 0.9194 against `e8_class_incremental`'s 0.9361 for class-IL —
+with large *mixed-sign* per-seed differences, which is the signature of a different training trajectory rather
+than a wrong parameter. The cause is the environment: these runs went out with `OMP_NUM_THREADS=3` and the
+originals' settings are recorded nowhere, so **a missing artifact cannot be restored across environments** (plan
+rule 21, `docs/findings/2026-09-23-the-missing-replay-arm-is-a-re-measurement.md`). What the re-measurements
+give, at five replicates: task-IL's contrast is **6.32σ** for replay and class-IL's is **3.79σ** — against which
+the diagonal has no artifact to compare, so the two EWC cells above are empty rather than zero. The re-measured
+rows' own `naive` cells are +0.1000 ± 0.0212 and +0.0688 ± 0.0296, and the previously printed ones (+0.101 ±
+0.049 and +0.059 ± 0.028) came from three-replicate unhardened runs beside five-replicate replay contrasts.
+Their *accuracy* contrasts are the cleanest numbers either arm has:
 **+0.090 ± 0.008 (11.87σ)** and **+0.042 ± 0.009 (4.60σ)**, five of five replicates positive each.
 
 **Replay resolves in all three settings**, always with the best accuracy and always with forgetting
@@ -1153,13 +1191,18 @@ stronger penalty at fixed λ, so EWC walks into over-constraint* **holds in dire
 (`docs/findings/2026-09-23-the-fisher-batch-sweep-is-a-stitch-of-first-replicates.md`). The best configuration
 found is
 therefore both *weaker and coarser* than a careful practitioner would choose: λ = 0.003 with
-the Fisher estimated from 8 batches gives +0.010 ± 0.010 forgetting against naive's
-+0.066 ± 0.019, a **2.6σ** advantage. "Anchor gently, and do not estimate the curvature too
-carefully" is not a satisfying prescription, but it is what the measurements say.
+the Fisher estimated from 8 batches gives +0.0271 ± 0.0117 forgetting against naive's
++0.0729 ± 0.0151, a **2.40σ** advantage (`runs/e101_rate_fb8.json`; at 32 batches the same contrast is
++0.0208 against +0.0729 = 2.47σ, and the **+0.010 ± 0.010** this paragraph used to quote matches no artifact —
+`docs/findings/2026-09-23-the-frozen-body-control-is-in-no-artifact.md` §2). *"Anchor gently, and do not estimate the curvature too
+carefully"* is not a satisfying prescription, but it is what the measurements say.
 
 The general rule the project now applies:
 
 > Measure the plastic-minus-frozen accuracy gap before believing any forgetting difference.
+> **That rule is asserted here and not yet measured**: no artifact in this repository contains a
+> frozen-body result, so the diagnostic this line and §4.2 both rest on has never been applied in the
+> record (`docs/findings/2026-09-23-the-frozen-body-control-is-in-no-artifact.md` §1).
 > A benchmark whose frozen-body control matches its trained accuracy contains no
 > continual-learning problem, and every method comparison on it compares decoders.
 

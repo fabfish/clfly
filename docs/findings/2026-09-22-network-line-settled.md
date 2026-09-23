@@ -4,6 +4,18 @@
 **Script:** `experiments/e8_rate_network.py` (all settings, tuned hyperparameters)
 **Setup:** circuit `mb+cx+al@n1307`, 3 tasks, 3 replicates, chance 0.25, λ = 0.003, 8 Fisher batches, replay pool 96 / per-step 8
 
+> **Correction (2026-09-23).** This document declares **no artifact**, and a cell-by-cell search of `runs/`
+> shows why it should have: **six of §2's nine cells match no artifact at all.** Every cell was compared against
+> every arm of all 204 artifacts, and **the three that resolved are the three `replay` cells** — `e84`'s two
+> re-measurements and `e61_replay96_step8.json` — because the replay arm was re-measured three times while the
+> `naive` and EWC columns beside it never were. The hardened row is the worst: its EWC cell (**+0.010 ± 0.010**)
+> is below **every one of the 17 diagonal arms on disk**, whose minimum is +0.0208, and its `naive` cell
+> (**+0.066 ± 0.019**) is matched by no artifact while **seven** artifacts of that configuration agree on
+> **+0.0729 ± 0.0151**. **And this table's "vs naive" column subtracted two different baselines** — +0.0729 for
+> the two block rows and +0.066 for the EWC and replay rows — which is why the internal inconsistency is the
+> tell rather than any single cell. The artifact-backed table is in the paper's §4.2 and §4.4
+> (`docs/findings/2026-09-23-the-frozen-body-control-is-in-no-artifact.md`).
+
 ---
 
 ## 1. Why this run closes the question
