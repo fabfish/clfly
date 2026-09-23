@@ -164,9 +164,17 @@ partialled out of both ranks, which is the form that a concentration restatement
 Two by-products of the grid are already visible and are on the record as clauses **P5** (the absolute
 spread's cross-size behaviour is partly a level artefact: the pressure *level* rises 5.1–5.3× from
 d = 952 to d = 1307 while the target moves the other way) and the observation that on the grid at d = 952 —
-the size that failed above — the relative form's partial is **+0.736 (p = 0.024)** on ten cells, i.e. the
-failure does not so far reproduce once the partitions are matched. That number is **interim**: ten of
-twenty cells, `flat` only, so it is recorded here and *not* read as a verdict
+the size that failed above — the relative form's partial is **positive and robust to leave-one-cell-out**:
+at 12 of the 20 cells (+0.795, and dropping any single cell keeps it in **+0.723 to +0.915** with no sign
+flip; all three per-seed partials positive). So the failure does not so far reproduce once the partitions
+are matched.
+
+**And the *value* of that number is deliberately not quoted as a result, because it moved while this
+document was being written**: it was **+0.736** at ten cells and **+0.795** at twelve, two cells later. A
+grid that is still filling is a moving target, and a partially-built set is a *different set* rather than a
+noisier version of the final one — the same statement rule 17 makes about partial seeds, one level up in the
+aggregation. What is quotable before the grid finishes is the qualitative fact (positive, LOO-robust, no
+sign flip) and the cell count it was measured on; what is not quotable is the number
 (`docs/findings/2026-09-23-the-concentration-matched-grid-preregistered.md`).
 
 ## 6. Limits
