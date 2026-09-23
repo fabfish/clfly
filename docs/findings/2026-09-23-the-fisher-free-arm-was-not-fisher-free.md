@@ -159,3 +159,22 @@ is process-dependent, which is what the evidence actually said. The general form
 
 This is the same lesson as rule 24's and rule 25's, one level out again: the project keeps writing rules about
 what a *quantity* can be trusted to say, and this one is about what an *invariance* can be trusted to mean.
+
+## 5. The registered next step: name the variable
+
+Seven runs establish **that** `ewc-block`, `ewc-block-rand` and `replay` move run to run at fixed config
+(+0.021 at most) while `naive` and `ewc` do not. They say nothing about **which** environment variable carries
+it, and the one candidate the project has already measured is the thread count — `e96` found one nominal
+experiment spanning 0.799 to 0.896 in accuracy on the `naive` arm across `OMP_NUM_THREADS` 1, 3 and 4
+(`docs/findings/2026-09-23-the-fisher-batch-sweep-is-a-stitch-of-first-replicates.md` §6), where here `naive` is
+*stable*, so if it is the thread count it is a different setting or a second mechanism. The test is two runs
+and it is registered before its result:
+
+    OMP_NUM_THREADS=1 ... --fisher-batches 8 --json-out runs/e102_rate_fb8_omp1.json     # in flight
+    OMP_NUM_THREADS=4 ... --fisher-batches 8 --json-out runs/e102_rate_fb8_omp4.json     # in flight
+
+(the remaining flags as in §1, `--repeats 5`). **If the values land on `e101`'s single-run vector, the variable
+is the thread count and the previous fire's "different environment" was right about the kind of thing and wrong
+about which run; if they land on the majority vector** — the one two independent runs already agree on — **the
+thread count is not the carrier and the search continues.** Either answer narrows the same open question, and
+neither changes §2's per-arm result, which does not depend on the cause.
