@@ -54,7 +54,13 @@ INLINE_CONTRASTS = (
 )
 
 SCALAR_FIELDS = ("mean_forgetting", "forgetting_sem", "final_accuracy", "final_sem")
-ARRAY_FIELDS = ("learned", "forgetting_per_task", "final_per_task")
+#: Every array the runner writes per method, not a subset of them. It *was* a subset -- `theta_drift`,
+#: `bias_step`, `bias_from_zero` and `full_train_loss` were missing -- and the paper quotes three drift values
+#: (`2026-09-24`, the body's-motion table) that this listing therefore called **unmatched**: the numbers were in
+#: the artifacts all along, in a field the index did not read. One of the three located anyway, because a
+#: per-task entry happened to equal the mean, which is how a coverage gap looks like a coincidence.
+ARRAY_FIELDS = ("learned", "forgetting_per_task", "final_per_task", "theta_drift", "bias_step", "bias_from_zero",
+                "full_train_loss")
 
 
 def ascii_token(token: str) -> str:
@@ -295,29 +301,51 @@ def check_inline_contrasts(table: dict) -> list[dict]:
     return out
 
 
-def audit_table(table: dict, index: list) -> dict:
-    """Check 2's counts: how many printed numbers an artifact field contains, per row."""
+def audit_table(table: dict, index: list, aggregate_index: list | None = None) -> dict:
+    """Check 2's counts: how many printed numbers an artifact field contains, per row.
+
+    Three buckets rather than two, because "an artifact field holds this number" and "an artifact **averages**
+    to this number" are different claims and a number can be backed by either. ``aggregate_index`` is consulted
+    only for tokens the direct index misses, so nothing moves out of the first bucket.
+    """
     rows = []
     for lineno, cells in table["rows"]:
-        matched, unmatched = [], []
+        matched, aggregate, unmatched = [], [], []
         for cell in cells:
             for token in NUMBER.findall(cell):
                 hits = locate(index, token)
-                (matched if hits else unmatched).append(
-                    {"token": ascii_token(token), "hits": hits} if hits else {"token": ascii_token(token)})
-        rows.append({"line": lineno, "matched": len(matched), "unmatched": len(unmatched),
-                     "unmatched_tokens": sorted({m["token"] for m in unmatched})})
+                if hits:
+                    matched.append({"token": ascii_token(token), "hits": hits})
+                    continue
+                agg = locate(aggregate_index, token) if aggregate_index else []
+                (aggregate if agg else unmatched).append(
+                    {"token": ascii_token(token), "hits": agg} if agg
+                    else {"token": ascii_token(token)})
+        rows.append({"line": lineno, "matched": len(matched), "aggregate": len(aggregate),
+                     "unmatched": len(unmatched),
+                     "unmatched_tokens": sorted({m["token"] for m in unmatched}),
+                     "aggregate_tokens": sorted({m["token"] for m in aggregate})})
     data = rows[1:]
     n_match = sum(r["matched"] for r in data)
+    n_agg = sum(r["aggregate"] for r in data)
     n_unmatched = sum(r["unmatched"] for r in data)
     return {"start": table["start"], "end": table["end"], "header": table["header"],
-            "matched": n_match, "unmatched": n_unmatched, "rows": data,
-            "verdict": ("mixed" if n_match and n_unmatched else
-                        "all located" if n_match else "nothing located" if n_unmatched else "no numbers")}
+            "matched": n_match, "aggregate": n_agg, "unmatched": n_unmatched, "rows": data,
+            "verdict": ("mixed" if (n_match or n_agg) and n_unmatched else
+                        "all located" if n_match and n_agg == 0 else
+                        "all located or aggregated" if n_match or n_agg else
+                        "nothing located" if n_unmatched else "no numbers")}
 
 
-def corpus_index(artifacts: list[dict]) -> list[tuple[float, str, str]]:
-    """Every scalar an artifact records, as ``(value, field, source)``."""
+def corpus_index(artifacts: list[dict], aggregates: bool = False) -> list[tuple[float, str, str]]:
+    """Every scalar an artifact records, as ``(value, field, source)``.
+
+    ``aggregates`` adds one *derived* entry per array field: its mean. A table that prints an array's mean over
+    its elements -- as the body's-motion table does for `theta_drift`, 0.0195 against a stored
+    `[0.0197, 0.0187, 0.0201]` -- is backed by the artifact and by no *field*, so reading those as unmatched
+    understates how much of the corpus resolves. They are kept in a **separate index** rather than mixed in, so
+    that "located" and "located once you average" stay two different answers.
+    """
     index = []
     for a in artifacts:
         for method, entry in sorted((a["payload"].get("methods") or {}).items()):
@@ -328,9 +356,12 @@ def corpus_index(artifacts: list[dict]) -> list[tuple[float, str, str]]:
                 if isinstance(v, (int, float)):
                     index.append((float(v), field, f"{a['name']}:{method}"))
             for field in ARRAY_FIELDS:
-                for i, v in enumerate(entry.get(field) or []):
-                    if isinstance(v, (int, float)):
-                        index.append((float(v), f"{field}[{i}]", f"{a['name']}:{method}"))
+                values = [v for v in (entry.get(field) or []) if isinstance(v, (int, float))]
+                for i, v in enumerate(values):
+                    index.append((float(v), f"{field}[{i}]", f"{a['name']}:{method}"))
+                if aggregates and len(values) > 1:
+                    index.append((sum(values) / len(values), f"{field}[mean]",
+                                  f"{a['name']}:{method}"))
     return index
 
 
@@ -433,10 +464,14 @@ def main(argv=None) -> int:
 
     skip = tuple(s for s in args.skip.split(",") if s)
     index = corpus_index(load_artifacts(args.runs, skip=skip))
+    # The same index plus one derived entry per array field: its mean. Kept apart so that "an artifact field
+    # holds this number" and "an artifact averages to this number" are two answers rather than one -- and so
+    # that a table whose cells are element-means is not reported as unmatched.
+    agg_index = corpus_index(load_artifacts(args.runs, skip=skip), aggregates=True)
     tables = parse_tables(args.paper.read_text(encoding="utf-8"))
     closures = [(t, check_closure(t)) for t in tables]
     closures = [(t, c) for t, c in closures if c]
-    located = [audit_table(t, index) for t in tables]
+    located = [audit_table(t, index, agg_index) for t in tables]
 
     print("=" * 104)
     print("1. CONTRAST COLUMNS: does each close against the comparator its header names?")
@@ -496,19 +531,27 @@ def main(argv=None) -> int:
     print("   numbers resolve, which is the reading aid that keeps this section short; the JSON holds all.")
     print("=" * 104)
     interesting = [t for t in located
-                   if t["verdict"] == "mixed" and t["matched"] >= 3
-                   and t["matched"] / (t["matched"] + t["unmatched"]) >= 0.25]
-    for t in sorted(interesting, key=lambda t: -(t["matched"] / (t["matched"] + t["unmatched"]))):
-        share = t["matched"] / (t["matched"] + t["unmatched"])
-        print(f"\n   lines {t['start']}-{t['end']}  {t['matched']} located, {t['unmatched']} not"
-              f" ({share:.0%} located)   header: {' | '.join(t['header'])[:90]}")
+                   if t["verdict"] == "mixed" and t["matched"] + t["aggregate"] >= 3
+                   and (t["matched"] + t["aggregate"])
+                   / (t["matched"] + t["aggregate"] + t["unmatched"]) >= 0.25]
+    for t in sorted(interesting,
+                    key=lambda t: -((t["matched"] + t["aggregate"])
+                                    / (t["matched"] + t["aggregate"] + t["unmatched"]))):
+        share = (t["matched"] + t["aggregate"]) / (t["matched"] + t["aggregate"] + t["unmatched"])
+        print(f"\n   lines {t['start']}-{t['end']}  {t['matched']} located, {t['aggregate']} as an array's mean,"
+              f" {t['unmatched']} not ({share:.0%} resolved)   header: {' | '.join(t['header'])[:80]}")
         for r in t["rows"]:
+            if r["aggregate_tokens"]:
+                print(f"     line {r['line']:4}: only as a mean: {', '.join(r['aggregate_tokens'])[:80]}")
             if r["unmatched_tokens"]:
-                print(f"     line {r['line']:4}: {', '.join(r['unmatched_tokens'])[:100]}")
+                print(f"     line {r['line']:4}: unmatched: {', '.join(r['unmatched_tokens'])[:90]}")
     counts: dict[str, int] = {}
     for t in located:
         counts[t["verdict"]] = counts.get(t["verdict"], 0) + 1
+    n_agg = sum(t["aggregate"] for t in located)
     print(f"\n   verdicts over {len(located)} tables: {counts}")
+    print(f"   cells that resolve only as an array field's mean: {n_agg} "
+          f"(a derived entry, counted apart from a field that holds the number)")
     print(f"   tables listed above: {len(interesting)} of {counts.get('mixed', 0)} mixed")
 
     findings = None

@@ -281,6 +281,37 @@ def test_audit_table_counts_located_and_unlocated_per_row():
     assert got["rows"][1]["unmatched_tokens"] == ["+0.0271", "-0.0458"]
 
 
+def test_the_index_reads_every_array_the_runner_writes():
+    """`theta_drift` and friends were missing from the field list, which is why the paper's drift column
+    looked unmatched: the numbers were in the artifacts in a field the audit did not read."""
+    index = corpus_index([artifact("e107.json", {"naive": {"theta_drift": [0.0197, 0.0187, 0.0201]}})])
+    assert locate(index, "0.0187")
+    assert not locate(index, "0.0195")               # the mean over the array, which is not a field
+
+
+def test_a_cell_that_is_an_array_s_mean_resolves_as_an_aggregate_and_not_as_a_field():
+    arts = [artifact("e107.json", {"naive": {"theta_drift": [0.0197, 0.0187, 0.0201]}})]
+    index, agg = corpus_index(arts), corpus_index(arts, aggregates=True)
+    t = table(["read-out", "mean theta drift"], ["0 (whole, 1307)", "0.0195"])
+
+    got = audit_table(t, index, agg)["rows"][0]
+    assert (got["matched"], got["aggregate"], got["unmatched"]) == (0, 1, 0)
+    assert got["aggregate_tokens"] == ["0.0195"]
+    # and with the aggregate index left out it is unmatched, so the buckets are opt-in and a field match is
+    # never displaced by a looser one
+    plain = audit_table(t, index)["rows"][0]
+    assert (plain["matched"], plain["aggregate"], plain["unmatched"]) == (0, 0, 1)
+
+
+def test_a_field_holds_the_number_and_an_aggregate_only_equals_it():
+    """Both can be true, and the first answer is the one that stands: `matched` is consulted first."""
+    arts = [artifact("e107.json", {"naive": {"final_accuracy": 0.0195,
+                                             "theta_drift": [0.0195, 0.0195]}})]
+    index, agg = corpus_index(arts), corpus_index(arts, aggregates=True)
+    got = audit_table(table(["setting", "value"], ["read-out 0", "0.0195"]), index, agg)["rows"][0]
+    assert (got["matched"], got["aggregate"]) == (1, 0)
+
+
 # --- two shapes that made the corpus check cry wolf --------------------------------------------------
 
 def test_a_blocked_table_is_checked_against_the_comparator_in_its_own_block():
