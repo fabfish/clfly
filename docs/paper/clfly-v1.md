@@ -851,7 +851,12 @@ below, which is why they are reported with their gaps and their sems rather than
 **No Fisher-anchoring variant resolves a benefit over the naive baseline at λ ≥ 0.01**, the range swept, or
 at any Fisher batch count tried among **8 and 32** — *a 128-batch count is stated elsewhere in this
 section and in §8 and appears in no artifact at all, and the same correction applies at both places*
-(`docs/findings/2026-09-23-the-fisher-batch-sweep-is-a-stitch-of-first-replicates.md`). **The λ = 0.003
+(`docs/findings/2026-09-23-the-fisher-batch-sweep-is-a-stitch-of-first-replicates.md`). **And at λ = 0.003 the biological block itself resolves an advantage the sentence above does not
+mention**: with 128 Fisher batches it forgets **+0.0104 ± 0.0132 against `naive`'s +0.0729 ± 0.0151
+(−3.12σ)** at **0.950 accuracy against 0.914**, the best any Fisher variant reaches anywhere in this
+paper, and 8 batches gives −2.48σ the same way. That is not the claim above overturned — the λ and
+the batch count both differ — but it is a positive transfer result this section did not carry
+(`docs/findings/2026-09-23-the-batch-count-discriminator.md`). **The λ = 0.003
 configuration below is the exception, and it is configuration-specific**: at cs = 800 the diagonal beats `naive` on
 forgetting by **+0.0521 ± 0.0211 = 2.47σ** (`e8_hardened_basis`, 5 replicates), **at cs = 300 the same
 contrast is +0.0104 ± 0.0421 = 0.25σ**, and **at 2 classes it is

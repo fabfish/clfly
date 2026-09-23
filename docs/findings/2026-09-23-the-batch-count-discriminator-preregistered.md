@@ -80,3 +80,31 @@ isolates its mechanism.
   strength — a different prior, or a shrinkage estimator — and that is not a knob this benchmark has.
 - **Five replicates give a sem near 0.02 against a per-repeat sd of 0.019–0.084**, so the resolvable
   difference between two gaps is about 0.06. A P1 that holds by 0.03 will be a direction and not a result.
+
+---
+
+## 4. Outcome, against the clauses as written
+
+**P2 half holds and the failing half is the informative one.** `naive` is **identical to six decimals** at 8,
+32 and 128 batches, so the forgetting level is provably fixed as the design requires. **`replay` is not
+identical**: +0.0333 in both new runs and **+0.0500 at the old 32-batch point** — and `replay` consults no
+Fisher matrix, so that difference means the 32-batch run came from a **different environment**. **Only the
+8-versus-128 pair is therefore fully controlled**, and everything is read on that pair.
+
+**P1 is refuted and the falsifier fires in its strongest form.** The block-minus-matched-random gap does not
+shrink monotonically; within the controlled pair it is **negative at both ends** (−0.0354 at 8, −0.0167 at
+128 — the block *beats* its control), with the flagged middle point the only positive one. **A gap whose sign
+is not stable across the axis is not a monotone function of estimation quality.**
+
+**P3 held, and the diagonal turned out flat across the sweep** (+0.0271, +0.0208, +0.0250) rather than rising
+as it did at λ = 0.1, so block-minus-diagonal tracks block-minus-random here instead of being distorted.
+
+**Two further results, neither predicted**: the biological block **beats `naive` by 2.48σ at 8 batches and
+3.12σ at 128**, and at 128 it is the **best arm in the table on both metrics** (forgetting +0.0104 against
+`naive`'s +0.0729; accuracy 0.950 against 0.914) — a positive transfer result §4.7 does not carry; and
+`naive` − diagonal is the **most stable contrast in the network line** (+0.0458, +0.0521, +0.0479, all
+2.3–2.5σ) *because* its comparator is the bit-identical arm.
+
+**The account is therefore refuted on its own axis, and `e99`/`e100`'s two reductions are re-read as
+coincidences of configuration rather than confirmations.** Full reading:
+`docs/findings/2026-09-23-the-batch-count-discriminator.md`.
