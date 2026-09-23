@@ -1,59 +1,28 @@
-# E100 — the reversed-ordering question with a lower-rank task family, pre-registered
-
-**Date:** 2026-09-23
-**Script:** `experiments/e8_rate_network.py`, `e8_hardened_basis`'s configuration with `--classes 2` as the ONLY
-change; artifact `runs/e100_rate_cs800_classes2.json` (in flight).
-**Context:** `docs/findings/2026-09-23-the-reversed-ordering-question-at-a-smaller-circuit.md` (`e99`, the
-smaller-circuit route, which moved the gap **58%** in the predicted direction and resolved nothing); the plan's
-§8 item 2, which names **two** routes — *"a smaller circuit, or a lower-rank task family"* — and this is the
-second.
 
 ---
 
-## 1. Why the second route is a different mechanism, not a repeat
+## 4. Outcome, against the clauses as written
 
-`e99` changed the **circuit**, so the block Fisher had **fewer entries to estimate** from the same 32 batches
-(d = 952 against d = 1307). `e100` changes the **task family**: `--classes 2` makes each task a 2-way
-discrimination where the configuration has been 4-way, so the readout's discriminating rank per task falls
-from 3 to 1 and the family's covariances concentrate into fewer directions.
+**All four predictions hold and the falsifier did not fire.** Block minus matched random is **+0.0042**
+(0.27 sigma, same direction as the other two configurations); **block minus diagonal falls from +0.0396 to
++0.0021, a 95% reduction**, against the circuit route's 58%; and it is 0.14 sigma, so nothing resolves.
+**P4, the discriminator, holds: both routes shrink the gap, by 58% and by 95%, via two different
+mechanisms** with the circuit, partition, entry count and batch count held fixed in one of them. So the
+estimation-noise account now has **two independent confirmations in direction**, and the ordering is the
+one it wants: largest gap where the estimation problem is hardest, smaller where the estimate is cheaper,
+nearly zero where the target is simplest.
 
-**The circuit, the partition, the number of block entries and the number of Fisher batches are all unchanged.**
-So this route tests the account by making the *target* lower-rank rather than by making the *estimate* cheaper,
-and the two mechanisms can come apart — which is the reason to run both rather than one.
+**And the run produced a third result**: `naive` minus diagonal is **+0.0521 at 2.47 sigma** in the baseline
+configuration, **+0.0104 at 0.25 sigma** at cs = 300 and **-0.0063 at 0.46 sigma** at 2 classes, so section
+4.7's "2.6 sigma advantage" over naive at lambda = 0.003 is real in **one of three** configurations and the
+paper states it as if it were the lambda = 0.003 result. Full reading:
+`docs/findings/2026-09-23-the-lower-rank-task-family.md`.
 
-**Why the same prediction nonetheless.** The biological block is **worse** than the diagonal by +0.0396 at
-cs = 800 (five replicates, 32 Fisher batches). The account says the block's penalty is the *estimation noise in
-its off-diagonal blocks*: it has `Σ s_g²` entries to fill from the same 256 observations the diagonal fills
-26,568 from. A lower-rank task family puts less of the penalty's own mass in those off-diagonals, so the noise
-that hurts should hurt less, and the block should move **toward** the diagonal it refines.
+**The strongest competing explanation, recorded because nothing here addresses it:** `--classes 2` also
+makes the benchmark **easier** (naive's forgetting falls +0.0729 to +0.0167 and every arm's accuracy rises
+to ~0.97), so "an easier benchmark compresses all the gaps" predicts exactly what was observed.
 
-## 2. Predictions, written before the run
-
-- **P1 — the negative replicates.** The biological block does not beat its matched random control, in the same
-  direction as at 4 classes (+0.0167 there).
-- **P2 — the gap shrinks again.** Block-minus-diagonal forgetting is **smaller in magnitude** than cs = 800's
-  **+0.0396**.
-- **P3 — and it is still unresolved**, for the reason `e99`'s P3 gave: the `naive` per-repeat sd is 0.048, so a
-  0.04 gap is within one replicate's spread however many are averaged, and five replicates give a sem near
-  0.02.
-- **P4 — the discriminator, and the reason to run this at all.** If the estimation-noise account is right,
-  **both** routes shrink the gap (two mechanisms, one prediction). If instead **one shrinks and one grows**,
-  the account is incomplete and the gap is driven by something the two routes do not share — which is a
-  *negative* result about the account that a single route could not have produced.
-
-**Falsifier.** The block-minus-diagonal gap is **larger** in magnitude than +0.0396 at 2 classes. That reading
-would say a lower-rank task family makes the block *worse*, which with `e99`'s result would be the
-"one shrinks and one grows" case of P4 — and would mean the estimation-noise account explains the circuit-size
-dependence without explaining the task-rank one.
-
-## 3. What this cannot settle, and one asymmetry to expect
-
-**One change is one point.** `--classes 2` also changes the *task difficulty* — a 2-way problem is easier, so
-every arm's accuracy rises and its forgetting may fall — which is a confound this run does not remove. The
-comparison that survives it is the **contrast** between arms, because all five arms see the same suite; but an
-"easier benchmark" reading of any gap change cannot be excluded from one configuration.
-
-**And a second asymmetry**: the matched-random control is a relabelling of the same partition, so it changes
-with the block and not with the classes. So the block-minus-random contrast is the one this design protects
-best, and the block-minus-diagonal contrast is the one carrying the mechanism. **Both are reported, and P2 is
-gated on the latter while P1 is gated on the former**, which is why they are separate clauses rather than one.
+> **A note on the tool: `pathlib.write_text` on this machine defaults to GBK, and the sigma symbol is not
+> in it.** That is how this appendix first failed to write. Every doc-editing script in this repository
+> should pass `encoding="utf-8"` explicitly; one that does not will succeed for a while and then fail on
+> the first document containing a character outside the local code page.

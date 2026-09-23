@@ -843,9 +843,12 @@ three independent runs. Whole experiment: minutes on CPU.
 at any Fisher batch count tried among **8 and 32** — *a 128-batch count is stated elsewhere in this
 section and in §8 and appears in no artifact at all, and the same correction applies at both places*
 (`docs/findings/2026-09-23-the-fisher-batch-sweep-is-a-stitch-of-first-replicates.md`). **The λ = 0.003
-configuration below is the exception, and it is size-dependent**: at cs = 800 the diagonal beats `naive` on
-forgetting by **+0.0521 ± 0.0211 = 2.47σ** (`e8_hardened_basis`, 5 replicates), and **at cs = 300 the same
-contrast is +0.0104 ± 0.0421 = 0.25σ** — gone (`e99`). So the one Fisher variant that helps at one circuit
+configuration below is the exception, and it is configuration-specific**: at cs = 800 the diagonal beats `naive` on
+forgetting by **+0.0521 ± 0.0211 = 2.47σ** (`e8_hardened_basis`, 5 replicates), **at cs = 300 the same
+contrast is +0.0104 ± 0.0421 = 0.25σ**, and **at 2 classes it is
+−0.0063 ± 0.0136, the diagonal *worse*** — so the advantage is present in **one of the three
+configurations measured**, and `e99` and `e100` between them show it is neither a size effect nor a
+task-rank effect but a property of the one configuration the table above uses. So the one Fisher variant that helps at one circuit
 size stops helping at a smaller one, which makes the diagonal's benefit a property of *this benchmark at this
 size* rather than of the benchmark. **Replay** is the method whose standing survives both sizes: best on
 **both** metrics at cs = 300 (0.9389 accuracy and +0.0458 forgetting against `naive`'s 0.9028 and +0.0875)
@@ -1515,9 +1518,15 @@ why no shared rule was available and each line needed its own check.
    block-minus-diagonal gap **falls 58%** (+0.0396 → +0.0167, the direction the estimation-quality account
    predicts), and it is **still 0.39σ**, so the question is answered in *direction* and unresolved in
    *size*. The falsifier — the gap larger at cs = 300 — did not fire, which is the first evidence this
-   project has *for* the account rather than against it.** What remains is the item's other route, **the
-   lower-rank task family**, which changes the suite rather than the substrate and is therefore cheaper
-   than a third circuit size
+   project has *for* the account rather than against it.** **And `e100` has now run the item's *other* route too, the lower-rank task
+   family (`--classes 2`, the circuit and partition unchanged), where the block-minus-diagonal gap
+   falls to +0.0021, a 95% reduction against the circuit route's 58%.** So the estimation-noise
+   account has **two independent confirmations in direction**, through mechanisms that could have come
+   apart and did not, and the gap orders as the account wants across all three configurations (largest
+   where the estimation problem is hardest, nearly zero where the target is simplest). **What remains
+   is nothing this item can name**: all three gaps are unresolved (1.59, 0.39 and 0.14 sigma), three
+   configurations are three points, and `--classes 2` makes the benchmark easier, which would compress
+   every gap and is not excluded by anything measured
    (`docs/findings/2026-09-23-the-reversed-ordering-question-at-a-smaller-circuit.md`).
 3. **More tasks.** The interference prior (§4.6) rests on ten pairs from five tasks, and the
    network benchmark on three. Both would gain more from more tasks than from more seeds.
