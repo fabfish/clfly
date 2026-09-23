@@ -1330,6 +1330,26 @@ property of **which interpolant** the run lands in, and no trajectory-level quan
 configuration's `naive` and comes out at **+0.0729 ± 0.0151**, reproducing `e8_hardened_basis` to the last
 printed digit (`docs/findings/2026-09-23-the-unbacked-cells-measured.md` §1).
 
+**"Which interpolant" is the right frame, because the interpolants are connected.** Taking two seeds' checkpoints
+and interpolating the whole solution — the recurrent weights, the recurrent bias and the decoder together —
+along a 21-point chord, on the checkpoint after the first task, where nothing has been retained yet: the
+endpoints are **0.00172** and **0.00182** (the two seeds' own recorded full-train-set loss on the task they had
+just fitted, agreeing to 5%) and the loss rises smoothly and symmetrically to a single interior maximum of
+**0.05399** at the midpoint. That is **a factor of 30 above the worse endpoint** — so there *is* a barrier and
+the path is not monotone — **and 3.9% of the chance level `ln 4 = 1.386`**, so the path never comes within a
+factor of **26** of a solution that has learned nothing. **A multi-basin landscape would require crossing a ridge
+at the scale of a bad solution; this path does not cross one**, so the two seeds land in one connected set and
+the seed is choosing a *point* rather than a *basin*. The just-trained task behaves the same way at the final
+checkpoint (**0.00118 → 0.04394, ×35, 3.2% of chance**), while the retained tasks do not: they differ between
+the seeds by 1.8× and 3.4× on their own and their chords are dominated by that difference rather than by
+geometry. **And the solutions are connected as wholes but not interchangeable as parts** — holding one seed's
+decoder fixed, the other's body rises monotonically by a **factor of 136** on the final task, so the body and
+its decoder are jointly determined and neither transfers alone. **Which is the interpolant story with ratios**:
+the seeds agree to 5% on the task in front of them and disagree by 1.8× and 3.4× on what they kept, a
+retained-*loss* statement this section did not previously have. The instrument is not pre-registered, is one
+seed pair, and is quoted with its raw curves rather than its verdict alone
+(`docs/findings/2026-09-24-the-seeds-solutions-are-connected.md`).
+
 **On the hardened configuration, diagonal EWC finally resolves** (5 replicates, λ=0.003, 32 Fisher batches):
 
 | method | final accuracy | mean forgetting | vs naive |
@@ -2046,6 +2066,15 @@ why no shared rule was available and each line needed its own check.
 4. **A spiking or rate-network substrate at circuit scale with more than three behaviours**,
    which is what the frozen-body lesson says a *hard* connectome-constrained benchmark needs:
    tasks that genuinely compete for the same plastic weights.
+5. **Report retention in loss as well as in accuracy, and measure what it buys.** The runner now records
+   `retention_loss[k][j]`, the full-train-set loss on task *j* at checkpoint *k*, which is how `e122`'s chords
+   are validated. It is a continuous quantity where the reported metric is not, and §4.7's binding limit is in
+   part that metric's granularity (1/240, `e118`); so it is a candidate replacement for the forgetting this
+   paper reports, **not a demonstrated one** — two seeds point the other way at n = 2. The test is the
+   configuration whose per-repeat sd is known (read-out 128 and 300, 40 replicates, a tenfold test set), with
+   the per-repeat sd of the loss-valued and accuracy-valued forgetting compared against a pre-registered band.
+   If it holds, every result in §4.2 gets a cheaper error bar and the "thirty times noisier" handicap is a
+   property of a choice rather than of the substrate.
 
 ## 9. Reproducibility
 

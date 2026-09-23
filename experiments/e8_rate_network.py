@@ -160,6 +160,31 @@ def environment() -> dict:
     }
 
 
+def full_split_loss(model, readout, task, shared: bool = False, split: str = "train") -> float:
+    """Mean cross-entropy over a whole split, at the current weights.
+
+    The honest counterpart of the minibatch loss the training loop returns: **the last step's loss on 32 of the
+    task's 96 training samples is a sample, and whether it represents the task is a question rather than an
+    assumption.** Measured at read-out 128, the full training-set loss at the end of a task is **0.00179 /
+    0.00141 / 0.00124** across three replicates while the last minibatch's is **0.00158** — a ratio of about
+    1.1 — so at this configuration the minibatch *is* representative and a claim about what the model has
+    fitted can be read off it. That is the second instrument behind `e121`'s interpolation result.
+
+    (This note said the full-set loss was "0.077–0.159 ... a factor of 49 to 101" higher, which was `e122`'s
+    first run printing a *zero-bias* body — the recurrent bias is trained but was not among the saved
+    parameters, so the chord was evaluating a configuration the benchmark never produces. The correction is what
+    `e122`'s endpoint control now checks automatically: the chord's ends must reproduce these numbers exactly.)
+    """
+    import torch
+
+    U = torch.from_numpy(getattr(task, f"u_{split}")).float()
+    Y = torch.from_numpy(getattr(task, f"y_{split}")).long()
+    with torch.no_grad():
+        traj = model(U, None)
+        logits = _logits(readout, traj[:, -1, :][:, task.readout_neurons], task, shared)
+        return float(torch.nn.functional.cross_entropy(logits, Y).item())
+
+
 def relative_drift(before: np.ndarray, after: np.ndarray) -> float:
     """``||after - before|| / ||before||`` -- how far a weight vector moved, in units of its own size.
 
@@ -393,9 +418,13 @@ def run_method(conn_net, suite, method: str, args, seed: int,
     replay: list = []
     T = len(suite)
     R = np.full((T, T), np.nan)
+    L = np.full((T, T), np.nan)                            # the retention matrix in LOSS, not accuracy
     losses = []
     drifts = []                                            # ||theta after - before|| / ||before|| per task
+    full_train_losses = []                                 # mean loss over the task's whole train split
+    decoder_states = []                                    # the decoders after each task
     thetas = []                                            # the body after each task, for the interference terms
+    biases = []                                             # the body's recurrent bias after each task (see save block)
 
     theta_initial = model.theta.detach().cpu().numpy().copy()
 
@@ -417,9 +446,25 @@ def run_method(conn_net, suite, method: str, args, seed: int,
             replay_batch=args.replay_batch,
             frozen_body=args.frozen_body))
         drifts.append(relative_drift(theta_before, model.theta.detach().cpu().numpy()))
+        full_train_losses.append(full_split_loss(
+            model, heads[0] if shared else heads[k], task, shared, "train"))
         thetas.append(model.theta.detach().cpu().numpy().copy())
+        biases.append(model.bias.detach().cpu().numpy().copy())
+        # The decoders after this task, not only at the end: a chord through a mid-run body needs the decoder
+        # that was in place then. Pairing a body from after task 0 with the head from after task 2 is not a
+        # configuration the benchmark ever produces, and `e122`'s first version did exactly that.
+        decoder_states.append([{q: getattr(h, q).detach().cpu().numpy().copy()
+                                for q in ("weight", "bias")} for h in heads])
         for j in range(k + 1):
-            R[k, j] = evaluate(model, heads[0] if shared else heads[j], suite[j], shared)
+            readout_j = heads[0] if shared else heads[j]
+            R[k, j] = evaluate(model, readout_j, suite[j], shared)
+            # The same retention matrix in loss. `e122`'s geometry needs it: the loss along a chord through
+            # checkpoint k has to be comparable to *something the runner recorded at checkpoint k*, and
+            # `full_train_loss[j]` is recorded at checkpoint j -- a different body for every j < T-1. This is
+            # the diagonal-and-below counterpart, so the chord's t = 0 endpoint is checkable on every task
+            # rather than only on the last one. It is also the first loss-valued retention record in this
+            # project; every retention figure before it is an accuracy.
+            L[k, j] = full_split_loss(model, readout_j, suite[j], shared, "train")
 
         if method == "ewc":
             f = diagonal_fisher(model, heads[0] if shared else heads[k], task,
@@ -485,6 +530,28 @@ def run_method(conn_net, suite, method: str, args, seed: int,
                    for e in (1e-3, 1e-2)},
             },
         })
+    # The bodies, on request, so that the *geometry* can be asked about rather than only the trajectory. Every
+    # seed starts from the same connectome-initialised body, so a pair of endpoints is a chord through the
+    # landscape, and the loss along it says whether the solutions are connected. `runs/` is gitignored and
+    # `*.npz` with it, so this writes nothing into the repository.
+    #
+    # The *whole* body has to be saved, and that is `theta` **and the recurrent bias**: `train_task` optimises
+    # `[model.theta, model.bias]`, so a chord evaluated from `theta` alone sits on top of a zero bias -- a
+    # configuration the benchmark never produces. `e122`'s first version did exactly that and reported endpoint
+    # losses of ~0.105 where the benchmark's own full-train-set loss is 0.0017, a factor of sixty, on the same
+    # body: the instrument was measuring an untrained network's bias. Second time in one fire that a mid-run
+    # quantity was paired with a final one; the rule is to save every input the forward pass reads.
+    save_dir = getattr(args, "save_theta", None)
+    if save_dir:
+        save_dir = Path(save_dir)
+        save_dir.mkdir(parents=True, exist_ok=True)
+        np.savez_compressed(save_dir / f"{method}_seed{seed}.npz",
+                            theta_initial=theta_initial,
+                            **{f"after_task_{k}": thetas[k] for k in range(T)},
+                            **{f"bias_after_task_{k}": biases[k] for k in range(T)},
+                            **{f"head_{i}_{p}_after_task_{k}": decoder_states[k][i][p]
+                               for k in range(T) for i in range(len(heads)) for p in ("weight", "bias")})
+
     # The last task cannot be forgotten yet, so it is excluded from the mean; it is
     # reported separately as "how well did it end up learning the final task".
     return {
@@ -496,7 +563,9 @@ def run_method(conn_net, suite, method: str, args, seed: int,
         "learned": [float(R[j, j]) for j in range(T)],
         "final_per_task": [float(x) for x in final],
         "losses": losses,
+        "retention_loss": L.tolist(),
         "theta_drift": drifts,
+        "full_train_loss": full_train_losses,
         "interference": interference,
     }
 
@@ -559,6 +628,11 @@ def main(argv=None) -> int:
                    help="split the merged sub-threshold labels over B groups instead of "
                         "one; bounds the block Fisher's storage, which is sum_g s_g^2 and "
                         "is otherwise dominated by a single (pooled x pooled) block")
+    p.add_argument("--save-theta", type=Path, default=None,
+                   help="write each replicate's body — the initial one and the one after each task — as a "
+                        "compressed .npz into this directory. Every seed starts from the same "
+                        "connectome-initialised body, so a pair of endpoints is a chord through the loss "
+                        "landscape; `runs/` and `*.npz` are gitignored, so this leaves nothing in the repository")
     p.add_argument("--repeats", type=int, default=1,
                    help="independent training runs per method, for a standard error")
     p.add_argument("--json-out", type=Path, default=None)
@@ -641,6 +715,8 @@ def main(argv=None) -> int:
             "forgetting_per_task": [float(x) for x in
                                     np.mean([r["forgetting_per_task"] for r in reps], axis=0)],
             "theta_drift": [float(x) for x in np.mean([r["theta_drift"] for r in reps], axis=0)],
+            "full_train_loss": [float(x) for x in np.mean([r["full_train_loss"] for r in reps], axis=0)],
+            "retention_loss": np.nanmean([r["retention_loss"] for r in reps], axis=0).tolist(),
             "interference": [{
                 "task": j,
                 "cumulative_first_order": float(np.mean(
@@ -667,6 +743,10 @@ def main(argv=None) -> int:
         print(f"    learned (diagonal):  {['%.3f' % x for x in agg['learned']]}")
         print(f"    forgetting per task: {['%+.3f' % x for x in agg['forgetting_per_task']]}")
         print(f"    theta drift per task: {['%.3f' % x for x in agg['theta_drift']]}")
+        print(f"    full train loss per task: {['%.5f' % x for x in agg['full_train_loss']]}")
+        rl = np.array(agg["retention_loss"])
+        print(f"    retention loss (row=checkpoint, lower triangle): "
+              f"{[[None if np.isnan(v) else round(v, 5) for v in row] for row in rl]}")
         if agg["interference"]:
             print(f"    interference per task (cumulative): "
                   f"{['%+.2e (cos %+.3f)' % (i['cumulative_first_order'], i['cumulative_cosine']) for i in agg['interference']]}")
