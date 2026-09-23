@@ -1,4 +1,4 @@
-# `e134`: the bias effect is not a read-out-32 artefact — and the registered ordering was in the wrong unit
+# `e134`: the bias effect is not a read-out-32 artefact — it is present at all three read-outs, and both registered predictions were in the wrong unit
 
 **Date:** 2026-09-24
 **Script:** `experiments/e134_frozenbias_readouts.py` (new); artifact `runs/e134_readouts.json`.
@@ -11,16 +11,20 @@ read-out, and it is the one chosen for the opposite reason"* as the first limita
 
 ---
 
-## 1. The result, and the registered ordering fails on its first two terms
+## 1. The result at three read-outs, and both registered predictions fail
 
 | read-out | plastic | frozen-bias | **absolute** difference | σ | fraction removed | per-repeat sd plastic → frozen | relative sd plastic → frozen |
 |---|---|---|---|---|---|---|---|
 | **32** | 0.0750 | 0.0227 | **−0.0523** | 5.90 | **70%** | 0.0556 → 0.0207 | 74% → 91% |
 | **128** | 0.0370 | 0.0039 | **−0.0331** | **6.40** | **89%** | 0.0325 → 0.0107 | 88% → **275%** |
+| **1307** | 0.0357 | 0.0060 | **−0.0297** | **4.14** | **83%** | 0.0423 → 0.0097 | 119% → 162% |
 
-**P1 was registered as an ordering of the *fraction* removed — 32 > 128 > 1307 — and it fails on its first two
-terms: read-out 128 loses 89% of its forgetting against read-out 32's 70%.** The **absolute** differences order the
-other way, **0.0523 > 0.0331**, which is the ordering the load-bearing gap has (+0.1000 at 32, +0.0167 at 128).
+**P1 was registered as an ordering of the *fraction* removed — 32 > 128 > 1307 — and it fails on all three
+terms: the fractions are 89% (128), 83% (1307), 70% (32).** The **absolute** differences order exactly the other
+way — **0.0523 > 0.0331 > 0.0297** — which is the ordering the load-bearing gap has (**+0.1000 at 32, +0.0167 at
+128, −0.0111 at 1307**). **And P2 fails too**: it predicted that the effect would be *unresolved* at read-out 1307,
+where the body is not load-bearing at all, and it is resolved at **4.14σ**, with **83%** of that read-out's (small)
+forgetting in the same channel.
 
 **So the registered question and the registered form disagreed, and the form was the one that was wrong.** The
 comparators' levels differ by a factor of **2.0** (0.0750 against 0.0370) while the effects differ by **1.6×**, so
@@ -83,9 +87,15 @@ why all three cases occurred here rather than elsewhere.
 
 ## 6. What this does not cover
 
-- **Read-out 1307 is not measured here** and is not claimed: the arm is running and its own section will follow.
-  The pre-registration's third term (the ordering's far end) is therefore open, and what §1 established is the
-  failure of the first two terms.
+- **The pre-registration's own question is answered in one unit and refused in the other.** Its *question* — does
+  the effect track how much the body carries — is answered **yes** by the absolute differences (**32 > 128 >
+  1307**, the gap's ordering) and **no** by the fractions (**128 > 1307 > 32**). **P1 and P2 both fail, and the
+  registered form was the wrong one**, which is the third instance of that error this session and the reason rule
+  35 was extended.
+- **And the surprise is that the channel matters at *every* read-out**, including the whole state where the plastic
+  weights are not load-bearing at all: 83% of read-out 1307's forgetting is in the offsets, at 4.14σ. So the
+  prediction that a channel with nothing to carry would carry nothing is **wrong** — it carries most of what there
+  is, and what there is is small.
 - **Two read-outs and one comparator each**, both at test 48, both five-replicate-scale comparators for the
   paper's table but 40-replicate here — the pairing is on seeds and the epoch licence rests on §4's precedents.
 - **The mechanism stays an inference.** Both read-outs show the body drifting *more* with the bias frozen

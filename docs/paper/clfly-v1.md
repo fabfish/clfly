@@ -137,7 +137,18 @@ seeds, diagonal EWC's recurrent weights move **28% less** than naive's (`theta_d
 constraining the weights by 28% buys nothing on the forgetting **because the adaptation moved to the channel
 carrying 70% of it**. A penalty that also covered the offsets would act on **100%** of the body rather than
 97.1% of it, which makes §8's bias-penalty arm a different method rather than a refinement of the λ sweep
-(`docs/findings/2026-09-24-the-penalty-relocates-the-adaptation.md`).
+(`docs/findings/2026-09-24-the-penalty-relocates-the-adaptation.md`). **And it is replay's margin, not
+the penalties', that the channel was inflating.** Re-running the whole five-method table with the offsets frozen
+in **every** arm: the three Fisher penalties' contrasts against naive move by **0.42σ, 0.21σ and 0.48σ** —
+method-independent, exactly as the code predicts — while **replay's advantage over naive is cut by 66%, from
+−0.0854 to −0.0292** (**+0.0563 ± 0.0252 = 2.23σ**), and replay is the one arm whose level *rises* and whose
+accuracy *falls* (0.9681 → 0.9472). With the channel removed the ranking by forgetting is **ewc (−0.0104) <
+replay (−0.0042) < block-rand (+0.0104) < block (+0.0167) < naive (+0.0250)**, so **diagonal EWC is the best
+method and replay second**, where the plastic table has replay first by a wide margin. **The penalties' ordering
+among themselves is identical in both arms** — the *basis* question is confound-robust — while *"replay is the
+stronger method"* is a claim about the plastic configuration and is partly a claim about the baseline's
+unpenalised channel: **a method that drives the forgetting to zero cannot be credited with the forgetting a
+baseline does not have to suffer either** (`docs/findings/2026-09-24-the-confound-removal-changes-one-contrast.md`).
 (The strongest evidence for that contrast is at sixteen replicates, where it is **−0.0677 ± 0.0101 =
 6.73σ with sixteen of sixteen replicates agreeing**, though replay's own forgetting there is 0.83σ from
 zero rather than resolved below it.) **The other two settings had no artifact either, and their
