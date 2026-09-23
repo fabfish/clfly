@@ -563,14 +563,20 @@ now has an explanation. See the note two paragraphs below and
 excess moving together on the same relabelling — holds at three circuit sizes and survives the shared-draw
 bootstrap at **5.15σ with 100% of 4000 resamples above zero**, which is the same scrutiny that turned a
 size comparison from 3.29σ into 0.75σ. The *spread statistic* — the size of pressure's own variation
-ranking the size of the excess's — was **+0.767 against concentration's +0.617 at d = 1307 and +0.412
-against +0.832 at d = 952**, so it has one complete circuit size in its favour and one against. **And
-neither test is over the same partitions**: the same nine labels denote concentration ranges of
-0.006–0.754 at d = 952 and 0.020–0.536 at d = 1307, and the d = 952 reversal is a **bimodal design** —
-four near-duplicate coarse rows occupying four of nine ranks — under which all three candidates tie once
-the fine end is taken alone (+0.900, n = 5). **The predictor-shaped use of pressure is therefore supported
-at exactly one circuit size and untested elsewhere; the explanatory use is supported, because that is the
-co-movement claim**
+ranking the size of the excess's — **passes its pre-registered test at two of the three circuit sizes**:
+**+0.767 against concentration's +0.617 at d = 1307**, and **+0.800 against +0.483 at d = 1874**. The second
+is the cleaner of the two, because concentration has no signal there (p = 0.187) while the spread does
+(p = 0.010), and partialling the confound out of both ranks moves the number by only 0.021
+(+0.800 → +0.779). The single failure is **d = 952, +0.412 against +0.832**, and it is the size at which the
+test cannot be run on comparable partitions at all: its nine are a **bimodal design** whose four
+near-duplicate coarse rows — two of them the *same run*, giving byte-identical rows — occupy four of nine
+ranks at the top of both orderings, which concentration captures by construction, and under which all three
+candidates tie once the fine end is taken alone (+0.900, n = 5). **Restricting every size to the common
+concentration range does not repair that**: the restriction is *vacuous* at d = 1874 (that size's own range
+*is* the common range, since `side` sits at 0.498 everywhere), a **four-point tie** at d = 1307, and
+uncomputable at d = 952, which contributes only 2 of its 9 rows. So the honest summary of the
+predictor-shaped use is *passes at two of three sizes, with the single failure at the size where comparable
+partitions do not exist*; the explanatory use is supported outright, because that is the co-movement claim
 (`docs/findings/2026-09-23-the-mechanisms-two-halves.md`,
 `docs/findings/2026-09-23-the-cross-size-test-is-not-well-posed.md`).
 

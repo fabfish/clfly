@@ -26,6 +26,17 @@ had been scored for the gated statistic. It is recorded here for the same reason
 added while an experiment runs is only honest if a reader can see when and on what evidence it was added.
 The observations that prompted it are stated in the clause itself.
 
+**And one premise of §1 and §4.2 was superseded within the day, in a direction that strengthens the case
+for running the grid at all.** Both sections describe the motivation as a **1–1 split** — `e80`'s statistic
+winning at d = 1307 and losing at d = 952, with d = 1874 unfinished. `e86`'s last cell landed the same day
+and **the third size passes its pre-registered clause** (+0.800 against concentration's +0.483), making the
+split **2–1**. So the grid is no longer being run to adjudicate a tie; it is being run because the
+*discriminating* test — partialling the confound, on partitions whose concentration is set rather than
+found — is still the one that has never been run, and because the single failure sits at the one size where
+comparable partitions do not exist. **The clauses P1–P5 are unaffected and were not written with the 2–1
+result in hand**; only the motivation moved, and it moved toward the grid being more rather than less
+necessary.
+
 Both are recorded here rather than silently folded in, because a pre-registration whose text can move
 after the launch is not one. A reader who wants the untouched prediction should read §4's clauses as they
 stand and ignore §3's second paragraph and §4's second half.
@@ -122,8 +133,12 @@ would be the fitting this project has paid for before.
   **fails**. This is the falsifier that matters, and it is a live risk: at d = 952 the *raw* ordering
   already reverses, and the concentration-given-pressure partial there is +0.852 against the raw +0.832.
 - **F2** — the raw ordering reverses at some size even on twenty matched cells. Then the size dependence is
-  a property of the circuit and not of the design, and §4.3's "supported at exactly one circuit size" is
-  the wrong reading — the reading would be "size-dependent" instead.
+  a property of the circuit and not of the design, and **the paper's §4.3 sentence that F2 was aimed at has
+  since been replaced** (`e86` completed the same day and the clause passed at two of three sizes, so
+  "supported at exactly one circuit size" no longer stands, and what replaces it is "passes at two of three,
+  with the one failure where comparable partitions do not exist"). F2 therefore no longer has a sentence to
+  refute; what it would still catch is the raw ordering reversing on cells whose concentrations are
+  matched, which is a statement about the statistic rather than about a document.
 
 **Secondary, reported but not gated.** The same partial on the nine named partitions, computed from
 `runs/e86_spread_at_other_sizes.json`, so the grid's answer can be read against the design it replaces; the

@@ -108,45 +108,74 @@ nine-point rank correlation.
 That makes the d = 952 failure **not a clean refutation of `e80`** and not a confirmation either: it is a
 test whose partition set does not match the one the claim was made on.
 
-## 4. What this leaves, and the d = 1874 half
+## 4. The completed test: the clause passes at two of the three sizes
 
-`e86`'s d = 1874 targets are **5 of 9 complete** (the four named rungs are still running) and the partial
-row is therefore not read as a verdict:
+`e86` finished all 18 targets. The pre-registered clause — the absolute pressure spread reaching **+0.70**
+*and* beating concentration's own correlation — reads, on nine partitions per size:
 
-| size | n | absolute pressure sd | vs concentration | beats concentration |
-|---|---|---|---|---|
-| d = 952 | 9 | +0.412 | +0.832 | no |
-| d = 1307 | 9 | **+0.767** | +0.617 | yes |
-| d = 1874 | **5** | +0.500 | +0.300 | yes, but n = 5 and neither reaches +0.70 |
+| size | n | absolute pressure sd | concentration | beats concentration | reaches +0.70 | partial, given concentration |
+|---|---|---|---|---|---|---|
+| d = 952 | 9 | +0.412 | **+0.832** | no | no | +0.509 (p = 0.20) |
+| d = 1307 | 9 | **+0.767** | +0.617 | **yes** | **yes** | **+0.765** (p = 0.027) |
+| d = 1874 | 9 | **+0.800** | +0.483 | **yes** | **yes** | **+0.779** (p = 0.023) |
 
-**The standing position on the spread statistic is therefore: one complete size in its favour (d = 1307,
-where it was found), one complete size against (d = 952), and one partial — and none of the three is over
-the same partitions as any other.** Combined with `e87`'s finding that the *co-movement* is the robust half
-(5.15σ under the shared-draw correction), the honest summary is:
+**The clause passes at two of three sizes, and the one failure is the size whose nine are bimodal.** The
+d = 1874 half was written here as "5 of 9, not read as a verdict"; with all nine it is the **second** size
+in the statistic's favour and the cleaner of the two — concentration there is only **+0.483** and not
+itself resolved (p = 0.187), so the pressure spread outranks a candidate that has no signal, and partialling
+moves the number by 0.021. Both forms pass at that size: the relative spread gives **+0.817** against
+concentration's +0.483.
+
+**The overlap restriction resolves nothing, and the corrected range is what lets that be said.** At
+0.034–0.498 it is computable at two sizes, where this document previously said one:
+
+| size | rows inside the overlap | absolute pressure sd | concentration |
+|---|---|---|---|
+| d = 952 | **2 of 9** | not computable | not computable |
+| d = 1307 | 4 of 9 | +0.400 (p = 0.600) | +0.400 (p = 0.600) |
+| d = 1874 | **9 of 9** | +0.800 (p = 0.010) | +0.483 (p = 0.187) |
+
+At d = 1874 the restriction is **vacuous** — that size's own range *is* the common range, because `side`
+sits at 0.498 everywhere and the `cell_type` ladder's top rung is 0.324 there — so the row is the
+unrestricted result repeated. At d = 1307 it is a **four-point tie**, which resolves nothing. And at
+d = 952 it stays uncomputable, which is the only place it would have helped. **Subsetting does not repair
+the defect; it only discards the data.**
+
+**The standing position:**
 
 > The **explanatory** claim about `projection_pressure` — the draw spread is about the precision-weighted
 > projected deficit rather than subspace geometry — is supported, by the co-movement, at three circuit
 > sizes. The **predictor-shaped** claim — the size of pressure's variation ranks the size of the excess's,
-> better than a size scalar does — is supported at exactly one circuit size, and the design that would
-> test it across sizes has never been run.
+> better than a size scalar does — **passes its pre-registered test at two of the three circuit sizes**
+> (d = 1307 and d = 1874), and the single failure is the size at which the test cannot be run on
+> comparable partitions at all, because its nine collapse into a bimodal set with two exact duplicates.
 
-## 5. The design that would test it, pre-registered
+## 5. The design that tests it, built and running
 
-The flaw is mechanical and the fix is the same in each case: **choose partitions by concentration, not by
-label, and use the same concentration grid at every size.** Concretely, for each size, build a set of
-partitions whose `constrained_fraction` (or `sum_g s_g^2/d^2`) falls in a fixed set of bins, so that
-"partition *i*" means the same region of partition space everywhere. That also removes the bimodality,
-since binning forces the coarse end to be sampled at several levels rather than in one cluster.
+`e92` implements the fix this document pre-registered — and it refines the statistic in one way the
+original proposal did not have. The proposal said *bin partitions by concentration*; the refinement is
+that nothing needs to be binned, because **both halves of the measurement depend on the partition only
+through its group-size multiset** (`e80`'s pressure is evaluated on a size-matched relabelling; `e12`'s
+target is the draw spread of that same control). A **profile of group sizes** is therefore a legitimate
+object of study, its concentration can be *set* rather than found, and `flat` profiles have concentration
+exactly `1/k` at every circuit size. The statistic is the **partial** Spearman with concentration
+partialled out of both ranks, which is the form that a concentration restatement cannot fake.
 
-**Prediction:** on a concentration-matched grid the absolute pressure spread beats concentration at every
-size, and its ρ is stable to ±0.15 across sizes. **Falsifier:** a size where it again loses to
-concentration, which — with the design flaw removed — would be a genuine refutation of the predictor-shaped
-claim rather than an artefact of which partitions were labelled the same.
+Two by-products of the grid are already visible and are on the record as clauses **P5** (the absolute
+spread's cross-size behaviour is partly a level artefact: the pressure *level* rises 5.1–5.3× from
+d = 952 to d = 1307 while the target moves the other way) and the observation that on the grid at d = 952 —
+the size that failed above — the relative form's partial is **+0.736 (p = 0.024)** on ten cells, i.e. the
+failure does not so far reproduce once the partitions are matched. That number is **interim**: ten of
+twenty cells, `flat` only, so it is recorded here and *not* read as a verdict
+(`docs/findings/2026-09-23-the-concentration-matched-grid-preregistered.md`).
 
 ## 6. Limits
 
-- **d = 1874 is 5 of 9**, and its `rho_conc` of +0.900 is computed on those five. The row is reported for
-  completeness and explicitly not read as a verdict.
+- **The largest d = 1874 rung is `supertype` with 639 groups at cs = 1500**, and that cell alone took about
+  **1,000 s** against roughly 690 s for the `cell_type` rungs — so it is the last cell and about 45% more
+  expensive than the rest. The concentration *levels* are unaffected (a level is a property of the
+  group-size multiset, not of the group count), but a reader comparing wall times across sizes should know
+  where `e86`'s time went.
 - **The fine-end subsets are n = 5.** Every correlation in §3 is on 5–9 points, where the two-sided 0.05
   critical value is 0.683 at n = 5 and 0.9 at n = 5 one-sided; the "all three tie at +0.900" is therefore
   a statement that *no* candidate resolves there, not that they agree closely.

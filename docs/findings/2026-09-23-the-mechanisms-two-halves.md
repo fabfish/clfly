@@ -84,8 +84,15 @@ than subspace geometry" — is supported, because that is the co-movement claim.
 
 ## 5. Limits
 
-- **d = 1874's spread targets are still running**, so the spread statistic has two sizes rather than three;
-  the verdict above is a 1–1 split and could become 1–2 or 2–1.
+- **d = 1874's spread targets were still running when this was written**, so the spread statistic had two
+  sizes rather than three and the verdict was a 1–1 split.
+
+  > **Correction (2026-09-23, same day).** `e86` finished, and the third size **passes**: +0.800 against
+  > concentration's +0.483 at d = 1874 (p = 0.010 against 0.187). The split is therefore **2–1**, and the one
+  > failure is the size whose nine partitions are bimodal with two byte-identical rows, where comparable
+  > partitions do not exist to test on (`docs/findings/2026-09-23-the-cross-size-test-is-not-well-posed.md`).
+  > Nothing else in this document moves — in particular the co-movement half, which is the half it argues is
+  > robust, is unaffected and is the half the paper now rests on.
 - **`e81`'s bootstrap resamples only the draw.** The nine partitions also share the circuit, the task suite
   and the seed set, so if a partition-independent nuisance varies, even this interval understates the
   uncertainty. The direction of the correction is right; the magnitude is a floor.
