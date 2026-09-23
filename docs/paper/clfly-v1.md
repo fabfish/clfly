@@ -1037,10 +1037,10 @@ sample** of this configuration rather than an extension of the five-replicate on
 uses 30× the memory; per byte the diagonal anchor is the better buy. Reporting only the
 absolute numbers would hide the trade.
 
-**Both methods work once every hyperparameter is tuned — and replay is the stronger.** The
+**Replay works once every hyperparameter is tuned — and the diagonal in one setting of three.** The
 last fire showed that *every* replay result in the project's history had been taken at 16
 stored stimuli per task, which merely ties naive, while EWC's λ had been swept. Re-running all
-three settings with **every method tuned**, and with each cell now required to come from an artifact:
+three settings with **every method tuned**, and with each cell now required to come from an artifact: 
 
 | setting | run | `naive` | EWC, diagonal | `replay` |
 |---|---|---|---|---|

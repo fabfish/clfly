@@ -81,3 +81,45 @@ not the counts; it is *which* tokens are missing, and that still requires readin
 - **`check_closure` reports one table as having a contrast column naming a comparator it has no row for**
   (lines 719–724, `vs the diagonal`). That is a naming mismatch rather than a bad contrast, and the tool says
   so rather than guessing; the one-line fix is in the paper's header, not in the script.
+
+## 5. The findings corpus, which §4 named as the gap, and its sharp result is a zero
+
+`--findings docs/findings` runs both checks over all **133** findings documents. Two shapes had to be added
+before the check could be trusted there, and both are the same kind of mistake as reading one `naive` for a
+table whose blocks have three:
+
+- **a blocked table has one comparator row per block.** Pairing every row with the *first* row matching the
+  comparator made every row after the first block look like it failed; §4.4's own table spans three settings.
+  Each row is now checked against the nearest *preceding* comparator. With that fix the corpus's closure
+  failures went from **2 documents to 1**.
+- **`vs X` is ambiguous between "minus X" and "correlated with X".** `Spearman vs concentration` carries a
+  correlation, whose comparator row holds 1.000 by construction; reading it as a subtraction reported a
+  correlation matrix as failing. A column whose comparator row holds exactly `1.000` is now **skipped with the
+  reason recorded**, and with that fix the count went to **0**.
+
+**So every contrast in all 133 findings closes, and that is the finding rather than a clean bill of health.**
+
+| | |
+|---|---|
+| documents scanned | **133** |
+| with a contrast that fails to close | **0** |
+| with a table ≥ 25% located that also has cells which do not locate | **68** |
+| with tables but not one number locating | **16** |
+
+**A table built from numbers that do not exist can still add up.** `2026-09-22-network-line-settled.md` prints
+nine cells of which **six match no artifact** — it is the finding §4.2's defective table came from — and its
+contrasts pass check (a) because they are internally consistent: its `vs naive` column really does subtract the
+`naive` row above it, in all three blocks. The two failures this project actually has are therefore *different
+in kind* and need different checks:
+
+- **inconsistent and locatable** — §4.2's column that subtracted **+0.0729 for two rows and +0.066 for two
+  others**. Found by (a), and it is the shape that has appeared **exactly once**, in the table repaired two
+  fires ago.
+- **consistent and unlocatable** — §4.4's six of nine, and the `--frozen-body` series that was in no artifact at
+  all. **Invisible to (a)**, and the shape that appears everywhere: 68 documents have a table with the same
+  signature, though most are legitimately derived numbers, so the honest reading of that count is *"68 documents
+  have a table this check cannot clear"* rather than *"68 documents have an unbacked table"*.
+
+**And the sharp check is the one that found nothing.** That is worth stating plainly because it inverts the
+intuition the project has been operating on this week: the failure mode it keeps paying for is not arithmetic
+that does not add up — the arithmetic has added up every time — but numbers that were never a measurement.

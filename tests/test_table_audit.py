@@ -182,3 +182,43 @@ def test_audit_table_counts_located_and_unlocated_per_row():
     assert got["matched"] == 1                       # the naive row's own +0.0729
     assert got["unmatched"] == 2                     # the diagonal's cell and its derived contrast
     assert got["rows"][1]["unmatched_tokens"] == ["+0.0271", "-0.0458"]
+
+
+# --- two shapes that made the corpus check cry wolf --------------------------------------------------
+
+def test_a_blocked_table_is_checked_against_the_comparator_in_its_own_block():
+    """A table of several settings has one comparator row per block, and pairing them all with the first
+    made every row after the first block look like it failed. §4.4's own table spans three settings."""
+    t = table(["setting", "method", "mean forgetting", "vs naive"],
+              ["task-IL", "naive", "+0.101", "—"],
+              ["", "ewc", "+0.128", "+0.027"],
+              ["class-IL", "naive", "+0.059", "—"],
+              ["", "ewc", "+0.063", "+0.004"])
+    verdicts = [r["verdict"] for r in check_closure(t)["findings"][0]["rows"]]
+    assert verdicts == ["closes", "closes"]
+
+
+def test_a_correlation_column_is_skipped_rather_than_read_as_a_difference():
+    """"Spearman vs X" is a correlation, not a subtraction, and its comparator row holds 1.000.
+
+    Reading it as a difference reported a correlation matrix as failing -- a false positive that appeared in a
+    real findings document and would have been the only closure failure in the corpus.
+    """
+    t = table(["candidate", "vs measured sd", "vs concentration"],
+              ["absolute", "+0.412", "+0.160"],
+              ["concentration", "+0.832", "+1.000"])
+    got = {f["comparator"]: f for f in check_closure(t)["findings"]}
+    assert got["concentration"]["status"].startswith("skipped")
+    assert "correlation diagonal" in got["concentration"]["status"]
+
+
+def test_the_scan_reports_zero_when_there_is_nothing_to_report(tmp_path):
+    """The corpus check's own denominator: `scan_findings` must count documents, not just findings."""
+    from experiments.e105_table_audit import scan_findings
+
+    (tmp_path / "a.md").write_text("| method | mean forgetting | vs naive |\n|---|---|---|\n"
+                                   "| naive | +0.0729 | — |\n| ewc | +0.0208 | −0.0521 |\n",
+                                   encoding="utf-8")
+    got = scan_findings(tmp_path, [], 0.25)
+    assert got["n_documents"] == 1
+    assert got["with_closure_failures"] == []

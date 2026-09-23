@@ -106,15 +106,31 @@ def check_closure(table: dict) -> dict | None:
     body = table["rows"][1:]
     findings = []
     for j, comparator in targets.items():
-        cmp_row = next((r for r in body if any(label(c) == label(comparator) for c in r[1])), None)
-        if cmp_row is None:
+        cmp_rows = [i for i, r in enumerate(body) if any(label(c) == label(comparator) for c in r[1])]
+        if not cmp_rows:
             findings.append({"contrast_column": j, "comparator": comparator,
                              "status": "no row matches this comparator"})
             continue
+        # A blocked table has one comparator row per block -- §4.4's spans three settings -- so each row is
+        # checked against the nearest *preceding* comparator, falling back to the first. Using a single
+        # comparator row made every row after the first block look like it failed, which is the same mistake as
+        # reading one `naive` for a table whose blocks have three.
+        # A column headed "vs X" is ambiguous: it usually carries a difference, but "Spearman vs X" carries a
+        # *correlation*, whose comparator row holds 1.000 by construction. Reading that as a difference made
+        # the check report a correlation matrix as failing, so a self-correlation diagonal is skipped with the
+        # reason recorded rather than guessed at.
+        diagonal = first_number(body[cmp_rows[0]][1][j]) if j < len(body[cmp_rows[0]][1]) else None
+        if diagonal == 1.0:
+            findings.append({"contrast_column": j, "comparator": comparator, "status":
+                             "skipped: the comparator row holds 1.000 in this column, so it is a correlation "
+                             "diagonal rather than a difference"})
+            continue
         rows = []
-        for r in body:
-            if r is cmp_row:
+        for i, r in enumerate(body):
+            if i in cmp_rows:
                 continue
+            cmp_row = max((c for c in cmp_rows if c < i), default=cmp_rows[0])
+            cmp_row = body[cmp_row]
             printed_cell = r[1][j] if j < len(r[1]) else ""
             printed_all = numbers_of(printed_cell)
             if not printed_all:
@@ -141,7 +157,7 @@ def check_closure(table: dict) -> dict | None:
             rows.append({"line": r[0], "printed": printed_all[0][1], "closes": closes, "fails": fails,
                          "verdict": "closes" if closes else ("fails" if fails else "not checkable")})
         findings.append({"contrast_column": j, "comparator": comparator,
-                         "comparator_line": cmp_row[0], "rows": rows})
+                         "comparator_line": cmp_rows[0] if cmp_rows else None, "rows": rows})
     return {"table": [table["start"], table["end"]], "header": header, "findings": findings}
 
 
@@ -238,10 +254,61 @@ def parse_tables(text: str) -> list[dict]:
             for rows in tables]
 
 
+def scan_findings(directory: Path, index: list, share: float) -> dict:
+    """Run both checks over every findings document, and count the shapes that matter at corpus level.
+
+    The paper is audited and the corpus of findings is not, which is the gap this mode closes. Its useful
+    output is not a per-document verdict -- a findings document is mostly prose and derived arithmetic -- but
+    three corpus counts: how many documents have a contrast that fails to close, how many have a table with a
+    substantial located fraction and cells that do not locate, and how many are entirely unlocatable.
+    """
+    docs, closure_failures, mixed, silent = [], [], [], []
+    for path in sorted(directory.glob("*.md")):
+        tables = parse_tables(path.read_text(encoding="utf-8", errors="replace"))
+        doc = {"document": path.name, "tables": len(tables), "closure_failures": [], "mixed": [],
+               "matched": 0, "unmatched": 0}
+        for t in tables:
+            for r in check_inline_contrasts(t):
+                if r["verdict"] != "closes":
+                    doc["closure_failures"].append({"lines": [t["start"], t["end"]], "token": r["token"]})
+            c = check_closure(t)
+            if c:
+                for f in c["findings"]:
+                    for row in f.get("rows", []):
+                        if row["verdict"] == "fails":
+                            doc["closure_failures"].append(
+                                {"lines": [t["start"], t["end"]], "token": f"{row['printed']:+.4f}",
+                                 "against": f["comparator"]})
+            a = audit_table(t, index)
+            doc["matched"] += a["matched"]
+            doc["unmatched"] += a["unmatched"]
+            total = a["matched"] + a["unmatched"]
+            if total and a["unmatched"] and a["matched"] >= 3 and a["matched"] / total >= share:
+                doc["mixed"].append({"lines": [a["start"], a["end"]], "matched": a["matched"],
+                                     "unmatched": a["unmatched"], "share": a["matched"] / total,
+                                     "unmatched_tokens": sorted(
+                                         {tok for r in a["rows"] for tok in r["unmatched_tokens"]})[:12]})
+        if doc["closure_failures"]:
+            closure_failures.append(doc)
+        if doc["mixed"]:
+            mixed.append(doc)
+        if doc["matched"] + doc["unmatched"] and not doc["matched"]:
+            silent.append(doc)
+        docs.append(doc)
+    return {"documents": docs, "n_documents": len(docs),
+            "with_closure_failures": closure_failures, "with_mixed_tables": mixed,
+            "entirely_unlocated": silent}
+
+
 def main(argv=None) -> int:
     p = argparse.ArgumentParser(description=__doc__.splitlines()[0],
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--paper", type=Path, default=Path("docs/paper/clfly-v1.md"))
+    p.add_argument("--findings", type=Path, default=None,
+                   help="also audit every markdown table under this directory, which is the gap e105's own "
+                        "finding named: the paper is audited and the corpus of findings is not")
+    p.add_argument("--share", type=float, default=0.25,
+                   help="a table is listed as interesting when at least this share of its numbers locate")
     p.add_argument("--runs", type=Path, default=Path("runs"))
     p.add_argument("--skip", default="e105_table_audit.json,e103_reproducibility_audit.json")
     p.add_argument("--json-out", type=Path, default=None)
@@ -319,9 +386,39 @@ def main(argv=None) -> int:
     print(f"\n   verdicts over {len(located)} tables: {counts}")
     print(f"   tables listed above: {len(interesting)} of {counts.get('mixed', 0)} mixed")
 
+    findings = None
+    if args.findings:
+        findings = scan_findings(args.findings, index, args.share)
+        print()
+        print("=" * 104)
+        print("3. THE FINDINGS CORPUS, which the paper's audit does not cover")
+        print("=" * 104)
+        print(f"   documents: {findings['n_documents']}")
+        print(f"   with a table whose contrasts FAIL to close: {len(findings['with_closure_failures'])}")
+        print(f"   with a table that is >= {args.share:.0%} located and has cells that do not locate: "
+              f"{len(findings['with_mixed_tables'])}")
+        print(f"   with tables but not one number locating: {len(findings['entirely_unlocated'])}")
+        print()
+        print("   closure failures (a contrast no pair of its own row's cells gives):")
+        for doc in findings["with_closure_failures"]:
+            print(f"     {doc['document']}")
+            for f in doc["closure_failures"][:4]:
+                print(f"        lines {f['lines'][0]}-{f['lines'][1]}: {f.get('token')}"
+                      + (f" against {f['against']}" if f.get("against") else ""))
+        print()
+        print("   the most-located mixed tables, i.e. the ones where a cell that does not locate sits beside "
+              "cells that do:")
+        ranked = sorted((d for d in findings["with_mixed_tables"]),
+                        key=lambda d: -(d["matched"] / max(1, d["matched"] + d["unmatched"])))
+        for doc in ranked[:8]:
+            best = max(doc["mixed"], key=lambda m: m["share"])
+            print(f"     {doc['document']:60} {best['matched']:3} located, {best['unmatched']:3} not "
+                  f"({best['share']:.0%})")
+
     if args.json_out:
         write_json(args.json_out, {"paper": str(args.paper), "n_indexed": len(index),
-                                   "closures": [c for _, c in closures], "tables": located})
+                                   "closures": [c for _, c in closures], "tables": located,
+                                   **({"findings": findings} if findings else {})})
         print(f"\nwrote {args.json_out}")
     return 0
 
