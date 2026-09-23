@@ -88,7 +88,15 @@ def arm_matches(members: list[dict], method: str) -> dict:
 
 
 def group_repeats(artifacts: list[dict], min_runs: int = 2) -> list[dict]:
-    """Group artifacts by config signature and report per-arm reproducibility for the groups of size >= min."""
+    """Group artifacts by config signature and report per-arm reproducibility for the groups of size >= min.
+
+    When the members record **different environments**, the group is also split by environment and each
+    subgroup is reported separately.  That split is the difference between "5 of 5 arms do not reproduce" and
+    the answerable question -- "which arms fail to reproduce *in one environment*" -- and without it the audit
+    reports a recorded cause as an unexplained one. Measured: the 8-batch group is five runs, of which two set
+    `OMP_NUM_THREADS` explicitly; pooling them makes every arm look irreproducible, while within the three
+    default-thread runs `naive` and `ewc` are bit-identical.
+    """
     groups: dict[str, list[dict]] = {}
     for a in artifacts:
         if not isinstance(a["payload"].get("methods"), dict):
@@ -102,10 +110,35 @@ def group_repeats(artifacts: list[dict], min_runs: int = 2) -> list[dict]:
         arms = {meth: arm_matches(members, meth) for meth in methods}
         arms = {k: v for k, v in arms.items() if v.get("present")}
         compared = [m for m, v in arms.items() if v["exact"]]
-        out.append({"signature": sig, "runs": len(members), "names": [m["name"] for m in members],
-                    "arms": arms, "arms_compared": sorted(arms),
-                    "arms_identical": compared,
-                    "arms_differing": [m for m in arms if m not in compared]})
+        record = {"signature": sig, "runs": len(members), "names": [m["name"] for m in members],
+                  "arms": arms, "arms_compared": sorted(arms),
+                  "arms_identical": compared,
+                  "arms_differing": [m for m in arms if m not in compared],
+                  "environments": {}, "subgroups": []}
+
+        # 'environment' is absent from every artifact written before e102, so those runs are "unrecorded"
+        # rather than grouped with each other by a shared empty dict.
+        keyed: dict[str, list[dict]] = {}
+        for m in members:
+            env = m["payload"].get("environment")
+            key = json.dumps(env, sort_keys=True, default=str) if isinstance(env, dict) else "unrecorded"
+            keyed.setdefault(key, []).append(m)
+        record["environments"] = {k: len(v) for k, v in keyed.items()}
+        if len(keyed) > 1:
+            for key, sub in sorted(keyed.items()):
+                if len(sub) < 2:
+                    record["subgroups"].append({"environment": key, "runs": 1,
+                                                "names": [m["name"] for m in sub], "arms": {}})
+                    continue
+                sub_methods = sorted(set().union(*[set(m["payload"]["methods"]) for m in sub]))
+                sub_arms = {meth: arm_matches(sub, meth) for meth in sub_methods}
+                sub_arms = {k: v for k, v in sub_arms.items() if v.get("present")}
+                record["subgroups"].append({
+                    "environment": key, "runs": len(sub), "names": [m["name"] for m in sub],
+                    "arms": sub_arms,
+                    "arms_identical": sorted(k for k, v in sub_arms.items() if v["exact"]),
+                    "arms_differing": sorted(k for k, v in sub_arms.items() if not v["exact"])})
+        out.append(record)
     out.sort(key=lambda g: (-len(g["arms_differing"]), -g["runs"], g["names"][0]))
     return out
 
@@ -202,6 +235,16 @@ def main(argv=None) -> int:
         if g["arms_differing"]:
             print(f"    -> {len(g['arms_differing'])} of {len(g['arms'])} arms do not reproduce: "
                   f"{', '.join(g['arms_differing'])}")
+        if g["subgroups"]:
+            print(f"    -> {len(g['environments'])} recorded environments: "
+                  f"{ {k: v for k, v in sorted(g['environments'].items())} }")
+            for sub in g["subgroups"]:
+                if sub["runs"] < 2:
+                    print(f"       {sub['runs']} run, not comparable: {', '.join(sub['names'])}")
+                    continue
+                print(f"       within one environment ({sub['runs']} runs: {', '.join(sub['names'])}): "
+                      f"identical {sub['arms_identical'] or '[]'}, "
+                      f"differing {sub['arms_differing'] or '[]'}")
 
     print(f"\nartifacts missing a key their own runner's newest artifact has: {len(stale)}")
     for r in stale:

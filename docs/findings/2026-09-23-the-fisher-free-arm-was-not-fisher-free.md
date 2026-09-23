@@ -6,8 +6,8 @@
 `runs/e102_rate_fb8_rerun.json`.
 **Artifacts:** `runs/e101_rate_fb8.json`, `runs/e101_rate_fb32.json`, `runs/e101_rate_fb128.json`,
 `runs/e102_rate_fb8_rerun.json`, `runs/e102_rate_fb8_rerun2.json`, `runs/e102_rate_fb128_rerun.json`,
-`runs/e102_rate_fb8_omp1.json`, `runs/e102_replayonly_fb8.json`, `runs/e102_replayonly_fb32.json`,
-`runs/e8_hardened_basis.json`.
+`runs/e102_rate_fb8_omp1.json`, `runs/e102_rate_fb8_omp4.json`, `runs/e102_replayonly_fb8.json`,
+`runs/e102_replayonly_fb32.json`, `runs/e8_hardened_basis.json`.
 **Setup:** `experiments/e8_rate_network.py`, circuit `mb+cx+al@n1307`, cs = 800, 3 tasks, 5 replicates,
 λ = 0.003, 4 classes, shared head, read-out 32 neurons, `--fisher-batches` 8/32/128, chance 0.25.
 **Context:** `docs/findings/2026-09-23-the-batch-count-discriminator.md` §1, which identified the 32-batch point
@@ -169,39 +169,45 @@ project had already measured is the thread count (`e96`: one nominal experiment 
 accuracy on the `naive` arm across `OMP_NUM_THREADS` 1, 3 and 4). Both outcomes were written down before the
 runs, and at per-step 8 with the flags of §1:
 
-| arm | `e101` (Y) | `e102` run 2 (X) | **`OMP_NUM_THREADS=1`** |
-|---|---|---|---|
-| `naive` | +0.0729 ± 0.0151 | +0.0729 ± 0.0151 | **+0.0792 ± 0.0134** |
-| `ewc` (diagonal) | +0.0271 ± 0.0117 | +0.0271 ± 0.0117 | **+0.0250 ± 0.0205** |
-| `ewc-block` (biological) | +0.0167 ± 0.0170 | +0.0229 ± 0.0182 | **+0.0437 ± 0.0141** |
-| `ewc-block-rand` (matched) | +0.0521 ± 0.0177 | +0.0396 ± 0.0209 | **+0.0792 ± 0.0126** |
-| `replay` | +0.0333 ± 0.0121 | +0.0500 ± 0.0163 | **+0.0542 ± 0.0204** |
-| **block − matched random** | −0.0354 | −0.0167 | **−0.0354 ± 0.0163 (2.17σ)** |
+| arm | `e101` (Y) | `e102` run 2 (X) | **`OMP_NUM_THREADS=1`** | **`OMP_NUM_THREADS=4`** |
+|---|---|---|---|---|
+| `naive` | +0.0729 ± 0.0151 | +0.0729 ± 0.0151 | **+0.0792 ± 0.0134** | **+0.0792 ± 0.0134** |
+| `ewc` (diagonal) | +0.0271 ± 0.0117 | +0.0271 ± 0.0117 | **+0.0250 ± 0.0205** | **+0.0354 ± 0.0151** |
+| `ewc-block` (biological) | +0.0167 ± 0.0170 | +0.0229 ± 0.0182 | **+0.0437 ± 0.0141** | **+0.0542 ± 0.0196** |
+| `ewc-block-rand` (matched) | +0.0521 ± 0.0177 | +0.0396 ± 0.0209 | **+0.0792 ± 0.0126** | **+0.0604 ± 0.0171** |
+| `replay` | +0.0333 ± 0.0121 | +0.0500 ± 0.0163 | **+0.0542 ± 0.0204** | **+0.0354 ± 0.0148** |
+| **block − matched random** | −0.0354 | −0.0167 | **−0.0354 ± 0.0163 (2.17σ)** | **−0.0062 ± 0.0157 (0.40σ)** |
 
-**All five arms move, on none of them does `OMP_NUM_THREADS=1` match either vector, and `naive` moves too**
-(+0.0062, i.e. 0.4 of its own sem). So the thread count **is** an environment variable this benchmark is shaped
-by — §9's measurement, reproduced on a different configuration — and it is **not** the variable behind the
-X-versus-Y split, because if it were, one of the two runs would have landed on one of the two vectors. **The
-registered test answered "neither" to both of its branches**, which is the outcome it did not enumerate, and it
-still narrows the question: the carrier of the X/Y difference is something other than `OMP_NUM_THREADS ∈ {1, 4}`
-at this configuration.
+**All five arms move, neither explicit setting matches either stored vector, and the two explicit settings do
+not agree with each other** — except on `naive`, where `OMP_NUM_THREADS=1` and `=4` are **identical at the
+replicate level**. So:
 
-**And it corrects the repair, not just the diagnosis.** The previous fire's §4 wrote that `naive` should be
-*"the level control, and never … an environment detector"*. Measured, the opposite is true on both halves:
+- **The thread count is a carrier of environment-dependence, and it is a *binary* one here.** `naive` takes
+  exactly **two** values in the whole 8-batch corpus — **+0.0729 in five runs with no `OMP_NUM_THREADS` set,
+  +0.0792 in the two where it is set** — and the two settings inside the second group are indistinguishable.
+  So what moves the numbers is *whether the variable is set*, at least between 1 and 4, and the machine's
+  default is 20 threads. That is §9's measurement reproduced on a second configuration, and it is now
+  interpretable because the number of threads is finally on the record.
+- **It is not the carrier of the X-versus-Y split**, because X and Y are both default-thread runs and differ
+  while `naive` is identical between them. So a change that moves `ewc-block`, `ewc-block-rand` and `replay`
+  occurred **without moving `naive`**, and the registered test's honest answer to both of its branches is
+  *neither*.
 
-- **`naive` is a valid environment detector, and this run is it firing.** It consults neither the Fisher nor
-  replay, so it is invariant under every manipulation in this benchmark; and it moved by +0.0062 when nothing but
-  the thread count changed. Its bit-identity across the seven runs of §2 is therefore *evidence that those seven
-  shared an environment*, which is what a level control's silence is supposed to mean.
-- **`replay` is not a valid one**, because it moved between `e101`'s runs and `e102`'s while `naive` did not:
-  `replay` has a source of variation that is not the environment, and an arm with two sources can date nothing.
+**And that narrows `naive`'s role, which is this section's fourth revision.** I wrote last fire that `naive`
+should never be an environment detector — wrong, it detects this one. This fire's first draft then said its
+silence is *evidence* that a group of runs shared an environment — also wrong, and the OMP=4 run is what shows
+it, since X and Y share `naive` and do not share an environment. The defensible form is one-directional:
 
-**So the roles are: `naive` is both the level control and the environment detector — invariant under the
-manipulation and mobile under the environment, which is the definition rather than a defect — and `replay` is
-neither, despite being Fisher-free.** That is the *third* revision of this claim in one session (the original
-diagnosis, the previous fire's inversion of it, and this), and the reason to state it in this form is that each
-revision came from a run rather than from re-reading: the first was one pair of values, the second was seven
-runs, and this one was a single named variable.
+> **A mobile `naive` proves the environment moved; a silent `naive` does not prove it did not.** It consults
+> neither the Fisher nor replay, so it is the most sensitive Fisher-free detector available — and it is blind
+> to whatever varies between X and Y, which is therefore a source of variation in the three Fisher arms that a
+> Fisher-free arm cannot see.
+
+**And that is a real limit on §3's argument, stated rather than buried**: the level control is fixed under the
+*manipulation* (which is what the argument needs — seven runs, `naive` bit-identical), and it is **not** fixed
+under the environment (0.0729 against 0.0792 with nothing but `OMP_NUM_THREADS` changing). So "no level-based
+explanation is available" holds for the batch-count sweep as executed and is an environment-scoped statement,
+not a general one.
 
 **And the record will not have to be reconstructed like this again.** The default on this machine is
 **20** torch threads, and while `OMP_NUM_THREADS` was set to 1 and 4 for these two runs, **`e101`'s and `e102`'s
@@ -214,10 +220,13 @@ rule 21's standing complaint and the reason a 58-minute sweep was needed to rule
 (`tests/test_network.py`). The next run of any configuration answers this question for free.
 
 **And §3's clause is unaffected in sign and further bounded in magnitude.** At 8 batches the
-block-minus-matched-random gap is now measured **four times in two environments** — −0.0354 (Y), −0.0167 (X),
-−0.0167 (X), −0.0354 (thread-limited) — so it is negative in all four and takes two values, and the monotone
-direction the account predicts is still absent at every batch count. The accuracy contrast on the same pair
-moves as far as the forgetting one: −0.0125 (0.60σ) in the X runs against **+0.0222 (4.35σ paired)** under
-`OMP_NUM_THREADS=1`, so *neither* metric is stable to the environment, and the paper's claims about this
-partition are stated on forgetting with the accuracy contrast beside them
-(`runs/e102_rate_fb8_omp1.json`).
+block-minus-matched-random gap is now measured **six times in three environments** — −0.0354 (Y), −0.0167,
+−0.0167 (X, twice), −0.0354 (`OMP_NUM_THREADS=1`), **−0.0062 (0.40σ, `OMP_NUM_THREADS=4`)** — so it is
+**negative in all six** and takes three values spanning a factor of **5.7**, and the monotone direction the
+account predicts is still absent at every batch count. **The environment can therefore shrink the one contrast
+that isolates biology by a factor of five** while leaving `naive` at a value it shares with four other runs,
+which is the strongest statement this session can make about how much of the network line's biology-specific
+gap is a property of the benchmark. The accuracy contrast on the same pair moves at least as far: −0.0125
+(0.60σ) in the X runs against **+0.0222 (4.35σ paired)** under `OMP_NUM_THREADS=1` and +0.0042 (0.37σ) under
+`=4`, so *neither* metric is stable to the environment and the forgetting contrast is the better behaved of the
+two (`runs/e102_rate_fb8_omp1.json`, `runs/e102_rate_fb8_omp4.json`).

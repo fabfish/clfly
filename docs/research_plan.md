@@ -1415,19 +1415,27 @@ about (`docs/findings/2026-09-23-the-last-two-unaudited-sections-were-clean.md`)
    not invariant**: its 15 stored numbers take exactly two values on disk, and the arm set with no Fisher in it
    at all gives `replay` the *same* value at 8 batches as at 32 — so the batch count is not what moves it, and
    an arm that moves while `naive` is silent has a source of variation that is not the environment. **Then
-   `OMP_NUM_THREADS=1` moved all five arms, `naive` included (+0.0729 → +0.0792), and matched neither stored
-   vector.** So the repaired rule is:
+   `OMP_NUM_THREADS=1` and `=4` moved all five arms, `naive` included (+0.0729 → +0.0792), matched neither
+   stored vector, and agreed with *each other* on `naive` while disagreeing on the other four.** So the
+   repaired rule is:
 
-   - **`naive` is both the level control and the environment detector** — invariant under every manipulation
-     in this benchmark (it consults no Fisher and no replay) and mobile under the environment. Its silence is
-     what licences "the level did not move"; its speech is what detects the environment. The earlier instruction
-     to *never* use it as an environment detector was wrong, and the run that shows it is the detector firing.
+   - **`naive` is a detector in one direction only: a mobile `naive` proves the environment moved, a silent one
+     does not prove it did not.** It is the most sensitive Fisher-free arm available — invariant under every
+     manipulation in this benchmark, because it consults no Fisher and no replay — and it fired when nothing but
+     `OMP_NUM_THREADS` changed (+0.0729 → +0.0792, and *identically* at 1 and 4, so the variable is binary in
+     effect here against a 20-thread default). It was **silent** across the X-versus-Y difference, which moved
+     `ewc-block`, `ewc-block-rand` and `replay` anyway. So the earlier instruction to *never* use it as an
+     environment detector was wrong, and this fire's first draft — that its silence is *evidence* of a shared
+     environment — was wrong in the other direction.
    - **`replay` is neither**, despite being Fisher-free: it moved between runs where `naive` did not, so it has
      two sources of variation and can date nothing.
    - **And the search is not over**: the carrier of the X-versus-Y difference is something other than
-     `OMP_NUM_THREADS ∈ {1, 4}` at this configuration, since `OMP_NUM_THREADS=1` landed on a third vector rather
-     than on either. Three revisions of this claim in one session — each from a run, not from re-reading — is
-     itself the argument for registering the *variable* rather than the intuition
+     `OMP_NUM_THREADS ∈ {1, 4}` at this configuration, and it is not visible to the Fisher-free arm. X is
+     reproducible across four executions spanning 13 hours and Y appeared exactly twice, inside one session, so
+     the economical reading is a transient state of that session rather than a property of any recorded
+     variable — which is now testable going forward, since the environment is on the record (`e102`, rule 21).
+     **Four revisions of this claim in one session — each from a run, not from re-reading — is itself the
+     argument for registering the *variable* rather than the intuition**
      (`docs/findings/2026-09-23-the-fisher-free-arm-was-not-fisher-free.md`).
 
 27. **An artifact's `config` keyset dates its code epoch, and a control is only readable against a comparator

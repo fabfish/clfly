@@ -1698,13 +1698,19 @@ one (`docs/findings/2026-09-23-the-replay-contrast-survives-sixteen-and-the-benc
 
 **And that control has one role with two faces, both measured on the same configuration.** Sweeping
 `--fisher-batches` across seven executions leaves the `naive` arm **bit-identical to the last decimal** — its
-silence is what licences "the forgetting level did not move". Setting `OMP_NUM_THREADS=1` on the same command
-moves **all five arms, `naive` included** (+0.0729 → +0.0792, the diagonal +0.0271 → +0.0250, the biological
-block +0.0229 → +0.0437, its matched random control +0.0396 → +0.0792, replay +0.0500 → +0.0542), landing on a
-third vector that matches neither of the two already on disk. So the Fisher-free `naive` arm is the benchmark's
-**environment detector** as well as its level control, while the equally Fisher-free `replay` arm is neither: it
-moved between two runs in which `naive` was silent, so it carries a second source of variation and cannot date
-anything (`docs/findings/2026-09-23-the-fisher-free-arm-was-not-fisher-free.md` §5).
+silence is what licences "the forgetting level did not move". Setting `OMP_NUM_THREADS` explicitly on the same
+command moves **all five arms, `naive` included**, and the two settings tried are **indistinguishable on
+`naive`**: +0.0729 with the variable unset in five runs, **+0.0792 at both 1 and 4 threads**, against the
+machine's 20-thread default; the diagonal moves +0.0271 → +0.0250 / +0.0354, the biological block +0.0229 →
++0.0437 / +0.0542, its matched random control +0.0396 → +0.0792 / +0.0604, and replay +0.0500 → +0.0542 /
++0.0354. So the thread count is a carrier of the dependence, effectively **binary** at this scale, and it is
+**not** the carrier of the one difference the bare `naive` arm could not see — two runs that share `naive` and
+disagree on the other three arms, which also happened. The consequences are stated in the paper rather than
+left to the reader: **a mobile `naive` proves the environment moved and a silent one does not prove it did
+not**, so "the level did not move" is an environment-scoped statement, and the one contrast §4.7 rests on
+ranges from **−0.0062 (0.40σ) to −0.0354 (2.17σ)** across these settings — negative in all six executions and
+differing in magnitude by a factor of **5.7**
+(`docs/findings/2026-09-23-the-fisher-free-arm-was-not-fisher-free.md` §5).
 
 The artifacts are **strict JSON**, and the two claims this paragraph used to make about that were both
 wrong. It said **seven** rate-network artifacts were written in the non-conformant form and that **every

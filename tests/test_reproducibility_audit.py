@@ -161,3 +161,49 @@ def test_loading_skips_unparseable_files_and_ones_without_a_config(tmp_path):
     (tmp_path / "skipped.json").write_text(json.dumps({"config": {"a": 1}}), encoding="utf-8")
     got = load_artifacts(tmp_path, skip=("skipped.json",))
     assert [a["name"] for a in got] == ["good.json"]
+
+
+# --- the environment split --------------------------------------------------------------------------
+
+def with_env(a, env):
+    """Attach a recorded environment block, as every runner artifact will carry from e102 onwards."""
+    a["payload"]["environment"] = env
+    return a
+
+
+def test_two_environments_are_split_out_of_one_group():
+    """The difference between "5 of 5 arms do not reproduce" and the answerable question.
+
+    Pooling two environments makes every arm look irreproducible. Within one, `naive` may be bit-identical --
+    which is the measurement a reader needs, and which the pooled verdict hides.
+    """
+    one = {"omp_num_threads": "unset", "torch_num_threads": 20}
+    four = {"omp_num_threads": "4", "torch_num_threads": 4}
+    reps_a = {"naive": reps([1.0], [0.9])}
+    reps_b = {"naive": reps([1.0], [0.5])}
+    arts = [with_env(artifact("x1", BASE, ["naive"], reps_a), one),
+            with_env(artifact("x2", BASE, ["naive"], reps_a), one),
+            with_env(artifact("x3", BASE, ["naive"], reps_b), four)]
+    groups = group_repeats(arts, min_runs=2)
+    assert len(groups) == 1
+    g = groups[0]
+    assert g["arms"]["naive"]["exact"] is False           # pooled, as it must be
+    assert len(g["environments"]) == 2
+    by_runs = {s["runs"]: s for s in g["subgroups"]}
+    assert by_runs[2]["arms_identical"] == ["naive"]      # within the shared environment
+    assert by_runs[2]["arms_differing"] == []
+    assert by_runs[1]["arms"] == {}                       # one run is not comparable
+
+
+def test_artifacts_written_before_the_environment_field_are_unrecorded_not_shared():
+    """`environment` is absent from every artifact written before e102.
+
+    A missing key must not group those runs with each other *as if* they had agreed on an environment, and it
+    must not invent a subgroup either -- there is one environment key, "unrecorded", and no split.
+    """
+    reps_a = {"naive": reps([1.0], [0.9])}
+    arts = [artifact("x1", BASE, ["naive"], reps_a), artifact("x2", BASE, ["naive"], reps_a)]
+    g = group_repeats(arts, min_runs=2)[0]
+    assert list(g["environments"]) == ["unrecorded"]
+    assert g["subgroups"] == []
+    assert g["arms"]["naive"]["exact"] is True
