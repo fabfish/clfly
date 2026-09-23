@@ -2,14 +2,14 @@
 
 **Date:** 2026-09-23
 **Script:** `experiments/e8_rate_network.py`, four runs; artifacts `runs/e108_interference_r{0,128,32}.json` and
-`runs/e108_interference_r32_frozen.json` (in flight).
+`runs/e108_interference_r32_frozen.json`.
 **Setup:** circuit `mb+cx+al@n1307` (cs = 800), 3 tasks, 5 replicates, chance 0.25, `--methods naive`,
 `--input-overlap 0.0 --noise 1.0 --shared-head`, read-out 0 / 128 / 32.
 **Context:** `docs/findings/2026-09-23-the-bodys-drift-is-monotone-and-forgetting-is-not.md`, which measured the
 body's displacement and the plastic-minus-frozen accuracy gap and found **both monotone in the read-out and
 neither ordering the forgetting**. It named the surviving candidate as interaction-shaped — the overlap between
 what a task changes and what an earlier task uses — and named measuring it as the next step. This is that
-measurement, registered before its result.
+measurement, registered before its result; the result is in `2026-09-23-the-interference-term.md`.
 
 ---
 
@@ -57,13 +57,8 @@ mechanism but a **negative one with three members**: network forgetting on this 
 far the body moved, by how much the task needed it, or by the first-order interference of the two. That is a
 stronger statement than any single failure and it is the outcome this fire is prepared to publish.
 
-## 3. What this cannot settle
+---
 
-- **Three tasks and three read-outs.** Two forgetting values per configuration and one ordering across three
-  read-outs: P1 has two points and P2 has three, so a failure is conclusive and a success is a correlation on a
-  small grid. If P1 and P2 both hold, the honest next step is a fourth read-out rather than a stronger claim.
-- **First order only.** A term of the right sign and size is evidence for the account's *approximation*, and a
-  large term that does not match the forgetting falsifies rather than refutes it — the loss is not quadratic
-  and the displacement is not infinitesimal, so "the first-order term is small and the forgetting is not" is a
-  statement about the truncation as much as about the mechanism.
-- **It says nothing about the frozen arm beyond the control**, which is what a control is for.
+**Registered, and then run.** This document is the prediction as it stood before the four runs finished — it is
+committed in that state — and the result, including the falsifier firing on both predictions, is in
+`docs/findings/2026-09-23-the-interference-term.md`.

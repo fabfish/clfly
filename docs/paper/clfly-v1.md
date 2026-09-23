@@ -971,7 +971,24 @@ The per-task structure narrows it further: the drift is near-constant across tas
 tasks do not differ in how far they move the body, and what differs is how much of that motion costs an earlier
 task. The surviving candidate is therefore **interaction-shaped** — the overlap between what a task changes and
 what an earlier task uses, which the *linear* line has measured all along and the network line never has
-(`docs/findings/2026-09-23-the-bodys-drift-is-monotone-and-forgetting-is-not.md`). And the sweep validates itself: its read-out-32 plastic row is the hardened
+(`docs/findings/2026-09-23-the-bodys-drift-is-monotone-and-forgetting-is-not.md`).
+
+**And that candidate has been tested too, and it fails the same way.** The first-order form — the predicted
+change in a task's loss, `<grad_j(θ_final), θ_final − θ_after_j>` — was registered before its runs and then
+measured: it orders the read-outs **0 < 128 < 32** under every aggregation, while the forgetting orders them
+**128 < 0 < 32**, and within a configuration it gets the ordering wrong at two read-outs of three (at the whole
+state it is *negative* for the task that forgets most). **The reason is structural and it is now measured three
+times over: the body's displacement, the load-bearing gap, and the first-order interference term are ALL
+monotone in the read-out, and the forgetting is the only series that is not.** The term's own decomposition says
+where its size comes from — the cumulative cosines are **+0.003 to +0.048**, so the displacement is nearly
+orthogonal to the earlier task's gradient and the term is dominated by its two magnitude factors, both of which
+are read-out-axis quantities, and a quantity dominated by those cannot order a per-task pattern. What the
+account does get right is the **sign** (positive in 5 of 6 task-level cases), which is what a truncation error
+looks like when the displacement is not infinitesimal. **So on this substrate network forgetting is not ordered
+by how far the body moved, by how much the task needed it, or by the first-order interference of the two** — and
+the next candidate must be a quantity that is not a function of the read-out at all, which points at the
+task-pair structure rather than at any further aggregate over that axis
+(`docs/findings/2026-09-23-the-interference-term.md`). And the sweep validates itself: its read-out-32 plastic row is the hardened
 configuration's `naive` and comes out at **+0.0729 ± 0.0151**, reproducing `e8_hardened_basis` to the last
 printed digit (`docs/findings/2026-09-23-the-unbacked-cells-measured.md` §1).
 
