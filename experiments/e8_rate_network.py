@@ -25,6 +25,7 @@ no signal.  Both have to be checked before any method comparison means anything.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import time
 from pathlib import Path
@@ -578,8 +579,8 @@ def main(argv=None) -> int:
         draw_seed = args.seed0 if args.readout_seed is None else args.readout_seed
         rs = np.sort(np.random.default_rng(draw_seed).choice(
             circ.n_neurons, size=args.readout_size, replace=False))
-        if args.readout_seed is not None:
-            print(f"  read-out draw seed {args.readout_seed} (training seed {args.seed0})")
+        draw_hash = hashlib.sha1(" ".join(str(int(x)) for x in rs).encode()).hexdigest()[:12]
+        print(f"  read-out: {len(rs)} neurons of {circ.n_neurons}, draw seed {draw_seed}, subset {draw_hash}")
     common = dict(n_train=args.train, n_test=args.test, noise=args.noise,
                   n_classes=args.classes)
     if args.input_overlap is None:
@@ -616,6 +617,14 @@ def main(argv=None) -> int:
               f"classes={t.n_classes}")
 
     out = {"config": vars(args), "circuit": circ.name, "n_params": net.n_params,
+           # The read-out subset is an RNG draw, and until this fire no artifact identified which one it used --
+           # `config` has `readout_size` and not the neurons. Every "bit-identical over seven executions" result
+           # in this project's record is conditional on a draw that was never varied, and this block is what
+           # makes the next artifact's draw checkable without storing 300 integers. `draw_seed` falls back to
+           # `seed0` so an artifact written before `--readout-seed` existed still identifies its draw.
+           "readout": ({"size": int(len(rs)), "draw_seed": int(draw_seed), "subset_sha1": draw_hash}
+                       if rs is not None else
+                       {"size": int(circ.n_neurons), "draw_seed": None, "subset_sha1": None}),
            "environment": environment(), "tasks": [t.summary() for t in suite], "methods": {}}
     for method in args.methods.split(","):
         reps = [run_method(net, suite, method, args, seed=args.seed0 + 100 * r,

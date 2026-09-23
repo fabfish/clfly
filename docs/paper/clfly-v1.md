@@ -1092,7 +1092,32 @@ optimum"* are different statements, and the second is the one a practitioner nee
 statement this line has produced that can be acted on. **And the five-point bowl was not a bowl**: its
 description came from monotone arms of length three and four, and two more points broke one arm and moved the
 minimum by 1.7× — the fourth shape revision in this sequence, every one of them from a pre-registered prediction
-about the next point (`docs/findings/2026-09-23-both-metrics-have-an-interior-optimum.md`). And the sweep validates itself: its read-out-32 plastic row is the hardened
+about the next point (`docs/findings/2026-09-23-both-metrics-have-an-interior-optimum.md`).
+
+**And that design statement is withdrawn, because the read-out subsets are independent draws rather than nested
+ones.** The subset is drawn per size — `choice(size=300)` is **not** a superset of `choice(size=32)`, two draws
+at one size overlap in 63–73 of 300 neurons against a chance rate of 69, and a size-32 draw is not contained in
+a size-300 draw at all — so **every point on the seven-point axis differed from every other in *how many*
+neurons were read out and in *which* ones**, and only the first was treated as the variable. `--readout-seed`
+separates them by holding the size fixed, and at **four independent draws at read-out 300** the forgetting is
+**+0.0083 / +0.0146 / +0.0208 / +0.0208** — a span of **0.0125**, which is **exactly the across-size difference
+the statement rested on** (512's +0.0208 against 300's +0.0083), and two draws at 512 give a span of 0.0125 as
+well. **So the variation a practitioner cannot control (which neurons) is the same size as the variation they
+can (how many)**, and "read-out ≈ 300 is the optimum on both metrics" is not distinguishable from a property of
+which 300 neurons were drawn.
+
+**What survives is coarser.** Against the draw's own sd (0.0060 at read-out 300, four draws), three of the six
+neighbouring steps along the axis are resolved — 1307 → 900 (3.13 sd), 300 → 128 (4.18), 128 → 32 (6.61) — and
+three are not: **900 → 700 is 1.04 sd** (so the local bump is unresolved rather than a second feature), 700 →
+512 is 2.44, and **512 → 300 is 2.09, which is the step the design statement rested on**. The interior minimum
+*exists*; its location and depth do not survive. **And the draw is a second source on top of the reported sem**
+(0.0101 at read-out 300, over five training replicates at a fixed draw), so the paper's uncertainty was not
+wrong — it measures something else, which is this line's oldest lesson arriving on a new axis. **The rule this
+is an instance of**: a factor that is not the manipulated variable is not thereby held constant, and until this
+fire **the artifact identified its read-out size and not its read-out subset** — the payload now carries the
+effective draw seed and a hash of the subset, and every "bit-identical over seven executions" result in this
+record is reproducibility *given a draw* rather than across draws
+(`docs/findings/2026-09-23-the-draw-is-as-large-as-the-effect.md`). And the sweep validates itself: its read-out-32 plastic row is the hardened
 configuration's `naive` and comes out at **+0.0729 ± 0.0151**, reproducing `e8_hardened_basis` to the last
 printed digit (`docs/findings/2026-09-23-the-unbacked-cells-measured.md` §1).
 

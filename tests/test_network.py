@@ -275,3 +275,25 @@ def test_the_readout_sizes_are_independent_draws_and_not_nested():
     a, b, small = readout_draw(0, 0, 300, n), readout_draw(0, 1, 300, n), readout_draw(0, 0, 32, n)
     assert len(set(small) - set(a)) > 0, "size-32 must not be a subset of size-300, or the axis is nested"
     assert len(set(a) & set(b)) < 2 * (300 * 300 / n), "two draws at one size must be near-independent"
+
+
+def test_the_artifact_payload_identifies_its_read_out_draw():
+    """The subset is an RNG draw, and until e113 no artifact said which one it used.
+
+    Every "bit-identical over seven executions" result in this project's record compares runs at the *same*
+    draw, and the draw was never varied -- so those results are reproducibility *given a draw*. `config` carries
+    `readout_size` and not the neurons, which is why the payload now carries the effective seed and a hash of the
+    subset: two artifacts can then be checked for the same draw without storing 300 integers.
+    """
+    import inspect
+
+    from experiments import e8_rate_network
+
+    src = inspect.getsource(e8_rate_network.main)
+    assert '"readout":' in src
+    for key in ('"size"', '"draw_seed"', '"subset_sha1"'):
+        assert key in src, f"the readout block must identify {key}"
+    # the effective seed falls back to seed0, so an artifact written before the flag existed still identifies its
+    # draw; that fallback is the same rule the draw itself uses, asserted in
+    # test_the_readout_draw_defaults_to_seed0_so_older_artifacts_are_unaffected
+    assert "args.seed0 if args.readout_seed is None else args.readout_seed" in src
