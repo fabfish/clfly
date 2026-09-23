@@ -1407,7 +1407,16 @@ at the final checkpoint** (after one task all 66 pairs are below the threshold a
 128 against 3.98× at read-out 32**. So the barrier is a property of the read-out **jointly with** the number of
 tasks, and **a practitioner choosing the narrowest read-out is choosing the configuration in which the seeds'
 solutions come closest to being separated**
-(`docs/findings/2026-09-24-the-connected-set-claim-is-read-out-dependent.md`). **What survives unchanged is the
+(`docs/findings/2026-09-24-the-connected-set-claim-is-read-out-dependent.md`). **And the hard cases do not
+persist across read-outs either** — which is stronger than "the level is read-out dependent" and is what a reader
+would ask next. The three grids used the **same 66 pairs**, and comparing them directly: the per-pair barriers
+correlate at **−0.224, −0.142 and −0.046** across the three read-out pairs, and the **worst ten pairs overlap by
+one of ten pairwise and zero of ten across all three**. So *"the worst pair is 400 and 1000"* is a fact about
+read-out 128 and about nothing else. **What does organise each read-out is one seed, and it is a different seed
+each time** — seed 0 at read-out 32, 400 at 128, 100 at 1307 — with the worst seed's ratio to the median seed
+rising **1.30× → 1.61× → 3.77×** as the read-out widens: where the barrier is large every seed is hard to
+connect, and where it is nearly absent the few pairs that rise are those involving one seed that landed somewhere
+anomalous (`docs/findings/2026-09-24-the-hard-cases-do-not-persist.md`). **What survives unchanged is the
 part this section is about**: the seeds' solutions are **one connected set** in every configuration tested, they
 are **not interchangeable**, and **no measured quantity says which point of the set a seed lands on** — the sixth
 such quantity, after the drift, the gap, the two interference terms and the fit depth.

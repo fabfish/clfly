@@ -152,6 +152,10 @@ rather than being invisible.
 
 ## 6. What this cannot settle
 
+- **The hard cases do not survive a change of read-out** — measured afterwards on the same 66 pairs
+  (`e136`): the per-pair barriers correlate at −0.224, −0.142 and −0.046 across the three read-outs and the
+  worst ten overlap by **0 of 10 across all three**. So the sentence above about the worst pair being 400 and 1000
+  is a fact about read-out 128 and about nothing else.
 - **One read-out, one task order, one circuit.** Read-out 32 has the largest per-repeat spread on this axis
   (`e116`: sd 0.0556 against 0.0325 here) and the barrier there is untested. The drift, the load-bearing gap and
   the fit depth are all monotone in the read-out, so a barrier that is a property of the geometry *and* a

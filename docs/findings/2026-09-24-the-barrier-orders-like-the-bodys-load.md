@@ -78,7 +78,7 @@ fit losses are the fourth reading of `e121`: **0.00011–0.00015** at read-out 1
 read-out 32, so the whole state interpolates its training data two orders of magnitude better — which is the same
 fact as the gap being negative there.
 
-## 6. A unit error in three documents, found while writing this one
+## 5. A unit error in three documents, found while writing this one
 
 The table in §1 was first written with a **"factor below chance"** column reading **3.14× / 11.07× / 7.24×**, and
 all three were wrong. `barrier_over_chance` is already **a fraction of `ln 4`**, so dividing `ln 4` by it divides
@@ -98,6 +98,20 @@ a dimensionless ratio divided into a loss here. The repair is the same: **state 
 factor, because a sentence writing *"12.52% of chance, 7.99× below it"* cannot contain this error while one
 writing *"a factor of 11.07 below chance"* can. That is now rule 35, and the check it licenses is the cheapest
 one available: **every "factor below" figure must sit beside the fraction or the loss it was divided from.**
+
+## 6. And the hard cases do not persist across read-outs, which is stronger than "one read-out"
+
+The three grids used the **same 66 pairs**, so they can be compared directly, and they do not agree about which
+pair is hard: the per-pair barriers correlate at **−0.224, −0.142 and −0.046** across the three read-out pairs,
+and the **worst ten overlap by one of ten pairwise and ZERO of ten across all three**. Nor is it the seed: each
+seed's mean barrier over its eleven pairs gives a 12-vector per read-out, and those are negatively correlated too
+(**−0.337, −0.135, −0.201**). **What organises each read-out is one seed, and it is a different one each time** —
+**0** at read-out 32, **400** at 128, **100** at 1307 — with the worst seed's ratio to the median seed rising
+**1.30× → 1.61× → 3.77×** as the read-out widens. Where the barrier is large every seed is hard to connect;
+where it is nearly absent the pairs that rise involve one seed that landed somewhere anomalous. **So the "three
+read-outs is a curve on three points" caveat is not the whole of it**: the *identity* of the hard cases does not
+survive a change of read-out either, and a single-read-out geometry study cannot be read as a statement about the
+seeds (`docs/findings/2026-09-24-the-hard-cases-do-not-persist.md`).
 
 ## 7. What this settles and what it cannot
 
