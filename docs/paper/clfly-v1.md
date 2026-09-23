@@ -770,7 +770,12 @@ adaptive ones here" claim, with per-seed evidence rather than a pooled mean.
 
 **The three worst candidates are the adaptive ones.** Spectral truncation to the top
 `r` directions of the current posterior — locally optimal at every step — is the
-*worst* of all fourteen (+0.0222 against the diagonal's +0.01762). The two winners are
+*worst* of all fourteen: **`rank4`**, the tightest truncation, at **+0.0223** against
+the diagonal's +0.01762 *(corrected 2026-09-24; this said +0.0222, which is `rank64`'s
+excess in the same eighteen-seed run — the worst of the three truncations is `rank4` at
+0.0223347, and the two are resolved apart by **16.96σ** on the same seeds, so this was a
+wrong member of the family quoted as the worst rather than a rounding of a tie; see
+`docs/findings/2026-09-24-the-worst-of-fourteen-was-a-different-candidate.md`)*. The two winners are
 both fixed structures and the losers adapt, on a substrate whose failure mode is
 re-projection rather than interference.
 
