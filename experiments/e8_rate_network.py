@@ -217,6 +217,69 @@ def first_order_damage(grad: np.ndarray, displacement: np.ndarray) -> dict:
     return {"first_order": inner, "cosine": cosine, "grad_norm": g_norm, "disp_norm": d_norm}
 
 
+def directional_curvature(model, theta0, readout, task, direction: np.ndarray,
+                          shared: bool = False, eps: float | None = None) -> dict:
+    """``dᵀHd`` and the Rayleigh quotient ``dᵀHd / ‖d‖²`` along ``direction``.
+
+    The *second*-order term of the interference account, and the reason it is the natural next instrument is
+    `e108`'s own result: the first-order term is nearly **orthogonal** to the loss direction (cosines
+    +0.003 to +0.048) and yet the earlier task forgets 0.06–0.08 of accuracy, which is what a **second**-order
+    effect looks like -- and a quadratic form is **positive by construction** for a positive-semidefinite
+    Hessian, so it cannot get the sign wrong where the first-order term did.
+
+    **Both the product and the quotient are returned, because they answer different questions.** ``quad`` is
+    linear in the directional curvature and quadratic in the displacement, so it inherits the read-out
+    monotonicity that the displacement, the load-bearing gap and the first-order term all share. The
+    **Rayleigh quotient divides the magnitude out** and is therefore the first candidate in this line that is a
+    property of the *direction* rather than of how far the body moved -- which is what `e108` said the next
+    candidate had to be.
+
+    ``eps is None`` uses an **exact double backward** (``autograd.grad`` of ``gradient·d``), which is the
+    default because the first version of this function was a central finite difference and **it was not
+    converged**: at the same weights it returned `8.51e-01` at a step of `1e-3‖θ‖` and `1.71e-01` at `1e-2‖θ‖`.
+    A finite difference whose two steps disagree by a factor of five has not measured anything, so the step is
+    kept as an argument only so that the two can be compared -- and that comparison is what the caller should
+    report beside the exact value.
+    """
+    import torch
+
+    theta = model.theta
+    direction = np.asarray(direction, dtype=np.float64)
+    d_norm = float(np.linalg.norm(direction))
+    if not d_norm:
+        return {"quad": 0.0, "curvature": 0.0, "d_norm": 0.0, "loss": float("nan"), "method": "trivial"}
+
+    d_t = torch.from_numpy(direction.astype(np.float32)).to(theta.device)
+    U = torch.from_numpy(task.u_train).float()
+    Y = torch.from_numpy(task.y_train).long()
+    traj = model(U, None)
+    logits = _logits(readout, traj[:, -1, :][:, task.readout_neurons], task, shared)
+    loss = torch.nn.functional.cross_entropy(logits, Y)
+    model.zero_grad()
+    (grad,) = torch.autograd.grad(loss, theta, create_graph=True)
+    if eps is None:
+        (hessian_d,) = torch.autograd.grad((grad * d_t).sum(), theta, retain_graph=False)
+        quad = float((d_t * hessian_d).detach().cpu().sum())
+        method = "double backward"
+    else:
+        magnitude = float(np.linalg.norm(np.asarray(theta0, dtype=np.float64)))
+        step = eps * magnitude / d_norm
+        step_vec = (step * d_t).detach()
+        with torch.no_grad():
+            theta.add_(step_vec)
+        g_plus, _ = task_grad(model, readout, task, shared)
+        with torch.no_grad():
+            theta.sub_(2.0 * step_vec)
+        g_minus, _ = task_grad(model, readout, task, shared)
+        with torch.no_grad():
+            theta.add_(step_vec)                          # restore, exactly
+        quad = float(direction @ ((g_plus - g_minus) / (2.0 * step)))
+        method = f"central difference, eps={eps:g}"
+    model.zero_grad()
+    return {"quad": quad, "curvature": quad / (d_norm * d_norm), "d_norm": d_norm,
+            "loss": float(loss.item()), "method": method}
+
+
 def evaluate(model, readout, task, shared: bool = False) -> float:
     """Held-out accuracy at the final timestep."""
     import torch
@@ -333,6 +396,8 @@ def run_method(conn_net, suite, method: str, args, seed: int,
     drifts = []                                            # ||theta after - before|| / ||before|| per task
     thetas = []                                            # the body after each task, for the interference terms
 
+    theta_initial = model.theta.detach().cpu().numpy().copy()
+
     for k, task in enumerate(suite):
         # Bind the block penalty ONCE per task, not once per training step. The Fisher and
         # the anchor are constants while a task is trained; converting them inside the step
@@ -396,12 +461,28 @@ def run_method(conn_net, suite, method: str, args, seed: int,
     for j in range(max(T - 1, 0)):
         readout = heads[0] if shared else heads[j]
         grad, loss_j = task_grad(model, readout, suite[j], shared)
-        deltas = [thetas[k] - (thetas[k - 1] if k else np.zeros_like(theta_final))
+        # The first task's displacement is from the *initial* body, not from zero: the earlier version wrote
+        # `np.zeros_like(theta_final)` for k = 0, which is the absolute weight vector rather than a
+        # displacement. Nothing reported from e108 depended on it -- every quoted number came from the
+        # `cumulative` term, which is `theta_final - thetas[j]` -- but the stored `per_task[0]` entries were
+        # wrong and are now right.
+        deltas = [thetas[k] - (thetas[k - 1] if k else theta_initial)
                   for k in range(T)]
         interference.append({
             "task": j, "loss_at_final": loss_j,
             "per_task": [first_order_damage(grad, d) for d in deltas],
             "cumulative": first_order_damage(grad, theta_final - thetas[j]),
+            # Second order: `quad` is a product (magnitude x curvature, so read-out-shaped) and `curvature`
+            # is the Rayleigh quotient with the magnitude divided out (a direction quantity). The exact
+            # double backward is the value; the two finite differences are the cross-check, because the first
+            # version of this instrument reported them disagreeing by a factor of five.
+            "second_order": {
+                **{"exact": directional_curvature(model, theta_initial, readout, suite[j],
+                                                  theta_final - thetas[j], shared)},
+                **{f"fd_{e:g}": directional_curvature(model, theta_initial, readout, suite[j],
+                                                      theta_final - thetas[j], shared, eps=e)
+                   for e in (1e-3, 1e-2)},
+            },
         })
     # The last task cannot be forgotten yet, so it is excluded from the mean; it is
     # reported separately as "how well did it end up learning the final task".
@@ -548,6 +629,12 @@ def main(argv=None) -> int:
                                             for r in reps])),
                 "disp_norm": float(np.mean([r["interference"][j]["cumulative"]["disp_norm"]
                                             for r in reps])),
+                "second_order": {
+                    k: {"quad": float(np.mean([r["interference"][j]["second_order"][k]["quad"]
+                                               for r in reps])),
+                        "curvature": float(np.mean([r["interference"][j]["second_order"][k]["curvature"]
+                                                    for r in reps]))}
+                    for k in sorted(reps[0]["interference"][j]["second_order"])},
             } for j in range(len(reps[0]["interference"]))],
             "replicates": reps,
         }
@@ -561,6 +648,10 @@ def main(argv=None) -> int:
         if agg["interference"]:
             print(f"    interference per task (cumulative): "
                   f"{['%+.2e (cos %+.3f)' % (i['cumulative_first_order'], i['cumulative_cosine']) for i in agg['interference']]}")
+            print(f"    second order per task (exact quad / curvature): "
+                  f"{['%.3e / %.3e' % (i['second_order']['exact']['quad'], i['second_order']['exact']['curvature']) for i in agg['interference']]}")
+            print(f"    cross-check, finite difference at eps 1e-3 and 1e-2 (quad): "
+                  f"{['%.3e %.3e' % (i['second_order']['fd_0.001']['quad'], i['second_order']['fd_0.01']['quad']) for i in agg['interference']]}")
         print(f"    -> final accuracy {agg['final_accuracy']:.3f} ± {agg['final_sem']:.3f},  "
               f"mean forgetting {agg['mean_forgetting']:+.3f} ± {agg['forgetting_sem']:.3f}")
 
