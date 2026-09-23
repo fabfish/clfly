@@ -45,7 +45,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 def train_task(model, heads, suite, k: int, iters: int, lr: float, batch: int,
                seed: int, ewc=None, block_ewc=None, replay: list | None = None,
                replay_batch: int = 16, shared: bool = False,
-               frozen_body: bool = False):
+               frozen_body: bool = False, frozen_bias: bool = False):
     """Train on task ``k``; optionally with an EWC penalty or a replay buffer.
 
     ``heads`` is the list of decoders: one per task in the task-incremental default (the
@@ -66,8 +66,19 @@ def train_task(model, heads, suite, k: int, iters: int, lr: float, batch: int,
     # `frozen_body` is a diagnostic, not a method: it asks whether the plastic recurrent
     # weights are being used at all. If a benchmark's accuracy is the same with the body
     # frozen, it is measuring the decoder rather than the connectome.
+    #
+    # `frozen_bias` splits that question, because the body is two parameter sets with very
+    # different status: 26,568 masked weights that ARE the connectome, and 800 per-neuron
+    # offsets whose blocks carry no wiring semantics. Both are trained, and neither EWC
+    # penalty covers the bias (`diagonal_fisher`'s docstring justifies that for the decoder
+    # and not for the bias -- "the bias is shared" is equally true of `theta`, which IS
+    # anchored). So a naive-vs-EWC contrast includes an unpenalised 800-parameter channel,
+    # and this flag is what says whether that channel matters. Freezing it holds it at its
+    # zero initialisation, which is the only value it has ever had before task 0.
     if frozen_body:
         params = list(readout.parameters())
+    elif frozen_bias:
+        params = [model.theta] + list(readout.parameters())
     else:
         params = [model.theta, model.bias] + list(readout.parameters())
     opt = torch.optim.Adam(params, lr=lr)
@@ -421,6 +432,7 @@ def run_method(conn_net, suite, method: str, args, seed: int,
     L = np.full((T, T), np.nan)                            # the retention matrix in LOSS, not accuracy
     losses = []
     drifts = []                                            # ||theta after - before|| / ||before|| per task
+    bias_norms = []                                        # the bias's absolute movement, which has no relative form
     full_train_losses = []                                 # mean loss over the task's whole train split
     decoder_states = []                                    # the decoders after each task
     thetas = []                                            # the body after each task, for the interference terms
@@ -436,6 +448,7 @@ def run_method(conn_net, suite, method: str, args, seed: int,
         if method.startswith("ewc-block") and blocks is not None:
             block_pen = part.make_penalty(blocks, anchor_b, model.theta, args.lam, torch)
         theta_before = model.theta.detach().cpu().numpy().copy()
+        bias_before = model.bias.detach().cpu().numpy().copy()
         losses.append(train_task(
             model, heads, suite, k, iters=args.iters, lr=args.lr,
             batch=args.batch, seed=seed + k,
@@ -444,8 +457,15 @@ def run_method(conn_net, suite, method: str, args, seed: int,
             block_ewc=block_pen,
             replay=(replay if method == "replay" else None), shared=shared,
             replay_batch=args.replay_batch,
-            frozen_body=args.frozen_body))
+            frozen_body=args.frozen_body, frozen_bias=getattr(args, "frozen_bias", False)))
         drifts.append(relative_drift(theta_before, model.theta.detach().cpu().numpy()))
+        # The bias starts at exactly zero, so a relative drift is undefined (||before|| = 0) and the honest
+        # record is absolute: how far it moved from zero, and how far it moved on this task. Recorded because
+        # no EWC penalty in this project covers the bias, so how far it travels is how much of the forgetting
+        # hangs off a channel the penalty does not see.
+        bias_step = model.bias.detach().cpu().numpy() - bias_before
+        bias_norms.append({"step": float(np.linalg.norm(bias_step)),
+                           "from_zero": float(np.linalg.norm(model.bias.detach().cpu().numpy()))})
         full_train_losses.append(full_split_loss(
             model, heads[0] if shared else heads[k], task, shared, "train"))
         thetas.append(model.theta.detach().cpu().numpy().copy())
@@ -565,6 +585,7 @@ def run_method(conn_net, suite, method: str, args, seed: int,
         "losses": losses,
         "retention_loss": L.tolist(),
         "theta_drift": drifts,
+        "bias_norms": bias_norms,
         "full_train_loss": full_train_losses,
         "interference": interference,
     }
@@ -607,6 +628,11 @@ def main(argv=None) -> int:
     p.add_argument("--frozen-body", action="store_true",
                    help="diagnostic: train only the decoder, to test whether the "
                         "plastic recurrent weights are used at all")
+    p.add_argument("--frozen-bias", action="store_true",
+                   help="diagnostic: freeze the recurrent bias and train the weights, the "
+                        "complement of --frozen-body, which freezes both. Both penalties in this "
+                        "project cover only theta, so the bias is the one trained parameter no "
+                        "penalty sees; this asks whether the forgetting hangs off it")
     p.add_argument("--support", type=int, default=80,
                    help="input population size for the overlap suite")
     p.add_argument("--shared-head", action="store_true",
@@ -715,6 +741,10 @@ def main(argv=None) -> int:
             "forgetting_per_task": [float(x) for x in
                                     np.mean([r["forgetting_per_task"] for r in reps], axis=0)],
             "theta_drift": [float(x) for x in np.mean([r["theta_drift"] for r in reps], axis=0)],
+            "bias_step": [float(x) for x in np.mean([[b["step"] for b in r["bias_norms"]]
+                                                     for r in reps], axis=0)],
+            "bias_from_zero": [float(x) for x in np.mean([[b["from_zero"] for b in r["bias_norms"]]
+                                                          for r in reps], axis=0)],
             "full_train_loss": [float(x) for x in np.mean([r["full_train_loss"] for r in reps], axis=0)],
             "retention_loss": np.nanmean([r["retention_loss"] for r in reps], axis=0).tolist(),
             "interference": [{
@@ -743,6 +773,8 @@ def main(argv=None) -> int:
         print(f"    learned (diagonal):  {['%.3f' % x for x in agg['learned']]}")
         print(f"    forgetting per task: {['%+.3f' % x for x in agg['forgetting_per_task']]}")
         print(f"    theta drift per task: {['%.3f' % x for x in agg['theta_drift']]}")
+        print(f"    bias step / from zero: {['%.4f' % x for x in agg['bias_step']]} / "
+              f"{['%.4f' % x for x in agg['bias_from_zero']]}")
         print(f"    full train loss per task: {['%.5f' % x for x in agg['full_train_loss']]}")
         rl = np.array(agg["retention_loss"])
         print(f"    retention loss (row=checkpoint, lower triangle): "
