@@ -259,3 +259,26 @@ construction, so if the shapes decorrelate the confound at d = 952 they should d
 P6 fails is if the *task geometry*'s dependence on concentration differs enough between the sizes to keep
 the coupling high. That is a live possibility, because the level of `projection_pressure` itself moves by
 5.2× between them (P5, above).
+
+### The outcome of P6, recorded against the clause as written
+
+**P6 FAILED on both of its thresholds and its falsifier FIRED.** With cs = 800 complete at 20 of 20:
+
+| P6 | predicted | measured | |
+|---|---|---|---|
+| coupling | below **+0.80** | **+0.923** | **FAILS** |
+| partial | above **+0.654** | **+0.618** | **FAILS** |
+| falsifier (coupling above +0.90) | — | **+0.923** | **FIRES** |
+
+The falsifier's first stated consequence holds — *the second shape does not decorrelate at d = 1307*: it
+lowers the coupling by **+0.052** there against **+0.214** at d = 952, four times less. Its second
+consequence — *the partial there stays unreadable* — **does not**: the d = 1307 partial is now **+0.618 at
+p = 0.0048**, with **0.20%** of profile-bootstrap resamples at or below zero (against 25.15% at nine cells),
+leave-one-cell-out **+0.552 to +0.669** with no sign flip, and **3 of 3** per-seed partials positive. It
+became resolved because the grid doubled from nine cells to twenty, not because the confound was removed.
+
+So the clause was **right about the mechanism and wrong about what follows from its absence** — the first
+time in this project a pre-registered falsifier has fired while the outcome it predicted in the negative did
+not. The full reading, including the size trend it exposes (partial **+0.919 → +0.618 → +0.120** as the
+circuit grows, the third row still partial at 8 of 20 cells), is in
+`docs/findings/2026-09-23-p6s-falsifier-fired-and-a-size-trend-appears.md`.

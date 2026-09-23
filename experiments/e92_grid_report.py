@@ -284,15 +284,21 @@ def main() -> None:
     f2 = not all(v["raw_pressure"] > v["raw_concentration"] for v in have.values())
     #: A clause whose scope is "every size" cannot FAIL while a size is unscored -- it is PENDING. The first
     #: version of this block printed FAIL for P1 and P4 whenever fewer than three sizes were on disk, which
-    #: reads as a refutation when the data simply is not there yet. P3 is scoped to d = 1307 alone and so is
-    #: decidable on its own; the falsifiers F1 and F2 are likewise reported as PENDING below three sizes.
-    all_sizes = len(have) == len(SIZES)
+    #: reads as a refutation when the data simply is not there yet. **The second version had the opposite
+    #: flaw and it is the worse one**: it gated on each size having at least five cells, so a size with 8 of
+    #: its 20 on disk counted as scored and P1 printed PASS on a partial set -- which is the precise mistake
+    #: (a truncated set treated as the set) this project spent the day auditing in other people's tables.
+    #: The gate is now the grid's own expected size, and every clause line prints each size's cell count.
+    expected = len(K_GRID) * len(SHAPES)
+    all_sizes_scored = len(have) == len(SIZES)
+    grid_complete = all(len(grid_by_size[s[0]]) == expected for s in SIZES)
+    counts = ", ".join(f"{s[0]} {len(grid_by_size[s[0]])}/{expected}" for s in SIZES)
 
     def gate(value, scoped=False):
         if scoped:
             return "PASS" if value else "FAIL"
-        if not all_sizes:
-            return f"PENDING ({len(have)} of {len(SIZES)} sizes scored)"
+        if not grid_complete:
+            return f"PENDING ({counts})"
         return "PASS" if value else "FAIL"
 
     print(f"   P1 partial > 0 at every size: "
@@ -310,13 +316,15 @@ def main() -> None:
           f"{'YES' if f1 else 'no'}")
     print(f"   F2 FIRES (the raw ordering reverses at some size): "
           f"{'YES' if f2 else 'no'}"
-          + ("" if all_sizes else "   <- but a size is unscored, so read this as PENDING, not as a reversal"))
+          + ("" if grid_complete else "   <- but a grid is incomplete, so read this as PENDING"))
     print(f"\n   P1 is the clause that matters: it is the only form of the claim that a concentration")
     print(f"   restatement cannot fake, and `e86` could not compute it because its partitions were not")
     print(f"   the same objects across sizes.")
     out["verdict"] = dict(p1=bool(p1), p2=bool(p2), p3=bool(p3), p4=bool(n_seed >= PREDICTED_PER_SEED_POSITIVE[0]),
                           per_seed_positive=[n_seed, n_seed_tot], f1_fires=bool(f1), f2_fires=bool(f2),
-                          n_sizes_scored=len(have), all_sizes_scored=bool(all_sizes))
+                          n_sizes_scored=len(have), all_sizes_scored=bool(all_sizes_scored),
+                          grid_complete=bool(grid_complete),
+                          cells={s[0]: len(grid_by_size[s[0]]) for s in SIZES}, expected_cells=expected)
 
     print()
     print("=" * 112)
