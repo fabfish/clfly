@@ -50,3 +50,22 @@ the measurement was recorded, and the *conditions* were dropped between the meas
 **And in each case the fix is the same shape**: name the thing the number depends on — the estimator, the
 derivation, the thread count — rather than adjusting the number. A corrected figure would have gone stale
 again on the next machine; a qualified one does not.
+
+
+---
+
+## 4. Which of those five cost figures are *derivations* and which are bare measurements
+
+Following the rule above by checking each one's inputs turns a list into a checked list, and the five split cleanly:
+
+| figure | kind | its inputs | verified |
+|---|---|---|---|
+| §3.3's 152 GB, 2.6e15 flops | arithmetic | `d` | **yes** — 138,113² × 8 bytes and 138,113³ flops |
+| §3.1's mean out-degree 108.9 | a property of the data | the connectome | **yes**, to the digit |
+| §6's ~6 s per basis | a measurement | the machine | **yes at four threads, 2.2x off at one** |
+| §7's 7× per run | a measurement | the machine | **yes, 8.3x measured** — but its stated *reason* (O(d³)) predicts 2.95× and so cannot produce it |
+| §4.5's 24.3 → 6.0 minutes | **a derivation** | **4,500 calls × two measured per-step costs** | **yes, exactly**: 4,500 × 0.3247 s = 24.36 min and × 0.0805 s = 6.04 min, with the speedup 4.0× matching 0.3247/0.0805 = 4.03 |
+
+**So only one of the five is a derivation, and it is the only one whose inputs were already stated** — the 4,500-call run is in the finding's table header. What the *paper* dropped was the unit: §4.7 said "takes the coarsest rung from 24.3 to 6.0 minutes of penalty calls" and nothing about the call count, leaving a reader unable to distinguish a per-step cost from a per-run total. It now carries both, and the one cross-check available — `runs/e44_penalty_cost_scaling.json` measures **53.5 ms** per step for `side` against the finding's 80.5 ms — differs by **1.5×**, which is inside this paper's own 2.2× environment band rather than outside it.
+
+**And the general form of the rule is now visible in all five**: the figures that are *derivations* need their inputs named, the figures that are *measurements* need their environment named, and the figures that are *arithmetic* need neither. Only the third kind was safe by construction.

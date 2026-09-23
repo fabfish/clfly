@@ -1084,8 +1084,13 @@ mass into ``B`` groups does drop storage as ``1/B`` and is now implemented, but 
 memory** — block-Fisher accumulation cost also scales with ``sum_g s_g^2``, so a coarse rung
 costs minutes per run instead of seconds, which is affordable. And part of that time was not
 granularity at all: the constant Fisher was re-converted from numpy to ``torch`` on every
-training step, and binding it once per task (`make_penalty`) takes the coarsest rung from 24.3
-to 6.0 minutes of penalty calls. So the defensible claim is that
+training step, and binding it once per task (`make_penalty`) takes the coarsest rung from **24.3 to 6.0
+minutes of penalty calls over a 4,500-call run** — 4,500 × 0.3247 s and × 0.0805 s, both measured, which
+is why the speedup is **4.0×** there and only 1.1× on `cell_class`: the saving is proportional to how much
+conversion was being done redundantly. **The call count is not decoration**: the 0.0805 s per-step figure
+is 1.5× the 53.5 ms that `runs/e44_penalty_cost_scaling.json` measures for the same rung, which is inside
+the 2.2× environment band this paper documents in §9 for its own timings, and without the call count a
+reader cannot tell a per-step cost from a per-run total. So the defensible claim is that
 biology does not help *synapse* anchoring at 0.925 constrained, **and the rung the neuron result implicates
 has since been run and the negative holds there too** — `side` gives biological-minus-matched-random
 **−0.0116 accuracy** (0.8148 ± 0.0346 against 0.8264 ± 0.0212, with forgetting +0.0972 against +0.0938), so
