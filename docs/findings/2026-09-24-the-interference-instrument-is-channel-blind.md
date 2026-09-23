@@ -4,7 +4,8 @@
 **Script:** `experiments/e139_whole_body_interference.py` (new) — an analysis of `e133`'s forty replicates, plus
 the `whole_body` block added to `e8_rate_network.py` for the run that tests the explanation.
 **Data:** `runs/e133_r32_naive_ewc_40reps.json` — `naive` and `ewc`, forty paired seeds, no penalty covering the
-bias in either arm.
+bias in either arm — **and `runs/e139_r32_wholebody.json`, the same two arms re-run with the `whole_body` block,
+which is what §4 reports; §4's third arm is `runs/e138_r32_ewc_anchorbias33.json` at the same seeds.**
 **Context:** `e125` (the 800 offsets carry 70% of the forgetting), `e137` (the penalty relocates adaptation into
 them: `theta` moves 28% less, the bias 25% more), `e133` (the penalty's forgetting moves **1.21σ** where the
 paper quotes 2.47σ from five). **Those three leave a question: the penalty was designed to reduce interference,
@@ -70,7 +71,54 @@ turns the explanation into a measurement**, and its prediction is registered her
   interference as thoroughly as it reduces the weights', and the forgetting's failure to move has to be explained
   by something other than where the instrument was pointed.
 
-## 4. The lead that sits beside it, and it is the same size as the last one
+## 4. And it is measured: P1 holds, and the extended instrument orders the effect where the old one does not
+
+`runs/e139_r32_wholebody.json` landed, and on the same forty paired seeds, task 0:
+
+| cumulative, task 0 | naive | EWC | change | ratio |
+|---|---|---|---|---|
+| **whole body** | +0.4266 | +0.3257 | −0.1010 ± 0.0725 = **1.39σ** | **0.763** |
+| of which `theta`-only | +0.2336 | +0.0052 | −0.2284 ± 0.0221 = **10.34σ** | **0.022** |
+| of which **bias-only** | +0.1930 | **+0.3204** | **+0.1274 ± 0.0701 = 1.82σ** | **1.660** |
+
+**P1 holds** (the registered ratio was "above 0.5"; it is 0.763), **the falsifier does not fire**, and **P2
+holds**: the bias's contribution is **45%** of the whole-body term in the naive arm (0.1930 against 0.2336),
+so it is a component and not a correction. **And the bias's contribution *grows* 66% under the penalty** — the
+penalty relocates interference into the channel it does not cover, which is `e137`'s substitution measured in the
+instrument's own units rather than in displacements.
+
+**Which makes the channel-blindness quantitative rather than qualitative: the `theta`-only form was reading 55%
+of the account, and the half it could not see grew while the half it could see collapsed.** The θ-only
+instrument's share of the whole-body term is **98% ⇒ 2%** between the naive and EWC arms — the penalty does not
+merely leave the instrument pointed at one channel, it **empties** that channel of the term and fills the other.
+
+### The three-arm extension, which is the strongest form of the result
+
+`e138`'s `SCALE 33.2` arm carries the same instrument at the same seeds, so the account can be read across three
+arms whose effect differs by 4.84σ:
+
+| cumulative, task 0 | naive | unanchored EWC | **anchored EWC (`e138`, 33.2)** |
+|---|---|---|---|
+| **whole-body first order** | 0.4266 | 0.3257, ratio 0.763 at **1.39σ** | **0.1831**, ratio **0.429** at **4.21σ** |
+| `theta`-only | 0.2336 | **0.0052**, ratio 0.022 at **10.34σ** | 0.0238, ratio 0.102 at **9.72σ** |
+| bias-only | 0.1930 | 0.3204, ratio 1.660 at **1.82σ** | 0.1593, ratio 0.825 at **0.66σ** |
+| **shares (θ / bias)** | **55% / 45%** | **2% / 98%** | 13% / 87% |
+| **mean forgetting** | **+0.0750** | **+0.0654** | **+0.0292** |
+
+**The whole-body term's ordering across the three arms is the forgetting's ordering, and the `theta`-only form's
+is not.** Whole body: 0.4266 → 0.3257 → **0.1831** against forgetting 0.0750 → 0.0654 → **0.0292**, with the
+strong arm's cut at **4.21σ** where the arm that does not move the forgetting cuts it at **1.39σ**. The θ-only
+form goes 0.2336 → **0.0052** → 0.0238, i.e. **lowest in the arm whose forgetting is highest of the three
+penalties**. **So the extended instrument tracks the effect and the old one does not** — which is the whole of
+§1–2's explanation, now an ordering rather than a single contrast, and the strongest evidence in this document
+that the old instrument's failure was about *where it was pointed* rather than about the theory it was pointed
+from.
+
+**It also closes the loop with `e138`'s own result**: the arm that reaches 4.84σ on the forgetting is the arm that
+cuts the whole-body term **4.21σ**, so the account is not discarded — it is *repaired*, by measuring the body the
+penalty actually acts on rather than the half of it that the original formulation named.
+
+## 5. The lead that sits beside it, and it is the same size as the last one
 
 Within the naive arm, the `theta`-only first-order term **correlates with the forgetting at r = +0.329** across
 the forty seeds — and **−0.221 in the EWC arm**. So it is the **second** quantity in this session whose
@@ -80,14 +128,14 @@ in the other arm, is what a null looks like when it is measured at n = 40** — 
 *r = +0.33 of the same magnitude* is a reason to be more suspicious of both, not less: fifteen quantities have
 now been correlated with this forgetting, and two at 3% in the same arm are what multiplicity produces.
 
-## 5. What this cannot settle
+## 6. What this cannot settle
 
-- **The whole-body term is registered but not yet measured.** §3's prediction is checked by a run this finding
-  was written before; until it lands, the explanation in §1–2 is an inference from `e125` and `e137` and not a
-  measurement of the whole-body term itself.
+- **The whole-body term is measured for one task and one pair of arms plus `e138`'s strong scale.** §4's verdict
+  is `naive` against EWC on task 0, with the third arm from another artifact at the same seeds — so the ordering
+  is three points, and **task 1's whole-body term is not reported here at all**.
 - **The first-order term is a linearisation**, and the second-order one *does not differ between the arms*
   (1.29σ). So what is established is that the **linear** account of the interference the penalty targets falls
-  45-fold; whether a nonlinear account would move is not measured.
+  45-fold in one channel and 24% over the body; whether a nonlinear account would move is not measured.
 - **One read-out, one λ, three tasks, one circuit.** The channel's share is read-out dependent (70%, 89%, 83% at
   read-outs 32, 128 and 1307 per `e134`), so this is the configuration with the largest share.
 - **And nothing here says the penalty is mis-specified.** It says the penalty acts on one channel and the
