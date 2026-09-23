@@ -9,8 +9,13 @@ the non-conformance is invisible from inside this project and obvious to everyon
 
 It is not hypothetical here: every artifact of the rate-network line contains ``NaN``, because
 the retention matrix is initialised to ``NaN`` for the task pairs that have not been trained
-yet -- a meaningful "not applicable" that belongs in the file as ``null``. An audit of the
-committed artifacts found seven files that a strict parser refuses.
+yet -- a meaningful "not applicable" that belongs in the file as ``null``.  ``e98`` measured the
+corpus: **13 of 216 artifacts** under ``runs/`` were refused by a strict parser, eight of them
+rate-network and five carrying ``NaN`` from a ratio instead; those thirteen have been normalised
+in place with every value verified unchanged.  **And the debt is in the writers, not the files:
+of 72 modules, 32 write with :func:`json.dump` directly and 10 use this one**, so re-running a
+direct writer restores its ``NaN`` -- demonstrated by re-running ``e38_variance_budget.py``,
+which put all sixteen of its tokens back.
 
 ``nonfinite_to_null`` rewrites non-finite floats as ``None`` recursively, touching only the
 values that are already unrepresentable, and ``write_json`` is the drop-in replacement for

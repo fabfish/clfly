@@ -23,6 +23,7 @@ import numpy as np
 from scipy.stats import rankdata, spearmanr
 from scipy.stats import t as tdist
 
+from clfly.bench.artifacts import write_json
 from experiments.e92_grid_profiles import K_GRID, SHAPES
 
 #: size label -> (circuit size, the nine-partition assembly from `e86`)
@@ -507,9 +508,10 @@ def main() -> None:
             print(f"         this the comparison the grid exists to make, and the two partials share every")
             print(f"         profile, every concentration and every task seed.")
 
-    Path(args.json_out).parent.mkdir(parents=True, exist_ok=True)
-    with open(args.json_out, "w", encoding="utf-8") as fh:
-        json.dump(out, fh, indent=1, default=str)
+    #: through `write_json` rather than `json.dump`, so a non-finite value in any of these statistics lands
+    #: as `null` rather than as a bare `NaN` that `pandas.read_json` and `JSON.parse` both refuse.  This
+    #: script wrote with `json.dump` directly until `e98` counted how many still did.
+    write_json(args.json_out, out)
     print(f"\nwrote {args.json_out}")
 
 

@@ -1463,8 +1463,20 @@ determinism control within a thread setting rather than across settings, and why
 replay run is a **separate sample** of its configuration rather than an extension of the five-replicate
 one (`docs/findings/2026-09-23-the-replay-contrast-survives-sixteen-and-the-benchmark-is-not-thread-reproducible.md`).
 
-The artifacts are **strict JSON**. Python's `json` module writes `NaN` and `Infinity` by
-default and reads them back without complaint, so seven rate-network artifacts — whose retention
-matrices carry `NaN` in the not-yet-trained upper triangle — were being written in a form that
-`JSON.parse`, `serde_json`, `encoding/json` and `pandas.read_json` all reject. Every writer now
-goes through `clfly.bench.artifacts.write_json`, which renders those entries as `null`.
+The artifacts are **strict JSON**, and the two claims this paragraph used to make about that were both
+wrong. It said **seven** rate-network artifacts were written in the non-conformant form and that **every
+writer** now goes through `clfly.bench.artifacts.write_json`. Measured (`e98`):
+
+- **13 of 216 artifacts (6.0%)** were refused by a strict parser, and only **eight** of them are
+  rate-network — the other five (`e36`, `e38`, `e53`, `e56`, `e59`) carry `NaN` from a ratio rather than
+  from a retention matrix. So "seven rate-network" undercounted by six and mis-described two of them.
+- Of **72** modules under `experiments/` and `clfly/`, **32 write artifacts with `json.dump` directly** and
+  **10 use `write_json`** — so "every writer" was true of 10 of 42 that write anything at all.
+
+All thirteen were then **normalised in place**, with every value checked to be unchanged under the mapping
+`NaN → null`; a strict parser now refuses none of them. **And that is not durable**: re-running
+`e38_variance_budget.py`, one of the 32 direct writers, **restored all sixteen of its bare `NaN` tokens**,
+which is the demonstration that the debt re-forms whenever a direct writer runs. A test
+(`tests/test_artifact_writers.py`) now pins the 32-name list so it can only shrink and a new direct writer
+fails the suite
+(`docs/findings/2026-09-23-the-migration-is-not-durable-while-the-writers-are-not.md`).
