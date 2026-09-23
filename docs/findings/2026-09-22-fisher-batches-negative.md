@@ -15,8 +15,15 @@
 > +0.052). The 8-batch row's two block arms are replicate #0 of `e31_methodlist_check.json`; its `ewc` cell
 > matches no replicate anywhere; and the 128-batch row matches nothing. **The table is left standing here
 > because it is the only surviving trace of those numbers**, and the conclusion it was written to support —
-> that the negative is not estimation noise — is now being re-measured by `e96` rather than resting on it
-> (`docs/findings/2026-09-23-the-fisher-batch-sweep-is-a-stitch-of-first-replicates.md`).
+> that the negative is not estimation noise — is now **re-measured and superseded** rather than resting on it.
+> `e96` re-ran this sweep at this λ and reproduced its *direction* with different *levels*; `e101` then ran
+> three batch counts at λ = 0.003 with five replicates each and `naive` **bit-identical to six decimals**
+> across them, and on that design the block-minus-matched-random gap is negative at two batch counts and
+> positive at the third — **sign-unstable, and resolving nowhere**. So this document's *conclusion* survives
+> and its *table* does not: the numbers below should be read as the trace, and the λ = 0.003 figures of
+> `e101` as the measurement
+> (`docs/findings/2026-09-23-the-fisher-batch-sweep-is-a-stitch-of-first-replicates.md`,
+> `docs/findings/2026-09-23-the-batch-count-discriminator.md`).
 
 ---
 

@@ -4,6 +4,22 @@
 **Script:** `experiments/e8_rate_network.py --fisher-batches N` on the hardened configuration
 **Setup:** circuit `mb+cx+al@n1307`, 3 tasks, 3 replicates, shared head, read-out 32 neurons, λ = 0.003, chance 0.25
 
+> **Correction (2026-09-23).** Every forgetting figure below is **superseded, not merely unreproducible.** The
+> three batch-count rows of §2 and §3 have no artifact behind them: the whole list of `fisher_batches` values
+> under `runs/` was 8 or 32, and the three `ewc` and three `naive` cells of §2 match **no replicate of any
+> stored run** (`docs/findings/2026-09-23-the-fisher-batch-sweep-is-a-stitch-of-first-replicates.md`). The
+> sweep has since been re-measured twice. `e96` reproduced the **direction** at the same λ and produced
+> **different levels**, and on the one arm that cannot depend on the batch count — `naive` alone, in four
+> executions of one nominal experiment — its forgetting spans **+0.010 to +0.208**. Then `e101` re-ran three
+> batch counts at λ = 0.003 with **five replicates each and `naive` bit-identical to six decimals across
+> them**, which is the version of this test that can be read cell against cell
+> (`docs/findings/2026-09-23-the-batch-count-discriminator.md`). **§4's "best configuration found" and the
+> `+0.010`/`+0.066`/2.6σ row of §5 are superseded with them**: at this λ the surviving figures are the `e101`
+> ones, where the diagonal's advantage over `naive` is 2.31–2.40σ and **the size-matched random block
+> partition earns the same advantage**, so the sentence "diagonal EWC helps" survives and the reason proposed
+> for it does not. The one claim of this document that still stands on its own evidence is **§1's refutation
+> of the estimation-noise account**, and it now stands on `e101` rather than on the table below.
+
 ---
 
 ## 1. The prediction being tested

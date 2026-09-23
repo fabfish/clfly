@@ -20,32 +20,59 @@ configuration otherwise (λ = 0.003, cs = 800, 4 classes, 5 replicates); artifac
 | `ewc-block-rand` (matched) | +0.0521 ± 0.0177 | +0.0438 ± 0.0156 | +0.0271 ± 0.0091 |
 | `replay` | +0.0333 ± 0.0121 | +0.0500 ± 0.0163 | +0.0333 ± 0.0121 |
 
+*Added 2026-09-23: the 8-batch column is **one run, and it does not reproduce.** A second run of the same
+command gives `naive` +0.0729 and `ewc` +0.0271 **unchanged** and `ewc-block` **+0.0229**, `ewc-block-rand`
+**+0.0396**, `replay` **+0.0500** — the block-minus-random gap moves from −0.0354 to −0.0167. The 32-batch
+column is the only one measured twice, and it reproduces on **280 of 280 numeric fields**
+(`docs/findings/2026-09-23-the-fisher-free-arm-was-not-fisher-free.md`).*
+
 **P2 — the built-in control — half holds, and the half that fails is informative.** `naive` is
 **identical to six decimals** at all three batch counts, exactly as the design requires: it consults no Fisher
 matrix, so the forgetting level is **provably fixed** across the sweep, and no level-based explanation of
 anything below is available. **`replay` also consults no Fisher matrix and is NOT identical**: it is +0.0333 in
-both new runs and **+0.0500 at the old 32-batch point**. Since `replay` cannot depend on the batch count, that
-difference means the 32-batch run was taken in a **different environment** — which is rule 21's property of
-the torch path, and the reason §9 exists.
+both new runs and **+0.0500 at the old 32-batch point**.
 
-**So the three-point sweep mixes one old run with two new ones, and only the 8-versus-128 pair is fully
-controlled** (both new, run in one process, with `naive` and `replay` identical between them to six decimals).
-Everything below is read on that pair; the 32-batch point is reported and marked.
+> **Correction (2026-09-23, `e102`), and it inverts the diagnosis below.** This section read that difference as
+> evidence that the 32-batch run came from a different environment. **Measured, the 32-batch point is the
+> reproducible one**: re-running its command reproduces `e8_hardened_basis` on **280 of 280 numeric fields**
+> 13 hours and five commits later, `replay` included, while **two runs of the 8-batch command an hour apart
+> agree on `naive` and `ewc` and disagree on `ewc-block`, `ewc-block-rand` and `replay`**. And the arm set with
+> **no Fisher in it at all** (`--methods naive,replay`) gives `replay` the *same* 15 numbers at
+> `--fisher-batches 8` as at `32` — so the batch count is not what moved it, and `replay` is
+> **process-dependent rather than manipulation-dependent**. The level control is unaffected and remains the
+> part the argument needs; the environment-detector role is withdrawn. **Everything below is read on the
+> re-measured sweep**, and every clause that survives is quoted with its reproduction attached
+> (`docs/findings/2026-09-23-the-fisher-free-arm-was-not-fisher-free.md`).
+
+**The old reading of the sweep's controls, kept because it was the reasoning that produced the flag:** the
+three-point sweep appeared to mix one old run with two new ones, with only the 8-versus-128 pair controlled.
+**What is measured is the reverse** — 32 is the point with two exact reproductions and 8 is the point whose
+arms move — and the honest statement is that **which arms reproduce is a configuration-specific fact that has
+to be measured at each configuration rather than inferred from the code**
+(`docs/findings/2026-09-23-the-fisher-free-arm-was-not-fisher-free.md`).
 
 ## 2. The clauses
 
-| contrast | 8 batches | 32 (old, flagged) | 128 batches |
+| contrast | 8 batches | 32 batches (reproduces exactly) | 128 batches |
 |---|---|---|---|
-| **block − matched random** | **−0.0354 (1.44σ)** | +0.0167 (0.65σ) | **−0.0167 (1.04σ)** |
+| **block − matched random** | **−0.0354 ± 0.0218 (1.63σ)** | +0.0167 ± 0.0252 (0.66σ) | **−0.0167 ± 0.0134 (1.24σ)** |
 | block − diagonal | −0.0104 (0.51σ) | +0.0396 (1.59σ) | −0.0146 (0.75σ) |
 | **block − `naive`** | **−0.0562 (2.48σ)** | −0.0125 (0.50σ) | **−0.0625 (3.12σ)** |
 | `naive` − diagonal | +0.0458 (2.40σ) | +0.0521 (2.47σ) | +0.0479 (2.31σ) |
 
+*The block-minus-random row now carries the **paired** sem, which is the right one because the two arms share
+a seed sequence and is what the runner's own stored `matched_pair` holds. The σ figures this document
+originally printed for that row (1.44σ, 1.04σ) came from the unpaired sem; the other rows are unchanged.*
+
 **P1 is refuted.** The clause was that the block-minus-matched-random gap **shrinks monotonically** as batches
-rise, with the level held fixed. It does not shrink: within the controlled pair it is **negative at both ends**
-(−0.0354 and −0.0167, i.e. the biological block *beats* its matched random control), and the flagged middle
-point is the only positive one. **A gap whose sign is not stable across the axis is not a monotone function of
-estimation quality**, and P1's direction does not appear anywhere.
+rise, with the level held fixed. It does not shrink: it is **negative at two of the three batch counts**
+(−0.0354 and −0.0167, i.e. the biological block *beats* its matched random control at those two) and positive
+at the middle one, so **the gap changes sign along the axis**, which is not a monotone function of estimation
+quality. **And the sign change is larger than the run-to-run variation**: at 8 batches the same command gave
+−0.0354 and −0.0167 an hour apart, a movement of **0.019 against a within-run paired sem of 0.022**, while the
+sign change is **0.033–0.052** — so P1's direction does not appear anywhere, and the reason is not
+measurement noise at this replicate count
+(`docs/findings/2026-09-23-the-fisher-free-arm-was-not-fisher-free.md`).
 
 **The falsifier fires, and in its strongest form.** It was *the gap does not shrink with the batch count while
 `naive` stays identical*; what happened is stronger — **the gap changes sign**, which no account that makes the
@@ -70,22 +97,36 @@ relative to the control is unstable.**
 and the one that did not is the one the account is *about*. That is a plain correction of the last three
 fires' reading and it goes against the direction they were building.
 
-## 4. And a positive transfer result the paper does not report
+## 4. And a positive transfer result the paper does not report — **withdrawn the same day**
 
-**The biological block resolves an advantage over `naive` at both controlled points — 2.48σ at 8 batches and
-3.12σ at 128 — and at 128 batches it is the best arm in the table on both metrics** (forgetting +0.0104
-against `naive`'s +0.0729 and the diagonal's +0.0250; accuracy **0.950** against 0.914 and 0.911).
+> **Correction (2026-09-23, same day).** Everything in this section was measured correctly and the conclusion
+> drawn from it was wrong, because it stopped one comparison short. **At 128 batches the size-matched *random*
+> control also beats `naive`, by −2.60σ against the block's −3.12σ**, so the advantage over the baseline is a
+> **granularity** effect — partitioning the synapses coarsely at all — and not a biological one. The only
+> contrast that isolates biology is the block against that control, and it is negative at two batch counts and
+> positive at the third, resolving nowhere. **And the reproducibility work compounds it**: at 8 batches the
+> block's own value moves by 0.006 between two runs of one command, while `naive` and `ewc` are identical in
+> both. §4.7 was right and this section was an artefact of not carrying the control into the sentence
+> (`docs/findings/2026-09-23-the-positive-transfer-result-was-not-one.md`,
+> `docs/findings/2026-09-23-the-fisher-free-arm-was-not-fisher-free.md`).
 
-§4.7 says *"biology does not help **synapse** anchoring at 0.925 constrained"*, and that is a statement about
-λ = 0.1 and `cell_class`. **At λ = 0.003 with 128 Fisher batches the biological synapse partition beats the
-naive baseline by 3.12σ**, which is the transfer the paper's network line has been reported as *not* finding.
-It is not the earlier claim overturned — the λ and the batch count both differ — but it is a result the
-section does not carry, and the block's accuracy of 0.950 is the highest any Fisher variant reaches anywhere
-in this paper.
+**The claim as this fire wrote it, kept for the record:** *the biological block resolves an advantage over
+`naive` at both controlled points — 2.48σ at 8 batches and 3.12σ at 128 — and at 128 batches it is the best
+arm in the table on both metrics** (forgetting +0.0104 against `naive`'s +0.0729 and the diagonal's +0.0250;
+accuracy **0.950** against 0.914 and 0.911).*
 
-**And it is unresolvable in magnitude for the reason the last fire quantified**: the gap is 0.0625 against a
-per-repeat sd of 0.019–0.084, so it is a fraction of one replicate's own variation however many are averaged.
-The 3.12σ is a sem-based figure and the *direction* is what three of the four contrasts agree on.
+**The comparison that was missing, and it was already printed in the same run's output four lines below**:
+
+| contrast, mean forgetting | 8 batches | 128 batches |
+|---|---|---|
+| block (biological) − `naive` | −0.0562 (2.48σ) | −0.0625 (3.12σ) |
+| **block-rand (matched control) − `naive`** | −0.0208 (0.89σ) | **−0.0458 (2.60σ)** |
+| diagonal − `naive` | −0.0458 (2.40σ) | −0.0479 (2.31σ) |
+| **block − its matched control** | −0.0354 (1.63σ) | −0.0167 (1.24σ) |
+
+**At 128 batches the advantage over `naive` is shared almost entirely by a size-matched random partition of
+the same synapses**, so what resolves at this λ is not biology. The block's accuracy of 0.950 is real and the
+control reaches 0.9431.
 
 ## 5. What follows
 

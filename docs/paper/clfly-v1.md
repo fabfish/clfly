@@ -851,12 +851,20 @@ below, which is why they are reported with their gaps and their sems rather than
 **No Fisher-anchoring variant resolves a benefit over the naive baseline at λ ≥ 0.01**, the range swept, or
 at any Fisher batch count tried among **8 and 32** — *a 128-batch count is stated elsewhere in this
 section and in §8 and appears in no artifact at all, and the same correction applies at both places*
-(`docs/findings/2026-09-23-the-fisher-batch-sweep-is-a-stitch-of-first-replicates.md`). **And at λ = 0.003 the biological block itself resolves an advantage the sentence above does not
-mention**: with 128 Fisher batches it forgets **+0.0104 ± 0.0132 against `naive`'s +0.0729 ± 0.0151
-(−3.12σ)** at **0.950 accuracy against 0.914**, the best any Fisher variant reaches anywhere in this
-paper, and 8 batches gives −2.48σ the same way. That is not the claim above overturned — the λ and
-the batch count both differ — but it is a positive transfer result this section did not carry
-(`docs/findings/2026-09-23-the-batch-count-discriminator.md`). **The λ = 0.003
+(`docs/findings/2026-09-23-the-fisher-batch-sweep-is-a-stitch-of-first-replicates.md`). **At λ = 0.003 all
+three Fisher variants do beat `naive` — and so does the size-matched random block partition, which is why this
+is a statement about granularity rather than about biology.** At 128 Fisher batches the biological block
+forgets **+0.0104 ± 0.0132 against `naive`'s +0.0729 ± 0.0151 (−3.12σ)** at **0.950 accuracy against 0.914**;
+at the *same* batch count the **size-matched random control of the same synapses** reaches **−2.60σ against
+the same baseline, at 0.9431 accuracy**. So what resolves at this λ is *partitioning the synapses coarsely at
+`cell_class`*, and not the fly's grouping of them. **The one contrast that isolates biology is the block
+against that control, and it resolves nowhere** — negative at two of the three batch counts and positive at
+the third (−0.0354 ± 0.0218, +0.0167 ± 0.0252, −0.0167 ± 0.0134). **That contrast's value is also not
+reproducible at 8 batches**: a second run of the same command an hour apart gave −0.0167 where the first gave
+−0.0354, while `naive` and the diagonal were **bit-identical** in the two runs, so the gap is quoted with its
+run-to-run movement beside it and never as a resolution
+(`docs/findings/2026-09-23-the-positive-transfer-result-was-not-one.md`,
+`docs/findings/2026-09-23-the-fisher-free-arm-was-not-fisher-free.md`). **The λ = 0.003
 configuration below is the exception, and it is configuration-specific**: at cs = 800 the diagonal beats `naive` on
 forgetting by **+0.0521 ± 0.0211 = 2.47σ** (`e8_hardened_basis`, 5 replicates), **at cs = 300 the same
 contrast is +0.0104 ± 0.0421 = 0.25σ**, and **at 2 classes it is
@@ -1049,16 +1057,21 @@ suggestive, not established**: it is 0.5σ at 8 batches and 0.8σ at 128, and it
 above 2σ. The mechanism proposed for it — estimation noise, the block Fisher having 5.3e7
 entries to fill from 1024 observations — was **tested and refuted**: a 16-fold better
 estimate does not recover the block's position, so its disadvantage is not an artefact of a
-poor estimate. **And the refutation is now replicated rather than single-seed** (five replicates,
-`e101`): the block's gap against its size-matched control is **−0.0354 ± 0.0246 at 8 batches and
-−0.0167 ± 0.0160 at 128** — *negative* at both, i.e. it beats the control there — with the
-`naive` arm **identical to six decimals across all three batch counts** because it consults no Fisher
-matrix, so the forgetting level is **provably fixed** and no level-based reading is available. The
-earlier reading of this paragraph was one seed's, and its artifact no longer exists on disk
-(`docs/findings/2026-09-23-the-conclusion-was-right-and-its-evidence-was-one-seed.md`).
+poor estimate. **And the refutation is replicated rather than single-seed** (five replicates,
+`e101`): the block's gap against its size-matched control is **−0.0354 ± 0.0218 at 8 batches and
+−0.0167 ± 0.0134 at 128** — *negative* at both, i.e. it beats the control there — with the
+`naive` arm **identical at the replicate level in all six processes run, across two arm sets and
+13 hours** because it consults no Fisher matrix, so the forgetting level is **provably fixed** and no
+level-based reading is available. **And the gap is quoted with its own reproducibility beside it**: at
+8 batches a second run of the same command an hour apart moves it to **−0.0167**, with `naive` and the
+diagonal bit-identical in both runs, so the quantity the clause is about is stable in sign there and
+not stable in magnitude. The earlier reading of this paragraph was one seed's, and its artifact no
+longer exists on disk
+(`docs/findings/2026-09-23-the-conclusion-was-right-and-its-evidence-was-one-seed.md`,
+`docs/findings/2026-09-23-the-fisher-free-arm-was-not-fisher-free.md`).
 
 What does survive is narrower and still sharp: **at `cell_class` granularity the biological
-synapse partition shows no advantage over its size-matched random control in any of the five
+synapse partition resolves no advantage over its size-matched random control in any of the five
 settings tested** (Fisher batches 8/32/128, λ 0.003/0.01/0.1), and its ordering against that
 control **flips sign between them** — the null-effect signature. The linear substrate's 12.1σ
 advantage for the same grouping does not reproduce here under any setting tried.
