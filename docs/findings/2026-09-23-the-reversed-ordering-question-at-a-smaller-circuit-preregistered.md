@@ -67,3 +67,18 @@ of 0.048 against a mean forgetting of +0.0729, so a 0.04 gap is *within one repl
 replicates are averaged — the sem shrinks, the per-observation spread does not. So an "unresolved" verdict
 here means unresolved **at this benchmark's own noise**, which is the honest unit and the one §4.7's
 variance-budget discussion already argues for.
+
+
+---
+
+## 5. Outcome, recorded against the clauses as written
+
+**All three predictions hold and the falsifier did not fire.** The block is worse than its matched random
+control at both sizes (+0.0167 and +0.0104; 0.65σ and 0.29σ), and the **block-minus-diagonal gap falls
+from +0.0396 to +0.0167, a 58% reduction** — the direction P2 predicted. **P3 holds too**, and the reason
+is worth keeping: the arms are individually *noisier* at cs = 300 (forgetting sems 0.0362 and 0.0432
+against 0.0255 and 0.0250), so the gap shrank and the error bar grew, and the σ fell because the numerator
+fell faster than the denominator rose. Two unanticipated results are in §4 of the results finding: the
+**diagonal's advantage over `naive` disappears at the smaller circuit** (2.47σ → 0.25σ), and **`replay` is
+best on both metrics at cs = 300**, so the network line's only resolved positive result replicates at a
+second size. Full reading: `docs/findings/2026-09-23-the-reversed-ordering-question-at-a-smaller-circuit.md`.
