@@ -116,3 +116,47 @@ arm would come out the same if it were run again.
 - **And the honest priority the corpus number implies**: with 33 of 35 configurations run once, a second
   execution of any of them is cheap and is the only thing that upgrades its numbers from *measured* to
   *reproduced*. Three ran twice today, by the accident of this session's repairs.
+
+---
+
+## 6. Correction: the audit's verdict was a statement about the schema, not about the arm
+
+**Found by running `e103` on a corpus that had grown, four fires after it was written.** The five fires that
+built `theta_drift`, `interference` and `second_order` put those fields **into the replicate records**, and
+`arm_matches` was comparing `json.dumps(entry["replicates"])` — the **whole** record. So for the seven
+executions of the whole-state `naive` configuration, whose forgetting is identical to six decimals, the audit
+reported:
+
+```
+naive   DIFFER   move 0.0000 forgetting, 0.0000 accuracy   [0.047917, 0.047917, ... ]
+-> 1 of 1 arms do not reproduce: naive
+```
+
+**A movement of exactly zero beside the words "do not reproduce"** — a verdict read off the wrong object, which
+is the failure this module exists to catch one level up. The comparison is now over a **declared** field list
+(`ARM_FIELDS`), and any key a member carries beyond it is reported **separately as instrumentation**, so a new
+measurement added to the runner shows up as a note rather than as an unreproducible arm:
+
+```
+naive   identical move 0.0000 forgetting, 0.0000 accuracy   [0.047917 x 7]
+        (instrumentation recorded beyond the arm fields: interference, theta_drift)
+```
+
+**Two consequences, and the second is the one worth keeping.**
+
+- **The bug is the same shape as the ones the module was built for**, and it took *four fields of new
+  instrumentation* and a corpus of seven repeats to expose it — a check is only as good as the corpus it is run
+  on, and this one had two repeats when it was written.
+- **The reproducibility result is now stronger than the paragraph above claims.** The three plastic
+  `naive`-at-fixed-read-out configurations have **seven executions each** (the `e104` plastic run, `e106`'s three,
+  and one each from `e107`, `e108`, `e109`), and **every one is bit-identical in forgetting and accuracy** —
+  `0.047917`, `0.033333` and `0.072917`. So §5's "2 of 35 configurations have ever been executed more than once"
+  is now **7 of 238 artifacts' configurations**, and the arm-level answer for the reproducible family is seven
+  executions rather than two. The corpus number was a snapshot of a set that grows, which rule 17 already says
+  to date rather than to quote.
+
+**And the two families are now cleanly separated in the audit's own output**: the five-arm Fisher configurations
+report `DIFFER` on three to five arms with movements of 0.006–0.040, and the `naive`-only fixed-read-out
+configurations report `identical` on seven executions with a movement of exactly `0.0000`. **The arms whose
+computation is shortest are the ones that reproduce**, which is the ordering `e106` found by hand and the audit
+now prints.

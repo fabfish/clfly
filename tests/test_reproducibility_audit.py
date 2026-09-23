@@ -207,3 +207,33 @@ def test_artifacts_written_before_the_environment_field_are_unrecorded_not_share
     assert list(g["environments"]) == ["unrecorded"]
     assert g["subgroups"] == []
     assert g["arms"]["naive"]["exact"] is True
+
+
+def test_adding_instrumentation_to_the_runner_does_not_make_an_arm_unreproducible():
+    """The bug that this field list exists for, found by running the audit on the corpus.
+
+    `e107`, `e108` and `e109` put `theta_drift`, `interference` and `second_order` into the replicate records.
+    Comparing the whole replicate dict then reports "do not reproduce" for seven runs whose forgetting is
+    identical to six decimals -- a verdict about the schema rather than about the measurement, which is the
+    failure this module exists to catch one level up.
+    """
+    a = {"naive": [{"learned": [1.0], "mean_forgetting": 0.033333, "retention": [[1.0]],
+                    "final_accuracy": 0.9, "forgetting_per_task": [0.0], "final_per_task": [0.9],
+                    "losses": [0.1]}]}
+    b = {"naive": [{"learned": [1.0], "mean_forgetting": 0.033333, "retention": [[1.0]],
+                    "final_accuracy": 0.9, "forgetting_per_task": [0.0], "final_per_task": [0.9],
+                    "losses": [0.1], "theta_drift": [0.0195], "interference": [{"task": 0}]}]}
+    got = arm_matches([artifact("x", BASE, ["naive"], a), artifact("y", BASE, ["naive"], b)], "naive")
+    assert got["exact"] is True
+    assert got["instrumentation_beyond_the_arm"] == ["interference", "theta_drift"]
+
+
+def test_the_comparison_still_sees_a_real_difference_in_an_arm_field():
+    a = {"naive": [{"learned": [1.0], "mean_forgetting": 0.033333, "retention": [[1.0]],
+                    "final_accuracy": 0.9, "forgetting_per_task": [0.0], "final_per_task": [0.9],
+                    "losses": [0.1]}]}
+    b = {"naive": [{"learned": [1.0], "mean_forgetting": 0.033333, "retention": [[0.875]],
+                    "final_accuracy": 0.9, "forgetting_per_task": [0.0], "final_per_task": [0.9],
+                    "losses": [0.1]}]}
+    got = arm_matches([artifact("x", BASE, ["naive"], a), artifact("y", BASE, ["naive"], b)], "naive")
+    assert got["exact"] is False

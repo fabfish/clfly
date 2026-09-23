@@ -38,8 +38,16 @@ from clfly.bench.artifacts import write_json
 RUNS = Path("runs")
 #: the one key a config must differ in for two runs of the *same* command to coexist on disk
 VOLATILE = ("json_out",)
-#: replicate fields that define an arm, in the order they are reported
-ARM_FIELDS = ("learned", "mean_forgetting", "retention", "final_accuracy")
+#: replicate fields that define an arm, in the order they are reported. **Declared, not inferred**: comparing
+#: the whole replicate dict makes the verdict a statement about the *schema*, and adding a field broke it --
+#: `e107`, `e108` and `e109` put `theta_drift`, `interference` and `second_order` into the replicate records, and
+#: the audit then reported "1 of 1 arms do not reproduce" for seven runs whose forgetting was identical to six
+#: decimals. That is the same failure this module exists to catch, one level down: a verdict read off the wrong
+#: object.
+ARM_FIELDS = ("learned", "mean_forgetting", "retention", "final_accuracy",
+              "forgetting_per_task", "final_per_task", "losses")
+#: keys that describe rather than measure, so their presence or absence is not a difference in the arm
+NON_ARM_KEYS = ("method", "replicates")
 
 
 def load_artifacts(root: Path = RUNS, skip: tuple[str, ...] = ()) -> list[dict]:
@@ -72,19 +80,27 @@ def signature(config: dict) -> str:
 
 
 def arm_matches(members: list[dict], method: str) -> dict:
-    """Whether ``method``'s replicates are equal across ``members``, and by how much the means move."""
-    reps, means, accs = [], [], []
+    """Whether ``method``'s replicates are equal across ``members``, and by how much the means move.
+
+    The comparison is over ``ARM_FIELDS``, **declared** rather than taken as the whole record: see the comment on
+    that tuple. Any key a member carries beyond those is reported separately as instrumentation, so that a new
+    measurement added to the runner shows up as a note rather than as an unreproducible arm.
+    """
+    reps, means, accs, extra = [], [], [], set()
     for m in members:
         entry = (m["payload"].get("methods") or {}).get(method)
         if not isinstance(entry, dict) or "replicates" not in entry:
             return {"present": False}
-        reps.append(json.dumps(entry["replicates"], sort_keys=True, default=str))
+        reps.append(json.dumps([{k: r.get(k) for k in ARM_FIELDS} for r in entry["replicates"]],
+                               sort_keys=True, default=str))
+        extra |= {k for r in entry["replicates"] for k in r} - set(ARM_FIELDS) - set(NON_ARM_KEYS)
         means.append(float(entry.get("mean_forgetting", float("nan"))))
         accs.append(float(entry.get("final_accuracy", float("nan"))))
     spread = lambda xs: max(xs) - min(xs)                     # noqa: E731  (max-min over >=2 members)
     return {"present": True, "exact": len(set(reps)) == 1, "runs": len(reps),
             "movement_forgetting": spread(means), "movement_accuracy": spread(accs),
-            "values": [round(x, 6) for x in means]}
+            "values": [round(x, 6) for x in means],
+            "instrumentation_beyond_the_arm": sorted(extra)}
 
 
 def group_repeats(artifacts: list[dict], min_runs: int = 2) -> list[dict]:
@@ -232,6 +248,9 @@ def main(argv=None) -> int:
             mark = "identical" if v["exact"] else "DIFFER   "
             print(f"    {meth:16} {mark} move {v['movement_forgetting']:.4f} forgetting, "
                   f"{v['movement_accuracy']:.4f} accuracy   {v['values']}")
+            if v.get("instrumentation_beyond_the_arm"):
+                print(f"    {'':16} (instrumentation recorded beyond the arm fields: "
+                      f"{', '.join(v['instrumentation_beyond_the_arm'])})")
         if g["arms_differing"]:
             print(f"    -> {len(g['arms_differing'])} of {len(g['arms'])} arms do not reproduce: "
                   f"{', '.join(g['arms_differing'])}")
