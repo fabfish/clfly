@@ -1166,7 +1166,38 @@ moved the table's counts by 2.9× and 1.2×, so the step priced at 22 was really
 from an sd, the sd needs the same evidence standard as the effect.** What survives is unchanged — **read-out
 32's excess** (+0.0497 at 3.2σ against the forty-replicate 300) — and the axis is now measured with **unequal
 precision**, so finishing it means forty replicates at the other five points, priced at ≈ 75 minutes
-(`docs/findings/2026-09-23-forty-replicates-refute-the-minimum.md`). And the sweep validates itself: its read-out-32 plastic row is the hardened
+(`docs/findings/2026-09-23-forty-replicates-refute-the-minimum.md`).
+
+**And with all seven read-outs at forty replicates the axis finally has one error bar, and its shape is a
+plateau.** The five remaining read-outs were re-run at forty replicates — C0 passing at every one, so each is an
+extension of its five-replicate predecessor — giving
+
+| read-out | **1307** | **900** | **700** | **512** | **300** | **128** | **32** |
+|---|---|---|---|---|---|---|---|
+| forgetting (40 reps) | +0.0357 | +0.0219 | +0.0221 | +0.0250 | +0.0232 | +0.0370 | **+0.0750** |
+
+so **900 through 300 is a flat plateau** (four read-outs spanning 0.0031, every neighbouring step inside 0.43σ —
+**900 → 700 is 0.04σ**) and **the narrow end is resolved above it**: 300 → 128 by **2.12σ** and 128 → 32 by
+**3.73σ**, the latter 5.5σ above the plateau's low point. The whole state sits at 128's level, 1.79σ above the
+plateau — nominally elevated, not resolved. **Every fine feature of the previous five fires turns out to have
+been a five-replicate artifact**: the whole-state "outlier" is indistinguishable from 128 (0.29σ), the bump at
+700 is 0.04σ, the interior minimum at 512 and the interior optimum at 300 are both inside the same four-point
+plateau (and read-out 300's five-replicate value, which was the lowest in this corpus, moved from +0.0083 to
++0.0232). **What survives is much smaller and is the first shape on this axis measured at the resolution it is
+stated at**: *narrowing the read-out below 300 raises three-task naive forgetting, mildly at 128 and sharply at
+32; 900 down to 300 is one plateau; and the whole state is nominally above that plateau but not measurably.*
+
+**And the directed noise correction this section applied last fire is falsified by the same runs**: the
+forty-replicate sds are **0.55×, 1.22×, 0.75×, 1.69×, 1.12×, 1.16×, 1.65×** the five-replicate ones — three of
+seven *down*, the largest movement being *downward* — so **a five-point sd is noisy in both directions rather
+than biased**, and the "2.9× underestimate" derived from read-out 512 was one draw from a distribution spanning
+0.55–1.69×. The rule is **"the count is uncertain by a factor of three in either direction"**, and the
+five-replicate *means* moved in both directions too (four down, three up) — with read-out 300, the value a whole
+design statement was built on, moving by +0.0149 into the middle of the plateau. **The draw is still one per
+read-out**: the plateau's internal range (0.0031) is below the measured draw span (0.0125) but the
+plateau-to-128 step (0.0138) is not, so the draw could account for that step and separating them needs
+replicate draws rather than replicates
+(`docs/findings/2026-09-24-the-axis-is-a-plateau.md`). And the sweep validates itself: its read-out-32 plastic row is the hardened
 configuration's `naive` and comes out at **+0.0729 ± 0.0151**, reproducing `e8_hardened_basis` to the last
 printed digit (`docs/findings/2026-09-23-the-unbacked-cells-measured.md` §1).
 
