@@ -1249,7 +1249,10 @@ the filter's total response `theta_hat_k = sum_{j<=k} R_kj y_j`:
                + sum_j R_kj pinv(J_j) R_kj^T,        S_jl = (P0 + min(j,l) q) I
 
 The `(j,l)` sum reduces to linear in `k` via `min(j,l) = sum_t [j>=t][l>=t]`, which
-makes it affordable at d = 1307 (~6 s per basis). Validated against Monte Carlo on
+makes it affordable at d = 1307 — **6.1 s per basis at four threads and 13.1 s at one**, measured, the
+oracle costing the same again. This sentence used to give `~6 s` with no thread count, which is the figure
+at four threads exactly and **2.2× optimistic at one**; the same environment shapes this paper's *cost*
+figures as its values, and §9 records the values' side of that. Validated against Monte Carlo on
 **nine** configurations (full-rank and rank-deficient × drifting and non-drifting × three bases), all
 within Monte Carlo error — and **all nine are now runnable** rather than recorded: three of them
 ("rank-deficient, drifting") had **no constructor in the repository** until `sample_partial` gained a
@@ -1513,6 +1516,14 @@ the measurement behind it is narrower than the phrase. Re-running the same comma
 delta of 2.6e-4, so the environment sits **40× below it** — which is why no conclusion has ever moved.
 But the honest phrase is **"identical to about four significant digits given an environment"**, and the
 qualification attaches to every reproduction claim here including the ones stated most strongly.
+
+**And the same environment shapes the paper's *cost* figures, which §9 has never said.** Measured on the
+estimator this section derives: `expected_error_matrix` at d = 1307 takes **6.08 s at `OMP_NUM_THREADS=4` and
+13.13 s at 1**, with `expected_oracle` costing the same again (6.10 / 13.15 — the two are the same computation
+one basis apart). So §6's "6 s per basis" is right at four threads and **2.2× optimistic at one**, and every
+timing in this paper is a measurement of a machine as well as of an algorithm. The rule this implies is the
+one §9 already applies to values: **quote a cost beside the environment it was measured in**
+(`docs/findings/2026-09-23-the-cost-figures-are-environment-shaped-too.md`).
 
 **On the network line the phrase fails entirely.** The same command under a different thread count
 trains to a *different answer* — three replicates of 0.875 / 0.902778 / 0.909722 at the default setting
