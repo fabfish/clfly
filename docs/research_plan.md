@@ -1261,6 +1261,35 @@ Added 2026-09-22, after the headline metric was found to be chaotic
    (`docs/findings/2026-09-23-the-abstract-had-six-stale-figures.md`,
    `docs/findings/2026-09-23-a-third-hybrid-and-a-line-break.md`).
 
+24. **A partial correlation is not a licence to control a confound statistically when the two are nearly
+   collinear — prefer a design that sets the confound.** `e92` needs to separate *"the pressure spread
+   predicts the control's draw spread"* from *"both grow with concentration"*, which is the confound `e86`
+   could not remove, and partialling concentration out of both ranks is the obvious instrument. **On the
+   nine named partitions it produces a number that reads like a result and is not one.** Rank-partialling
+   *raised* the relative spread's correlation with the target from +0.882 raw to a partial of **+0.531**,
+   above the less-coupled absolute form's **+0.509** — which is not what a restatement of the confound
+   should produce. But the relative spread correlates **+0.950** with concentration, so its rank residual
+   has almost no variance left and the partial is a ratio taken on a small denominator; the mirror-image
+   number, concentration's partial *given* the spread, is **−0.040**, and that is nearly forced by the same
+   collinearity rather than being independent evidence. **So the rule is to report the coupling beside the
+   partial** — ρ(predictor, confound) and the residual spread, not just the partial and its p — and when
+   that coupling exceeds roughly +0.9, to stop reading the partial altogether and get a design in which the
+   confound is **set by construction**. That is what the grid is for: its `flat` cells have concentration
+   exactly `1/k` at every circuit size, so the confound is matched rather than regressed out. The failure
+   mode this guards against is the same one `e72` was diagnosed with a *chance denominator*, one level up:
+   there the denominator was random, here it is real but thin, and both make the ratio look like a
+   measurement when it is a division.
+
+   **And a pre-registration may be amended, but the amendment has to be dated and visible.** The `e92`
+   document's first version said "the pressure spread" without naming whether the absolute or the relative
+   form carried the gate, which would have left the gated quantity selectable after the numbers were in.
+   The clause was fixed **while the first cells were being measured and before any cell had been scored**,
+   and both that amendment and its timing are recorded in the document's own §0 rather than folded in
+   silently. So the convention is: chapters of a pre-registration that move after the launch get a
+   *what-was-written-when* section naming them, and a reader who wants the untouched prediction is told
+   which paragraphs to ignore. A pre-registration whose text can move without a mark is not one, and the
+   cost of the mark is two sentences.
+
 ## Related work to differentiate against
 
 Four papers are close enough to require explicit positioning — all use fly
