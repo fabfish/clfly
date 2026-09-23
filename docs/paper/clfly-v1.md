@@ -839,6 +839,15 @@ three independent runs. Whole experiment: minutes on CPU.
 | EWC, block Fisher — size-matched **random** pairs | 0.850 ± 0.022 | +0.069 ± 0.049 |
 | replay (16 stimuli/task) | **0.903 ± 0.014** | **−0.000 ± 0.021** |
 
+**And the resolution limit on this line is the benchmark's own spread, not the replicate count.** Measured
+across the three configurations of this section, each arm's **per-repeat** forgetting sd is **0.019–0.084**
+while the mean forgettings being compared are **0.017–0.094** - so **every gap in this section is a fraction
+of one replicate's own variation**, and averaging more replicates shrinks the *sem* and does not touch that
+spread. The one place it is explicit is the `side` rung, where the same arithmetic bounds an advantage at
+about 0.09 accuracy and puts a 0.01 effect 86–202 repeats away; the same statement holds for every contrast
+below, which is why they are reported with their gaps and their sems rather than as resolutions
+(`docs/findings/2026-09-23-the-competing-explanation-is-not-excluded.md`).
+
 **No Fisher-anchoring variant resolves a benefit over the naive baseline at λ ≥ 0.01**, the range swept, or
 at any Fisher batch count tried among **8 and 32** — *a 128-batch count is stated elsewhere in this
 section and in §8 and appears in no artifact at all, and the same correction applies at both places*
@@ -1379,6 +1388,15 @@ draws of the realisation.
   **+0.00035 at 9.85σ with 12/12 signs** at d = 1874. The finest granularity is worse than its own
   matched control, at both configurations and at both circuit sizes, which is a stronger statement than
   the null it was recorded as and is what the ladder's collapsed fine end says as well.
+- **Every network-line gap is a fraction of one replicate's spread, and more replicates do not change that.**
+  The per-repeat forgetting sd across the four configurations measured is **0.019–0.084** against mean
+  forgettings of **0.017–0.094**, so the smallest sem five replicates reach is 0.008 while one replicate's
+  own variation is four to ten times that. This is a *different* limit from the linear substrate's
+  control-draw spread (§4.3) and it binds harder: there, more seeds eventually win; here the quantity
+  being compared moves as much within one run as the differences being claimed. It is why §4.7 reports gaps
+  and sems rather than resolutions, and why separating the two candidate explanations for the block's penalty
+  needs about 57 replicates per arm, 6–44 hours for one contrast
+  (`docs/findings/2026-09-23-the-competing-explanation-is-not-excluded.md`).
 - **The curve's fine structure is not resolvable, and that is a budget fact rather than a
   to-do.** The internal steps span 0.0008–0.0021 against a control-draw spread of 6.8e-5 to 9.6e-4 at the
   ladder's own rungs (`e14`, `e67`, `e74`) — where the first version of this sentence used the *assumed*
