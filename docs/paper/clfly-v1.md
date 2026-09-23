@@ -167,7 +167,12 @@ So we take the question to the fly.
 - **The first measurement of the anchoring-basis question** on a real connectome,
   with matched-budget controls throughout (§4).
 - **A working a-priori predictor** for which basis to use, validated out of sample
-  (§5).
+  (§5) — and, separately, a **mechanistic** claim about *why* it works that now holds at
+  **three circuit sizes**: the size of the predictor's own draw-to-draw variation ranks the
+  size of the control's at a **partial** rank correlation of **+0.919, +0.618 and +0.872** at
+  d = 952, 1307 and 1874, with concentration partialled out of both ranks, **9 of 9** per-seed
+  partials positive, no leave-one-partition flip, and a bootstrap interval above zero at every
+  size (§4.3). The weakest of the three is the size where the confound it removes is strongest.
 - **An exact analytic expected error** for the model class, and a demonstration that
   the conventional ratio metric is unusable on this substrate (§6).
 
