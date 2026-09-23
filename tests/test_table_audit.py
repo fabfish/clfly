@@ -19,6 +19,7 @@ from experiments.e105_table_audit import (
     ascii_token,
     audit_table,
     check_closure,
+    closure_counts,
     corpus_index,
     locate,
     number_of,
@@ -122,6 +123,42 @@ def test_a_contrast_column_naming_a_comparator_the_table_does_not_have_is_report
     t = table(["rung", "vs the diagonal"], ["side", "+0.021"])
     got = check_closure(t)["findings"][0]
     assert got["status"] == "no row matches this comparator"
+    assert got["kind"] == "missing comparator row"
+
+
+def test_a_delta_column_is_not_checkable_rather_than_a_failure():
+    """`delta vs X` cells ARE the differences: the reference's value is not in the table to subtract.
+
+    §4.4's basis table is the case: four deltas against the diagonal, and the diagonal's own +0.01762 is in the
+    prose below. Counting it as a failure inflated check (a)'s headline by one, which is the number a reader
+    takes away -- so the two shapes are reported apart, and this one keeps its reason.
+    """
+    t = table(["basis", "delta vs the diagonal", "signs"],
+              ["`rank4`", "+0.00472", "18/18 +"],
+              ["**`eigbasis`**", "-0.00491", "18/18 -"])
+    got = check_closure(t)["findings"][0]
+    assert got["kind"] == "external reference"
+    assert "not checkable" in got["status"]
+    assert "rows" not in got
+
+
+def test_the_two_shapes_are_counted_apart():
+    """A defect and an uncheckable column must not land in one number: the first is the check's headline."""
+    defect = check_closure(table(["rung", "vs the diagonal"], ["side", "+0.021"]))
+    uncheckable = check_closure(table(["basis", "delta vs the diagonal"], ["rank4", "+0.00472"]))
+    closing = check_closure(table(["method", "mean forgetting", "vs naive"],
+                                  ["naive", "+0.0729", "—"],
+                                  ["ewc", "+0.0208", "-0.0521"]))
+    counts = closure_counts([({}, defect), ({}, uncheckable), ({}, closing)])
+    assert counts == {"failures": 1, "not_checkable": 1, "rows_closed": 1, "contrast_columns": 3}
+
+
+def test_a_failing_row_still_counts_as_a_failure_whatever_the_header_says():
+    t = table(["method", "mean forgetting", "delta vs naive"],
+              ["naive", "+0.0729", "—"],
+              ["ewc", "+0.0208", "-0.0100"])          # -0.0521 is what the cells give
+    counts = closure_counts([({}, check_closure(t))])
+    assert counts["failures"] == 1 and counts["not_checkable"] == 0
 
 
 def test_a_table_without_a_contrast_column_is_not_checked():

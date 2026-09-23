@@ -34,6 +34,10 @@ NUMBER = re.compile(r"([+\-−]?\d+\.\d+)")
 SEPARATOR = re.compile(r"^\s*\|[\s:|-]+\|\s*$")
 #: a column header naming the row it contrasts against: "vs naive", "delta vs naive", "vs `naive`"
 CONTRAST_HEADER = re.compile(r"(?:vs\.?|versus)\s*`?\**([A-Za-z][\w \-]*)", re.I)
+#: ... and the same header saying the column's cells *are* differences: "delta vs the diagonal". Closure is not
+#: well-posed for those, because the comparator is a reference outside the table and the table holds no absolute
+#: value to subtract from -- see `check_closure`. Distinguished from a missing comparator row, which is a defect.
+DELTA_HEADER = re.compile(r"\b(delta|change|difference|\u0394)\b", re.I)
 #: the inline form §4.4 prints, in two typographies: `(-0.1042, 6.3σ)` and the arrow form `→ +0.0000 (0.00σ, tie)`.
 #: Coverage is *presentation-dependent*, which is why the check prints how many contrasts it examined: an edit
 #: that changes how a table prints its contrasts can take this check's coverage to zero without failing
@@ -108,8 +112,19 @@ def check_closure(table: dict) -> dict | None:
     for j, comparator in targets.items():
         cmp_rows = [i for i, r in enumerate(body) if any(label(c) == label(comparator) for c in r[1])]
         if not cmp_rows:
+            # Two shapes reach here and they are not the same claim. A column headed `vs X` whose table has no
+            # `X` row is a **defect**: the contrast has no comparator to close against. A column headed
+            # **`delta vs X`** is a different object -- its cells *are* the differences, and the reference's
+            # absolute value lives in the surrounding prose, so no pair of the table's own cells can produce
+            # them however the table is written. Reporting the second as the first inflated this check's
+            # headline count by one on §4.4's basis table; the count is what a reader takes away, so the two are
+            # now counted apart, and the not-checkable one is printed with its reason rather than dropped.
+            external = bool(DELTA_HEADER.search(header[j]))
             findings.append({"contrast_column": j, "comparator": comparator,
-                             "status": "no row matches this comparator"})
+                             "kind": "external reference" if external else "missing comparator row",
+                             "status": ("not checkable: the column carries deltas against a comparator that is "
+                                        "not a row of this table, so the reference's own value is not here to "
+                                        "subtract" if external else "no row matches this comparator")})
             continue
         # A blocked table has one comparator row per block -- §4.4's spans three settings -- so each row is
         # checked against the nearest *preceding* comparator, falling back to the first. Using a single
@@ -159,6 +174,30 @@ def check_closure(table: dict) -> dict | None:
         findings.append({"contrast_column": j, "comparator": comparator,
                          "comparator_line": cmp_rows[0] if cmp_rows else None, "rows": rows})
     return {"table": [table["start"], table["end"]], "header": header, "findings": findings}
+
+
+def closure_counts(closures: list[tuple[dict, dict]]) -> dict:
+    """The headline numbers of check (a), kept in one place so that they are not re-counted by hand.
+
+    ``failures`` is the sharp count: a row whose printed contrast no pair of cells gives, or a column naming a
+    comparator the table does not have. ``not_checkable`` counts the columns that are *differences against an
+    external reference* -- a `delta vs X` column -- which no arithmetic inside the table could check and which
+    are therefore reported rather than counted as failures.
+    """
+    failures = not_checkable = rows_closed = 0
+    for _t, c in closures:
+        for f in c["findings"]:
+            if "rows" not in f:
+                if f.get("kind") == "missing comparator row":
+                    failures += 1
+                else:
+                    not_checkable += 1
+                continue
+            fails = [r for r in f["rows"] if r["verdict"] == "fails"]
+            failures += len(fails)
+            rows_closed += len([r for r in f["rows"] if r["verdict"] == "closes"])
+    return {"failures": failures, "not_checkable": not_checkable, "rows_closed": rows_closed,
+            "contrast_columns": sum(len(c["findings"]) for _t, c in closures)}
 
 
 def check_inline_contrasts(table: dict) -> list[dict]:
@@ -324,14 +363,16 @@ def main(argv=None) -> int:
     print("=" * 104)
     print("1. CONTRAST COLUMNS: does each close against the comparator its header names?")
     print("=" * 104)
-    bad = 0
     print("   (a) columns headed 'vs X'")
     for t, c in closures:
         for f in c["findings"]:
             if "rows" not in f:
-                print(f"   lines {t['start']}-{t['end']}: column {f['contrast_column']} names "
-                      f"'{f['comparator']}' but {f['status']}")
-                bad += 1
+                if f.get("kind") == "missing comparator row":
+                    print(f"   lines {t['start']}-{t['end']}: column {f['contrast_column']} names "
+                          f"'{f['comparator']}' but {f['status']}")
+                else:
+                    print(f"   lines {t['start']}-{t['end']}: column {f['contrast_column']} names "
+                          f"'{f['comparator']}' -- {f['status']}")
                 continue
             fails = [r for r in f["rows"] if r["verdict"] == "fails"]
             oks = [r for r in f["rows"] if r["verdict"] == "closes"]
@@ -343,7 +384,6 @@ def main(argv=None) -> int:
                     print(f"       line {r['line']:4}: printed {r['printed']:+.4f}  table says "
                           f"{c_['row_value']:.4f} - {c_['comparator_value']:.4f} = {c_['expected']:+.4f}  "
                           f"(off by {c_['difference']:+.4f})")
-            bad += len(fails)
     if not closures:
         print("   (no table has a contrast column)")
 
@@ -362,7 +402,12 @@ def main(argv=None) -> int:
     print(f"   inline contrasts checked: {inline_checked}, of which no pair of their own row's cells "
           f"gives them: {inline_bad}")
 
-    print(f"\n   check (a) failures: {bad};  check (b) failures: {inline_bad} of {inline_checked}")
+    counts = closure_counts(closures)
+    print(f"\n   check (a) failures: {counts['failures']}, over {counts['contrast_columns']} contrast "
+          f"column(s) and {counts['rows_closed']} row(s) that close;")
+    print(f"   check (a) NOT CHECKABLE: {counts['not_checkable']} -- a `delta vs X` column holds the "
+          f"differences themselves, so no pair of its own cells can give them;")
+    print(f"   check (b) failures: {inline_bad} of {inline_checked}")
 
     print()
     print("=" * 104)
@@ -417,6 +462,8 @@ def main(argv=None) -> int:
 
     if args.json_out:
         write_json(args.json_out, {"paper": str(args.paper), "n_indexed": len(index),
+                                   "closure_counts": counts, "inline_contrasts": {
+                                       "checked": inline_checked, "failing": inline_bad},
                                    "closures": [c for _, c in closures], "tables": located,
                                    **({"findings": findings} if findings else {})})
         print(f"\nwrote {args.json_out}")
