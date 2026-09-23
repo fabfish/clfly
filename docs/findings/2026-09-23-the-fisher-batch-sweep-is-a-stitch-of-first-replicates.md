@@ -83,19 +83,47 @@ what is not legitimate is writing it with four decimal figures that read like me
   unsupported. The paper's own §7 lists "more tasks" and "the reversed-ordering question" as open; this adds
   a third for the network line, and it is cheaper than either: three runs.
 
-## 6. `e96` is re-measuring it, and that is a new measurement
+## 6. `e96` is re-measuring it, and the equivalence test came back negative
 
 `e96_fisher_batch_sweep.py` re-runs the three points at the finding's own setup, carrying the finding's
-table inside the script as the comparison. **A re-run is not a recovery**: rule 21 measured the torch path as
-`OMP_NUM_THREADS`-sensitive at the third decimal, so agreement is expected and exact reproduction is not,
-and disagreement will be reported rather than averaged away. It is single-seed, matching the finding's
-design, so it cannot fix the replicate problem — what it can do is establish whether the three points differ
-at all, which nothing on disk currently does. A three-replicate version is the natural follow-up if the
-single-seed sweep shows a direction worth resolving.
+table inside the script as the comparison. **First, whether that comparison is even legitimate**, because a
+re-run is not a recovery and rule 21 is why: the test is the **`naive` arm**, which uses no Fisher matrix and
+therefore **cannot depend on the batch count**. If the two invocations were equivalent it would be
+*identical*. It is not:
 
-**First numbers, at 8 batches** (single seed): the three arms reported so far give (0.833, +0.135),
-(0.868, +0.052), (0.785, +0.188) — none of which is the finding's 8-batch `ewc` value of (0.826, +0.063).
-The run is still in flight and no verdict is drawn from a partial sweep (rule 17's third shape).
+| execution (naive, seed 0, 32 batches, identical recorded flags) | `learned` after each task | final accuracy | mean forgetting |
+|---|---|---|---|
+| stored artifact, replicate #0 | 0.875, 0.896, 0.938 | 0.896 | **+0.010** |
+| `e96`, `OMP_NUM_THREADS=1` | **0.958, 0.938, 0.917** | 0.799 | **+0.208** |
+| `e96`, `OMP_NUM_THREADS=4` | **0.958, 0.938, 0.917** | 0.868 | **+0.104** |
+| `e96`, `OMP_NUM_THREADS=3` (the sweep's own) | 1.000, 0.875, 0.896 | 0.833 | **+0.135** |
+
+**Four executions of one nominal experiment, on an arm that cannot depend on the quantity being swept, span
+0.799 to 0.896 in accuracy and +0.010 to +0.208 in forgetting.** Two of them (`OMP_NUM_THREADS` 1 and 4)
+agree exactly on `learned` and still differ in the final readout by 0.104, so the spread has at least two
+components and the honest statement is the one rule 21 already licenses: *the torch path is not reproducible
+across environments, and a network-benchmark forgetting number carries an environment-shaped component that
+this project has measured at 55% of the `naive` arm's total variance.*
+
+**What that means for the finding's table, and for the paper:** the finding's `naive` column reads **+0.010 at
+every batch count** — which a spot check would take as evidence that the naive arm is batch-independent, and
+it is, *because it is one execution repeated in the table*. The column is a single realisation, and the
+realisations above put the same quantity anywhere in +0.010 to +0.208. So the finding's rows **cannot be read
+cell-by-cell against a re-run**, and `e96`'s value is what it is for a different reason: **its three points
+are only comparable to each other**, one process, one thread count, which is exactly how the sweep needs to
+be read. A level from `e96` means nothing next to a level in the paper; the *ordering of the three points*
+within it means something.
+
+This is the same lesson as rule 17's third shape (a statistic from a growing set is a moving target) one
+level further out: here the set is not growing, it is **re-executed**, and the number moves anyway. The
+guard is the same in form — report the environment and the comparison's scope, not a bare level — and it is
+worth stating that the sweep's whole design had this problem from the start, since the paper's claim is
+about a *difference between three levels* and the levels themselves are environment-dependent.
+
+**First numbers, at 8 batches** (single seed): the three arms reported give (0.833, +0.135), (0.868, +0.052),
+(0.785, +0.188) — none of which is the finding's 8-batch `ewc` value of (0.826, +0.063), for the reason
+above rather than as a scientific disagreement. The run is still in flight and no verdict is drawn from a
+partial sweep (rule 17's third shape).
 
 ## 7. The section contradicted itself, and that is the fourth time this week
 
