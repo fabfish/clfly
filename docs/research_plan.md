@@ -759,7 +759,7 @@ the network negative is not an artefact of having measured the wrong granularity
 bounds the advantage at **≈0.09 accuracy**, because the benchmark's own per-repeat sd is 0.048
 (0.077 for forgetting). Detecting a 0.01 effect would take 86–202 repeats, i.e. **50–118 hours per
 rung** — but 0.01 is the wrong target: at **0.03** resolution the same arithmetic gives 5–16
-replicates, i.e. **0.2–6 hours depending on the rung**, which is one working session
+replicates, i.e. **0.9–12 hours depending on the rung** *(corrected 2026-09-23; this said 0.2–6 hours)*, which is one long working session rather than a short one. **The correction comes from re-measuring the per-arm-replicate cost on the four completed `e10` rung runs**: `ito_lee_hemilineage` **5.12 min**, `cell_class` 7.73, `side` 11.72 and `supertype` **22.86** — against the finding's stated **1.1–11.7 min**, whose upper end is `side`'s value alone and which excludes `supertype` entirely, almost certainly because that run was still finishing when the range was written. The arithmetic, explicitly: 2 arms x 5 replicates x 5.12 min = **0.9 h** at the cheapest, and 2 x 16 x 22.86 = **12.2 h** at the dearest. **The direction is the familiar one: the excluded run is the expensive one**, so the range made the rung question look roughly four times cheaper at its low end than the measurements support
 (`docs/findings/2026-09-22-network-variance-is-learner-variability.md`).
 
 Two consequences worth acting on, both **corrected by `e38`**.

@@ -118,7 +118,14 @@ Reproducible from the n = 9 per-arm sds, as a function of the correlation nobody
 | 0.75 | 0.0331 | 5 |
 | 1.00 | 0.0137 | 1 |
 
-Measured cost is 1.1–11.7 minutes per (arm × replicate) depending on the rung, so **a 0.03-resolved
+> **Corrected (2026-09-23).** The four completed `e10` rung runs give **5.12 to 22.86 minutes** per
+> (arm × replicate) — `ito_lee_hemilineage` 5.12, `cell_class` 7.73, `side` 11.72, **`supertype`
+> 22.86** — so this sentence's "1.1–11.7" has an upper end that is `side`'s value alone and a lower
+> end that matches none of them, and `supertype`, the dearest rung, is excluded, almost certainly
+> because that run was still finishing. The derived range below becomes **0.9–12 hours**, not
+> 0.2–6 (`docs/findings/2026-09-23-the-cost-range-excluded-the-expensive-rung.md`).
+
+Measured cost is **5.12–22.86** minutes per (arm × replicate) depending on the rung, so **a 0.03-resolved
 rung comparison costs roughly 0.2–0.6 hours at a cheap rung and 2–6 hours at a coarse one** — not
 the "50–118 hours per rung" the plan quotes, which is the figure for **0.01** resolution. That
 resolution is not affordable here and should not be the target. The honest target is 0.03, at which

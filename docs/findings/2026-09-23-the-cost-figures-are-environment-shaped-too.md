@@ -29,8 +29,12 @@ fourth significant digit, 40× below the tightest sem. **It does not extend that
 timings are the one class of figure in this paper whose dependence is not in the fourth digit but in the
 **first**: 6.1 against 13.1 is a factor a reader would notice, and there are five cost figures in the paper
 (§3.3's "152 GB and 2.6e15 flops" is arithmetic and safe; §3.1's mean out-degree is a property of the data;
-but §6's per-basis cost, §7's "7× per run", §4.5's "24.3 → 6.0 minutes of penalty calls" and §4.7's
-"0.2–6 hours depending on the rung" are all measurements of a machine).
+but §6's per-basis cost, §7's "7× per run" and §4.5's "24.3 → 6.0 minutes of penalty calls" are measurements
+of a machine). *This passage also attributed "0.2–6 hours depending on the rung" to §4.7, which was wrong:
+**the paper contains no timing in hours at all**, and that figure lives in the plan's C2b and in the
+network-variance finding — where it has since been corrected to **0.9–12 hours**, because the four completed
+rung runs cost 5.12–22.86 minutes per arm-replicate and the excluded one was the expensive rung
+(`docs/findings/2026-09-23-the-cost-range-excluded-the-expensive-rung.md`).*
 
 **So the rule is the one §9 already applies to values, applied to costs: quote a cost beside the environment
 it was measured in.** §6 now carries both endpoints instead of one bare figure, and §9 gains the sentence
