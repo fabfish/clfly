@@ -136,6 +136,32 @@ def correlate(rows: list[dict], x_of, y_of=lambda r: r["barrier_over_chance"]) -
     return {"n_rows": int(len(xs)), "r": float(np.corrcoef(xs, ys)[0, 1])}
 
 
+def p3_registered(fit_rows: list[dict], scalars: dict) -> dict:
+    """The quantity `docs/findings/2026-09-24-the-barrier-over-all-pairs-preregistered.md` actually registered.
+
+    P3 as written is *"whether the fit-task barrier of a pair correlates with that pair's own forgetting
+    difference (`|mean_forgetting_i - mean_forgetting_j|`)"* — **one point per pair**, 66 of them. The script's
+    first version correlated the retained-task **endpoint loss ratio** instead, which is a different quantity on a
+    different unit (132 rows, one per pair per retained task). That is a deviation from a registration, so both
+    are computed and reported: the registered one is the claim, and the other is kept only because it was in the
+    first artifact and deleting it would hide the substitution rather than correct it.
+    """
+    per_pair: dict[tuple, list[float]] = {}
+    for r in fit_rows:
+        per_pair.setdefault((r["seed_a"], r["seed_b"]), []).append(r["barrier_over_chance"])
+    if not per_pair:
+        return {"n_pairs": 0, "r": float("nan")}
+    gaps, worst = [], []
+    for (a, b), xs in per_pair.items():
+        gaps.append(abs(scalars[a]["mean_forgetting"] - scalars[b]["mean_forgetting"]))
+        worst.append(max(xs))
+    gaps, worst = np.array(gaps, dtype=float), np.array(worst, dtype=float)
+    if len(gaps) < 3 or gaps.std() == 0 or worst.std() == 0:
+        return {"n_pairs": int(len(gaps)), "r": float("nan")}
+    return {"n_pairs": int(len(gaps)), "r": float(np.corrcoef(gaps, worst)[0, 1]),
+            "note": "one point per pair, as registered; the pair's worst fit-task barrier"}
+
+
 def main(argv=None) -> int:
     p = argparse.ArgumentParser(description=__doc__.splitlines()[0],
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -171,7 +197,31 @@ def main(argv=None) -> int:
     p.add_argument("--matching-pair", type=Path, default=Path("runs/e122_path_geometry.json"),
                    help="C0: the artifact whose seeds 0/100 chord this run's pair (0,1) must reproduce")
     p.add_argument("--json-out", type=Path, default=None)
+    p.add_argument("--reanalyse", type=Path, default=None,
+                   help="recompute the distributions and both P3 values from a stored artifact, with no "
+                        "training -- the statistics are a function of the stored rows and scalars, so a "
+                        "statistic that was computed wrongly can be corrected without paying for the run again")
     args = p.parse_args(argv)
+
+    if args.reanalyse:
+        art = json.loads(args.reanalyse.read_text(encoding="utf-8"))
+        scalars = {int(k): v for k, v in art["scalars"].items()}
+        fit_rows, retained_rows = art["fit_tasks"], art["retained_tasks"]
+        p3 = p3_registered(fit_rows, scalars)
+        p3_alt = correlate(retained_rows, lambda r: r["endpoint_ratio"] - 1.0)
+        art["distributions"] = {"fit": distribution(fit_rows), "retained": distribution(retained_rows)}
+        art["P3"], art["P3_as_first_computed"] = p3, p3_alt
+        fit = art["distributions"]["fit"]
+        print(f"reanalysed {args.reanalyse}: fit-task barrier/chance n = {fit['n']}, "
+              f"min {fit['min']:.4f}, median {fit['median']:.4f}, MAX {fit['max']:.4f}")
+        print(f"  P1 (every pair below {FIT_WALL}) : {'HOLDS' if fit['max'] < FIT_WALL else 'FAILS'}")
+        print(f"  falsifier (any pair above {FALSIFIER_WALL}): "
+              f"{'FIRED' if fit['max'] > FALSIFIER_WALL else 'does not fire'}")
+        print(f"  P3 REGISTERED: {p3['n_pairs']} pairs, r = {p3['r']:+.3f}")
+        print(f"  P3 as first computed: {p3_alt['n_rows']} rows, r = {p3_alt['r']:+.3f}")
+        write_json(args.reanalyse, art)
+        print(f"rewrote {args.reanalyse}")
+        return 0
 
     net, suite, states, scalars = train(args)
     seeds = [args.seed0 + args.seed_step * k for k in range(args.seeds)]
@@ -242,9 +292,12 @@ def main(argv=None) -> int:
         print(f"  endpoint control after_task_{k}: {n_ok}/{len(rows)} agree -> "
               f"{'AGREE' if controls[f'after_task_{k}']['all_agree'] else '** DISAGREES **'}")
 
-    p3 = correlate(retained_rows, lambda r: r["endpoint_ratio"] - 1.0)
-    print(f"\n  P3 exploratory: across retained-task rows, r(endpoint ratio of the pair - 1, barrier) = "
-          f"{p3['r']:+.3f} at n_rows = {p3['n_rows']}")
+    p3 = p3_registered(fit_rows, scalars)
+    print(f"\n  P3 REGISTERED: across the {p3['n_pairs']} pairs, the fit-task barrier vs the pair's own "
+          f"|forgetting difference| gives r = {p3['r']:+.3f}")
+    p3_alt = correlate(retained_rows, lambda r: r["endpoint_ratio"] - 1.0)
+    print(f"  P3 as this script first computed it -- retained-task endpoint loss ratio, NOT the registered "
+          f"quantity: r = {p3_alt['r']:+.3f} at n_rows = {p3_alt['n_rows']}")
 
     if args.json_out:
         write_json(args.json_out, {
@@ -256,7 +309,7 @@ def main(argv=None) -> int:
             "fit_tasks": fit_rows, "retained_tasks": retained_rows,
             "distributions": {"fit": fit, "retained": ret},
             "C0": c0, "endpoint_controls": {k: {"all_agree": v["all_agree"]} for k, v in controls.items()},
-            "P3": p3,
+            "P3": p3, "P3_as_first_computed": p3_alt,
         })
         print(f"\nwrote {args.json_out}")
     return 0
