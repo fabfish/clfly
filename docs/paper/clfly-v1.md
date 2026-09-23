@@ -1356,9 +1356,22 @@ geometry. **And the solutions are connected as wholes but not interchangeable as
 decoder fixed, the other's body rises monotonically by a **factor of 135** on the final task, so the body and
 its decoder are jointly determined and neither transfers alone. **Which is the interpolant story with ratios**:
 the seeds agree to 5% on the task in front of them and disagree by 1.8× and 3.4× on what they kept, a
-retained-*loss* statement this section did not previously have. The instrument is not pre-registered, is one
-seed pair, and is quoted with its raw curves rather than its verdict alone
+retained-*loss* statement this section did not previously have
 (`docs/findings/2026-09-24-the-seeds-solutions-are-connected.md`).
+
+**And it is a population result, not one pair.** Twelve seeds and **all 66 pairs**, 21-point chords at the first
+and last checkpoints, pre-registered before the run: **every one of the 132 pair-checkpoints has a fit-task
+barrier below 25% of chance**, with min **0.0108**, median **0.0361** and max **0.1252** — so **the worst chord in
+the whole grid peaks at 12.5% of `ln 4`, a factor of 11.1 below the loss of a solution that has learned
+nothing**, and the median is **3.6%**, which is the single pair above almost exactly. The seed pair this
+paragraph opened with was **typical, not lucky**. Two further readings: the median barrier **grows with the
+number of tasks** (0.0284 after task 1 to 0.0445 after task 3), which is what more interference should do to the
+path between two solutions; and **the barrier is not the pair's disagreement** — across the 66 pairs it
+correlates at only **r = +0.144** with the pair's own forgetting difference, and the third-worst chord joins two
+seeds whose forgetting differs by **0.0104** while the pair with the *largest* difference is fifth. So the seeds'
+solutions are **one connected set**, they are **not interchangeable**, and **no measured quantity says which
+point of the set a seed lands on** — the sixth such quantity, after the drift, the gap, the two interference
+terms and the fit depth (`docs/findings/2026-09-24-the-barrier-over-all-pairs.md`).
 
 **On the hardened configuration, diagonal EWC finally resolves** (5 replicates, λ=0.003, 32 Fisher batches):
 
