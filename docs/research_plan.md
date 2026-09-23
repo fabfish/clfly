@@ -1291,19 +1291,6 @@ Added 2026-09-22, after the headline metric was found to be chaotic
    prose — and a flag like that costs a reader more than the check saved. **So a mechanical audit's false
    positives have to be verified before they are reported, exactly as its findings do.**
 
-24b. **On the network line the binding limit is the per-repeat spread, not the replicate count, and the two
-   limits are not the same kind of thing.** Measured across the four configurations of `e8`/`e99`/`e100`,
-   each arm's per-repeat forgetting sd is **0.019–0.084** while the mean forgettings being compared are
-   **0.017–0.094** — so every gap the line reports is a fraction of one replicate's own variation, and
-   more replicates shrink the *sem* without touching that. **On the linear substrate the analogous limit
-   (the control-draw spread, rule 13/`e12`) is beaten by budget: more seeds eventually win. Here it is
-   not**, because the quantity being compared moves as much within one run as the differences being
-   claimed. The consequence is procedural rather than numerical: a network-line contrast is reported as
-   **a gap with its sem**, never as a resolution, and separating two competing explanations for one
-   contrast costs **~57 replicates per arm, 6–44 hours** — the same order as the rung question's own
-   price. This is now stated in the paper's §4.7 and §7, and it is the conclusion of three findings
-   (`docs/findings/2026-09-23-the-competing-explanation-is-not-excluded.md`).
-
 23. **Resample the unit that is actually shared.** Two comparisons in this project crossed nine
    *partitions* and quoted a σ over their nine differences — `e82`'s size steps and `e81`'s paired
    `pressure − alignment`. **The nine partitions of one run see the same six relabellings**, so a draw-level
@@ -1374,6 +1361,19 @@ about (`docs/findings/2026-09-23-the-last-two-unaudited-sections-were-clean.md`)
    *what-was-written-when* section naming them, and a reader who wants the untouched prediction is told
    which paragraphs to ignore. A pre-registration whose text can move without a mark is not one, and the
    cost of the mark is two sentences.
+
+25. **On the network line the binding limit is the per-repeat spread, not the replicate count, and the two
+   limits are not the same kind of thing.** Measured across the four configurations of `e8`/`e99`/`e100`,
+   each arm's per-repeat forgetting sd is **0.019–0.084** while the mean forgettings being compared are
+   **0.017–0.094** — so every gap the line reports is a fraction of one replicate's own variation, and
+   more replicates shrink the *sem* without touching that. **On the linear substrate the analogous limit
+   (the control-draw spread, rule 13/`e12`) is beaten by budget: more seeds eventually win. Here it is
+   not**, because the quantity being compared moves as much within one run as the differences being
+   claimed. The consequence is procedural rather than numerical: a network-line contrast is reported as
+   **a gap with its sem**, never as a resolution, and separating two competing explanations for one
+   contrast costs **~57 replicates per arm, 6–44 hours** — the same order as the rung question's own
+   price. This is now stated in the paper's §4.7 and §7, and it is the conclusion of three findings
+   (`docs/findings/2026-09-23-the-competing-explanation-is-not-excluded.md`).
 
 ## Related work to differentiate against
 
