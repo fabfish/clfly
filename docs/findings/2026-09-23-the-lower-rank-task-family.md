@@ -79,5 +79,9 @@ the diagonal's benefit (circuit size, then task rank), the basis ordering (task 
   strongest competing explanation for this run**, and it is not addressed by anything measured here.
 - **Three configurations are still three points.** P4's "both routes shrink it" is two differences from one
   baseline, which is what the pre-registration asked for and all it asked for.
+  **And the account's own two movements are inside their error bars**: block-minus-diagonal moves
+  +0.0396 → +0.0167 (cs = 800 → 300) at **0.46σ**, and the level hypothesis's movement is **0.59σ**, so
+  neither the account nor its competitor is excluded by a resolved difference. Separating them needs
+  **~57 replicates per arm**, i.e. 6–44 hours for this one contrast (`docs/findings/2026-09-23-the-competing-explanation-is-not-excluded.md`).
 - **None of the three gaps clears 2σ**, and the `naive` per-repeat sd of 0.048 means a 0.04 gap is within one
   replicate's spread however many are averaged.

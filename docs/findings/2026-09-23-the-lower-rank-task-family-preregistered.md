@@ -21,6 +21,16 @@ paper states it as if it were the lambda = 0.003 result. Full reading:
 **The strongest competing explanation, recorded because nothing here addresses it:** `--classes 2` also
 makes the benchmark **easier** (naive's forgetting falls +0.0729 to +0.0167 and every arm's accuracy rises
 to ~0.97), so "an easier benchmark compresses all the gaps" predicts exactly what was observed.
+**That competitor was then tested against the three configurations and is NOT excluded, and the
+attempt to exclude it is itself the finding**: the pair that isolates it (cs = 800 -> 300, where the
+circuit changes and the task rank does not) has the level rising and the gap falling, which is the
+opposite of the prediction -- **but both movements are inside their own error bars (0.59σ and 0.46σ),
+so nothing is contradicted.** The level-normalised ratio is unusable too (relative errors 66%, 260%,
+725%), and separating the two explanations needs **~57 replicates per arm, 6-44 hours for this one
+contrast**, the same order as the rung question's own price. So **both candidate explanations are
+beyond this benchmark's resolution**, which is a cleaner statement of where the network line stands
+than either "the account is confirmed" or "the account is untested"
+(`docs/findings/2026-09-23-the-competing-explanation-is-not-excluded.md`).
 
 > **A note on the tool: `pathlib.write_text` on this machine defaults to GBK, and the sigma symbol is not
 > in it.** That is how this appendix first failed to write. Every doc-editing script in this repository
