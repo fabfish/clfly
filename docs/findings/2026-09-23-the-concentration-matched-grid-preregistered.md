@@ -190,7 +190,7 @@ concentration is partialled out"*; if F1 fires the sentence becomes *"the spread
 is concentration in disguise"* and the co-movement is left as the whole of the mechanism. Either way the
 sentence that exists now is replaced, because "untested elsewhere" stops being true.
 
-## 7. P5 — the cross-size level check, added after the launch
+## 7. P5 — the cross-size level check, added after the launch, and P6 — the decorrelation the second shape buys
 
 The grid's second by-product is about whether the **absolute** spread is a cross-size quantity at all, and
 it is worth a clause because `e80`'s original prediction was about the absolute form.
@@ -224,3 +224,38 @@ failure would be partly a scale artefact, which is a defect of the *measurement*
 the predictor claim is false. That is the opposite of what a run added after the fact usually does, which
 is the reason to write it down: the clause is not a repair of the headline, it is a constraint on how far
 the headline can be pushed.
+
+## 8. P6 — the decorrelation the second shape buys, added when 32 of 60 cells were on disk
+
+**The observation, with cs = 300 complete (20 of 20 cells) and cs = 800 and cs = 1500 at 9 and 3 cells, all
+of them `flat`:**
+
+| subset at d = 952 | n | ρ(concentration, target) | raw pressure | partial |
+|---|---|---|---|---|
+| `flat` cells only | 10 | **+0.891** | +0.782 | +0.590 |
+| `harmonic` cells only | 10 | +0.782 | +0.479 | +0.715 |
+| **both** | 20 | **+0.677** | **+0.908** | **+0.919** |
+
+The two shapes are **complementary**: each alone leaves concentration and the target coupled and yields a
+weaker partial, and jointly they break the coupling and lift it to +0.919. That is the mechanism the
+two-shape design was built for and it was not obvious in advance — a grid of `flat` profiles only would have
+been a concentration ladder with the confound at ρ = +0.891 and the partials at 0.59.
+
+At **d = 1307 there are nine cells, all `flat`**, and they show exactly the failure mode that predicts:
+**ρ(concentration, target) = +0.983**, i.e. nearly collinear, and a partial of +0.654 whose bootstrap over
+profiles puts **25% of resamples at or below zero** — no resolution at all, and precisely the thin-residual
+situation rule 24 describes.
+
+**Clause P6.** When d = 1307's ten `harmonic` cells land, its concentration–target coupling falls from
+~+0.98 **below +0.80**, and its partial rises **above +0.654**.
+
+**Falsifier.** The coupling stays above **+0.90** at d = 1307 with all twenty cells. Then the second shape
+does not decorrelate at that size, the partial there stays unreadable, and the d = 952 result has to be read
+as an accident of how the two shapes happened to arrange themselves at one circuit size rather than as a
+property of the design.
+
+**Why this is a real prediction and not a formality.** The two sizes have the *same* twenty profiles by
+construction, so if the shapes decorrelate the confound at d = 952 they should do so at d = 1307; the way
+P6 fails is if the *task geometry*'s dependence on concentration differs enough between the sizes to keep
+the coupling high. That is a live possibility, because the level of `projection_pressure` itself moves by
+5.2× between them (P5, above).
