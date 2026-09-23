@@ -52,6 +52,8 @@ d=20, T=5, 4000 draws:
 | rank-8, non-drifting | EWC-diag | 0.44014 | 0.43726 | 0.012 |
 | rank-8, non-drifting | rank4 | 0.29184 | 0.29158 | 0.005 |
 
+> **Correction (2026-09-23), on the parameters and on one of the families.** This table does not state `q` or the seed, and the two rank-deficient families use **different `q`**: the non-drifting one is `q = 0.02`, the drifting one is **`q = 0.05`**, both at seed 1 and `obs_dim = 8`. With those named, all three rank-8 drifting rows reproduce **exactly** (0.48689 / 0.92463 / 0.77275) — but they could not be reproduced at all before, because `sample_partial` hardcoded `drifted=False` and **had no constructor for this family**, so the nine-case validation was five cases of repeatable check and four of record. `sample_partial` now takes `drifted`, bit-identically by default, and `tests/test_analytic.py` runs all nine plus a guard that each of the nine `(family, basis)` pairs can still be built (`docs/findings/2026-09-23-three-of-the-nine-validation-cases-had-no-constructor.md`).
+
 Every case within Monte Carlo error (~1.5% at 4000 draws). Response matrices
 separately verified against finite differences to 1e-9.
 

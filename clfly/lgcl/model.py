@@ -206,12 +206,21 @@ def sample_full(d, T, n, sigma2, q, rng, *, decay=DEFAULT_DECAY,
     return Sequence(d=d, q=q, theta=theta, J=J, Sigma=Sigma, y=hats, U=U)
 
 
-def sample_partial(d, T, n, sigma2, q, rng, *, obs_dim) -> Sequence:
+def sample_partial(d, T, n, sigma2, q, rng, *, obs_dim, drifted: bool = False) -> Sequence:
     """Partially observed regime: each task measures an ``obs_dim`` subspace.
 
     ``Sigma_k`` is the projection onto that subspace (so the error metric only
     cares about the directions the task actually used) and ``J_k`` is a scaled
     projection, hence rank ``obs_dim`` and non-invertible.
+
+    ``drifted`` defaults to ``False``, and with it the output is bit-identical to what this function
+    produced before the argument existed: ``theta`` is drawn once, every task records the same parameter,
+    and no extra random numbers are consumed.  Setting it makes ``theta`` perform the ``q``-random walk the
+    filter always believes in, which is the family the analytic estimator's validation table calls
+    **"rank-8, drifting"** — three of its nine cases, and until this argument existed **the repository had no
+    constructor for them**: the sampler hardcoded ``drifted=False``, so those rows could not be re-run and
+    the repeatable check covered five cases of nine
+    (``docs/findings/2026-09-23-three-of-the-nine-validation-cases-had-no-constructor.md``).
     """
     U = random_bases(d, T, rng)
     P_obs = U[:, :, :obs_dim] @ np.transpose(U[:, :, :obs_dim], (0, 2, 1))
@@ -219,15 +228,17 @@ def sample_partial(d, T, n, sigma2, q, rng, *, obs_dim) -> Sequence:
     J = (n / sigma2) * P_obs
 
     theta = rng.standard_normal(d)
-    thetas = np.stack([theta.copy()] * T)
-    hats = []
+    thetas, hats = [], []
     for k in range(T):
+        thetas.append(theta.copy())
         w, V = np.linalg.eigh(J[k])
         idx = np.argsort(w)[::-1][:obs_dim]
         Uo = V[:, idx]
         hats.append(theta + Uo @ (rng.standard_normal(obs_dim) / np.sqrt(n / sigma2)))
-    return Sequence(d=d, q=q, theta=thetas, J=J, Sigma=Sigma,
-                    y=np.stack(hats), U=U, drifted=False)
+        if drifted:
+            theta = theta + np.sqrt(q) * rng.standard_normal(d)
+    return Sequence(d=d, q=q, theta=np.stack(thetas), J=J, Sigma=Sigma,
+                    y=np.stack(hats), U=U, drifted=drifted)
 
 
 def error_tensor(ests: np.ndarray, seq: Sequence) -> np.ndarray:

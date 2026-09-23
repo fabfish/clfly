@@ -77,6 +77,22 @@ def partial():
                           rng=np.random.default_rng(1), obs_dim=8)
 
 
+@pytest.fixture(scope="module")
+def partial_drifting():
+    """The third family of the analytic estimator's validation table, ``rank-8, drifting``.
+
+    Its three cases are **three of the nine** in
+    ``docs/findings/2026-09-22-analytic-expected-error.md`` §2, and until ``sample_partial`` gained a
+    ``drifted`` argument they had **no constructor in the repository at all** — the sampler hardcoded
+    ``drifted=False``, so six of the nine were covered by the suite and three could not be re-run. The
+    parameters are the ones that reproduce that table exactly (``q = 0.05`` here against ``0.02`` for the
+    non-drifting family, both at seed 1), and neither the ``q`` nor the seed is stated in the finding
+    (`docs/findings/2026-09-23-three-of-the-nine-validation-cases-had-no-constructor.md`).
+    """
+    return sample_partial(d=20, T=5, n=40, sigma2=1.0, q=0.05,
+                          rng=np.random.default_rng(1), obs_dim=8, drifted=True)
+
+
 # --------------------------------------------------------------------------
 # the response matrices, against finite differences
 # --------------------------------------------------------------------------
@@ -120,6 +136,45 @@ def test_expected_error_matches_monte_carlo_without_drift(partial, basis_name):
     A = expected_error_matrix(partial, basis)
     B = mc_error(partial, basis, draws=3000)
     assert np.abs(A - B).max() / max(1e-12, np.abs(B).max()) < 0.05
+
+
+@pytest.mark.parametrize("basis_name", ["kalman", "ewc", "rank4"])
+def test_expected_error_matches_monte_carlo_rank_deficient_and_drifting(partial_drifting, basis_name):
+    """The family with no constructor until ``sample_partial`` gained ``drifted``.
+
+    Together with the two tests above this makes **all nine** of the validation table's cases runnable, which
+    is what turns that table from a one-time record into a check.
+    """
+    basis = {"kalman": Full(partial_drifting.d), "ewc": Diagonal(partial_drifting.d),
+             "rank4": Rank(partial_drifting.d, 4)}[basis_name]
+    A = expected_error_matrix(partial_drifting, basis)
+    B = mc_error(partial_drifting, basis, draws=3000)
+    assert np.abs(A - B).max() / max(1e-12, np.abs(B).max()) < 0.05
+
+
+def test_the_nine_validation_cases_are_all_constructible():
+    """A guard on the *constructors*, so a family cannot lose its builder again.
+
+    `e97`'s lesson one surface over: the check that a validation table is reproducible is not that its rows
+    were once computed, but that each row's **inputs can still be built**.  This pins the nine `(family,
+    basis)` pairs of `docs/findings/2026-09-22-analytic-expected-error.md` §2 against the samplers, and it
+    fails if a sampler stops offering one of them.
+    """
+    fams = {
+        "full-rank, drifting": lambda: sample_full(d=20, T=5, n=40, sigma2=1.0, q=0.05,
+                                                   rng=np.random.default_rng(0), rotation="random"),
+        "rank-8, drifting": lambda: sample_partial(d=20, T=5, n=40, sigma2=1.0, q=0.05,
+                                                   rng=np.random.default_rng(1), obs_dim=8, drifted=True),
+        "rank-8, non-drifting": lambda: sample_partial(d=20, T=5, n=40, sigma2=1.0, q=0.02,
+                                                       rng=np.random.default_rng(1), obs_dim=8),
+    }
+    built = 0
+    for family, make in fams.items():
+        seq = make()
+        for basis in (Full(seq.d), Diagonal(seq.d), Rank(seq.d, 4)):
+            expected_error_matrix(seq, basis)
+            built += 1
+    assert built == 9, f"the validation table has nine cases; {built} were constructible"
 
 
 def test_trajectory_covariance_respects_the_drift_flag(drifting, partial):

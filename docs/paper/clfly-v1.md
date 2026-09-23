@@ -1250,9 +1250,15 @@ the filter's total response `theta_hat_k = sum_{j<=k} R_kj y_j`:
 
 The `(j,l)` sum reduces to linear in `k` via `min(j,l) = sum_t [j>=t][l>=t]`, which
 makes it affordable at d = 1307 (~6 s per basis). Validated against Monte Carlo on
-nine configurations (full-rank/rank-deficient × drifting/non-drifting × three bases),
-all within Monte Carlo error; response matrices separately verified against finite
-differences to 1e-9.
+**nine** configurations (full-rank and rank-deficient × drifting and non-drifting × three bases), all
+within Monte Carlo error — and **all nine are now runnable** rather than recorded: three of them
+("rank-deficient, drifting") had **no constructor in the repository** until `sample_partial` gained a
+`drifted` argument, because the sampler hardcoded `drifted=False`, so the repeatable check covered five
+of the nine. Response matrices were separately verified against finite differences, **1.4e-9 on the
+full-rank fixture and 9.3e-9 to 1.2e-8 on the rank-deficient one** — this sentence said "to 1e-9", which
+is right for the family it was measured on and an order optimistic for the other, and the test's own
+`atol` is 1e-5, a tolerance that was being quoted as an achieved agreement
+(`docs/findings/2026-09-23-three-of-the-nine-validation-cases-had-no-constructor.md`).
 
 Precision improves by ~8× in standard error, i.e. ~64× in seed count, and the spread
 across task geometries turns out to be genuinely small. Almost all of the noise that
