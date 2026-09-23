@@ -40,8 +40,8 @@ POOL_DRAW_SD = {
     "pool4": (0.00061304922373747, "e14 min 4, 5 draws -- this partition"),
     "pool8": (0.000707089871689136, "e74 min 8, 5 draws -- this partition"),
     "pool16": (0.000668370535579237, "e74 min 16, 5 draws -- this partition"),
-    "pool32": (0.0009286726398617035, "e14 min 2 at concentration 0.325 vs this rung's 0.322"),
-    "pool64": (0.0009286726398617035, "e14 min 2 at concentration 0.325 vs this rung's 0.322"),
+    "pool32": (0.0007406624893458738, "e90 min 32, 5 draws -- this partition (== min 64)"),
+    "pool64": (0.0007406624893458738, "e90 min 32, 5 draws -- the SAME partition as pool32 at d = 1307"),
     "pool128": (0.0009646877074569237, "e74 min 128, 5 draws -- this partition"),
 }
 

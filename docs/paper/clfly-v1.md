@@ -588,7 +588,7 @@ partitions, and it is precisely `side` — the rung whose σ this paper leans on
 over-penalises by the largest factor. **And the comparison with the granularity ladder has to be redone
 too, because the two families' tables were corrected by different procedures** — the ladder with
 unpaired sems and an assumed 1.0e-3 draw sd, the named rungs with paired sems and measured ones. On the
-same footing (`e73`) the ladder's σ about the rule are 2.6 / 8.1 / **13.7** / 9.3 / 11.0 / 7.4 / 5.7 /
+same footing (`e73`) the ladder's σ about the rule are 2.6 / 8.1 / **13.7** / 9.3 / 11.0 / 9.1 / 7.0 /
 4.1 and the named family's are 18.1 / 12.1 / 3.8 / **26.1** / 13.3: **the best named rung is 26.1σ
 against the ladder's 13.7σ**, a factor of 1.9 rather than the order of magnitude the uncorrected tables
 implied. All eight ladder rungs now have a measured draw sd of their own (`e74` supplied the last three,

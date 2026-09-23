@@ -29,8 +29,8 @@ apples-to-oranges. This script applies both steps to both families.
 | | `pool4` | −0.00884 | 0.00021 | 0.00020 | 1.1× | 44.4 | 6.13e-4 ▣ | **13.7** |
 | | `pool8` | −0.00685 | 0.00023 | 0.00022 | 1.0× | 31.0 | 7.07e-4 ▣ | **9.3** |
 | | `pool16` | −0.00765 | 0.00020 | 0.00020 | 1.0× | 38.8 | 6.68e-4 ▣ | **11.0** |
-| | `pool32` | −0.00699 | 0.00018 | 0.00019 | 1.0× | 36.4 | 9.29e-4 ▣ | 7.4 |
-| | `pool64` | −0.00548 | 0.00026 | 0.00027 | 1.0× | 20.4 | 9.29e-4 ▣ | 5.7 |
+| | `pool32` | −0.00699 | 0.00018 | 0.00019 | 1.0× | 36.4 | **7.41e-4** ▣ | **9.1** |
+| | `pool64` | −0.00548 | 0.00026 | 0.00027 | 1.0× | 20.4 | **7.41e-4** ▣ | **7.0** |
 | | `pool128` | −0.00409 | 0.00023 | 0.00023 | 1.0× | 17.9 | 9.65e-4 ▣ | **4.1** |
 | named | `side` | −0.00477 | 0.00017 | 0.00015 | 1.1× | 31.7 | 2.16e-4 ▣ | **18.1** |
 | | `cell_class` | −0.00319 | 0.00026 | 0.00011 | 2.3× | 27.8 | 2.37e-4 ▣ | 12.1 |
@@ -74,12 +74,12 @@ the difference flipped with the pairing gain.** One rung of the ladder pays for 
 
 ## 5. Limits
 
-- **Every ladder rung now has a measured draw sd of its own**, after `e74` supplied the last three
-  (`pool8` 7.07e-4, `pool16` 6.68e-4, `pool128` 9.65e-4, at `e14`'s protocol). What remains borrowed are
-  `pool32`/`pool64`, whose draw sd comes from the measured point at concentration 0.325 against their
-  0.322 — a *different partition*, which `e67`'s refutation of the concentration scalar is a reason to be
-  wary of. Those two rows are labelled but not measured, and they are 7.4 and 5.7σ, neither of which is
-  the best rung, so the 1.9× head-to-head does not rest on them.
+- **Every ladder rung now has a measured draw sd of its own.** `e74` supplied the last three (`pool8`
+  7.07e-4, `pool16` 6.68e-4, `pool128` 9.65e-4, at `e14`'s protocol) and `e90` supplied the pair that had
+  been *borrowed* from a neighbouring partition: `pool32` and `pool64` are **the same partition** at
+  d = 1307 (both pool to 3 groups), and their own spread is **7.41e-4**, where the row previously used
+  `e14` min 2's **9.29e-4** — 25% too high, so their σ moved from 7.4 to **9.1** and from 5.7 to **7.0**.
+  Nothing in the head-to-head rests on a borrowed number any more, and the factor stays **1.9×**.
 - **Different seed counts (12 against 18) and one circuit size.** The head-to-head compares two families
   measured by different runs; the footing is now the same, the artifacts are not.
 - **σ(rule) is the honest axis for this comparison** and it is not the one the paper's tables report;
