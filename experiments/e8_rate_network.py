@@ -176,6 +176,47 @@ def relative_drift(before: np.ndarray, after: np.ndarray) -> float:
     return delta / scale if scale else float("nan")
 
 
+def task_grad(model, readout, task, shared: bool = False):
+    """The task's mean loss and its gradient with respect to the body, at the current weights.
+
+    The gradient is of the *task's own* training loss, which is the object whose change a later task's
+    displacement first-order predicts. Returned flat and in float64, because the inner products it feeds are
+    differences between vectors of 26,568 numbers whose individual magnitudes are small.
+    """
+    import torch
+
+    U = torch.from_numpy(task.u_train).float()
+    Y = torch.from_numpy(task.y_train).long()
+    traj = model(U, None)
+    logits = _logits(readout, traj[:, -1, :][:, task.readout_neurons], task, shared)
+    loss = torch.nn.functional.cross_entropy(logits, Y)
+    model.zero_grad()
+    loss.backward()
+    grad = (model.theta.grad.detach().cpu().numpy().astype(np.float64).copy()
+            if model.theta.grad is not None else np.zeros_like(model.theta.detach().cpu().numpy()))
+    model.zero_grad()
+    return grad, float(loss.item())
+
+
+def first_order_damage(grad: np.ndarray, displacement: np.ndarray) -> dict:
+    """``<grad, displacement>`` and the two magnitudes it is the product of.
+
+    This is the interference account's prediction in its one-line form: the change in a task's loss caused by
+    moving the body along a displacement, to first order. **Reported with its factors rather than alone**,
+    because `e107` showed the two candidate explanations of network forgetting -- how far the body moved, and
+    how much the task needed it -- are both monotone in the read-out and neither orders the forgetting. A
+    first-order term that orders it could be doing so through either factor, and a term that does not cannot be
+    rescued by one of them, so the magnitudes and the cosine are stored beside the product.
+    """
+    grad = np.asarray(grad, dtype=np.float64)
+    displacement = np.asarray(displacement, dtype=np.float64)
+    g_norm = float(np.linalg.norm(grad))
+    d_norm = float(np.linalg.norm(displacement))
+    inner = float(grad @ displacement)
+    cosine = inner / (g_norm * d_norm) if g_norm and d_norm else 0.0
+    return {"first_order": inner, "cosine": cosine, "grad_norm": g_norm, "disp_norm": d_norm}
+
+
 def evaluate(model, readout, task, shared: bool = False) -> float:
     """Held-out accuracy at the final timestep."""
     import torch
@@ -289,7 +330,8 @@ def run_method(conn_net, suite, method: str, args, seed: int,
     T = len(suite)
     R = np.full((T, T), np.nan)
     losses = []
-    drifts = []                                            # ||theta after|| / ||theta before|| per task
+    drifts = []                                            # ||theta after - before|| / ||before|| per task
+    thetas = []                                            # the body after each task, for the interference terms
 
     for k, task in enumerate(suite):
         # Bind the block penalty ONCE per task, not once per training step. The Fisher and
@@ -309,6 +351,7 @@ def run_method(conn_net, suite, method: str, args, seed: int,
             replay_batch=args.replay_batch,
             frozen_body=args.frozen_body))
         drifts.append(relative_drift(theta_before, model.theta.detach().cpu().numpy()))
+        thetas.append(model.theta.detach().cpu().numpy().copy())
         for j in range(k + 1):
             R[k, j] = evaluate(model, heads[0] if shared else heads[j], suite[j], shared)
 
@@ -342,6 +385,24 @@ def run_method(conn_net, suite, method: str, args, seed: int,
     final = R[T - 1]
     per_task_forgetting = [float(np.nanmax(R[: j + 1, j]) - R[T - 1, j])
                            for j in range(T)]
+    # The interference account, in its one-line form, for every pair the run makes available. Task j's
+    # gradient at the *final* body against each task's own displacement: the last task has no forgetting to
+    # explain, so the gradients are taken for j < T-1, and the displacement a task j actually experienced is
+    # the cumulative one, theta_final - theta_after_j, which is stored as "cumulative" beside the per-task
+    # products. A frozen body makes every displacement zero, so every term is zero -- the same control that
+    # validates theta_drift.
+    interference = []
+    theta_final = model.theta.detach().cpu().numpy()
+    for j in range(max(T - 1, 0)):
+        readout = heads[0] if shared else heads[j]
+        grad, loss_j = task_grad(model, readout, suite[j], shared)
+        deltas = [thetas[k] - (thetas[k - 1] if k else np.zeros_like(theta_final))
+                  for k in range(T)]
+        interference.append({
+            "task": j, "loss_at_final": loss_j,
+            "per_task": [first_order_damage(grad, d) for d in deltas],
+            "cumulative": first_order_damage(grad, theta_final - thetas[j]),
+        })
     # The last task cannot be forgotten yet, so it is excluded from the mean; it is
     # reported separately as "how well did it end up learning the final task".
     return {
@@ -354,6 +415,7 @@ def run_method(conn_net, suite, method: str, args, seed: int,
         "final_per_task": [float(x) for x in final],
         "losses": losses,
         "theta_drift": drifts,
+        "interference": interference,
     }
 
 
@@ -476,6 +538,17 @@ def main(argv=None) -> int:
             "forgetting_per_task": [float(x) for x in
                                     np.mean([r["forgetting_per_task"] for r in reps], axis=0)],
             "theta_drift": [float(x) for x in np.mean([r["theta_drift"] for r in reps], axis=0)],
+            "interference": [{
+                "task": j,
+                "cumulative_first_order": float(np.mean(
+                    [r["interference"][j]["cumulative"]["first_order"] for r in reps])),
+                "cumulative_cosine": float(np.mean(
+                    [r["interference"][j]["cumulative"]["cosine"] for r in reps])),
+                "grad_norm": float(np.mean([r["interference"][j]["cumulative"]["grad_norm"]
+                                            for r in reps])),
+                "disp_norm": float(np.mean([r["interference"][j]["cumulative"]["disp_norm"]
+                                            for r in reps])),
+            } for j in range(len(reps[0]["interference"]))],
             "replicates": reps,
         }
         out["methods"][method] = agg
@@ -485,6 +558,9 @@ def main(argv=None) -> int:
         print(f"    learned (diagonal):  {['%.3f' % x for x in agg['learned']]}")
         print(f"    forgetting per task: {['%+.3f' % x for x in agg['forgetting_per_task']]}")
         print(f"    theta drift per task: {['%.3f' % x for x in agg['theta_drift']]}")
+        if agg["interference"]:
+            print(f"    interference per task (cumulative): "
+                  f"{['%+.2e (cos %+.3f)' % (i['cumulative_first_order'], i['cumulative_cosine']) for i in agg['interference']]}")
         print(f"    -> final accuracy {agg['final_accuracy']:.3f} ± {agg['final_sem']:.3f},  "
               f"mean forgetting {agg['mean_forgetting']:+.3f} ± {agg['forgetting_sem']:.3f}")
 

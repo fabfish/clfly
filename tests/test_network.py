@@ -189,3 +189,33 @@ def test_relative_drift_is_scale_free_and_zero_for_a_body_that_does_not_move():
     assert relative_drift(theta, 2.0 * theta) == 1.0           # relative, not absolute
     assert relative_drift(theta, theta + np.array([1.0, 0, 0, 0])) == pytest.approx(
         1.0 / np.linalg.norm(theta))
+
+
+def test_first_order_damage_reports_its_two_factors_separately():
+    """`<grad, displacement>` and the magnitudes it is the product of.
+
+    e107 showed the two candidate explanations of network forgetting -- how far the body moved, and how much
+    the task needed it -- are both monotone in the read-out and neither orders the forgetting. So a first-order
+    term that does order it could be doing so through either factor, and the factors are stored beside the
+    product rather than folded into it.
+    """
+    import numpy as np
+
+    from experiments.e8_rate_network import first_order_damage
+
+    g = np.array([1.0, 0.0, 0.0])
+    parallel = first_order_damage(g, np.array([2.0, 0.0, 0.0]))
+    assert parallel["first_order"] == 2.0
+    assert parallel["cosine"] == 1.0
+    assert parallel["disp_norm"] == 2.0
+
+    orthogonal = first_order_damage(g, np.array([0.0, 3.0, 0.0]))
+    assert orthogonal["first_order"] == 0.0
+    assert orthogonal["cosine"] == 0.0
+
+    # A body that does not move must give a term of exactly zero with a defined cosine, not a nan: the frozen
+    # control is what validates the instrument and a 0/0 there would make it unreadable.
+    frozen = first_order_damage(g, np.zeros(3))
+    assert frozen["first_order"] == 0.0
+    assert frozen["cosine"] == 0.0
+    assert frozen["disp_norm"] == 0.0
