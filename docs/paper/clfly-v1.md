@@ -83,7 +83,7 @@ Four findings, one of them unexpected in direction.
    including eight partitions of near-identical granularity told apart only by *which*
    groups were merged — and identifies the better of each biological-versus-matched-random pair
    on **24 of 24** pairs whose difference clears 2σ *on the paired seed sem*, across five
-   conditions it was not tuned on — **20 of 21** once each rung's measured control-draw component
+   conditions it was not tuned on — **19 of 20** once each rung's measured control-draw component
    is included, the single miss being a confident, 10.6σ wrong call on heavily rewired wiring.
    The sign record is unanimous per seed on every resolvable pair.
 4. **The wiring's own eigenbasis beats the neuron diagonal at equal capacity** — a 28%
@@ -1124,11 +1124,22 @@ which is a known failure mode of a working predictor rather than an untested cas
 `hypot(sem_bio, sem_rand)`, which for a pair whose two arms co-move across task draws is an order of
 magnitude too large. Re-run with per-seed storage, **24 of the 25 pairs clear 2σ on the paired seed
 sem**, all 24 have **unanimous per-seed signs**, none changes sign under leave-one-out removal, and the
-smallest leave-one-out σ is **6.31**. Fold in each rung's **measured** control-draw sd and **21 of 25**
-remain, of which the predictor calls **20** correctly. So the standing result is:
+smallest leave-one-out σ is **6.31**. Fold in each rung's **measured** control-draw sd and **20 of 25**
+remain, of which the predictor calls **19** correctly. So the standing result is:
 
-> **24 of 24 on the paired seed sem, or 20 of 21 once the control-draw component is included** —
+> **24 of 24 on the paired seed sem, or 19 of 20 once the control-draw component is included** —
 > alongside rank correlations of +0.97 to +0.99.
+
+**And that count was 21 of 25 until the denominators stopped being borrowed.** `e64`'s five-rung
+draw-sd table is keyed by rung and not by circuit size, so four of its five conditions — everything at
+cs = 300 — were carrying **d = 1307** denominators. Measuring all twenty of those pairs at their own
+configuration makes the correction **systematic rather than noisy: every one of the twenty ratios exceeds
+1, from 1.09 to 6.73, median 2.33**, so the borrowing understated every cs = 300 σ by a factor that is
+large and always in the same direction. Exactly one pair changes verdict —
+`rewired-swap2`/`cell_type`, σ **2.32 → 0.87** — and the predictor called it *right*, so it leaves the
+resolved set as a correct call and the "called correctly" count falls with it. The one confident failure
+is unchanged: `rewired-swap2`/`cell_class` (`docs/findings/2026-09-23-the-predictors-denominators-
+were-borrowed-and-the-borrowing-was-optimistic.md`).
 
 The one pair the pairing *removes* rather than resolves is `rewired-swap2` / `side` (0.39σ paired,
 0.21σ with the draw component), so the rewired condition is where the predictor is both confidently
@@ -1141,8 +1152,11 @@ record perfect at every multiplier from 0.1× to 10× (`docs/findings/2026-09-22
 The 2σ line fell between `baseline/supertype` at 1.94 and `wider-tasks/supertype` at 2.17, so that
 count was 13 ± 1 depending on an interpolated quantity. **But an arithmetic re-derivation cannot fix a
 denominator, and the pairing is what the denominator needed** — it moves the count from 13 to 24, and with
-the row's rung-level draw sds measured rather than interpolated the count is **21 of 25 clear 2σ and 20 of
-21 called correctly**.
+the row's rung-level draw sds measured rather than interpolated the count is **20 of 25 clear 2σ and 19 of
+20 called correctly** — and the 21-of-25 form that stood here until the denominators were measured at
+their own circuit size was **optimistic in a way that was systematic rather than noisy**, since all twenty
+of the ratios between the measured and the borrowed denominators exceed 1 (1.09 to 6.73, median 2.33);
+exactly one pair changed verdict, `rewired-swap2`/`cell_type` at 2.32 → 0.87, and it was called right.
 
 **And that correction was then measured on the one rung it was largest for, and it shrank by a factor
 of 2.8.** `side`'s draw sd had never been measured, so the analysis above *interpolated* it to
@@ -1314,7 +1328,7 @@ demonstrably cannot tell you is which of its conclusions are artefacts of the li
 configuration, and on the granularity ladder — where it reaches **+0.995** across 17 bases
 and separates eight partitions of near-identical granularity told apart only by *which*
 groups were merged — with rank correlations of +0.973 to +0.995 and **24 of 24** correct on
-every matched pair whose difference clears 2σ on the paired seed sem (**20 of 21** once each
+every matched pair whose difference clears 2σ on the paired seed sem (**19 of 20** once each
 rung's measured control-draw component is included). Its limits are specific: it is a **ranking**
 predictor, not a calibrated one (dynamic range varies by more than an order of magnitude
 across conditions); it has **one confident failure**, on heavily rewired wiring at `cell_class`
