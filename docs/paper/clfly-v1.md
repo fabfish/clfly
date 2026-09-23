@@ -845,7 +845,7 @@ number, the configuration was re-run (`e61`), and at per-step 8 it **reproduces*
 +0.0729 ± 0.0151, replay −0.0125 ± 0.0039 at 0.9681 ± 0.0078 accuracy, and the paired
 contrast **−0.08542 ± 0.01293 = 6.61σ** — *stronger* than the 4.2σ claimed, with 5/5
 replicates negative, a leave-one-out σ range of [5.19, 7.35] and no removal flipping the
-sign. The `naive` arm is bit-identical to `e8_hardened`'s, which is what makes the
+sign. The `naive` arm reproduces `e8_hardened`'s to the last printed decimal — which is what makes the
 comparison like-for-like rather than approximate. **And the whole result survives sixteen replicates,
 which is the test that killed the C2b rung's three-seed claim**: naive +0.0625 against replay −0.0052,
 a paired contrast of **−0.06771 ± 0.01006 = 6.73σ with sixteen of sixteen replicates agreeing in sign**
@@ -1118,11 +1118,16 @@ mode, not a law.
 ## 6. Methodology: the conventional metric was unusable
 
 Early in this work we measured everything with the usual relative forgetting/error
-ratio. On this substrate it is **not a statistic**. At fixed settings its standard
-deviation across seeds reaches **1.38** while its mean is 0.87, and it moves by ±0.04
+ratio. On this substrate it is **not a statistic**. At fixed settings its **spread across three seeds
+reaches 1.38** — and that is a *range*, not a standard deviation — while a separate diagnostic at a
+different circuit size and support (400 neurons, support 40, 3 seeds) gave **standard deviations up to
+1.06 against a mean of 0.87**. It moves by ±0.04
 under a **1e-15 relative** change in a single model parameter. The reason is
 arithmetic: it is a ratio of two small, close numbers, so it inherits the EWC
-estimator's full relative variance.
+estimator's full relative variance. (An earlier version of this paragraph paired the
+1.38 *range* with the 0.87 *mean* and called the first a standard deviation, which
+mixes two diagnostics and mislabels a range — the same failure mode as the abstract's
+"33–63%", and both are corrected in place.)
 
 Two of our own published conclusions were retracted as artefacts of it, and one real
 reproducibility bug was found on the way (`scipy.sparse.linalg.eigs` starts from a
@@ -1176,7 +1181,7 @@ draws of the realisation.
   ladder (§4.3) corrects that — but it has **six distinct partitions across eight rungs**: the
   pooling threshold is a *count* and the median cell type has one neuron, so one group grows
   723 → 867 → 952 → 968 → 1062 → 1167 while a 140-neuron cell type never merges (`pool32` and
-  `pool64` are bit-identical), and `pool128` is a 2-group partition. Its two coarsest points are
+  `pool64` are the same partition), and `pool128` is a 2-group partition. Its two coarsest points are
   blunt instruments rather than fine resolution. **And this is systematic, not incidental**: at
   d = 1874 the duplicate is `pool64 ≡ pool128` instead, so each configuration has six distinct
   partitions with the duplication at the coarse end. A **rank-based** ladder — merge the *k*
