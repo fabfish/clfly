@@ -2,8 +2,8 @@
 
 **Date:** 2026-09-23
 **Scripts:** `experiments/e64_predictor_per_seed.py` (repaired), `experiments/e93_cs300_draw_sd_upgrade.py`
-(its "before" column rebuilt from primary sources); artifacts `runs/e64_predictor_per_seed_analysis.json`,
-`runs/e93_cs300_draw_sd_upgrade.json`.
+(its "before" column rebuilt from primary sources)
+**Artifacts:** `runs/e64_predictor_per_seed_analysis.json`, `runs/e93_cs300_draw_sd_upgrade.json`
 **Context:** `docs/findings/2026-09-23-the-predictors-denominators-were-borrowed-and-the-borrowing-was-optimistic.md`
 (`e94`, which measured the correct denominators), `...-the-predictors-denominators-came-from-the-other-circuit.md`
 (`e93`, which found the borrowing).

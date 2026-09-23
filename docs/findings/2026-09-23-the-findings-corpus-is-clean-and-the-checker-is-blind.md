@@ -47,6 +47,13 @@ its own cell — **the corpus's own provenance is intact.** That is worth record
 paper's reproducibility section can say that every artifact any finding names is on disk and agrees with the
 finding's stated configuration, at 86 of 107 documents.
 
+
+**These counts are a snapshot of a set that grows.** The corpus gained two documents while this
+one was being written, so "107" became 108 and the no-Artifacts-line count moved with it — the same
+moving-target property rule 17 gained a shape for, applied to a document count rather than to a
+statistic. What is stable is the *claim*: no finding cites a live missing artifact, and every
+`Setup:` line agrees with its named artifact's config.
+
 ## 2. And the checker is blind to the defect it was built for
 
 `e8c`'s defect was that its named artifact no longer held the sweep it reported. A check for that kind of
