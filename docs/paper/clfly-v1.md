@@ -1028,7 +1028,35 @@ is a specific statement rather than a search. The drift and the gap remain monot
 is now five fires of instrumentation saying the same thing: **every mechanical quantity this project can measure
 is monotone in the read-out.** The 512 execution was repeated and is **bit-identical** in both forgetting and
 curvature, extending the `sd = 0.0000` result to a fourth read-out
-(`docs/findings/2026-09-23-the-anomaly-is-the-whole-state-not-the-middle.md`). And the sweep validates itself: its read-out-32 plastic row is the hardened
+
+**And a fifth read-out retired that reading of the shape, because the "outlier" was a gap between points.**
+Read-out **900** was pre-registered as *strictly between* 512 and 1307 on both the forgetting and the gap, and
+**both held**: forgetting **+0.0292** (between +0.0208 and +0.0479) and the gap **−0.0014** (between −0.0111 and
++0.0014), with the frozen control at **exactly `+0.0000`** and the repeat bit-identical. The five points are
+
+| read-out | **forgetting** | load-bearing gap | body drift |
+|---|---|---|---|
+| **1307** (whole) | +0.0479 | −0.0111 | 0.0195 |
+| **900** | +0.0292 | −0.0014 | 0.0213 |
+| **512** | **+0.0208** | +0.0014 | 0.0258 |
+| **128** | +0.0333 | +0.0167 | 0.0391 |
+| **32** | +0.0729 | +0.1000 | 0.0493 |
+
+**and read as two arms each one is monotone: 0.0479 > 0.0292 > 0.0208 < 0.0333 < 0.0729.** So there is **no
+outlier** — with two points on the wide half it declines monotonically there too, and the correct description is
+**a two-sided interior minimum at 512**. The numbers in the previous paragraph stand and its *name* for them does
+not: that is the third time in this sequence a shape claim was revised by adding a point, and the first time the
+revision retired a framing rather than a hypothesis.
+
+**Which yields the first design statement in this sequence, and it is about the benchmark rather than about a
+candidate mechanism.** The design principle above is a statement about the body being **load-bearing**, and the
+gap series says that monotonically (−0.0111 → −0.0014 → +0.0014 → +0.0167 → +0.1000): narrowing the read-out
+always makes the body matter more. **But the forgetting is not monotone with it** and its minimum sits at **512 of
+1307** — between the two extremes the principle brackets. So the two quantities a practitioner would use to pick a
+read-out are monotone in *different* respects, and the second has an interior optimum. **That is also why four
+candidate mechanisms failed here rather than by coincidence**: every mechanical quantity this project has measured
+is monotone in the read-out, and a two-sided minimum cannot be ordered by a monotone quantity
+(`docs/findings/2026-09-23-the-read-out-axis-has-an-interior-minimum.md`). And the sweep validates itself: its read-out-32 plastic row is the hardened
 configuration's `naive` and comes out at **+0.0729 ± 0.0151**, reproducing `e8_hardened_basis` to the last
 printed digit (`docs/findings/2026-09-23-the-unbacked-cells-measured.md` §1).
 
