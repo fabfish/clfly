@@ -75,6 +75,33 @@ def load(path):
         return json.load(fh)
 
 
+#: The five numbers `e64`'s shared rung table held, read from the **same primary source artifacts it read
+#: them from** — `e67`/`e17`/`e17b`, all measured at cs = 800 / support 80.
+#:
+#: They are looked up here rather than taken from `runs/e64_predictor_per_seed_analysis.json`, because that
+#: artifact has since been **corrected** to carry the cs = 300 measurements per condition, so reading it for
+#: the "borrowed" column returns the measured ones and every ratio becomes 1.00 — a diagnostic that reads a
+#: live artifact from the producer it documents goes blind the moment the producer is fixed.  This script's
+#: own pre-fix output was overwritten by the same re-run, so `runs/` was not a fallback either.  **Reading
+#: the primary sources is the durable form**, and it is what the defect consisted of being wrong about.
+BORROWED_SOURCES = {
+    "side": ("runs/e67_drawsd_side_min1.json", "e67, 8 draws"),
+    "cell_class": ("runs/e17_cell_class_drawsd.json", "e17, 5 draws"),
+    "ito_lee_hemilineage": ("runs/e17b_ito_lee_hemilineage_drawsd.json", "e17b, 5 draws"),
+    "supertype": ("runs/e17b_supertype_drawsd.json", "e17b, 5 draws"),
+    "cell_type": ("runs/e67_drawsd_cell_type_min1.json", "e67, 8 draws"),
+}
+
+
+def borrowed_sd(rung: str):
+    """``(value, source_label)`` the shared table would have given this rung, from its own source."""
+    entry = BORROWED_SOURCES.get(rung)
+    if entry is None:
+        return None, None
+    a = load(entry[0])
+    return (float(a["control_sd_across_draws"]) if a else None), entry[1]
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -112,10 +139,11 @@ def main() -> None:
         if d is None:
             print(f"   {rung:<24} absent ({path})")
             continue
-        used = next(p["draw_sd"] for p in pairs if p["rung"] == rung)
+        used, used_src = borrowed_sd(rung)
         measured[rung] = float(d["control_sd_across_draws"])
         print(f"   {rung:<24}{measured[rung]:>14.4g}{'|':>3}{used:>20.4g}"
-              f"{measured[rung] / used:>9.2f}{d['config']['draws']:>7}{d['config']['seeds']:>7}")
+              f"{measured[rung] / used:>9.2f}{d['config']['draws']:>7}{d['config']['seeds']:>7}"
+              f"   {used_src}")
 
     print()
     print("=" * 108)
@@ -145,26 +173,48 @@ def main() -> None:
     print("=" * 108)
     print("4. DOES THE HEADLINE COUNT MOVE?")
     print("=" * 108)
-    #: e64's conservative column: how many of the 25 clear 2 sigma on the rule sem, counting a pair with no
-    #: draw sd (a missing denominator) as resolved, which is the convention that produced 21 rather than 20
-    n_rule_used = sum(1 for p in pairs if p["sigma_rule"] is not None and p["sigma_rule"] > 2.0)
-    fixed = {r["rung"]: r["sigma_measured"] for r in rows if r["sigma_measured"] is not None}
-    #: recompute the whole set: baseline's five replaced, every other pair untouched
+    #: **Both** columns are recomputed from primary sources here, not read from the producer's artifact.
+    #: The "borrowed" column is `|delta| / hypot(seed_sem, borrowed_sd)` with `borrowed_sd` from
+    #: `BORROWED_SOURCES`, and the "measured" column uses the cs = 300 runs.  Reading `p["sigma_rule"]` for
+    #: the borrowed column would now return the CORRECTED value, because `e64` has been fixed to carry the
+    #: cs = 300 measurements per condition -- which is the point of this script and also the reason it can no
+    #: longer ask the producer what it used to say.  The convention is unchanged: a pair with no denominator
+    #: is counted as resolved, which is what produced 21 rather than 20.
+    def sigma_from(p, sd):
+        return abs(float(p["delta"])) / float(np.hypot(p["seed_sem"], sd)) if sd else None
+
+    n_rule_used = 0
+    for p in pairs:
+        used, _ = borrowed_sd(p["rung"]) if p["condition"] in CS300_CONDITIONS else (p["draw_sd"], None)
+        s = sigma_from(p, used)
+        if s is None or s > 2.0:
+            n_rule_used += 1
+    fixed = {}
+    for p in pairs:
+        if p["condition"] == "baseline":
+            sd = load(E86_ARTIFACT[p["rung"]])
+            fixed[p["rung"]] = float(sd["control_sd_across_draws"]) if sd else None
     n_rule_new = 0
     detail = []
     for p in pairs:
-        if p["condition"] == "baseline" and p["rung"] in fixed:
-            sigma = fixed[p["rung"]]
+        if p["condition"] == "baseline":
+            sigma = sigma_from(p, fixed[p["rung"]])
+        elif p["condition"] in CS300_CONDITIONS:
+            #: **Deliberately kept borrowed.** This column is the *baseline-only* correction, so the other
+            #: three cs = 300 conditions must keep their original denominators — otherwise the column would
+            #: silently become the full four-condition correction (which is `e94`'s 20 of 25), because `e64`
+            #: now writes the corrected values into `sigma_rule`.
+            b, _ = borrowed_sd(p["rung"])
+            sigma = sigma_from(p, b)
         else:
             sigma = p["sigma_rule"]
-        if sigma is not None and sigma > 2.0:
+        if sigma is None or sigma > 2.0:
             n_rule_new += 1
         elif p["condition"] == "baseline":
             detail.append((p["rung"], sigma, p["call"]))
     print(f"   pairs clearing 2 sigma with the d = 1307 denominators `e64` used: **{n_rule_used} of 25**")
     print(f"   pairs clearing 2 sigma with `baseline`'s five replaced by measurement:  **{n_rule_new} of 25**")
-    print(f"   e64's own recorded figure was {analysis['conservative']['n_rule_2sigma']} of 25 "
-          f"(recomputed here from its rows as {n_rule_used}).")
+    print(f"   (the full four-condition correction is `e94`, which reports 20 of 25 and 19 of 20 called)")
     print(f"\n   `baseline`'s pairs that do NOT clear 2 sigma, before and after:")
     for rung, sigma, call in detail:
         meas = next(r["delta"] for r in rows if r["rung"] == rung)
@@ -172,7 +222,7 @@ def main() -> None:
         print(f"      {rung:<24} sigma {sigma:.3f}   the predictor calls it "
               f"{'RIGHT' if right else 'WRONG'} (its call {call:+d}, measured delta {meas:+.2e})")
     moved = [r for r in rows if r["ver_draft"] == "**MOVES**"]
-    print(f"\n   pairs whose verdict changes: {len(moved)}"
+    print(f"\n   pairs whose verdict changes among `baseline`'s five: {len(moved)}"
           + (f" -> {[r['rung'] for r in moved]}" if moved else " (neither of the two possible directions)"))
     print(f"\n   THE COUNT IS {'UNCHANGED' if n_rule_new == n_rule_used else 'CHANGED'}.")
 

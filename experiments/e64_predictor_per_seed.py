@@ -30,8 +30,16 @@ ARTIFACT = "runs/e64_predictor_6_perseed.json"
 
 RUNGS = ("side", "cell_class", "cell_type", "ito_lee_hemilineage", "supertype")
 
-#: Measured control-draw sds, most direct source first; the same table `e66` uses, duplicated here for
-#: the reason `e12` gives -- so that editing one experiment cannot silently change what another measured.
+#: Measured control-draw sds at **cs = 800 / support 80** (d = 1307), most direct source first; the same
+#: table `e66` uses, duplicated here for the reason `e12` gives -- so that editing one experiment cannot
+#: silently change what another measured.
+#:
+#: **It is keyed by rung and this table's circuit is a property of it, not of the rung.** `e93` found that
+#: four of `e6`'s five conditions run at **cs = 300** and were being handed these numbers, and `e94` then
+#: measured all twenty of those pairs at their own configuration: **every ratio between the right value and
+#: this one exceeds 1 (1.09 to 6.73, median 2.33)**, so the substitution was systematically optimistic rather
+#: than merely noisy.  `draw_source` below is what a caller should use; this table is only the fallback for
+#: conditions that share its circuit.
 DRAW_SD_SOURCES = {
     "side": ("runs/e67_drawsd_side_min1.json", "e67, 8 draws"),
     "cell_class": ("runs/e17_cell_class_drawsd.json", "e17, 5 draws"),
@@ -39,6 +47,39 @@ DRAW_SD_SOURCES = {
     "supertype": ("runs/e17b_supertype_drawsd.json", "e17b, 5 draws"),
     "cell_type": ("runs/e67_drawsd_cell_type_min1.json", "e67, 8 draws"),
 }
+
+#: which circuit size each of `e6`'s conditions ran at, so the fallback above can be *checked* against a
+#: condition rather than assumed to suit it
+CONDITION_CIRCUIT = {"baseline": 300, "wider-tasks": 300, "faster-drift": 300,
+                     "rewired-swap2": 300, "larger-circuit": 800}
+SHARED_TABLE_CIRCUIT = 800
+
+
+def draw_source(label: str, rung: str):
+    """``(path, description, circuit)`` for one condition's rung, preferring a same-configuration run.
+
+    The order is: a cs = 300 measurement for that exact condition (`e86` did `baseline` and nothing else,
+    `e94` the other three), then the shared table if — and only if — the condition shares the table's
+    circuit.  Returns ``(None, None, None)`` when nothing applies, which is a *pending* denominator and not
+    a substitute.
+
+    **`e86`'s files are named for the rung alone and must not be reached by any condition but `baseline`.**
+    The first version of this function looked for them by rung without checking the label, so
+    `larger-circuit` — which ran at cs = 800 — picked up a cs = 300 measurement, i.e. it reproduced exactly
+    the defect the function was written to remove.  The assertion at the call site caught it.
+    """
+    if label == "baseline":
+        path = Path(f"runs/e86_drawsd_cs300_{rung}_min1.json")
+        if path.exists():
+            return path, "e86, cs = 300", 300
+    path = Path(f"runs/e94_drawsd_{label}_{rung}_min1.json")
+    if path.exists():
+        return path, "e94, cs = 300", 300
+    table = DRAW_SD_SOURCES.get(rung)
+    if table is not None and CONDITION_CIRCUIT.get(label) == SHARED_TABLE_CIRCUIT:
+        return Path(table[0]), table[1], SHARED_TABLE_CIRCUIT
+    return None, None, None
+
 
 #: What `e6_predictor_6` reports, so the reproduction is checked rather than assumed.
 PUBLISHED = dict(sign_agree=24, n_pairs=25, sign_agree_resolvable=13, n_resolvable=13)
@@ -119,11 +160,16 @@ def main() -> None:
             #: predicted sign of the excess delta is the sign of the pressure delta.
             call = -1 if b["pressure"] < r["pressure"] else +1
             ok = [] if tied == n else (np.sign(dl.mean()) == call)
-            draw = DRAW_SD_SOURCES.get(rung)
+            draw_path, draw_label, draw_circuit = draw_source(label, rung)
             sd = None
-            if draw is not None:
-                a = load(draw[0])
+            if draw_path is not None:
+                a = load(draw_path)
                 sd = float(a["control_sd_across_draws"]) if a else None
+            #: a denominator from the wrong circuit is worse than none: it is a number where the honest
+            #: answer is "not measured", and `e94` measured it to be optimistic by a median of 2.33x
+            assert sd is None or draw_circuit == CONDITION_CIRCUIT.get(label), (
+                f"{label}/{rung}: draw sd from circuit {draw_circuit} but the condition ran at "
+                f"{CONDITION_CIRCUIT.get(label)}")
             sigma_rule = abs(float(dl.mean())) / float(np.hypot(sem, sd)) if sd else None
             rec = dict(condition=label, topology=cond["condition"]["topology"], rung=rung,
                        n=int(n), delta=float(dl.mean()), seed_sem=sem, sigma_task=sigma,
@@ -132,7 +178,7 @@ def main() -> None:
                        loo_min=float(min(loo)), loo_flips=bool(flip), call=int(call),
                        pooled_ok=bool(ok), unanimity=int(len(set(np.sign(dl[(dl != 0)]))) == 1),
                        draw_sd=sd, sigma_rule=sigma_rule,
-                       draw_source=(draw[1] if draw else None))
+                       draw_source=draw_label, draw_circuit=draw_circuit)
             all_pairs.append(rec)
             print(f"   {rung:<22}{dl.mean():>+10.5f}{sem:>10.5f}{sigma:>8.1f}"
                   f"{rec['signs']:>10}{p:>8.4f}{min(loo):>9.1f}{str(flip):>6}"
