@@ -1031,16 +1031,19 @@ to 6.0 minutes of penalty calls. So the defensible claim is that
 biology does not help *synapse* anchoring at 0.925 constrained, and the rung the neuron result
 implicates is untested.
 
-**The claim that the diagonal degrades as its Fisher estimate improves has no artifact behind it, and that
-is corrected here.** It came from a sweep (`e8c`) reported as *single seed, sweeping the batch count*, whose
-record no longer exists: `runs/e8_fisher_batches.json` was later overwritten by a three-repeat 32-batch run,
-**no artifact on disk carries a 128-batch Fisher at all**, and **none of the four figures (+0.028, +0.035,
-+0.250, +0.063) appears in any artifact's `ewc` arm** — a ±0.006 scan over every `runs/*.json` returns zero
-hits. What *is* measured is the middle point: **at 32 batches and λ = 0.1 the diagonal forgets +0.069 ± 0.028
-at 0.843 accuracy over three replicates**, its first replicate being **+0.125 (0.792)** — and that first
+**The claim that the diagonal degrades as its Fisher estimate improves had no artifact behind it, and `e96`
+has now supplied one.** It came from a sweep (`e8c`) reported as *single seed, sweeping the batch count*,
+whose record no longer exists: `runs/e8_fisher_batches.json` was later overwritten by a three-repeat 32-batch
+run, **no artifact on disk carries a 128-batch Fisher at all**, and **none of the four figures (+0.028,
++0.035, +0.250, +0.063) appears in any artifact's `ewc` arm** — a ±0.006 scan over every `runs/*.json`
+returns zero hits. The re-measurement gives **+0.052 → +0.083 → +0.146** as batches go 8 → 32 → 128, with the
+diagonal's accuracy falling 0.868 → 0.854 → 0.826 and `naive` pinned at +0.135 (0.833) across all three as
+the internal control that the points are comparable. So **the direction is confirmed and the levels are
+not**: the paper's old figures are about twice the re-measured ones, and the 32-batch three-replicate mean
+from the surviving artifact — **+0.069 ± 0.028 at 0.843** — sits between them, its first replicate being
+**+0.125 (0.792)**, and that first
 replicate is what the sweep reported, for all four of its methods. So *a better-estimated Fisher is a
-stronger penalty at fixed λ, so EWC walks into over-constraint* remains a plausible reading and is **not
-established by the record**; `e96` is re-measuring the three points
+stronger penalty at fixed λ, so EWC walks into over-constraint* **holds in direction and not in magnitude**
 (`docs/findings/2026-09-23-the-fisher-batch-sweep-is-a-stitch-of-first-replicates.md`). The best configuration
 found is
 therefore both *weaker and coarser* than a careful practitioner would choose: λ = 0.003 with
@@ -1054,16 +1057,19 @@ The general rule the project now applies:
 > A benchmark whose frozen-body control matches its trained accuracy contains no
 > continual-learning problem, and every method comparison on it compares decoders.
 
-**The family is badly behaved as its curvature estimate improves — and the measurement that used to stand
-here has been withdrawn.** The sentence this replaces said raising the batch count from 8 to 128 drives the
-diagonal's forgetting from +0.063 to **+0.250** while its accuracy collapses from 0.826 to **0.701**; none of
-those four numbers has an artifact, and no 128-batch Fisher exists on disk. What the record supports is the
-32-batch point, where over three replicates the diagonal forgets **+0.069 ± 0.028 at 0.843** — better than
-its own single-seed first replicate (+0.125 at 0.792) suggested, and better than `naive`'s +0.101 ± 0.049, so
-at that batch count the diagonal is *not* obviously over-constrained. Whether it becomes so as the Fisher
-improves is exactly what `e96` is re-measuring, and until it lands the prescription above — anchor gently,
-and do not estimate the curvature too carefully — rests on the λ and granularity measurements, not on this
-one.
+**The family is badly behaved as its curvature estimate improves — and the measurement has been re-made, so
+the claim now rests on something.** The sentence this replaces said raising the batch count from 8 to 128
+drives the diagonal's forgetting from +0.063 to **+0.250** while its accuracy collapses from 0.826 to
+**0.701**; none of those four numbers had an artifact, and no 128-batch Fisher existed on disk. `e96`
+re-measured the sweep in a single environment, and **the direction reproduces while the levels do not**: over
+three points the diagonal's forgetting rises **+0.052 → +0.083 → +0.146** as its accuracy falls
+**0.868 → 0.854 → 0.826**, with `naive` pinned at +0.135 (0.833) at all three batch counts as the internal
+control that the points are comparable. So *a better-estimated Fisher is a stronger penalty at fixed λ*
+holds, and the accuracy collapse to 0.701 does not — 0.826 was measured, 2.6× the paper's own sem for that
+arm away from the quoted figure. **Levels from `e96` and levels from the original sweep are not comparable
+across environments** (the same nominal experiment moves 0.799→0.896 in accuracy between runs), so what this
+paragraph may claim is the ordering, not the magnitudes
+(`docs/findings/2026-09-23-the-fisher-batch-sweep-is-a-stitch-of-first-replicates.md`).
 
 This is what the theory predicts. LGCL says EWC *is* a Kalman filter whose posterior is
 projected onto the neuron coordinate basis, and §4.1 measured that projection to cost

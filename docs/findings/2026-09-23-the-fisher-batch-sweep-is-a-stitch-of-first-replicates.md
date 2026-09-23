@@ -120,10 +120,37 @@ guard is the same in form — report the environment and the comparison's scope,
 worth stating that the sweep's whole design had this problem from the start, since the paper's claim is
 about a *difference between three levels* and the levels themselves are environment-dependent.
 
-**First numbers, at 8 batches** (single seed): the three arms reported give (0.833, +0.135), (0.868, +0.052),
-(0.785, +0.188) — none of which is the finding's 8-batch `ewc` value of (0.826, +0.063), for the reason
-above rather than as a scientific disagreement. The run is still in flight and no verdict is drawn from a
-partial sweep (rule 17's third shape).
+**The sweep is complete, and the direction survives while the levels do not.** All three points ran in one
+process at one thread count, which is the only comparison the equivalence test above permits:
+
+| batches | naive | ewc diagonal | ewc block (bio) | ewc block‑rand |
+|---|---|---|---|---|
+| 8 | +0.135 (0.833) | **+0.052 (0.868)** | +0.188 (0.785) | +0.062 (0.903) |
+| 32 | +0.135 (0.833) | **+0.083 (0.854)** | +0.240 (0.785) | +0.177 (0.826) |
+| 128 | +0.135 (0.833) | **+0.146 (0.826)** | +0.271 (0.771) | +0.187 (0.826) |
+
+Three things follow, and the first is what makes the other two readable:
+
+- **`naive` is +0.135 (0.833) at all three batch counts, to three decimals** — which it must be, since that
+  arm uses no Fisher. That repetition is the internal control the design needs: it shows the three points
+  *are* comparable, so the diagonal's movement below is a batch-count effect and not three environments.
+- **The diagonal's forgetting rises monotonically, +0.052 → +0.083 → +0.146, while its accuracy falls
+  0.868 → 0.854 → 0.826.** So *the diagonal degrades as its Fisher estimate improves* — the paper's
+  qualitative claim and the entire argument that λ is not transferable across Fisher quality — **is
+  reproduced, at levels roughly half the paper's** (+0.052 → +0.146 against +0.063 → +0.250).
+- **The accuracy collapse is not reproduced**: the paper said the diagonal's accuracy falls to **0.701** at
+  128 batches, and this measures **0.826**. That number had no artifact, and on the one re-measurement of it
+  that exists it is wrong by 0.125, which is 2.6× the paper's own sem for that arm.
+
+**And the negative result is reproduced too**: the biological partition is *worse* than its matched random
+control and worse than the diagonal at **every** batch count — bio minus rand is **+0.126, +0.063, +0.084**,
+all the same sign, and bio minus diagonal **+0.136, +0.157, +0.125**. So "biology does not help synapse
+anchoring" survives the re-measurement, and what the *original* sweep's numbers cannot be used for is
+anything about magnitudes.
+
+**The summary sentence for the paper is therefore:** the batch-count effect and the synapse negative are both
+**directionally confirmed on a fresh measurement in a single environment**; the levels that measurement gives
+are not the levels in the record, and no level from either can be compared to the other across environments.
 
 ## 7. The section contradicted itself, and that is the fourth time this week
 
@@ -170,8 +197,9 @@ correction, which is the worst kind: the audit's authority would have protected 
 
 ## 8. Corrections applied
 
-- The paper's §4.7, both places: the monotone triple is withdrawn to *no artifact*, and the `+0.063 → +0.250`
-  pair is replaced by the artifact-backed 32-batch measurement with its replicate spread.
+- The paper's §4.7, both places: the monotone triple is withdrawn to *no artifact* and replaced by the
+  re-measured sweep, whose direction reproduces and whose levels do not; the accuracy collapse to 0.701 is
+  recorded as not reproduced (0.826 measured).
 - The paper's §4.7 caveat and §8 item 2: both said "128 Fisher batches"; every one of the 25 rate-network
   artifacts used 8 or 32, so **the number was wrong as well as unsourced** and both now read 32.
 - `docs/findings/2026-09-22-fisher-batches-negative.md`: a correction note at the top naming what the
