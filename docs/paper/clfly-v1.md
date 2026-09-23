@@ -928,6 +928,25 @@ on — and the design principle §7 draws from it — has no measurement behind 
 has existed since `e8f` (09-22 10:18) and the runs were made in that fire and printed rather than saved
 (`docs/findings/2026-09-23-the-frozen-body-control-is-in-no-artifact.md` §1).
 
+**And it has now been re-measured, and the claim is confirmed in almost every particular.**
+
+| read-out | plastic | frozen | **gap** | claimed gap |
+|---|---|---|---|---|
+| 0 (whole, 1307) | 0.9333 ± 0.0204, f **+0.0479 ± 0.0343** | **0.9444 ± 0.0000**, f **+0.0000 ± 0.0000** | **−0.0111** | +0.007 |
+| 128 | 0.9333 ± 0.0068, f **+0.0333 ± 0.0125** | **0.9167 ± 0.0022**, f **+0.0000 ± 0.0000** | **+0.0167** | +0.009 |
+| 32 | 0.9139 ± 0.0131, f **+0.0729 ± 0.0151** | **0.8139 ± 0.0034**, f **+0.0000 ± 0.0000** | **+0.1000** | +0.102 |
+
+The **frozen accuracies reproduce to three decimals** (0.9444 / 0.9167 / 0.8139 against 0.944 / 0.917 / 0.815),
+so the unbacked series was right; **the gap is monotone** (−0.0111 → +0.0167 → +0.1000), with the whole-state
+end point **negative** rather than +0.007, which strengthens the principle rather than weakening it; and
+**freezing the body drives forgetting to exactly `+0.0000 ± 0.0000` at all three read-outs**, fifteen
+replicates agreeing to the last digit. **One half of the claim is refuted**: the plastic forgetting series was
+printed monotone at **+0.021 → +0.035 → +0.066**, and measured it is **+0.0479 → +0.0333 → +0.0729** — the
+1307 → 128 step *falls*, unresolved at sems of 0.0343 and 0.0125 but below the whole-state level, which the
+printed series cannot be. And the sweep validates itself: its read-out-32 plastic row is the hardened
+configuration's `naive` and comes out at **+0.0729 ± 0.0151**, reproducing `e8_hardened_basis` to the last
+printed digit (`docs/findings/2026-09-23-the-unbacked-cells-measured.md` §1).
+
 **On the hardened configuration, diagonal EWC finally resolves** (5 replicates, λ=0.003, 32 Fisher batches):
 
 | method | final accuracy | mean forgetting | vs naive |
@@ -1023,26 +1042,42 @@ last fire showed that *every* replay result in the project's history had been ta
 stored stimuli per task, which merely ties naive, while EWC's λ had been swept. Re-running all
 three settings with **every method tuned**, and with each cell now required to come from an artifact:
 
-| setting | `naive` | EWC, diagonal | `replay` |
-|---|---|---|---|
-| task-incremental (per-task heads) | +0.1000 ± 0.0212 | **no artifact** | **−0.0042 ± 0.0091 (−0.1042, 6.3σ)** |
-| class-incremental (shared head, whole state) | +0.0688 ± 0.0296 | **no artifact** | **+0.0063 ± 0.0150 (−0.0625, 3.8σ)** |
-| class-incremental, hardened (32-neuron read-out) | +0.0729 ± 0.0151 | **+0.0208 ± 0.0147 (−0.0521, 2.47σ)** | **−0.0125 ± 0.0039 (−0.0854, 6.6σ)** |
+| setting | run | `naive` | EWC, diagonal | `replay` |
+|---|---|---|---|---|
+| task-incremental (per-task heads) | `e104`, `naive,ewc` | +0.1062 ± 0.0299 | **+0.1062 ± 0.0372 → +0.0000 (0.00σ, tie)** | — |
+| | `e84`, `naive,replay` | +0.1000 ± 0.0212 | — | **−0.0042 ± 0.0091 → −0.1042 (6.3σ)** |
+| class-incremental (shared head, whole state) | `e104`, `naive,ewc` | +0.0437 ± 0.0182 | **+0.0479 ± 0.0117 → +0.0042 (0.19σ, tie)** | — |
+| | `e84`, `naive,replay` | +0.0688 ± 0.0296 | — | **+0.0063 ± 0.0150 → −0.0625 (3.8σ)** |
+| class-incremental, hardened (32-neuron read-out) | `e8_hardened_basis`, `e61` | +0.0729 ± 0.0151 | **+0.0208 ± 0.0147 → −0.0521 (2.47σ)** | **−0.0125 ± 0.0039 → −0.0854 (6.6σ)** |
 
-*(mean forgetting; the first two rows from `runs/e84_replay96_{task,class}IL_5reps.json`, the third from
-`runs/e61_replay96_step8.json`, `runs/e8_hardened_basis.json` and `runs/e101_rate_fb32.json`; EWC at
-λ = 0.003.)*
+*(mean forgetting, one row per execution and a contrast only where that execution measured both of its arms;
+`runs/e104_taskil_naive_ewc.json`, `runs/e104_classil_naive_ewc.json`,
+`runs/e84_replay96_{task,class}IL_5reps.json`, `runs/e61_replay96_step8.json`, `runs/e8_hardened_basis.json`,
+`runs/e101_rate_fb32.json`; EWC at λ = 0.003.)*
+
+**Two EWC cells existed and neither says "worse".** The re-measurement puts the diagonal at **+0.0000** on
+task-IL — the row claimed it *worse* by +0.027, against a `naive` that is in no artifact — and at **+0.0042**
+on class-IL, agreeing with its claim to the printed precision. So the section's conclusion, *"EWC resolves in
+exactly one setting; where the body is not load-bearing the diagonal anchor does nothing"*, is now **measured
+for all three settings rather than for one**, and its one wrong number is a number that read as a
+disadvantage.
+
+**And each setting's `naive` takes two values in two processes, while the table printed a third.** task-IL:
+**+0.1062** (`e104`) and **+0.1000** (`e84`) against the printed +0.101. class-IL: **+0.0437** (`e104`) and
+**+0.0688** (`e84`) against the printed +0.059 — and `e104`'s is **exactly** the stored
+`runs/e8_class_incremental.json` value, so that execution re-landed in the configuration's original
+environment while `e84`'s did not. That is why the table is now one row per execution: **a single `naive`
+column above two contrasts computed in two processes is the §4.2 defect in a new place**, and the empty cells
+are the honest way to show it (`docs/findings/2026-09-23-the-unbacked-cells-measured.md` §2).
 
 **And this table is a correction, because six of its nine cells previously matched no artifact at all**
 (`docs/findings/2026-09-23-the-frozen-body-control-is-in-no-artifact.md`). Every cell was searched against every arm
 of all 204 artifacts under `runs/`, and **the three cells that resolved were all three `replay` cells** — which
 has a history rather than a cause: `e62` and `e84` re-measured the *replay* arm in all three settings, so
 `replay` acquired artifacts while the `naive` and EWC columns beside it were never re-measured, because no one
-was asking about them. Two of the four replacements are therefore **not** corrections but re-measurements' own
-numbers (the `naive` cells, whose sems move by 2.3× and 1.1×), and the two EWC cells in the first two rows are
-**left empty**, because no diagonal arm exists on disk for those settings at this λ — which means **"EWC does
-nothing where the body is not load-bearing" is established for one setting and merely asserted for the other
-two.** Two cells the previous summary rested on were the worst: the hardened row's EWC cell (+0.010 ± 0.010) is
+was asking about them. **The two EWC cells and four of the `naive` cells have since been measured (`e104`, eight
+runs of a few minutes each), which is why the table above has no "no artifact" left in it except the deliberate
+empties.** Two cells the summary rested on were the worst: the hardened row's EWC cell (+0.010 ± 0.010) is
 **below every one of the 17 diagonal arms on disk**, whose minimum is +0.0208, and its `naive` cell
 (+0.066 ± 0.019) is matched by no artifact, where seven artifacts of that configuration agree on
 +0.0729 ± 0.0151. **So the sentence "replay beats EWC wherever both work — 4.2σ against 2.6σ on the hardened
@@ -1075,7 +1110,9 @@ zero. The
 earlier "replay is setting-dependent" claim is **withdrawn in full**.
 
 **EWC resolves in exactly one setting**, the hardened one, and requires the plastic weights to
-be load-bearing; where they are not, the diagonal anchor does nothing. **Replay beats EWC
+be load-bearing; where they are not, the diagonal anchor does nothing — **and that is now measured in all
+three settings rather than one**: +0.0000 on task-IL and +0.0042 on class-IL (0.19σ), both ties, against
+−0.0521 (2.47σ) on the hardened benchmark. **Replay beats EWC
 wherever both work** — in the one setting where the diagonal has an artifact at this λ, by 6.6σ against
 2.47σ.
 

@@ -91,6 +91,22 @@ def test_an_inline_contrast_must_equal_the_difference_of_two_of_its_own_row_cell
     assert got[0]["closes"][0]["expected"] == pytest.approx(-0.0854, abs=1e-6)
 
 
+def test_both_inline_typographies_are_recognised_and_coverage_is_counted():
+    """Coverage is presentation-dependent, so the check must recognise both and must print how many it saw.
+
+    The arrow form was added after an edit to §4.4's table took this check's coverage from four contrasts to
+    zero without failing anything -- the reason the count is printed rather than implied.
+    """
+    from experiments.e105_table_audit import check_inline_contrasts
+
+    t = table(["setting", "`naive`", "EWC, diagonal", "`replay`"],
+              ["naive", "+0.1062", "+0.1062", "—"],
+              ["task-IL", "+0.1062", "**+0.1062 ± 0.0372 → +0.0000 (0.00σ, tie)**", "—"])
+    got = check_inline_contrasts(t)
+    assert [r["token"] for r in got] == ["+0.0000"]
+    assert got[0]["verdict"] == "closes"
+
+
 def test_an_inline_contrast_no_pair_of_its_cells_gives_is_reported():
     from experiments.e105_table_audit import check_inline_contrasts
 

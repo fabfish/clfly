@@ -34,8 +34,14 @@ NUMBER = re.compile(r"([+\-−]?\d+\.\d+)")
 SEPARATOR = re.compile(r"^\s*\|[\s:|-]+\|\s*$")
 #: a column header naming the row it contrasts against: "vs naive", "delta vs naive", "vs `naive`"
 CONTRAST_HEADER = re.compile(r"(?:vs\.?|versus)\s*`?\**([A-Za-z][\w \-]*)", re.I)
-#: the inline form §4.4 prints: a contrast and its sigma inside the cell that carries the measurement
-INLINE_CONTRAST = re.compile(r"[(\[]\s*([+\-−]?\d+\.\d+)\s*,\s*(?:\d+\.\d+\s*)?σ")
+#: the inline form §4.4 prints, in two typographies: `(-0.1042, 6.3σ)` and the arrow form `→ +0.0000 (0.00σ, tie)`.
+#: Coverage is *presentation-dependent*, which is why the check prints how many contrasts it examined: an edit
+#: that changes how a table prints its contrasts can take this check's coverage to zero without failing
+#: anything, and it did exactly that once during this script's own first session.
+INLINE_CONTRASTS = (
+    re.compile(r"[(\[]\s*([+\-−]?\d+\.\d+)\s*,\s*(?:\d+\.\d+\s*)?σ"),
+    re.compile(r"→\s*([+\-−]?\d+\.\d+)\s*\("),
+)
 
 SCALAR_FIELDS = ("mean_forgetting", "forgetting_sem", "final_accuracy", "final_sem")
 ARRAY_FIELDS = ("learned", "forgetting_per_task", "final_per_task")
@@ -152,19 +158,20 @@ def check_inline_contrasts(table: dict) -> list[dict]:
     for r in table["rows"][1:]:
         values = [first_number(c) for c in r[1]]
         for cell in r[1]:
-            for m in INLINE_CONTRAST.finditer(cell):
-                token = ascii_token(m.group(1))
-                contrast = float(ascii_token(token))
-                closes = []
-                for a in range(1, len(header)):
-                    for b in range(1, len(header)):
-                        if a == b or values[a] is None or values[b] is None:
-                            continue
-                        expected = values[a] - values[b]
-                        if abs(contrast - expected) <= tolerance(token, r[1][a], r[1][b]):
-                            closes.append({"plus_column": a, "minus_column": b, "expected": expected})
-                out.append({"line": r[0], "token": token, "closes": closes,
-                            "verdict": "closes" if closes else "no pair of its own cells gives it"})
+            for pattern in INLINE_CONTRASTS:
+                for m in pattern.finditer(cell):
+                    token = ascii_token(m.group(1))
+                    contrast = float(token)
+                    closes = []
+                    for a in range(1, len(header)):
+                        for b in range(1, len(header)):
+                            if a == b or values[a] is None or values[b] is None:
+                                continue
+                            expected = values[a] - values[b]
+                            if abs(contrast - expected) <= tolerance(token, r[1][a], r[1][b]):
+                                closes.append({"plus_column": a, "minus_column": b, "expected": expected})
+                    out.append({"line": r[0], "token": token, "closes": closes,
+                                "verdict": "closes" if closes else "no pair of its own cells gives it"})
     return out
 
 

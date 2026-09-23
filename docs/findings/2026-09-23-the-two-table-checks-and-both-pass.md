@@ -42,10 +42,16 @@ its own table — and asserts that the second is reported with its `expected` di
 printed `−0.013`). A check that has never fired on a known case is a check nobody can read, which is why that
 test exists rather than a note saying "this would have caught it".
 
-**The denominator is printed for the same reason.** (b)'s first version reported `inline contrasts that fail: 0`
-with no count of how many were examined, which is indistinguishable from "the check never fired" — the same
-defect the project has already recorded twice (`e97`'s positive control, and the "a flag is not a finding"
-paragraph in the corpus audit). It now prints `0 of 4`.
+**The denominator is printed for the same reason, and it earned its place within the hour.** (b)'s first
+version reported `inline contrasts that fail: 0` with no count of how many were examined, which is
+indistinguishable from "the check never fired" — the same defect the project has already recorded twice
+(`e97`'s positive control, and the "a flag is not a finding" paragraph in the corpus audit). It now prints
+`0 of 6`. **And the count is not decoration**: filling §4.4's empty EWC cells changed how that table prints its
+contrasts — from `(−0.1042, 6.3σ)` inside a measurement cell to `→ +0.1042 (0.00σ, tie)` in a column of its own
+— which took (b)'s coverage from **4 contrasts to 0 without failing anything**. The pattern was widened to
+both typographies and the count is now 6, all closing. **That is a check whose coverage depends on the paper's
+typography**, which is worth knowing before trusting a zero from it; the alternative is a fixed marker in the
+table, and the cost of that is deciding a presentation question in a script.
 
 ## 3. What (c) shows, and why it is a listing rather than a verdict
 
