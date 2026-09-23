@@ -47,6 +47,15 @@ penalty's own headline is invisible?*
   arm — and every "identical command, identical numbers" claim in this project's record acquires a caveat that
   is worth more than this fire. This is rule 29 with a measurement attached rather than a code reading.
   **`config` records what was asked for; this is where that stops being a slogan.**
+  **And the invariance already has measured precedents, which is worth saying so that a pass says less than it
+  looks like it does.** Each of C0b's four differences has been crossed at these seeds before:
+  `runs/e116_r32_40reps.json` is `naive` at **`fisher_batches` 8** and `e133`'s `naive` at **32** is
+  per-replicate identical to it **across all forty replicates**; `runs/e61_replay96_step8.json` is `naive` at
+  replay **96/8** and its five values are identical to `runs/e8_hardened_basis.json`'s `naive` at **16/16**; and
+  `e133`'s `naive` (written in a process that also built a Fisher and trained `ewc`) is identical to `e116`'s
+  `naive`-only arm, which is C0a's invariance. So C0b is a **confirmation under a conjunction of four settings
+  at once, not a first test**, and what would make it informative is a failure: that would say the invariance is
+  setting-specific rather than general.
 
 ## The predictions
 
