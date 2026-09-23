@@ -528,6 +528,12 @@ def main(argv=None) -> int:
                    help="restrict the shared read-out to this many neurons; 0 keeps "
                         "the whole state, which lets a linear decoder solve the tasks "
                         "without the recurrent weights changing at all")
+    p.add_argument("--readout-seed", type=int, default=None,
+                   help="seed for drawing the read-out subset; defaults to --seed0. Separate from --seed0 "
+                        "because the sizes are drawn INDEPENDENTLY -- `choice(size=300)` is not a superset of "
+                        "`choice(size=32)` -- so the 'read-out axis' is a sequence of unrelated neuron "
+                        "samples, and the only way to test whether a shape along it is about the SIZE rather "
+                        "than about WHICH neurons were drawn is to hold one fixed while the other moves")
     p.add_argument("--frozen-body", action="store_true",
                    help="diagnostic: train only the decoder, to test whether the "
                         "plastic recurrent weights are used at all")
@@ -565,8 +571,15 @@ def main(argv=None) -> int:
     # the docstring of `rate_tasks.make_suite`.  None keeps the whole state.
     rs = None
     if args.readout_size and args.readout_size < circ.n_neurons:
-        rs = np.sort(np.random.default_rng(args.seed0).choice(
+        # The draw is *independent per size*: `choice(size=300)` is not a superset of `choice(size=32)`. So the
+        # read-out "axis" is a sequence of unrelated neuron samples, and a shape along it can be a property of
+        # the sizes or of which neurons happened to be drawn -- `--readout-seed` is the control that separates
+        # them, and it defaults to `--seed0` so every artifact written before the flag existed is unaffected.
+        draw_seed = args.seed0 if args.readout_seed is None else args.readout_seed
+        rs = np.sort(np.random.default_rng(draw_seed).choice(
             circ.n_neurons, size=args.readout_size, replace=False))
+        if args.readout_seed is not None:
+            print(f"  read-out draw seed {args.readout_seed} (training seed {args.seed0})")
     common = dict(n_train=args.train, n_test=args.test, noise=args.noise,
                   n_classes=args.classes)
     if args.input_overlap is None:

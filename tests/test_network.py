@@ -248,3 +248,30 @@ def test_the_double_backward_curvature_agrees_with_an_independent_hvp():
     _, theirs = torch.autograd.functional.hvp(loss_of, w0, d)
     independent = float((d * theirs).sum())
     assert abs(mine - independent) < 1e-4 * max(1.0, abs(independent))
+
+
+def readout_draw(seed0: int, readout_seed, size: int, n: int = 1307):
+    """The runner's read-out draw, in one line, so the tests below pin the rule rather than the call site."""
+    import numpy as np
+    return np.sort(np.random.default_rng(seed0 if readout_seed is None else readout_seed)
+                   .choice(n, size=size, replace=False))
+
+
+def test_the_readout_draw_defaults_to_seed0_so_older_artifacts_are_unaffected():
+    """`--readout-seed` was added to control a confound; it must not change any existing configuration."""
+    assert (readout_draw(0, None, 300) == readout_draw(0, 0, 300)).all()
+    assert not (readout_draw(0, None, 300) == readout_draw(0, 1, 300)).all()
+
+
+def test_the_readout_sizes_are_independent_draws_and_not_nested():
+    """The reason the flag exists, pinned so that changing it is a decision rather than an accident.
+
+    `choice(size=300)` is **not** a superset of `choice(size=32)`: two independent 300-draws overlap in about
+    69 neurons (the chance rate), and a size-32 draw is not contained in the size-300 draw. So the "read-out
+    axis" is a sequence of unrelated neuron samples, and a shape along it can be a property of the *sizes* or of
+    *which neurons were drawn* -- which `--readout-seed` separates by holding the size fixed.
+    """
+    n = 1307
+    a, b, small = readout_draw(0, 0, 300, n), readout_draw(0, 1, 300, n), readout_draw(0, 0, 32, n)
+    assert len(set(small) - set(a)) > 0, "size-32 must not be a subset of size-300, or the axis is nested"
+    assert len(set(a) & set(b)) < 2 * (300 * 300 / n), "two draws at one size must be near-independent"
