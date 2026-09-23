@@ -508,8 +508,13 @@ control (d = 1307, 12 seeds, analytic effect size):
 
 **Seven of the eight rungs resolve**, at 17.8σ to **42.2σ** — an order of magnitude more
 decisive than the five-rung ladder's best (`side`, 28.8σ, delta 0.0048) — and the
-biological deltas (0.0041–0.0088) are *larger* than any annotation rung's. Three things
-follow.
+biological deltas (0.0041–0.0088) are *larger* than any annotation rung's. **The σ column above is
+against zero with a seed-only sem and an *assumed* 1.0e-3 draw sd, and it is superseded in this
+subsection**: on measured per-rung draw sds and paired sems the same eight deltas give
+**2.6–13.7σ**, a **3.1×** overstatement at the best rung (`pool4`: 42.2σ → 13.7σ), and the
+head-to-head with the named rungs moves from an order of magnitude to a factor of **1.9**
+(§4.3, `e73`). Read the numbers below as the ladder's shape and the corrected column as its
+precision. Three things follow.
 
 *Merging only the singleton cell types recovers most of the available gain.* `pool2` cuts
 the excess from +0.01743 to +0.00496, a **72% reduction**, and already beats its matched
@@ -678,8 +683,13 @@ controls disagree at 4.7σ, which is where this started.
 With the component included, the rung-level result becomes **4–9σ instead of 20–42σ** — still a
 result, and the claim that biology beats matched random over 0.32–0.67 constrained stands. (Those
 figures used an *assumed* 1.0e-3 draw sd and unpaired sems; on measured draw sds and paired sems the
-same column reads 2.6–13.7σ, and it is a floor, since three of its eight rungs have no measurement of
-their own. See the paragraph above.) But
+same column reads 2.6–13.7σ, **and that is a measurement on both sides rather than a floor.** This
+parenthetical said *"it is a floor, since three of its eight rungs have no measurement of their own"* until
+2026-09-24 — true when it was written, and false by the time the paragraph fourteen lines above it was
+corrected, which is why two sentences in one subsection contradicted each other. `e74` supplied the last
+three rungs' draw sds and `e90` the pair that had been *borrowed*, so **all eight carry their own**, exactly
+as `runs/e73_ladder_named_head_to_head.json` records: `n_ladder_measured` = 8 of `n_ladder` = 8. See the
+paragraph above.) But
 the shape claims do not: the plateau, the location of the optimum, "`side` is uniquely weak",
 and the headline "granularity sets where you are on the curve, biology sets the height" all rest
 on differences between deltas of 0.0015–0.004, the same order as the draw spread. `pool2 →
