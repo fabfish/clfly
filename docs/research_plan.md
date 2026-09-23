@@ -1322,6 +1322,15 @@ Added 2026-09-22, after the headline metric was found to be chaotic
    (`docs/findings/2026-09-23-the-abstract-had-six-stale-figures.md`,
    `docs/findings/2026-09-23-a-third-hybrid-and-a-line-break.md`).
 
+**And the audit programme has a measured boundary, established by auditing the sections it had not
+touched.** §3 (Substrate) verifies to the digit against the loader — seven of seven numbers, with
+`cell_class` and `cell_type` at full coverage on the extracted circuit — and §6 (Methodology) survives its own
+four figures and its derivation. **Not one of this week's eight drift instances is in a section that
+describes what the substrate is or what the method does**; every one is in a section that *summarises, hedges
+or points at* a result. The descriptive sections take their numbers from the data and the code; the summary
+sections re-tell them, and a number that is re-told can be re-told from the part of the record being argued
+about (`docs/findings/2026-09-23-the-last-two-unaudited-sections-were-clean.md`).
+
 24. **A partial correlation is not a licence to control a confound statistically when the two are nearly
    collinear — prefer a design that sets the confound.** `e92` needs to separate *"the pressure spread
    predicts the control's draw spread"* from *"both grow with concentration"*, which is the confound `e86`
