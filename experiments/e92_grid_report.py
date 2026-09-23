@@ -322,6 +322,58 @@ def main() -> None:
                   f"[{boot['lo']:+.3f}, {boot['hi']:+.3f}], {boot['frac_le_zero'] * 100:.2f}% at or below zero")
             st["bootstrap"] = boot
 
+    print()
+    print("=" * 112)
+    print("6. THE CROSS-SIZE LEVEL CHECK (pre-registered clause P5, added after the launch)")
+    print("=" * 112)
+    print("   Is the absolute spread even a cross-size quantity?  For each cell measured at two sizes,")
+    print("   the ratio pressure_mean(d) / pressure_mean(d0) is the level drift, and it is compared")
+    print("   with the ratio of the TARGET and with the ratio of the relative form.  A level that")
+    print("   drifts while the target does not is a scale artefact of the absolute form.\n")
+    pairs = [("d = 952", "d = 1307"), ("d = 1307", "d = 1874"), ("d = 952", "d = 1874")]
+    level = {}
+    for lo, hi in pairs:
+        a = {r["label"]: r for r in grid_by_size[lo]}
+        b = {r["label"]: r for r in grid_by_size[hi]}
+        shared = sorted(set(a) & set(b), key=lambda lab: (a[lab]["shape"], a[lab]["k"]))
+        if not shared:
+            print(f"   {lo} -> {hi}: no cell measured at both")
+            continue
+        print(f"   {lo} -> {hi}  ({len(shared)} cells)")
+        print(f"   {'cell':<14}{'level ratio':>13}{'target ratio':>14}{'rel-sd ratio':>14}")
+        rows_out = []
+        for lab in shared:
+            rl = b[lab]["pressure_mean"] / a[lab]["pressure_mean"]
+            rt = b[lab]["measured_sd"] / a[lab]["measured_sd"]
+            rr = b[lab]["relative_sd"] / a[lab]["relative_sd"]
+            rows_out.append(dict(label=lab, level=rl, target=rt, relative=rr))
+            print(f"   {lab:<14}{rl:>13.2f}{rt:>14.2f}{rr:>14.2f}")
+        med_level = float(np.median([r["level"] for r in rows_out]))
+        med_target = float(np.median([r["target"] for r in rows_out]))
+        med_rel = float(np.median([r["relative"] for r in rows_out]))
+        n_level_far = sum(1 for r in rows_out if r["level"] > 1.5 or r["level"] < 1 / 1.5)
+        n_rel_closer = sum(1 for r in rows_out
+                           if abs(np.log(r["relative"])) < abs(np.log(r["level"])))
+        print(f"   -> median level {med_level:.2f}x, median target {med_target:.2f}x, "
+              f"median relative {med_rel:.2f}x")
+        print(f"      cells whose level drifts by more than 1.5x: {n_level_far} of {len(rows_out)};"
+              f"  cells where the RELATIVE form is closer to 1 than the level is: {n_rel_closer} of {len(rows_out)}")
+        level[f"{lo} -> {hi}"] = dict(n=len(rows_out), median_level=med_level,
+                                      median_target=med_target, median_relative=med_rel,
+                                      n_level_far=n_level_far, n_relative_closer=n_rel_closer,
+                                      rows=rows_out)
+    #: the clause is gated on 952 -> 1874, the widest size step, and needs at least five cells before it
+    #: can say anything -- with one cell a median is a single number and a PASS would be meaningless
+    key = "d = 952 -> d = 1874"
+    if key in level:
+        enough = level[key]["n"] >= 5
+        p5 = bool(enough and level[key]["median_level"] > 3.0 and level[key]["median_target"] < 1.5)
+        verdict = ("PASS" if p5 else "FAIL") if enough else f"PENDING (n = {level[key]['n']} of the 20 cells)"
+        print(f"\n   P5 (median level > 3x while the median target fails to follow, at the widest step):"
+              f" {verdict}")
+        out["p5_level_check"] = dict(passed=bool(p5), decidable=bool(enough), **level[key])
+    out["cross_size_level"] = level
+
     Path(args.json_out).parent.mkdir(parents=True, exist_ok=True)
     with open(args.json_out, "w", encoding="utf-8") as fh:
         json.dump(out, fh, indent=1, default=str)

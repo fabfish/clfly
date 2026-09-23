@@ -19,6 +19,13 @@ still being measured and **before any cell had been scored** — no report had b
   have left the gate selectable after the fact;
 - §4's caution table, which uses only the **nine named partitions**' existing artifacts and no grid cell.
 
+**A third amendment, made later still, is clause P5 in §7** — the cross-size *level* check. It was written
+with **12 of the 60 cells on disk** (the three `flat` cells k = 2, 3, 5 complete at both d = 952 and
+d = 1307, and k2 complete at all three sizes), which is after the launch and *before* any cell of the grid
+had been scored for the gated statistic. It is recorded here for the same reason as the others: a clause
+added while an experiment runs is only honest if a reader can see when and on what evidence it was added.
+The observations that prompted it are stated in the clause itself.
+
 Both are recorded here rather than silently folded in, because a pre-registration whose text can move
 after the launch is not one. A reader who wants the untouched prediction should read §4's clauses as they
 stand and ignore §3's second paragraph and §4's second half.
@@ -167,3 +174,38 @@ size and untested elsewhere"*. If P1 holds the sentence becomes *"supported at t
 concentration is partialled out"*; if F1 fires the sentence becomes *"the spread statistic's ranking power
 is concentration in disguise"* and the co-movement is left as the whole of the mechanism. Either way the
 sentence that exists now is replaced, because "untested elsewhere" stops being true.
+
+## 7. P5 — the cross-size level check, added after the launch
+
+The grid's second by-product is about whether the **absolute** spread is a cross-size quantity at all, and
+it is worth a clause because `e80`'s original prediction was about the absolute form.
+
+**The observation, from the three `flat` cells complete at both d = 952 and d = 1307 when this clause was
+written:**
+
+| cell | `pressure_mean` ratio, 952 → 1307 | target ratio | relative-sd ratio |
+|---|---|---|---|
+| k2 `flat` | **5.31×** | 0.62× | 0.97× |
+| k3 `flat` | **5.13×** | 0.57× | 2.35× |
+| k5 `flat` | **5.17×** | 1.07× | 2.45× |
+
+The *level* of `projection_pressure` rises by a consistent **5.1–5.3×** from d = 952 to d = 1307, while the
+target moves in the *opposite* direction (0.57–1.07×). Since `e80`'s statistic is the absolute sd across
+draws, and an absolute sd is denominated in the level, any cross-size comparison of it is at least partly
+a comparison of levels — and the level is a function of the circuit rather than of the partition. (For
+k2 `flat`, the one cell complete at all three sizes, the level then saturates: 6.13× from 952 to 1874, of
+which 5.31× is the first step and only 1.15× the second.)
+
+**Clause P5.** Over the cells measured at both d = 952 and d = 1874, the **median** level ratio exceeds
+**3×** while the **median target ratio** stays below **1.5×**, and on a majority of cells the *relative*
+form's ratio is closer to 1 than the level ratio is.
+
+**Falsifier.** A median level ratio within 1.5× of unity, or a target ratio that tracks it — either would
+mean the absolute spread's cross-size behaviour is not a level artefact and the failure `e86` found has to
+be read as a property of the statistic after all.
+
+**Which way this cuts.** If P5 holds it **weakens** the case against the absolute form: its cross-size
+failure would be partly a scale artefact, which is a defect of the *measurement* rather than evidence that
+the predictor claim is false. That is the opposite of what a run added after the fact usually does, which
+is the reason to write it down: the clause is not a repair of the headline, it is a constraint on how far
+the headline can be pushed.
