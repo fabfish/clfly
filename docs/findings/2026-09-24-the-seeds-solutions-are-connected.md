@@ -56,13 +56,16 @@ of them are dominated by retention rather than by fit:
 | final | 1 | 0.05885 / 0.01719 | 0.10705 (0.25) | +0.04820 | 1.8× | 7.7% |
 | final | 0 | 0.09678 / 0.17250 | 0.17513 (0.95) | +0.00264 | 1.02× | 12.6% |
 
-**The task that was just trained has a single interior maximum like the first-task chord (×37, 3.2% of
-chance); the two retained tasks do not.** Task 1's chord rises to 0.107 at a quarter of the way along and then
-falls monotonically to 0.017 — the maximum is a shoulder rather than a ridge, and the two ends differ by 3.4×,
-which is retention, not geometry. Task 0's chord is essentially **monotone** (barrier 1.5%, peak at `t = 0.95`).
-So the barrier is a property of the chord's *fit* and disappears into a monotone slope once the chord's ends
-differ by a large retained loss. That is a reading of four chords, one of them with a strict barrier of 1.5%,
-and it is the honest description rather than a law.
+**The task that was just trained has a symmetric ridge at the midpoint, like the first-task chord (×35 against
+the worse endpoint, ×37 against the better one, 3.2% of chance); the two retained tasks do not.** Their maxima
+sit at an interior point **near the seed that retained worse** — task 0's at `t = 0.95` against its worse end at
+`t = 1`, task 1's at `t = 0.25` against its worse end at `t = 0` — and each then falls monotonically or nearly
+so to the other seed's value. Task 0's chord is essentially **monotone** (barrier 1.5%, from 0.0968 up to
+0.1725). So the ridge is a property of the chord's *fit*; once the two ends differ by a large retained loss the
+chord becomes a slope with a small shoulder on the worse-retaining side, and **the quantity it is mostly
+measuring is that end-to-end difference** — 1.8× and 3.4× here — rather than a barrier between two solutions.
+That is a reading of four chords and two of them are the same shape in the same direction, which is a
+coincidence two points cannot exclude; it is the honest description rather than a law.
 
 ## 2. Two bugs, and the control that now catches both
 
@@ -102,7 +105,7 @@ loss equality cannot**, which is why the test is the control rather than a list 
 
 Holding seed A's decoder fixed while the body moves gives the other half of the answer, and it is the opposite:
 on the final task, seed B's body read through seed A's decoder rises **monotonically from 0.00118 to 0.16010, a
-factor of 136**, with no interior maximum at all. So the same pair of endpoints is connected when the decoder
+factor of 135**, with no interior maximum at all. So the same pair of endpoints is connected when the decoder
 interpolates with the body and **not** connected when it does not.
 
 That is what "the seed decides" means here, and it is worth stating precisely: **the recurrent body and its

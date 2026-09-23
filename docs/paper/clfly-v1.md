@@ -1343,7 +1343,7 @@ the seed is choosing a *point* rather than a *basin*. The just-trained task beha
 checkpoint (**0.00118 → 0.04394, ×35, 3.2% of chance**), while the retained tasks do not: they differ between
 the seeds by 1.8× and 3.4× on their own and their chords are dominated by that difference rather than by
 geometry. **And the solutions are connected as wholes but not interchangeable as parts** — holding one seed's
-decoder fixed, the other's body rises monotonically by a **factor of 136** on the final task, so the body and
+decoder fixed, the other's body rises monotonically by a **factor of 135** on the final task, so the body and
 its decoder are jointly determined and neither transfers alone. **Which is the interpolant story with ratios**:
 the seeds agree to 5% on the task in front of them and disagree by 1.8× and 3.4× on what they kept, a
 retained-*loss* statement this section did not previously have. The instrument is not pre-registered, is one
