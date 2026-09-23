@@ -839,11 +839,18 @@ three independent runs. Whole experiment: minutes on CPU.
 | EWC, block Fisher — size-matched **random** pairs | 0.850 ± 0.022 | +0.069 ± 0.049 |
 | replay (16 stimuli/task) | **0.903 ± 0.014** | **−0.000 ± 0.021** |
 
-**No Fisher-anchoring variant resolves a benefit over the naive baseline**, at any λ
-(0.01–100) or any Fisher batch count tried among **8 and 32** — *a 128-batch count is stated elsewhere in this
+**No Fisher-anchoring variant resolves a benefit over the naive baseline at λ ≥ 0.01**, the range swept, or
+at any Fisher batch count tried among **8 and 32** — *a 128-batch count is stated elsewhere in this
 section and in §8 and appears in no artifact at all, and the same correction applies at both places*
-(`docs/findings/2026-09-23-the-fisher-batch-sweep-is-a-stitch-of-first-replicates.md`). **Replay** is the only method
-that resolves anything, at ~2σ, and only in the task-incremental configuration.
+(`docs/findings/2026-09-23-the-fisher-batch-sweep-is-a-stitch-of-first-replicates.md`). **The λ = 0.003
+configuration below is the exception, and it is size-dependent**: at cs = 800 the diagonal beats `naive` on
+forgetting by **+0.0521 ± 0.0211 = 2.47σ** (`e8_hardened_basis`, 5 replicates), and **at cs = 300 the same
+contrast is +0.0104 ± 0.0421 = 0.25σ** — gone (`e99`). So the one Fisher variant that helps at one circuit
+size stops helping at a smaller one, which makes the diagonal's benefit a property of *this benchmark at this
+size* rather than of the benchmark. **Replay** is the method whose standing survives both sizes: best on
+**both** metrics at cs = 300 (0.9389 accuracy and +0.0458 forgetting against `naive`'s 0.9028 and +0.0875)
+and on forgetting at cs = 800, and the only method that resolves anything in the task-incremental
+configuration (`docs/findings/2026-09-23-the-reversed-ordering-question-at-a-smaller-circuit.md`).
 
 > **And the table above and the prose below disagreed about the same experiment.** Every value in this table
 > is a three-replicate mean, and the `EWC diagonal` row's **+0.069 ± 0.028** is exactly what
@@ -1494,13 +1501,19 @@ why no shared rule was available and each line needed its own check.
    nothing on `cell_class`, and on `cell_type` it manufactures a single `(pooled × pooled)`
    block holding 98.7% of the partition, so bucketing it into ``B`` groups (`pool_buckets`,
    implemented) buys the fine end rather than the middle.
-2. **Ask the reversed-ordering question properly.** On the hardened network the diagonal and
-   the block Fisher are not distinguishable at 32 Fisher batches — *this item said 128, and no
-   artifact on disk carries a 128-batch Fisher at all; every one of the 25 rate-network runs
-   used 8 or 32, so the number was wrong as well as unsourced*; a configuration in which
-   the block's structure *is* well estimated (a smaller circuit, or a lower-rank task family)
-   would settle whether coarser anchoring helps or hurts on synapses, which is currently
-   unresolved rather than answered.
+2. **Ask the reversed-ordering question properly — done in direction, open in size.** On the hardened
+   network the diagonal and the block Fisher are not distinguishable at 32 Fisher batches — *this item said
+   128, and no artifact on disk carries a 128-batch Fisher at all; every one of the 25 rate-network runs
+   used 8 or 32, so the number was wrong as well as unsourced.* **`e99` has now run the configuration this
+   item named — the smaller circuit — by changing `--circuit-size 300` and nothing else, and all three of its
+   pre-registered predictions hold: the block is worse than its matched random control at both sizes, the
+   block-minus-diagonal gap **falls 58%** (+0.0396 → +0.0167, the direction the estimation-quality account
+   predicts), and it is **still 0.39σ**, so the question is answered in *direction* and unresolved in
+   *size*. The falsifier — the gap larger at cs = 300 — did not fire, which is the first evidence this
+   project has *for* the account rather than against it.** What remains is the item's other route, **the
+   lower-rank task family**, which changes the suite rather than the substrate and is therefore cheaper
+   than a third circuit size
+   (`docs/findings/2026-09-23-the-reversed-ordering-question-at-a-smaller-circuit.md`).
 3. **More tasks.** The interference prior (§4.6) rests on ten pairs from five tasks, and the
    network benchmark on three. Both would gain more from more tasks than from more seeds.
 4. **A spiking or rate-network substrate at circuit scale with more than three behaviours**,
