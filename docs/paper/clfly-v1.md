@@ -85,7 +85,13 @@ Four findings, one of them unexpected in direction.
    on **24 of 24** pairs whose difference clears 2σ *on the paired seed sem*, across five
    conditions it was not tuned on — **19 of 20** once each rung's measured control-draw component
    is included, the single miss being a confident, 10.6σ wrong call on heavily rewired wiring.
-   The sign record is unanimous per seed on every resolvable pair.
+   The sign record is unanimous per seed on every resolvable pair. On a **design built for it** — twenty
+group-size profiles whose concentrations are set by construction rather than found — the same
+statistic's **mechanistic** form holds at **three circuit sizes**: with concentration partialled out of
+both ranks, the size of its own draw-to-draw variation ranks the size of the control's at **+0.919,
++0.618 and +0.872** at d = 952, 1307 and 1874, with 9 of 9 per-seed partials positive, no
+leave-one-partition flip and a bootstrap interval above zero at every size; the weakest is the size
+where the confound it removes is strongest (§4.3).
 4. **The wiring's own eigenbasis beats the neuron diagonal at equal capacity** — a 28%
    reduction in excess error with no annotation involved at all — while *adaptive*
    projection (spectral truncation, locally optimal at every step) is the worst
