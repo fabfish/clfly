@@ -1142,7 +1142,31 @@ What is reduced is the **cross-read-out** series: the frozen-body gap trend surv
 **And the cost of resolving what remains is now measured**: against the per-repeat sd at each end, the 512 → 300
 step needs **22 replicates per side (≈ 16 minutes)** and the 700 bump needs **200 (≈ 147 minutes)**, so the bump
 should be abandoned rather than chased and the one step an interior minimum stands on is affordable
-(`docs/findings/2026-09-23-the-axis-reduces-to-one-statement.md`). And the sweep validates itself: its read-out-32 plastic row is the hardened
+(`docs/findings/2026-09-23-the-axis-reduces-to-one-statement.md`).
+
+**And forty replicates at the two lowest read-outs remove the last candidate — an interior minimum — and show
+that the axis is a flat trough.** The cost table priced this step at 22 replicates per side from the same
+five-replicate sds, and the run was made at **forty** because a design that lands exactly on its own 2σ
+criterion cannot answer the question it is asked. **The control passed**: since the training seed is
+`seed0 + 100r`, the first five replicates of each forty-replicate run must be bit-identical to the stored
+five-replicate runs, and at both read-outs they are — so the runs are **extensions** and the extra thirty-five
+replicates add power (`e61`/`e68` failed that check after the fact; this one made it in advance). **P1 fails**:
+read-out 512 comes to **+0.0250** and read-out 300 to **+0.0232**, a difference of **+0.0018 at 0.29σ** — and
+the reason is in the means, because **read-out 300 moved from +0.0083 at five replicates to +0.0232 at forty**,
+a change of +0.0149, *larger than the whole step the withdrawn statement rested on*. With forty replicates the
+two lowest points on the axis are **statistically indistinguishable** and neither differs from 900 (0.61σ and
+0.41σ), so **the interior minimum is not a minimum but a flat trough** — the third consecutive retraction on
+this axis and the first made by replicates rather than by points. **And it falsifies a second claim from the
+same measurement**: read-out 300 was recorded as *"the lowest plastic `naive` forgetting in this corpus"*,
+which is true of the five-replicate value and false of the forty-replicate one. **A corpus record built on
+five-replicate minima has five-replicate resolution.** **P2 held by its letter and failed by its purpose**: the
+forty-replicate sds are 1.69× and 1.12× the five-replicate ones, inside the registered factor-of-two — but a
+factor-of-two tolerance on an sd is a factor-of-**four** tolerance on a replicate count, and the observed ratios
+moved the table's counts by 2.9× and 1.2×, so the step priced at 22 was really ~63. **When a cost is computed
+from an sd, the sd needs the same evidence standard as the effect.** What survives is unchanged — **read-out
+32's excess** (+0.0497 at 3.2σ against the forty-replicate 300) — and the axis is now measured with **unequal
+precision**, so finishing it means forty replicates at the other five points, priced at ≈ 75 minutes
+(`docs/findings/2026-09-23-forty-replicates-refute-the-minimum.md`). And the sweep validates itself: its read-out-32 plastic row is the hardened
 configuration's `naive` and comes out at **+0.0729 ± 0.0151**, reproducing `e8_hardened_basis` to the last
 printed digit (`docs/findings/2026-09-23-the-unbacked-cells-measured.md` §1).
 
