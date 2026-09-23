@@ -688,8 +688,12 @@ neuron-level ordering exactly:
 
 Three of the five rungs cost under 0.04 GB and all three sit near the diagonal — the
 affordable rungs are precisely the uninformative ones, which is E3b's crowding
-reproduced on synapses. **The coarsest rung, `side`, has never been run, and on neurons
-`side` was the strongest rung (28.8σ) and the best basis the vocabulary offered.**
+reproduced on synapses. **The coarsest rung, `side`, is the rung the neuron result most implicates — on
+neurons it was the strongest rung (28.8σ) and the best basis the vocabulary offered — and it has since
+been run: see the update below, which reports the negative holding and the test too weak to be decisive.**
+*(This sentence read "has never been run" until 2026-09-23; `runs/e10_rung_side.json` has carried the run
+since before the update paragraph was written, which is rule 22's drift in its usual direction — the gap
+described as larger than the record shows.)*
 
 `pool_below` is not a substitute: it does nothing on `cell_class` (0.9250 → 0.9027), and
 on `cell_type` it jumps from 0.9992 (the diagonal wearing a label) straight to 0.6165

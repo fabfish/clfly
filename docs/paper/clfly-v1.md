@@ -1358,8 +1358,13 @@ why no shared rule was available and each line needed its own check.
    transfer and its plateau should be re-measured on a second circuit and a second connectome.
    On the network the ladder exists but was never walked: the five annotation rungs span
    0.6947 (`side`) to 0.9992 (`cell_type`), and the published negative used only the
-   second-coarsest. `side` is the rung the neuron result most implicates and the one that has
-   never been run; it is in flight. The sub-rung dial is not a substitute — `pool_below` does
+   second-coarsest. `side` is the rung the neuron result most implicates, and it has now
+   been run — `runs/e10_rung_side.json`, reported in the C2b section above, where the
+   negative holds and the test is too weak to be decisive (−0.0116 accuracy against a
+   benchmark whose per-repeat sd is 0.048). *(This paragraph said "never been run; it is in
+   flight" until 2026-09-23, which was stale in the same direction as the plan's matching
+   sentence — see the finding on the predictor's denominators for the audit that found it.)*
+   The sub-rung dial is not a substitute — `pool_below` does
    nothing on `cell_class`, and on `cell_type` it manufactures a single `(pooled × pooled)`
    block holding 98.7% of the partition, so bucketing it into ``B`` groups (`pool_buckets`,
    implemented) buys the fine end rather than the middle.

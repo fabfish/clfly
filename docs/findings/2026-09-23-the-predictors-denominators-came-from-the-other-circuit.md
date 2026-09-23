@@ -107,3 +107,25 @@ at those three settings — the same `e12_control_spread.py` protocol, nine part
   points here.
 - The plan's `e64` row records the defect so the next run of that table cannot repeat it, and the fix — a
   `(rung, circuit_size)` key — is named rather than left to be rediscovered.
+
+## 6. The same check applied to a phrase class, which found two more
+
+Rule 22's check is *ask where each claim should be sourced and go there*, and it has been applied to
+numbers. Running it over the **claim class** "has never been run" in the two living documents found two
+instances, both contradicted by an artifact that already existed:
+
+| document | claim | artifact that contradicts it | direction |
+|---|---|---|---|
+| plan, C2b | "the coarsest rung, `side`, **has never been run**" | `runs/e10_rung_side.json` (naive 0.8241, `ewc-block` 0.8148, `ewc-block-rand` 0.8264) | says the gap is **larger** than it is |
+| paper, §8 | "`side` is the rung … that **has never been run; it is in flight**" | the same artifact (and "in flight" was false twice over) | same |
+
+Both sit **inside the very sections that report the run**: the plan's C2b section carries an
+*Update — `side` has now been run* paragraph thirty lines below the stale sentence, and the paper's §8 is
+proposing work the paper's own §C2b already reports. So this is not a case of the record being out of date;
+it is a case of two halves of one document disagreeing, which is a shape rules 22 and 23 had not named.
+The direction is the familiar one — toward *more open* — and the guard that catches it is the cheap one:
+**grep the claim class, not just the numbers**, since "never been run" is checkable by asking whether any
+`runs/*.json` carries that basis in its `config`.
+
+Both are corrected in place with the correction visible in the text, and the two artifacts back the
+numbers the corrected sentences now quote.
