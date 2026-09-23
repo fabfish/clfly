@@ -578,8 +578,16 @@ form a concentration restatement cannot fake:
 | d = 1307 | 20 of 20 | **+0.618** (p = 0.005) | 3 of 3 positive | +0.552 to +0.669, no flip | **+0.573 [+0.272, +0.813]**, 0.20% below zero |
 | d = 1874 | 20 of 20 | **+0.872** (p = 1.2e-06) | 3 of 3 positive | +0.846 to +0.888, no flip | **+0.835 [+0.641, +0.940]**, 0.00% below zero |
 
-All three pre-registered clauses pass: the partial is positive at every size, **9 of 9** per-seed partials
-are positive, and no cell's removal flips any of them. **And the size dependence is a dip, not a trend**:
+Of the four clauses the grid was pre-registered against, **three pass and one fails**, and the failure is
+worth stating before the passes: **the raw spread does not beat raw concentration at every size.** On these
+concentration-set cells the raw form loses at **d = 1307**, where concentration reaches **+0.923 against the
+spread's +0.582** — so at that size the confound alone orders the target better than the statistic does. The
+clauses that pass are the partial ones: it is positive at every size, **9 of 9** per-seed partials
+are positive, and no cell's removal flips any of them. **The statistic's case therefore rests entirely on the
+partial** — which is the form the grid was built to test, and the form a reader suspicious of the confound
+should want; but the raw column above should be read as a **failure of the raw form at one size** rather than
+as a gentle trend.
+**And the size dependence is a dip, not a trend**:
 paired on the same twenty profiles, d = 952 → d = 1307 is **−0.301 with a paired interval of [−0.645, −0.015]
 (98.15% at or below zero)** — resolved, barely — while d = 952 → d = 1874 is **−0.048 [−0.253, +0.138]**,
 unresolved, and d = 1307 → d = 1874 is **+0.254 [−0.021, +0.581]**, nearly resolved in the *positive*
