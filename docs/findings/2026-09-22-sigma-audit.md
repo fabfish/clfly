@@ -25,7 +25,7 @@ significance the project publishes and check its design, rather than wait to tri
 |---|---|---|---|---|
 | interference refutation, `swap0.5 → swap2` | **32.7σ** unpaired | paired — the task seeds are shared across topologies | **no** | conservative (see §3) |
 | eigenbasis −28%, −0.00491 | 15.4σ unpaired | paired — same seeds | **no** | conservative |
-| diagonal penalty +33–63% | a ratio, no σ | EWC vs the exact oracle | n/a | — |
+| diagonal penalty +33–63% | a ratio, no σ | EWC vs the exact oracle | n/a | — (corrected: the range is "+33–34%" analytic; the realization-based "+45–63%" matched no artifact, `docs/findings/2026-09-23-the-realization-range-has-no-artifact.md`) |
 | ladder rung deltas (e.g. `pool4` 42.2σ) | seed-only | one control draw | **no** | **optimistic** — corrected to 13.7σ |
 | sign flip, 5 topologies | seed-only | one control draw | **no** | **optimistic** — corrected, and the draw sd now measured |
 | predictor's matched pairs, 13/13 | seed-only | one control draw | **no** | **optimistic** — checked, count is 13 or 12 |

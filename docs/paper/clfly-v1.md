@@ -26,8 +26,11 @@ Four findings, one of them unexpected in direction.
 1. **A large diagonalisation penalty appears.** EWC's excess error over the exact
    Kalman oracle is **+33–34%** on the connectome against **<1%** in LGCL's synthetic
    random-rotation family (+33% at d = 1307, +34% at d = 3150 — an earlier
-   realization-based estimate of the same contrast gave +45–63%, and the two were once
-   mixed into a single "33–63%" range in a projection audit, which is corrected here).
+   realization-based estimate of the same contrast is **not usable**: the same
+   configuration gives **+35.8 ± 13.5% at five seeds and +60.1 ± 43.9% at three**, its
+   per-seed sd being as large as its own mean, and the "+45–63%" once quoted here matched
+   **no** run in the record while its upper end was a different statistic; corrected
+   here).
    "The diagonal approximation is almost free" is a property
    of random task geometry, not of EWC.
 2. **The connectome separates the tasks — and the claim that this does *not* drive the penalty
@@ -264,11 +267,16 @@ accompanies a biological one so capacity is never confounded with structure.
 *(e3, d = 1307, analytic effect size.)* Against the exact oracle, anchoring in the
 neuron diagonal costs **+0.0174** expected error where the oracle's own error is
 0.0520 — a 33% excess. In LGCL's synthetic random-rotation family the same comparison
-gives <1%. **The same ratio at d = 3150 is 34%**, so the figure is scale-stable; an
-*earlier realization-based* estimate of this contrast gave +45–63%, and the two were
-once carried side by side as a single "+33–63%" range in a projection audit, which is a
-mixture of a measured quantity and a different one and is not used anywhere in this
-paper's results.
+gives <1%. **The same ratio at d = 3150 is 34%**, so the figure is scale-stable. An
+*earlier realization-based* estimate of this contrast is **not a value at all**: the same
+configuration gives **+35.8 ± 13.5%** at five seeds and **+60.1 ± 43.9%** at three, because
+the estimator's per-seed sd (0.76 at three seeds) is as large as its own mean, so adding two
+seeds moves it by 1.68×. The `+45–63%` that once stood here matched **no** run in `runs/` —
+its upper end is the *mean of the per-seed ratios* (0.6338) rather than `gap_of_means`
+(0.6009) for the same cell, and its lower end has no artifact behind it at all. So the
+"33–63%" range was a mixture of a measured quantity with two different unmeasured ones, and
+neither range is used anywhere in this paper's results
+(`docs/findings/2026-09-23-the-realization-range-has-no-artifact.md`).
 
 The qualitative claim of LGCL finding 1 survives in direction — the diagonal is an
 approximation — but its magnitude is substrate-dependent by more than an order of

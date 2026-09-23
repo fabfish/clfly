@@ -67,8 +67,17 @@ The EWC↔Kalman gap is **substantially larger** on the connectome topology than
 controls with matched degree sequence, matched edge count, and matched spectrum.
 
 *Status after `e2`: the effect is real and large, the mechanism is not what we
-first said. The measured gap on wiring-derived tasks is +45–63% of the oracle's
-error against <1% in LGCL's random-rotation family.*
+first said. The measured gap on wiring-derived tasks is **+33–34%** of the oracle's
+error (`e3_analytic.json`, 5 and 18 seeds, and `e3_large.json` at cs = 3000) against <1%
+in LGCL's random-rotation family.*
+
+*And the realization-based estimate of the same contrast, which this line used to quote as
+`+45–63%`, is **not a value**: the same configuration gives +35.8 ± 13.5% at five seeds and
++60.1 ± 43.9% at three (`runs/e3_analytic.json`, `runs/e2_analytic.json`), because its
+per-seed sd is as large as its own mean. The `+45–63%` range matched no artifact in `runs/`
+— its upper end was the mean of the per-seed ratios rather than `gap_of_means`, its lower end
+nothing — and the analytic figure above is what the claim rests on
+(`docs/findings/2026-09-23-the-realization-range-has-no-artifact.md`).*
 
 *What is supported:* the connectome's task subspaces are **7× more orthogonal than
 chance**, and rewiring monotonically destroys that (up to 5× *more aligned* than

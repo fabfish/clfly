@@ -78,6 +78,16 @@ about "every setting" supported only by the one setting whose artifact had been 
 - **"+33–34%" is now the abstract's range, and the *realization*-based +45–63% is not "wrong"** — it is a
   different estimator's answer on the same contrast. The distinction the paper now makes is which one its
   results use, not which one is true.
+
+  > **Correction (2026-09-23), on that bullet specifically.** The preceding claim was itself too generous:
+  > the realization-based estimate is not "a different estimator's answer" but a quantity whose per-seed sd
+  > is as large as its own mean, and the `+45–63%` range matched no run at all — its upper end was the mean
+  > of per-seed ratios rather than `gap_of_means`, its lower end nothing. The same configuration gives
+  > +35.8 ± 13.5% at five seeds and +60.1 ± 43.9% at three. So there is no "45%" answer to be true or
+  > false: the realized estimator does not produce values at this seed budget
+  > (`docs/findings/2026-09-23-the-realization-range-has-no-artifact.md`). The six stale figures this
+  > document corrected are unaffected, and the bullet above is left standing as the record of what was
+  > believed when it was written.
 - **The correction is to the paper, not to any finding**, so no σ or claim about the substrate moves. The
   two changes that do add evidence (the cross-rung null and the two re-measured settings) were already in
   findings.

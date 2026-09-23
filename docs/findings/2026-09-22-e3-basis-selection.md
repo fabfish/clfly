@@ -6,6 +6,18 @@
 **Setup:** circuit `mb+cx+al@n1307` (d=1307), 5 tasks propagated through the wiring,
 2 seeds, matched-budget controls throughout
 
+> **Correction (2026-09-23).** Two numbers in this document are not reproducible from the artifact it
+> names. §2's **+45.5%** ("the oracle's own final error is 0.0513; the diagonal-anchored filter's is
+> 0.0747") is neither estimator in `runs/e3_analytic.json`, which records 0.05196 / 0.06934 for the
+> analytic estimator (+33.5%) and 0.05278 / 0.07167 for the realized one (+35.8%) — so this number was
+> written from an earlier run whose artifact was overwritten, or from the rung table's other column. The
+> §3 rung table's deltas (`side` −0.121, `cell_class` −0.103, …) likewise do not match
+> `e3_analytic.json`'s differences of `gap_of_means` (−0.092, −0.059, …), which are ~1.5× smaller in the
+> same direction. **The qualitative conclusions stand** — the gap is an order of magnitude larger than in
+> the synthetic family, and biological partitions beat size-matched random ones — and the corrected
+> numbers are in `docs/findings/2026-09-23-the-realization-range-has-no-artifact.md` and in the paper's
+> §4.1.
+
 ---
 
 ## 1. How the tasks were built

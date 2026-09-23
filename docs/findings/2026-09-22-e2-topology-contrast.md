@@ -9,6 +9,12 @@
 
 ## 1. The test
 
+> **Correction (2026-09-23).** The "~45%" in the sentence below is not traceable to any artifact; it is the
+> untraceable number from `2026-09-22-e3-basis-selection.md`, whose own correction note is there. The
+> artifact-backed value of that contrast is **+33.5% analytic / +35.8% realized** at 5 seeds
+> (`runs/e3_analytic.json`). Nothing in this document's own conclusions changes
+> (`docs/findings/2026-09-23-the-realization-range-has-no-artifact.md`).
+
 E3 found that EWC's diagonal gap on wiring-derived tasks is ~45% of the oracle's
 error (against <1% in LGCL's synthetic random-rotation family), and that the tasks
 there come out near-orthogonal with disjoint supports. The natural reading was:

@@ -6,6 +6,13 @@
 **Setup:** circuit `mb+cx+al@n1307` (d=1307), real topology, fixed support size 80,
 1 seed, `kappa` sweep
 
+> **Correction (2026-09-23), on one number in §5.** The C1 bullet below quotes the substrate gap as
+> "+45–63%". That range matched no artifact: the same configuration gives +35.8 ± 13.5% at five seeds and
+> +60.1 ± 43.9% at three, with a per-seed sd as large as its own mean, and the range's upper end was the
+> mean of per-seed ratios rather than `gap_of_means`
+> (`docs/findings/2026-09-23-the-realization-range-has-no-artifact.md`). Everything this document
+> measures — the `kappa` sweep, the dip, the overlap invariance — is unaffected.
+
 ---
 
 ## 1. Why this experiment exists

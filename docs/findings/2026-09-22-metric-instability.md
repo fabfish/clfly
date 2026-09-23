@@ -153,7 +153,7 @@ takes a `top` argument for a spectrally *selected* subspace.
 
 | result | status after this fire |
 |---|---|
-| e3: gap is 45–63% on wiring tasks vs <1% synthetic | **Directionally safe.** The effect is large (excess 0.033 on an oracle error of 0.038) and far above the noise floor. |
+| e3: gap is 45–63% on wiring tasks vs <1% synthetic | **Directionally safe.** The effect is large (excess 0.033 on an oracle error of 0.038) and far above the noise floor. **Corrected 2026-09-23:** the 45–63% range matched no artifact — the contrast is +33.5% analytic / +35.8% realized at 5 seeds (`docs/findings/2026-09-23-the-realization-range-has-no-artifact.md`). |
 | e3: bio beats matched random at 4/5 rungs | **At risk.** Deltas 0.05–0.12 against a resolvable threshold near 0.05; `supertype`'s 0.049 is not resolvable. Needs re-running on the excess scale. |
 | e3: the alignment predictor fails | **Strengthened**, with a mechanism now identified (range-space degeneracy). |
 | e2: geometry degrades monotonically under rewiring | **Safe.** Geometry is computed from eigenvectors, not from the ratio, and is bit-reproducible. |
