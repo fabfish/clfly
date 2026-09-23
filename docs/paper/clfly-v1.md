@@ -1620,6 +1620,16 @@ benchmark**, a reproduction at one configuration licenses nothing at another, an
 with whether its own arms have been re-run rather than assuming it
 (`docs/findings/2026-09-23-the-fisher-free-arm-was-not-fisher-free.md`).
 
+**And the corpus says why that had to be learned the hard way.** Of the **204** artifacts under `runs/` that
+carry a `config`, **38** are run artifacts, they hold **35 distinct configurations**, and **2 of the 35 have
+ever been executed more than once** — both of them during the session that produced this paragraph, so before
+it **none of thirty-three configurations had a second execution at all**. A reproducibility claim was prose
+for the simple reason that the record contained nothing to check it against; the audit that prints per-arm
+reproduction for every repeated configuration is `experiments/e103_reproducibility_audit.py`, and the same
+script dates each artifact's code epoch from its `config` keyset, because a runner that dumps `vars(args)`
+cannot omit a flag its parser defines
+(`docs/findings/2026-09-23-the-config-keyset-dates-five-artifacts.md`).
+
 **And the same environment shapes the paper's *cost* figures, which §9 has never said.** Measured on the
 estimator this section derives: `expected_error_matrix` at d = 1307 takes **6.08 s at `OMP_NUM_THREADS=4` and
 13.13 s at 1**, with `expected_oracle` costing the same again (6.10 / 13.15 — the two are the same computation

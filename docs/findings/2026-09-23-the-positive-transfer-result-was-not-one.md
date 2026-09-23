@@ -3,6 +3,10 @@
 **Date:** 2026-09-23
 **Method:** the previous fire's counter-result re-checked against the matched-random control, which is the
 comparison this project requires and the one I did not carry the framing through.
+**Artifacts:** `runs/e101_rate_fb8.json`, `runs/e101_rate_fb128.json`, `runs/e101_rate_fb32.json`,
+`runs/e102_rate_fb8_rerun.json`.
+**Setup:** `experiments/e8_rate_network.py`, circuit `mb+cx+al@n1307`, cs = 800, 3 tasks, 5 replicates,
+λ = 0.003, 4 classes, shared head, read-out 32 neurons, chance 0.25.
 **Context:** `docs/findings/2026-09-23-the-batch-count-discriminator.md`, which reported *"a positive transfer
 result the paper does not report"*; and the paper's §4.7, which exists to make this comparison.
 

@@ -4,6 +4,11 @@
 **Script:** `experiments/e8_rate_network.py`, `e8_hardened_basis`'s configuration; artifacts
 `runs/e101_rate_fb32.json`, `runs/e102_replayonly_fb8.json`, `runs/e102_replayonly_fb32.json`,
 `runs/e102_rate_fb8_rerun.json`.
+**Artifacts:** `runs/e101_rate_fb8.json`, `runs/e101_rate_fb32.json`, `runs/e101_rate_fb128.json`,
+`runs/e102_rate_fb8_rerun.json`, `runs/e102_rate_fb8_rerun2.json`, `runs/e102_rate_fb128_rerun.json`,
+`runs/e102_replayonly_fb8.json`, `runs/e102_replayonly_fb32.json`, `runs/e8_hardened_basis.json`.
+**Setup:** `experiments/e8_rate_network.py`, circuit `mb+cx+al@n1307`, cs = 800, 3 tasks, 5 replicates,
+λ = 0.003, 4 classes, shared head, read-out 32 neurons, `--fisher-batches` 8/32/128, chance 0.25.
 **Context:** `docs/findings/2026-09-23-the-batch-count-discriminator.md` §1, which identified the 32-batch point
 of that sweep as coming from "a different environment" and therefore treated only the 8-vs-128 pair as
 controlled; and rule 26, which rests on the same inference.
