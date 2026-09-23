@@ -99,7 +99,11 @@ where the confound it removes is strongest (§4.3).
 
 On a **trained connectome-constrained rate network**, the same question has a **null** answer: the
 biological synapse partition shows no advantage over its size-matched random control at `cell_class`
-(0.925 constrained), the rung where the neuron-level result is largest. A three-replicate run had put
+(0.925 constrained) — the second-coarsest synapse rung, and the one the published negative used. *It is
+**not** the rung where the neuron-level result is largest, as this parenthetical said until 2026-09-23:
+measured on the neuron substrate, `side` carries the largest advantage (**−0.00480** expected-error excess
+against its control) and `cell_class` is **second of five** at −0.00307, with `cell_type` the only rung where
+biology loses (+0.00026).* A three-replicate run had put
 it *worse* than its control — −0.0648 accuracy at 2.65σ and +0.0903 forgetting at 2.73σ, paired on
 the shared seeds — and at the **sixteen** replicates the variance budget asks for, the same
 configuration gives **+0.0039 ± 0.0161 (0.24σ)** with a detection floor of 0.032: the first three
@@ -1075,8 +1079,14 @@ costs minutes per run instead of seconds, which is affordable. And part of that 
 granularity at all: the constant Fisher was re-converted from numpy to ``torch`` on every
 training step, and binding it once per task (`make_penalty`) takes the coarsest rung from 24.3
 to 6.0 minutes of penalty calls. So the defensible claim is that
-biology does not help *synapse* anchoring at 0.925 constrained, and the rung the neuron result
-implicates is untested.
+biology does not help *synapse* anchoring at 0.925 constrained, **and the rung the neuron result implicates
+has since been run and the negative holds there too** — `side` gives biological-minus-matched-random
+**−0.0116 accuracy** (0.8148 ± 0.0346 against 0.8264 ± 0.0212, with forgetting +0.0972 against +0.0938), so
+biology does not help at that rung either. **What the run does not do is resolve anything in biology's
+favour or against it**: it bounds the advantage at ≈0.09 accuracy, because the benchmark's own per-repeat sd
+is 0.048 and detecting a 0.01 effect would take 86–202 repeats. This sentence said the rung "is untested"
+until 2026-09-23, which §8's first item had already contradicted by reporting the run
+(`docs/findings/2026-09-23-the-same-claim-lived-in-two-sections.md`).
 
 **The claim that the diagonal degrades as its Fisher estimate improves had no artifact behind it, and `e96`
 has now supplied one.** It came from a sweep (`e8c`) reported as *single seed, sweeping the batch count*,
