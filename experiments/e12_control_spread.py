@@ -41,7 +41,7 @@ import numpy as np
 
 from clfly.bench.analytic import analytic_excess
 from clfly.bench.artifacts import write_json
-from clfly.connectome import annotate, circuits, graph, tasks
+from clfly.connectome import annotate, circuits, graph, rewiring, tasks
 from clfly.lgcl.bases import Partition, random_partition
 
 # the pooling device from e3, duplicated here rather than imported so that changing one
@@ -59,6 +59,15 @@ def run(args) -> dict:
     conn = graph.build()
     ann = annotate.load_annotations()
     circ = circuits.extract(conn, ann, hops=0, max_neurons=args.circuit_size)
+    #: The draw spread is a property of (partition, task geometry), and the geometry depends on the
+    #: wiring, so a rewired topology needs its own measurement rather than the real one.  `--topology`
+    #: is opt-in and defaults to `real`, which is what every artifact written before it used.
+    if args.topology != "real":
+        W0 = circ.net.weights()
+        W = rewiring.apply_null(W0, args.topology, np.random.default_rng(args.seed0))
+        circ.net = graph.Connectome(circ.net.n_neurons, circ.net.root_ids, W.tocsr())
+        print(f"  topology {args.topology} applied (seed {args.seed0}): "
+              f"{W.nnz} edges against {W0.nnz} on the real graph")
 
     seqs = []
     for seed in range(args.seed0, args.seed0 + args.seeds):
@@ -154,6 +163,11 @@ def main(argv=None) -> int:
                    help="merge cell types smaller than this; the pooling rung to test. "
                         "Ignored at 1 (the column's own partition)")
     p.add_argument("--draws", type=int, default=12, help="independent random controls")
+    p.add_argument("--topology", default="real",
+                   help="real, or a rewiring rule from `clfly.connectome.rewiring` (`swap2`, `swap0.5`, "
+                        "`erdos_renyi`, ...).  Applied with `--seed0`'s rng, matching "
+                        "`e6_predictor.py`'s conditions; defaults to `real` so every artifact written "
+                        "before this option existed keeps its meaning.")
     p.add_argument("--json-out", type=Path, default=None)
     args = p.parse_args(argv)
 
