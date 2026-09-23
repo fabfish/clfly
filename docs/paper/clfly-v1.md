@@ -1276,7 +1276,21 @@ computed on the arm's **accuracy**, where the removable share at read-out 128 is
 own share is **60%**, because the forgetting is a difference of two accuracies evaluated on the **same** test
 set, so hard items are hard in both, the test-set errors are positively correlated and **partly cancel**. The
 binomial arithmetic that governs a single accuracy therefore overstates what a bigger test set can do for a
-difference of them — measured, not argued: 85% predicted a 2.6× fall and the fall was 1.47×. **And the step
+difference of them — measured, not argued: 85% predicted a 2.6× fall and the fall was 1.47×. **Two things in
+that sentence were repaired on 2026-09-24, and the second changes which quantity the explanation belongs to.**
+*The 2.6× was wrong twice over*: from the 85% in the same sentence a tenfold test set predicts a **2.07×** sd
+fall, and **2.6× needs a 94.7% share, which is not this configuration's** — it is
+`runs/e102_rate_fb8_omp1.json`'s **0.9461**, an artifact at **read-out 32 with five replicates** against the
+**read-out 128 / forty** the 85% comes from. **A sentence stitched two runs together**, which is rule 28's defect
+in prose rather than in a table and therefore invisible to the table audits. *And the attribution was backwards*:
+the forgetting's removable component **does** fall by √10 — that is how the 60% split was solved for, so its
+1.47× is a consistency check rather than a test — while the **single accuracy's** nominal model is the one that
+fails, predicting 2.07× from its own 85% against a measured **1.16×**. **The measurement that settles it is the
+same same-seed pair**: solving the two equations at `n_eval` = 144 and 1440 for the accuracy's effective binomial
+sem gives **0.01229** against a nominal **0.02109**, i.e. an effective **49** independent held-out decisions
+rather than 144, and an **achievable removable share of 29%** rather than 85%. The runner's own else-branch
+anticipated the direction — *"or the 144 held-out decisions are not independent"* — and it is now measured
+(`docs/findings/2026-09-24-the-nominal-removable-share-is-not-the-achievable-one.md`). **And the step
 survives the better metric and sharpens**: the plateau-to-128 difference is +0.0133 at **2.90σ** against 2.12σ
 before. **What that points at is a hypothesis about the substrate rather than the measurement**: if the residual
 is the training trajectory's, then five hundred iterations of SGD from a connectome-masked initialisation land
@@ -2111,15 +2125,20 @@ why no shared rule was available and each line needed its own check.
 4. **A spiking or rate-network substrate at circuit scale with more than three behaviours**,
    which is what the frozen-body lesson says a *hard* connectome-constrained benchmark needs:
    tasks that genuinely compete for the same plastic weights.
-5. **Report retention in loss as well as in accuracy, and measure what it buys.** The runner now records
-   `retention_loss[k][j]`, the full-train-set loss on task *j* at checkpoint *k*, which is how `e122`'s chords
-   are validated. It is a continuous quantity where the reported metric is not, and §4.7's binding limit is in
-   part that metric's granularity (1/240, `e118`); so it is a candidate replacement for the forgetting this
-   paper reports, **not a demonstrated one** — two seeds point the other way at n = 2. The test is the
-   configuration whose per-repeat sd is known (read-out 128 and 300, 40 replicates, a tenfold test set), with
-   the per-repeat sd of the loss-valued and accuracy-valued forgetting compared against a pre-registered band.
-   If it holds, every result in §4.2 gets a cheaper error bar and the "thirty times noisier" handicap is a
-   property of a choice rather than of the substrate.
+5. **Report retention in loss as well as in accuracy — and note that this was measured on 2026-09-24 and the
+   answer is no.** The runner records `retention_loss[k][j]`, the full-train-set loss on task *j* at checkpoint
+   *k*, which is also how `e122`'s chords are validated. It is a continuous quantity where the reported metric
+   has granularity (1/240, `e118`), so it was the cheapest candidate for replacing the forgetting this paper
+   reports. **The candidate was run as the pre-registered test this item named** — read-out 128, forty
+   replicates, a tenfold test set, against a comparator that is **bit-identical** — and **it buys nothing**: in
+   like-for-like terms the two metric's relative precisions are **55.1% and 50.1%**, a ratio of **0.91**, and
+   the two rank the forty seeds at **r = +0.785**. **The granularity floor is real and irrelevant** — the
+   accuracy forgetting takes **30 distinct values of 40** and the loss-valued one **40 of 40**, so the floor
+   exists and removing it moves the relative spread by 9%. **Which is the useful part**: the eighteenfold
+   handicap against the drift is a property of *the quantity* rather than of its estimator, so no re-expression
+   of the forgetting will recover it and a practitioner reading this table should expect an error bar of about
+   **half the value** whatever form it is reported in
+   (`docs/findings/2026-09-24-the-loss-metric-buys-nothing.md`).
 
 ## 9. Reproducibility
 

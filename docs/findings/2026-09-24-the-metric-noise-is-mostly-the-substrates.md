@@ -55,6 +55,20 @@ single accuracy therefore overstates what a bigger test set can do for a differe
 correction to how that block should be read outside the arm it describes**, and it is measured rather than
 argued: 85% predicted a 2.6× fall and the fall was 1.47×.
 
+> **Corrected 2026-09-24, and the correction moves the explanation to the other quantity.** The sentence above
+> pairs a share with a prediction that does not follow from it, and the pair is stitched across two runs —
+> rule 28's defect in prose, which no table audit can see. **2.6× needs a 94.7% share and the 85% in the same
+> sentence predicts 2.07×**; the 0.9467 belongs to `runs/e102_rate_fb8_omp1.json`, an artifact at **read-out 32
+> with five replicates** against the **read-out 128 / forty** the 85% comes from. **And the attribution was
+> backwards**: the forgetting's removable component **does** fall by √10 — that is how this finding solved for
+> the 60% split, so the 1.47× is a consistency check rather than a test — while the **single accuracy's** nominal
+> model is the one that fails, predicting **2.07×** from its own 85% against a measured **1.16×**. Solving the
+> same same-seed pair for the accuracy's effective binomial sem gives **0.01229** against a nominal **0.02109**:
+> **an effective 49 independent held-out decisions rather than 144, and an achievable removable share of 29%
+> rather than 85%**. The runner's own else-branch anticipated the direction — *"or the 144 held-out decisions are
+> not independent"*
+> (`docs/findings/2026-09-24-the-nominal-removable-share-is-not-the-achievable-one.md`).
+
 ## 3. And the test-set route is essentially exhausted
 
 **The tenfold test set captured 94% of the available gain at read-out 128 (1.47 of a possible 1.57) and 95% at
