@@ -1368,7 +1368,14 @@ C1 by the **circuit/realization**, C2 by the **control draw** (seed sem 2×10⁻
 1.0×10⁻³), and C2b by the **learner's seeds** — where the evaluation floor is 55% of the `naive` arm's
 per-replicate variance (a 45% learner contribution) and at most 46% of the contrast's, so it is the
 *contrast*'s share that the replicate count is planned against and it is why ten times the test set buys
-only 1.41×. "The bracket is a bracket", "the control is one draw" and "the floor is the floor" are
+only 1.41×. **The share is a function of the pool it is measured on, so it needs its source named**, and this
+sentence left that out: it is `runs/e71_variance_share_audit.json`'s `corrected.naive_floor_share` =
+**0.5490 on the `e54` pool at sixteen replicates** (`naive_learner_share` 0.4510); the same file also carries
+**0.6187 on the `e38` nine-replicate pool**, and the reason the two differ is that the floor is a
+per-observation sd (0.0305) that does not shrink with `n` while the measured sd does, so the *estimate* of
+the share drifts upward as replicates are added — 0.2599 at three replicates in `e38`'s own table. Quoting
+one number without its pool is the same omission as quoting one without its `n`, and the remedy here is
+naming both. "The bracket is a bracket", "the control is one draw" and "the floor is the floor" are
 therefore three different corrections to three different lines, and none of them transfers — which is
 why no shared rule was available and each line needed its own check.
 

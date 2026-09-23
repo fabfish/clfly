@@ -142,6 +142,32 @@ artifacts, and one of them was written from the wrong *slice* of one. **The chec
 which rows of a table a paragraph is restating**, which is the same question as rule 22's "where should this
 number come from" asked of a sentence rather than of a cell.
 
+## 7b. A near-miss on the way, which is worth more than the correction it nearly made
+
+While tracing the adjacent "55% of the `naive` arm's per-replicate variance", a scan over every
+floor/variance/share field under `runs/` for a value in [0.50, 0.60] printed **twenty of its thirty-four
+hits** and showed no `naive` value of 0.55 — so the 55% was written off as unsourced and a correction to
+0.6187 was drafted into the paper. **The scan had truncated itself.** `runs/e71_variance_share_audit.json`
+carries `corrected.naive_floor_share = 0.5490` and `naive_learner_share = 0.4510`, exactly the paper's
+figures, and it sorts late enough that `[:20]` cut it off. The correction was withdrawn before it was
+committed, and the paper's sentence stands with its **source** added instead.
+
+Two things follow, and the second is the general one:
+
+- The 55% and the 62% are **both** right and are not rivals: they are the same statistic on two pools —
+  **0.5490 on the `e54` pool at sixteen replicates** and **0.6187 on the `e38` pool at nine**, with
+  **0.2599 at three** in the same artifact. The floor is a per-observation sd (0.0305) that does not shrink
+  with `n` while the measured sd does, so the *estimate* of the share drifts upward as replicates are added.
+  A share quoted without its pool and its `n` is not wrong, it is unfalsifiable, which is worse.
+- **A truncated scan is indistinguishable from a complete one unless the truncation is printed.** The
+  earlier audits in this project's record all ended by *finding* something; this one ended by *not* finding
+  something, and it was the not-finding that was false. So the guard is: when a scan's result is going to be
+  used to *assert an absence*, print the hit count next to the listing and make the listing the whole of it —
+  `hits[:20]` and `hits` render identically otherwise.
+
+Had this gone through, the paper would have carried a freshly-introduced wrong number filed as a
+correction, which is the worst kind: the audit's authority would have protected it from the next audit.
+
 ## 8. Corrections applied
 
 - The paper's §4.7, both places: the monotone triple is withdrawn to *no artifact*, and the `+0.063 → +0.250`
