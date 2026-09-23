@@ -2005,11 +2005,11 @@ the filters are the LGCL family, not a trained spiking network, and the network 
 demonstrably cannot tell you is which of its conclusions are artefacts of the linearisation;
 §4.7 is the beginning of that check, and it overturned three of them.
 
-**Six measurement traps, every one of which the project fell into before finding it.** *(This heading read
+**Seven measurement traps, every one of which the project fell into before finding it.** *(This heading read
 "Two" until commit `1743573`, which rewrote it to "**Five**" while adding two bullets to the two that were
 there — so it said five and listed four from the day it was written until 2026-09-24. That commit's own message
-is about stale aggregate statements, and this is the defect it was fixing, born in the fix. The count is now six
-because the two newest traps are the ones `e122` and `e125` found.)*
+is about stale aggregate statements, and this is the defect it was fixing, born in the fix. The count is now seven
+because the three newest traps are the ones `e122`, `e125` and the session that found the last one added.)*
 - **A benchmark can measure its decoder instead of its subject.** The network line spent
   four fires concluding that no method worked, on a benchmark whose plastic weights were
   never load-bearing: freezing them cost 0.007 accuracy and eliminated forgetting entirely.
@@ -2049,6 +2049,20 @@ because the two newest traps are the ones `e122` and `e125` found.)*
   contrast between an experiment and its control; this is the case it was not written for — **the variable
   is the same on both sides** — and it still invalidates the comparison, which is why the arm was re-run
   rather than cited.
+- **A benchmark can measure its methods against a baseline that forgets through a channel they do not
+  address.** The plastic body is **two** parameter sets — 26,568 connectome-masked weights and 800 per-neuron
+  offsets — and `train_task` optimises both while every penalty in this paper covers the weights alone. Holding
+  the 800 offsets at their initialisation, with no penalty and no cost, takes this configuration's forgetting
+  from **+0.0750 ± 0.0088 to +0.0227 ± 0.0033** — **+0.0523 ± 0.0089 = 5.90σ over forty paired seeds, 31 of 40
+  positive** — *and raises accuracy* (0.9125 → 0.9306), with **both forgettable tasks losing exactly 70%** of
+  their forgetting. So **70% of the forgetting every penalty here is measured against lives in the channel no
+  penalty looks at**, and at the same five seeds the free constraint is **0.20σ** from the tuned diagonal
+  penalty. This is the decoder trap's mirror image: there the plastic weights were doing nothing and the
+  decoder did the work; here the weights *are* load-bearing and **the unpenalised offsets still take most of the
+  forgetting**, because a global per-neuron offset shifts every task's operating point at once while a
+  connectome-masked weight can only route locally. **The diagnostic is to split the body and freeze each half**
+  — `--frozen-body` says whether the body matters, `--frozen-bias` says which half of it the forgetting lives in
+  (`docs/findings/2026-09-24-the-unpenalised-channel-carries-seventy-percent.md`).
 
 **The predictor.** Validated on five out-of-sample conditions, on the hardened network
 configuration, and on the granularity ladder — where it reaches **+0.995** across 17 bases
