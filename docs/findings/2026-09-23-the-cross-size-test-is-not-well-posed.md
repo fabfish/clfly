@@ -31,16 +31,25 @@ like**, and the overlap of all three ranges (0.034–0.324) contains enough rows
 
 ## 2. The result at d = 952, where the test is complete
 
-| candidate | Spearman vs measured sd | p | Spearman vs concentration |
-|---|---|---|---|
-| **absolute pressure sd** | **+0.412** | 0.271 | +0.160 |
-| relative pressure sd | +0.882 | **0.002** | **+0.950** |
-| concentration | **+0.832** | **0.005** | +1.000 |
+| candidate | Spearman vs measured sd | p | Spearman vs concentration | partial, given concentration |
+|---|---|---|---|---|
+| **absolute pressure sd** | **+0.412** | 0.271 | +0.160 | **+0.509** (p = 0.197) |
+| relative pressure sd | +0.882 | **0.002** | **+0.950** | +0.531 (p = 0.176) |
+| concentration | **+0.832** | **0.005** | +1.000 | — |
 
 The absolute pressure spread is **below the pre-registered +0.70 and well below concentration's +0.832** —
 the falsifier fires. The form that does score well, the relative spread at +0.882, correlates **+0.950 with
-concentration**, so it is a size restatement; that is the same failure `e80` diagnosed at d = 1307 when the
-relative form hit +0.767 with concentration.
+concentration**, and the sentence that stood here called it a size restatement on the strength of that
+number alone. **Partialling concentration out of both ranks does not support that inference as cleanly as
+it was stated** — the relative form keeps **+0.531**, which is *above* the absolute form's +0.509 and is not
+what a restatement should produce. But the partial is the wrong instrument for a variable this coupled to
+the confound: at ρ = +0.950 the relative form's rank residual has almost no variance left, so the ratio is
+taken on a small denominator — the fragile-denominator failure `e72` was diagnosed with — and at d = 1874
+the same quantity reaches ρ = **+1.000** with concentration on five rows, where the residual is only what
+rounding failed to remove. So what these nine points support is the weaker statement: **the relative form is
+not distinguishable from concentration by rank correlation, raw or partial**, and neither form's partial
+here is resolved (p = 0.20, 0.18). The instrument that settles it is the one `e92` supplies — cells whose
+concentration is **set** rather than found — and it scores both forms.
 
 ## 3. And *why* it fires, which is the part worth keeping
 

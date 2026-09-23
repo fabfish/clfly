@@ -2,10 +2,26 @@
 
 **Date:** 2026-09-23
 **Script:** `experiments/e92_grid_profiles.py` (measurement, one cell per invocation),
-`experiments/e92_grid_report.py` (report); artifacts `runs/e92_grid_cs*_{shape}_k*.json` (none exist yet)
+`experiments/e92_grid_report.py` (report); artifacts `runs/e92_grid_cs*_{shape}_k*.json` (none at the time
+of writing; in flight now)
 **Context:** `docs/findings/2026-09-23-the-cross-size-test-is-not-well-posed.md`
 
 ---
+
+## 0. What was written when
+
+Sections 1 to 6 below were written and committed as `e2280f5`, **before the grid was launched**, and the
+launch command is the one in §5. Two amendments were made afterwards, both while the first grid cells were
+still being measured and **before any cell had been scored** — no report had been run over a grid artifact:
+
+- §3's paragraph fixing which form carries the gated verdict (the absolute spread, for continuity with
+  `e86`), added because the original text said "the pressure spread" without naming a form, which would
+  have left the gate selectable after the fact;
+- §4's caution table, which uses only the **nine named partitions**' existing artifacts and no grid cell.
+
+Both are recorded here rather than silently folded in, because a pre-registration whose text can move
+after the launch is not one. A reader who wants the untouched prediction should read §4's clauses as they
+stand and ignore §3's second paragraph and §4's second half.
 
 ## 1. What is being fixed
 
@@ -64,11 +80,20 @@ The raw rank correlation of the pressure spread against the measured draw spread
 which is precisely the confound `e86` could not remove. The pre-registered statistic is therefore the
 **partial** Spearman correlation, concentration partialled out of both ranks:
 
-> **partial = Spearman(pressure sd, measured sd | concentration)**, on ranks throughout, reported per size.
+> **partial = Spearman(spread, measured sd | concentration)**, on ranks throughout, reported per size.
 
 A positive partial is the claim in the only form a concentration restatement cannot fake. It also does not
 need the partitions to be the same objects across sizes to be interpretable at each size — which is why the
 grid is the *companion* design and not a prerequisite.
+
+**Both forms of the spread are scored, and the gated clauses are on the absolute one.** `e80`'s primary
+candidate was the *relative* spread, `sd / mean`; `e86`'s headline figure, +0.767 against concentration's
++0.617, was the *absolute* one. Since `e86` is the result being repaired, the gated verdict follows its
+form, and the relative form is reported beside it on the identical cells. This choice of which form carries
+the gate was written here **while the first grid cells were already being measured but before any cell had
+been scored** — no report had been run over a grid artifact — so it could not have been steered by a
+result. The two forms disagree, they cannot both be read as "the" result, and reporting only one of them
+would be the fitting this project has paid for before.
 
 ## 4. The clauses
 
@@ -94,9 +119,27 @@ grid is the *companion* design and not a prerequisite.
   the wrong reading — the reading would be "size-dependent" instead.
 
 **Secondary, reported but not gated.** The same partial on the nine named partitions, computed from
-`runs/e86_spread_at_other_sizes.json`, so the grid's answer can be read against the design it replaces; a
-bootstrap over the twenty profiles; leave-one-profile-out leverage on the partial; and the duplicate-cell
-check, since two cells at the same concentration are a genuine test rather than a defect.
+`runs/e86_spread_at_other_sizes.json`, so the grid's answer can be read against the design it replaces; the
+relative form of every clause above; a bootstrap over the twenty profiles; leave-one-profile-out leverage
+on the partial; and the duplicate-cell check, since two cells at the same concentration are a genuine test
+rather than a defect.
+
+**A caution on the partial itself, learned from the nine before any grid cell was scored.** The nine named
+partitions already give partials for both forms, and they disagree in a way that is a warning about the
+instrument:
+
+| set at d = 952 (n = 9) | raw vs measured sd | ρ with concentration | partial | concentration, given the spread |
+|---|---|---|---|---|
+| absolute spread | +0.412 | +0.160 | +0.509 | **+0.852** |
+| relative spread | +0.882 | **+0.950** | +0.531 | **−0.040** |
+
+The relative form's partial, +0.531, is *higher* than the absolute form's +0.509 — which is not what a
+variable that is a restatement of the confound should produce — but its rank residual has almost no
+variance left (ρ = +0.950), so the ratio is computed on a small denominator. The mirror-image number,
+concentration's partial given the spread, is −0.040 for the relative form, and that is nearly forced by the
+same collinearity rather than being independent evidence. **Both readings are therefore fragile**, and the
+grid's value is that its cells have concentrations set by construction, which is the property the nine
+lack — not that a partial correlation on twenty points is a strong instrument by itself.
 
 ## 5. Cost, and the command
 
