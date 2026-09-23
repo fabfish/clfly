@@ -146,3 +146,47 @@ def test_anchoring_the_bias_lowers_its_drift_and_changes_nothing_at_task_zero(sy
     assert on["bias_norms"][-1]["from_zero"] < off["bias_norms"][-1]["from_zero"], (
         f"anchoring the bias must lower its cumulative movement: "
         f"{on['bias_norms'][-1]['from_zero']:.4f} against {off['bias_norms'][-1]['from_zero']:.4f}")
+
+
+def test_the_whole_body_interference_term_decomposes_exactly(synthetic_circuit, tmp_path):
+    """`whole_body.cumulative` must equal its two halves, on a real run rather than by construction.
+
+    `e139` found the `theta`-only interference term falls **45-fold** under a penalty whose forgetting moves
+    **1.21σ**, and the explanation is that the term reads one channel while `e125` measured the effect living
+    mostly in the other. So the instrument now stores the same one-line account over both halves *and* its
+    `theta`-only and `bias`-only parts separately — and the arithmetic identity between them is what says the
+    two halves are the thing being summed rather than two other quantities.
+    """
+    from argparse import Namespace
+
+    from experiments.e8_rate_network import run_method
+
+    specs = (("A", ("cell_class", ("C0",)), ("cell_class", ("C1",))),
+             ("B", ("cell_class", ("C2",)), ("cell_class", ("C3",))))
+    suite = rate_tasks.make_suite(synthetic_circuit, specs=specs, shared_head=True, n_train=32,
+                                  n_test=16, noise=1.0, n_classes=3, tau=4, cap=10)
+    args = Namespace(iters=40, lr=3e-3, batch=16, lam=3e-3, fisher_batches=2, normalise_fisher=True,
+                     replay_batch=8, shared_head=True, save_theta=tmp_path,
+                     frozen_body=False, frozen_bias=False, anchor_bias=None)
+    result = run_method(build_net(synthetic_circuit, RateConfig(tau=4, seed=0)), suite, "naive", args, seed=0)
+
+    for entry in result["interference"]:
+        wb = entry["whole_body"]
+        assert wb["cumulative"] == pytest.approx(wb["theta_only_cumulative"] + wb["bias_only_cumulative"],
+                                                 abs=1e-9), (
+            "the whole-body term is the sum of its halves, or one of the three is computed from something else")
+        assert len(wb["per_task"]) == len(entry["per_task"]), "one whole-body value per displacement"
+
+
+def test_whole_body_grad_returns_both_halves_with_the_right_shapes():
+    """The instrument must reach the bias, whose gradient no other function in the runner touched."""
+    import inspect
+
+    from experiments import e8_rate_network
+
+    src = inspect.getsource(e8_rate_network.whole_body_grad)
+    assert "param.bias" in src or "model.bias" in src, "the bias's gradient must be taken"
+    assert "return g_theta, g_bias" in src
+    # and the runner records it beside the theta-only form rather than replacing it
+    runner = inspect.getsource(e8_rate_network.run_method)
+    assert '"whole_body"' in runner and '"theta_only_cumulative"' in runner

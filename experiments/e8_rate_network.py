@@ -245,6 +245,35 @@ def task_grad(model, readout, task, shared: bool = False):
     return grad, float(loss.item())
 
 
+def whole_body_grad(model, readout, task, shared: bool = False):
+    """The task's gradient with respect to **both** halves of the body, at the current weights.
+
+    `task_grad` reaches `theta` alone, and `e139` measured what that costs: at forty paired seeds diagonal EWC
+    cuts the first-order interference term built from `theta` by **98%** (**10.34σ**) while its forgetting moves
+    **1.21σ** — so an instrument that reads one channel cannot see the effect when `e125` showed the effect lives
+    mostly in the other. This returns the bias's gradient beside the weights', so that the same one-line account
+    can be evaluated over the body the perturbation actually moved.
+    """
+    import torch
+
+    U = torch.from_numpy(task.u_train).float()
+    Y = torch.from_numpy(task.y_train).long()
+    traj = model(U, None)
+    logits = _logits(readout, traj[:, -1, :][:, task.readout_neurons], task, shared)
+    loss = torch.nn.functional.cross_entropy(logits, Y)
+    model.zero_grad()
+    loss.backward()
+
+    def flat(param):
+        g = param.grad
+        return (g.detach().cpu().numpy().astype(np.float64).copy() if g is not None
+                else np.zeros(param.detach().cpu().numpy().shape))
+
+    g_theta, g_bias = flat(model.theta), flat(model.bias)
+    model.zero_grad()
+    return g_theta, g_bias
+
+
 def first_order_damage(grad: np.ndarray, displacement: np.ndarray) -> dict:
     """``<grad, displacement>`` and the two magnitudes it is the product of.
 
@@ -567,6 +596,7 @@ def run_method(conn_net, suite, method: str, args, seed: int,
     # validates theta_drift.
     interference = []
     theta_final = model.theta.detach().cpu().numpy()
+    bias_final = model.bias.detach().cpu().numpy()
     for j in range(max(T - 1, 0)):
         readout = heads[0] if shared else heads[j]
         grad, loss_j = task_grad(model, readout, suite[j], shared)
@@ -577,10 +607,28 @@ def run_method(conn_net, suite, method: str, args, seed: int,
         # wrong and are now right.
         deltas = [thetas[k] - (thetas[k - 1] if k else theta_initial)
                   for k in range(T)]
+        # The SAME one-line account over the whole body, because `e139` measured that the `theta`-only form is
+        # cut by 98% under a penalty whose forgetting moves 1.21σ: the instrument reads one channel and the
+        # effect lives mostly in the other (`e125`, `e137`). `bias_initial` is zero by construction, so the
+        # displacement's bias half is just the bias itself at each checkpoint.
+        g_theta, g_bias = whole_body_grad(model, readout, suite[j], shared)
+        bias_deltas = [biases[k] - (biases[k - 1] if k else np.zeros_like(biases[0]))
+                       for k in range(T)]
         interference.append({
             "task": j, "loss_at_final": loss_j,
             "per_task": [first_order_damage(grad, d) for d in deltas],
             "cumulative": first_order_damage(grad, theta_final - thetas[j]),
+            "whole_body": {
+                "per_task": [first_order_damage(g_theta, d)["first_order"]
+                             + first_order_damage(g_bias, bd)["first_order"]
+                             for d, bd in zip(deltas, bias_deltas)],
+                "cumulative": float(g_theta @ (theta_final - thetas[j])
+                                    + g_bias @ (bias_final - biases[j])),
+                "theta_only_cumulative": float(g_theta @ (theta_final - thetas[j])),
+                "bias_only_cumulative": float(g_bias @ (bias_final - biases[j])),
+                "bias_grad_norm": float(np.linalg.norm(g_bias)),
+                "bias_disp_norm": float(np.linalg.norm(bias_final - biases[j])),
+            },
             # Second order: `quad` is a product (magnitude x curvature, so read-out-shaped) and `curvature`
             # is the Rayleigh quotient with the magnitude divided out (a direction quantity). The exact
             # double backward is the value; the two finite differences are the cross-check, because the first
@@ -807,6 +855,12 @@ def main(argv=None) -> int:
                                             for r in reps])),
                 "disp_norm": float(np.mean([r["interference"][j]["cumulative"]["disp_norm"]
                                             for r in reps])),
+                # The same account over the whole body: `e139` measured that the theta-only form is cut 98% by a
+                # penalty whose forgetting moves 1.21σ, so the two forms are stored side by side.
+                "whole_body_cumulative": float(np.mean(
+                    [r["interference"][j]["whole_body"]["cumulative"] for r in reps])),
+                "whole_body_bias_only": float(np.mean(
+                    [r["interference"][j]["whole_body"]["bias_only_cumulative"] for r in reps])),
                 "second_order": {
                     k: {"quad": float(np.mean([r["interference"][j]["second_order"][k]["quad"]
                                                for r in reps])),
