@@ -562,21 +562,44 @@ now has an explanation. See the note two paragraphs below and
 **And the mechanism has two halves, of which only one is robust.** The *co-movement* — pressure and the
 excess moving together on the same relabelling — holds at three circuit sizes and survives the shared-draw
 bootstrap at **5.15σ with 100% of 4000 resamples above zero**, which is the same scrutiny that turned a
-size comparison from 3.29σ into 0.75σ. The *spread statistic* — the size of pressure's own variation
-ranking the size of the excess's — **passes its pre-registered test at two of the three circuit sizes**:
-**+0.767 against concentration's +0.617 at d = 1307**, and **+0.800 against +0.483 at d = 1874**. The second
-is the cleaner of the two, because concentration has no signal there (p = 0.187) while the spread does
-(p = 0.010), and partialling the confound out of both ranks moves the number by only 0.021
-(+0.800 → +0.779). The single failure is **d = 952, +0.412 against +0.832**, and it is the size at which the
-test cannot be run on comparable partitions at all: its nine are a **bimodal design** whose four
-near-duplicate coarse rows — two of them the *same run*, giving byte-identical rows — occupy four of nine
-ranks at the top of both orderings, which concentration captures by construction, and under which all three
-candidates tie once the fine end is taken alone (+0.900, n = 5). **Restricting every size to the common
-concentration range does not repair that**: the restriction is *vacuous* at d = 1874 (that size's own range
-*is* the common range, since `side` sits at 0.498 everywhere), a **four-point tie** at d = 1307, and
-uncomputable at d = 952, which contributes only 2 of its 9 rows. So the honest summary of the
-predictor-shaped use is *passes at two of three sizes, with the single failure at the size where comparable
-partitions do not exist*; the explanatory use is supported outright, because that is the co-movement claim
+size comparison from 3.29σ into 0.75σ.
+
+**The *spread statistic* — the size of pressure's own variation ranking the size of the excess's — has now
+been tested on a design built for it, and it holds at all three circuit sizes.** The nine named partitions
+could not decide this, because a pooling that leaves 29 `cell_type` groups at d = 1307 leaves a handful at
+d = 952, so "the same nine rows" are different partitions at every size; the grid replaces them with **twenty
+group-size profiles whose concentrations are set by construction** (the `flat` ones at exactly `1/k` at every
+size), and scores the **partial** rank correlation with concentration partialled out of both ranks — the one
+form a concentration restatement cannot fake:
+
+| circuit size | cells | partial, absolute spread | per-seed | leave-one-cell-out | profile bootstrap |
+|---|---|---|---|---|---|
+| d = 952 | 20 of 20 | **+0.919** (p = 2.7e-08) | 3 of 3 positive | +0.896 to +0.951, no flip | **+0.892 [+0.718, +0.977]**, 0.00% below zero |
+| d = 1307 | 20 of 20 | **+0.618** (p = 0.005) | 3 of 3 positive | +0.552 to +0.669, no flip | **+0.573 [+0.272, +0.813]**, 0.20% below zero |
+| d = 1874 | 20 of 20 | **+0.872** (p = 1.2e-06) | 3 of 3 positive | +0.846 to +0.888, no flip | **+0.835 [+0.641, +0.940]**, 0.00% below zero |
+
+All three pre-registered clauses pass: the partial is positive at every size, **9 of 9** per-seed partials
+are positive, and no cell's removal flips any of them. **And the size dependence is a dip, not a trend**:
+paired on the same twenty profiles, d = 952 → d = 1307 is **−0.301 with a paired interval of [−0.645, −0.015]
+(98.15% at or below zero)** — resolved, barely — while d = 952 → d = 1874 is **−0.048 [−0.253, +0.138]**,
+unresolved, and d = 1307 → d = 1874 is **+0.254 [−0.021, +0.581]**, nearly resolved in the *positive*
+direction. The weakest size is the **middle** one, and it is the size where concentration and the target are
+most tightly coupled (**+0.923** against +0.677 and +0.571): the statistic is weaker exactly where the
+confound it removes is stronger, which is a property of the circuit's task geometry rather than of size.
+
+**And the design earned its place by a route that was not obvious.** The two shape families are
+complementary at d = 952 — `flat` alone leaves the coupling at +0.891 and the partial at +0.590, `harmonic`
+alone gives +0.782 and +0.715, and **together +0.677 and +0.919** — but at d = 1307 the second shape lowers
+the coupling by only +0.052 against +0.214, so that clause's falsifier fired and the clause **failed**. What
+made both sizes readable was having **twenty cells rather than nine**. Separately, the group-size *shape*
+carries information concentration does not, on all three dependent variables at all three sizes
+(F = 121/82/153 at d = 952; 5.7/17.1/32.8 at d = 1307; 45/44/103 at d = 1874; p ≤ 0.03 throughout), and on
+the target **shape alone explains 78% of the log-variance at d = 952 against concentration's 50%**.
+
+So the honest summary is: the predictor-shaped use of pressure **passes its pre-registered test at all three
+circuit sizes once the partitions are matched and the confound is partialled out**, with the weakest size
+explained by its own coupling; the explanatory use is supported outright, because that is the co-movement
+claim
 (`docs/findings/2026-09-23-the-mechanisms-two-halves.md`,
 `docs/findings/2026-09-23-the-cross-size-test-is-not-well-posed.md`).
 
