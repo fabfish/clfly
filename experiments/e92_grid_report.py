@@ -459,6 +459,54 @@ def main() -> None:
         print(f"      -> shape adds information beyond concentration: "
               f"**{out['shape_fit'][label]['measured_sd']['p'] < 0.05}** (on the target)")
 
+    #: The cross-size comparison of the partials is PAIRED: the same twenty profiles are measured at every
+    #: size, so the unit to resample is the profile and the indices must be shared across sizes.  Comparing
+    #: two independently-bootstrapped partials instead would throw away the pairing and report an interval
+    #: for a comparison nobody made -- and it is the comparison this grid exists to make.  (This is rule 23
+    #: one level down: there the shared unit was the draw within a size, here it is the profile across them.)
+    print()
+    print("=" * 112)
+    print("8. THE CROSS-SIZE COMPARISON, PAIRED ON THE SAME TWENTY PROFILES")
+    print("=" * 112)
+    pairs = [s[0] for s in SIZES]
+    for i in range(len(pairs) - 1):
+        for j in range(i + 1, len(pairs)):
+            a_lab, b_lab = pairs[i], pairs[j]
+            a = {r["label"]: r for r in grid_by_size[a_lab]}
+            b = {r["label"]: r for r in grid_by_size[b_lab]}
+            shared = sorted(set(a) & set(b))
+            if len(shared) < 8:
+                print(f"   {a_lab} vs {b_lab}: only {len(shared)} profiles on both -- not computable")
+                continue
+            print(f"\n   {a_lab} vs {b_lab}  ({len(shared)} shared profiles)")
+            for form, xkey in (("abs", "pressure_sd"), ("rel", "relative_sd")):
+                xa = [a[l][xkey] for l in shared]; xb = [b[l][xkey] for l in shared]
+                ya = [a[l]["measured_sd"] for l in shared]; yb = [b[l]["measured_sd"] for l in shared]
+                z = [a[l]["concentration"] for l in shared]
+                pa = partial_spearman(xa, ya, z)[0]
+                pb = partial_spearman(xb, yb, z)[0]
+                rng = np.random.default_rng(args.n_boot)
+                n = len(shared)
+                diffs = np.empty(args.n_boot)
+                for t in range(args.n_boot):
+                    idx = rng.integers(0, n, n)          #: ONE index set, used at both sizes
+                    p1 = partial_spearman([xa[k] for k in idx], [ya[k] for k in idx],
+                                          [z[k] for k in idx])[0]
+                    p2 = partial_spearman([xb[k] for k in idx], [yb[k] for k in idx],
+                                          [z[k] for k in idx])[0]
+                    diffs[t] = p2 - p1
+                diffs = diffs[np.isfinite(diffs)]
+                lo, hi = np.percentile(diffs, [2.5, 97.5])
+                print(f"      form {form}: partial {pa:+.3f} -> {pb:+.3f}   difference {pb - pa:+.3f}"
+                      f"   paired bootstrap [{lo:+.3f}, {hi:+.3f}]"
+                      f"   {(diffs <= 0).mean() * 100:.2f}% at or below zero")
+                out.setdefault("cross_size_paired", {}).setdefault(f"{a_lab}|{b_lab}", {})[form] = dict(
+                    n=int(n), partial_a=float(pa), partial_b=float(pb), difference=float(pb - pa),
+                    lo=float(lo), hi=float(hi), frac_le_zero=float((diffs <= 0).mean()))
+            print(f"      -> read the paired interval, not the two point estimates: the pairing is what makes")
+            print(f"         this the comparison the grid exists to make, and the two partials share every")
+            print(f"         profile, every concentration and every task seed.")
+
     Path(args.json_out).parent.mkdir(parents=True, exist_ok=True)
     with open(args.json_out, "w", encoding="utf-8") as fh:
         json.dump(out, fh, indent=1, default=str)
