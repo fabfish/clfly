@@ -1693,6 +1693,16 @@ determinism control within a thread setting rather than across settings, and why
 replay run is a **separate sample** of its configuration rather than an extension of the five-replicate
 one (`docs/findings/2026-09-23-the-replay-contrast-survives-sixteen-and-the-benchmark-is-not-thread-reproducible.md`).
 
+**And that control has one role with two faces, both measured on the same configuration.** Sweeping
+`--fisher-batches` across seven executions leaves the `naive` arm **bit-identical to the last decimal** — its
+silence is what licences "the forgetting level did not move". Setting `OMP_NUM_THREADS=1` on the same command
+moves **all five arms, `naive` included** (+0.0729 → +0.0792, the diagonal +0.0271 → +0.0250, the biological
+block +0.0229 → +0.0437, its matched random control +0.0396 → +0.0792, replay +0.0500 → +0.0542), landing on a
+third vector that matches neither of the two already on disk. So the Fisher-free `naive` arm is the benchmark's
+**environment detector** as well as its level control, while the equally Fisher-free `replay` arm is neither: it
+moved between two runs in which `naive` was silent, so it carries a second source of variation and cannot date
+anything (`docs/findings/2026-09-23-the-fisher-free-arm-was-not-fisher-free.md` §5).
+
 The artifacts are **strict JSON**, and the two claims this paragraph used to make about that were both
 wrong. It said **seven** rate-network artifacts were written in the non-conformant form and that **every
 writer** now goes through `clfly.bench.artifacts.write_json`. Measured (`e98`):

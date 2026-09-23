@@ -1395,17 +1395,28 @@ about (`docs/findings/2026-09-23-the-last-two-unaudited-sections-were-clean.md`)
    (`docs/findings/2026-09-23-the-conclusion-was-right-and-its-evidence-was-one-seed.md`).
 
    **Correction (2026-09-23, `e102`), and it splits the rule in two.** The *level* control is sound and the
-   *environment detector* is not. Measured: `naive` is **bit-identical at the replicate level in all six
-   processes run** (three batch counts × two arm sets, including `e8_hardened_basis` re-run 13 hours and five
-   commits later, **280 of 280 numeric fields equal**), so the level really is fixed and every claim that
-   needed that survives. But **`replay` is not**: its 15 stored numbers take **exactly two values** on disk,
-   and the arm set with **no Fisher in it at all** (`--methods naive,replay`) gives the *same* value at
-   `--fisher-batches 8` as at `32` — so the batch count is not what moves it, and the previous fire's
-   environment diagnosis was drawn from a quantity that is **process-dependent rather than
-   manipulation-dependent**. The repaired form is: **check that a Fisher-free arm is invariant under the
-   manipulation by running it in a process where the manipulation does nothing; then use `naive` as the
-   level control, and never as an environment detector across processes**
-   (`docs/findings/2026-09-23-the-fisher-free-arm-was-not-fisher-free.md`).
+   *environment detector* is **not** — but the arm assignment is the opposite of what this correction first
+   said, and the measurement that settled it came last. Measured: `naive` is **bit-identical at the replicate
+   level in all seven processes run** within one environment (three batch counts × two arm sets, including
+   `e8_hardened_basis` re-run 13 hours and five commits later, **280 of 280 numeric fields equal**), so the
+   level genuinely is fixed *within an environment* and every claim that needed that survives. **`replay` is
+   not invariant**: its 15 stored numbers take exactly two values on disk, and the arm set with no Fisher in it
+   at all gives `replay` the *same* value at 8 batches as at 32 — so the batch count is not what moves it, and
+   an arm that moves while `naive` is silent has a source of variation that is not the environment. **Then
+   `OMP_NUM_THREADS=1` moved all five arms, `naive` included (+0.0729 → +0.0792), and matched neither stored
+   vector.** So the repaired rule is:
+
+   - **`naive` is both the level control and the environment detector** — invariant under every manipulation
+     in this benchmark (it consults no Fisher and no replay) and mobile under the environment. Its silence is
+     what licences "the level did not move"; its speech is what detects the environment. The earlier instruction
+     to *never* use it as an environment detector was wrong, and the run that shows it is the detector firing.
+   - **`replay` is neither**, despite being Fisher-free: it moved between runs where `naive` did not, so it has
+     two sources of variation and can date nothing.
+   - **And the search is not over**: the carrier of the X-versus-Y difference is something other than
+     `OMP_NUM_THREADS ∈ {1, 4}` at this configuration, since `OMP_NUM_THREADS=1` landed on a third vector rather
+     than on either. Three revisions of this claim in one session — each from a run, not from re-reading — is
+     itself the argument for registering the *variable* rather than the intuition
+     (`docs/findings/2026-09-23-the-fisher-free-arm-was-not-fisher-free.md`).
 
 27. **An artifact's `config` keyset dates its code epoch, and a control is only readable against a comparator
    from the same epoch.** A runner that dumps `vars(args)` **cannot omit a flag its parser has**, so a key the
