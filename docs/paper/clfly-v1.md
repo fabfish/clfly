@@ -1117,7 +1117,32 @@ is an instance of**: a factor that is not the manipulated variable is not thereb
 fire **the artifact identified its read-out size and not its read-out subset** — the payload now carries the
 effective draw seed and a hash of the subset, and every "bit-identical over seven executions" result in this
 record is reproducibility *given a draw* rather than across draws
-(`docs/findings/2026-09-23-the-draw-is-as-large-as-the-effect.md`). And the sweep validates itself: its read-out-32 plastic row is the hardened
+(`docs/findings/2026-09-23-the-draw-is-as-large-as-the-effect.md`).
+
+**And the whole cross-read-out series then reduces to one sentence, because only four of its twenty-one pairs
+resolve.** Against the per-repeat spread — the limit §4.7 already names — the pairs at 2σ are **900 → 32
+(2.49σ), 512 → 32 (3.04σ), 300 → 32 (3.56σ) and 128 → 32 (2.02σ)**, and **every other pair is below 2σ**, with
+all six *neighbouring* steps below 1.6σ — including the 512 → 300 step the withdrawn statement rested on
+(0.97σ). Read-out 32 does not resolve against the whole state either (0.67σ), because the whole state carries
+the largest per-repeat spread of the seven (**0.0768** against 0.018–0.039). So **of five fires of shape work
+along this axis, the surviving claim is: read-out 32 forgets more than 900, 512, 300 and 128** — and the
+interior minimum, its location, the local bump at 700 and the coarse decline are each inside the noise of at
+least one uncontrolled factor. **The paired treatment does not rescue them**: all seven runs share their
+training seeds, so a paired contrast is licensed, and it makes **four of the six neighbouring steps worse**
+while making two *non*-neighbouring pairs look strong (900 → 300 at 6.32σ, 300 → 32 at 8.44σ) — because a
+systematic difference between two read-outs' draws is a **constant offset** in the paired difference, so
+**pairing is blind to the one confound this axis has** and its σ is optimistic by exactly the draw's
+contribution. A contrast whose statistic cannot see its own confound is not a tighter measurement.
+
+**The boundary of the damage is the draw, and it protects the rest of this section.** Every arm within one run
+shares that run's read-out subset, so **within-run contrasts — the block against its matched random control,
+the diagonal against `naive`, replay against either — are immune**, and the σ's quoted for them above stand.
+What is reduced is the **cross-read-out** series: the frozen-body gap trend survives because it runs from
+−0.0111 to +0.1000, far beyond any draw span, but its individual steps have not been tested against the draw.
+**And the cost of resolving what remains is now measured**: against the per-repeat sd at each end, the 512 → 300
+step needs **22 replicates per side (≈ 16 minutes)** and the 700 bump needs **200 (≈ 147 minutes)**, so the bump
+should be abandoned rather than chased and the one step an interior minimum stands on is affordable
+(`docs/findings/2026-09-23-the-axis-reduces-to-one-statement.md`). And the sweep validates itself: its read-out-32 plastic row is the hardened
 configuration's `naive` and comes out at **+0.0729 ± 0.0151**, reproducing `e8_hardened_basis` to the last
 printed digit (`docs/findings/2026-09-23-the-unbacked-cells-measured.md` §1).
 
