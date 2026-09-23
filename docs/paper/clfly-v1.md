@@ -1197,7 +1197,26 @@ design statement was built on, moving by +0.0149 into the middle of the plateau.
 read-out**: the plateau's internal range (0.0031) is below the measured draw span (0.0125) but the
 plateau-to-128 step (0.0138) is not, so the draw could account for that step and separating them needs
 replicate draws rather than replicates
-(`docs/findings/2026-09-24-the-axis-is-a-plateau.md`). And the sweep validates itself: its read-out-32 plastic row is the hardened
+(`docs/findings/2026-09-24-the-axis-is-a-plateau.md`).
+
+**And the confound that produced the withdrawal in the first place turns out not to be one.** The draw was
+blamed because four draws at one size spanned 0.0125 — but **each of those four means came from five
+replicates and carried an sem of ≈0.010, larger than the 0.006 effect being looked for**, and a design cannot
+measure a variance smaller than its own noise. Re-measured with **four draws of read-out 128 at 20–40 replicates
+each**: the four means are **+0.0370, +0.0469, +0.0411, +0.0349**, whose scatter is **sd 0.0053 against a
+replicate-noise expectation of 0.0079 — a ratio of 0.67**, so the draw variance component estimates to **zero**.
+The same arithmetic on the four five-replicate draws at read-out 300 gives **0.61**. **Two read-outs, two
+estimates, both below one: the draw is not detectable.** So the withdrawal was right at the time and for a
+reason it did not give — the five-replicate *means* were unreliable (that is what `e115` and `e116` showed) —
+while **the draw itself was never shown to matter**. **And the plateau's one resolved step survives the
+control**: all four independent draws of read-out 128 land **above** the plateau (+0.0138, +0.0237, +0.0179,
++0.0117 against the 300 point, i.e. 2.1σ, 2.3σ, 2.0σ and 1.3σ), three of them resolving on their own with the
+fourth in the same direction, and the scatter among them smaller than replicate noise. **So the elevation of
+read-out 128 is a property of the read-out *size* and not of which 128 neurons were drawn**, and what is
+restored is the *interpretation* — the axis can be read as a size axis — rather than the withdrawn claim, which
+the two fires before had already replaced with the plateau. **Three revisions of one sentence in four fires**
+(optimum at 300 → flat trough → plateau), and the first whose confound has been measured rather than assumed
+(`docs/findings/2026-09-24-the-draw-is-not-detectable.md`). And the sweep validates itself: its read-out-32 plastic row is the hardened
 configuration's `naive` and comes out at **+0.0729 ± 0.0151**, reproducing `e8_hardened_basis` to the last
 printed digit (`docs/findings/2026-09-23-the-unbacked-cells-measured.md` §1).
 
