@@ -59,9 +59,24 @@ def test_the_min_searches_every_checkpoint_not_only_the_diagonal():
         np.mean([math.log(0.097 / 0.0018), math.log(0.0009 / 0.0009)]))
 
 
-def test_both_forms_are_non_negative_by_construction():
-    """`min` includes the final checkpoint and `max` includes it too, so neither can go negative."""
+def test_the_loss_form_is_non_negative_by_construction_but_the_accuracy_form_is_not():
+    """The two forms are **not** mirror images, and the asymmetry is structural rather than numeric.
+
+    `loss_forgetting` takes `min` over `k in [j, T-1]`, which **includes the final checkpoint**, so
+    `L[T-1][j] - min <= 0` cannot happen. `accuracy_forgetting` mirrors the runner
+    (`experiments/e8_rate_network.py:517`), which takes `nanmax` over `k in [0, j]` — a window that **excludes**
+    the final checkpoint for every `j < T-1` — so the difference *can* be negative: a later task can leave task
+    `j` better than it was immediately after `j` was learned. On this corpus that is not hypothetical: **2 of 40
+    replicates at read-out 128 have task 0's accuracy higher at the final checkpoint than right after learning
+    it** (0.9438 -> 0.9500, 0.9542 -> 0.9604), and the aggregate forgetting is negative in **5 of 40** replicates
+    at a test set of 48 against **1 of 40** at 480.
+
+    So the registration's claim that the loss form is "the same expression with the roles of the two directions
+    swapped" is wrong in a second way, after the units: **the accuracy metric is signed and the loss metric is
+    not.** A random matrix is enough to show it, which is why this test is synthetic.
+    """
     rng = np.random.default_rng(0)
+    negative_accuracy_seen = 0
     for _ in range(20):
         T = 3
         L = np.full((T, T), NAN)
@@ -70,8 +85,13 @@ def test_both_forms_are_non_negative_by_construction():
             for j in range(k + 1):
                 L[k, j] = float(np.exp(rng.normal()))       # spans orders of magnitude, as the real loss does
                 R[k, j] = float(rng.random())
-        assert loss_forgetting(L.tolist()) >= 0.0
-        assert accuracy_forgetting({"retention": R.tolist()}) >= 0.0
+        assert loss_forgetting(L.tolist()) >= 0.0, "the loss form includes the final checkpoint"
+        if accuracy_forgetting({"retention": R.tolist()}) < 0.0:
+            negative_accuracy_seen += 1
+    assert negative_accuracy_seen > 0, (
+        "the runner's accuracy window [0, j] excludes the final checkpoint, so a random matrix must be able to "
+        "produce a negative forgetting -- if it no longer can, the convention has changed and every quoted "
+        "forgetting in the record needs revisiting")
 
 
 def test_a_single_task_suite_has_no_forgetting_to_measure():

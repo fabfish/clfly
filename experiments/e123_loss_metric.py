@@ -64,10 +64,24 @@ def loss_forgetting_log_ratio(retention_loss: list[list[float]]) -> float:
 
 
 def accuracy_forgetting(replicate: dict) -> float:
-    """The reported metric, recomputed from the retention matrix so both sides come from one formula."""
+    """The reported metric, recomputed from the retention matrix **with the runner's own window**.
+
+    `experiments/e8_rate_network.py:517` computes `nanmax(R[:j+1, j]) - R[T-1, j]` — the max over checkpoints
+    **0..j**, i.e. up to and including the one that learned task `j`. The first version of this script used
+    `R[j:, j]` instead, the window **j..T-1**, which is a different statistic: it can see a *later* checkpoint
+    that happens to do better on task `j`. It differs from the stored metric by up to **0.0073 per replicate**
+    and 0.00057 on the mean, and a comparison meant to be paired has to compute both sides the same way, so this
+    is a real defect rather than a rounding.
+
+    **It does not affect the conclusion, and the reason is worth stating**: the loss-valued form is *identical*
+    under both windows, because the minimum of a task's loss always lands on `k = j` — right after the task was
+    trained — and is high at every earlier checkpoint, where the task had not been trained at all. So the window
+    choice moves the accuracy side by 55.1% against 53.5% and the loss side by nothing, and the relative-sd ratio
+    is **0.91 under both**.
+    """
     R = np.asarray(replicate["retention"], dtype=float)
     T = R.shape[0]
-    per_task = [float(np.nanmax(R[j:, j]) - R[T - 1, j]) for j in range(max(T - 1, 0))]
+    per_task = [float(np.nanmax(R[: j + 1, j]) - R[T - 1, j]) for j in range(max(T - 1, 0))]
     return float(np.mean(per_task)) if per_task else 0.0
 
 
@@ -108,11 +122,19 @@ def analyse(run_path: Path, reference_path: Path | None) -> dict:
     los = np.array([loss_forgetting(r["retention_loss"]) for r in reps])
     log = np.array([loss_forgetting_log_ratio(r["retention_loss"]) for r in reps])
 
-    sd_acc, sd_los = sd(acc), sd(los)
+    sd_acc, sd_los, sd_log = sd(acc), sd(los), sd(log)
     ratio = sd_los / sd_acc
-    # the relative form, which is what e118's "74-134%" means: the sd as a fraction of the value it sits on
+    # The relative form, which is what `e118`'s "74-134%" means: the sd as a fraction of the value it sits on.
+    # **It is only meaningful on a linear scale.** For the log-ratio the same expression is an artifact of where
+    # the log's zero happens to be -- adding 10 to every value would divide its "relative sd" by five while
+    # changing nothing about the estimator -- so the log-scale precision is reported multiplicatively, as the
+    # factor `exp(sd)` by which two seeds' forgetting ratios typically differ. Comparing 0.47 nats to 0.022
+    # accuracy units is a ratio of two different things, and this script prints the units beside every number
+    # for that reason.
     rel_acc = sd_acc / abs(np.mean(acc))
     rel_los = sd_los / abs(np.mean(los))
+    mult_log = float(math.exp(sd_log))
+    ratio_relative = rel_los / rel_acc
 
     out = {
         "run": str(run_path),
@@ -122,9 +144,10 @@ def analyse(run_path: Path, reference_path: Path | None) -> dict:
                      "relative_sd": float(rel_acc)},
         "loss_nats": {"mean": float(np.mean(los)), "sd": sd_los, "sem": sd_los / math.sqrt(len(los)),
                       "relative_sd": float(rel_los)},
-        "loss_log_ratio": {"mean": float(np.mean(log)), "sd": sd(log),
-                           "relative_sd": float(sd(log) / abs(np.mean(log)))},
+        "loss_log_ratio": {"mean": float(np.mean(log)), "sd": sd_log, "sd_multiplicative": mult_log},
         "ratio_loss_over_accuracy": float(ratio),
+        "ratio_of_relative_sds_below_1": bool(ratio_relative < 1.0),
+        "ratio_of_relative_sds": float(ratio_relative),
         "P1_sd_loss_below_sd_accuracy": bool(ratio < 1.0),
         "P2_ratio_below_0.71": bool(ratio < 0.71),
         "falsifier_fired": bool(ratio >= 1.0),
@@ -148,11 +171,17 @@ def report(res: dict) -> None:
             print(f"  C0  ** replicate counts differ: {c['n_run']} vs {c['n_reference']} **")
     print(f"  accuracy forgetting  mean {a['mean']:.5f}  sd {a['sd']:.5f}  sd/mean {100 * a['relative_sd']:.1f}%")
     print(f"  loss forgetting      mean {l['mean']:.5f}  sd {l['sd']:.5f}  sd/mean {100 * l['relative_sd']:.1f}%  (nats)")
-    print(f"  log-ratio companion  mean {g['mean']:.4f}  sd {g['sd']:.4f}  sd/mean {100 * g['relative_sd']:.1f}%  (nats)")
-    print(f"  sd_loss / sd_accuracy = {res['ratio_loss_over_accuracy']:.3f}")
-    print(f"  P1 (ratio < 1)     : {'HOLDS' if res['P1_sd_loss_below_sd_accuracy'] else 'FAILS'}")
-    print(f"  P2 (ratio < 0.71)  : {'HOLDS' if res['P2_ratio_below_0.71'] else 'FAILS'}")
-    print(f"  falsifier (>= 1)   : {'FIRED -- the loss metric is not an improvement' if res['falsifier_fired'] else 'does not fire'}")
+    print(f"  log-ratio companion  mean {g['mean']:.4f}  sd {g['sd']:.4f}  (sd/mean is meaningless on a log scale; "
+          f"the multiplicative form is {g['sd_multiplicative']:.2f}x)  (nats)")
+    print(f"  sd_loss / sd_accuracy = {res['ratio_loss_over_accuracy']:.3f}   <-- CROSS-UNIT: nats against "
+          f"accuracy, so this is a ratio of two different quantities")
+    print(f"  relative-sd ratio (loss/accuracy) = {res['ratio_of_relative_sds']:.3f}   <-- the like-for-like "
+          f"form, and the one the registration's P3 says the claim is about")
+    print(f"  P1 as registered (sd_loss < sd_acc)      : {'HOLDS' if res['P1_sd_loss_below_sd_accuracy'] else 'FAILS'}")
+    print(f"  P2 as registered (ratio < 0.71)          : {'HOLDS' if res['P2_ratio_below_0.71'] else 'FAILS'}")
+    print(f"  falsifier as registered (ratio >= 1)     : {'FIRED' if res['falsifier_fired'] else 'does not fire'}")
+    print(f"  P1 on the LIKE-FOR-LIKE reading (rel_sd_loss < rel_sd_acc): "
+          f"{'HOLDS' if res['ratio_of_relative_sds_below_1'] else 'FAILS'}")
 
 
 def main(argv=None) -> int:
