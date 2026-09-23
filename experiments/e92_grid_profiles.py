@@ -196,10 +196,23 @@ def main(argv=None) -> int:
     p.add_argument("--seed0", type=int, default=0)
     p.add_argument("--draws", type=int, default=5, help="size-matched relabellings, e12/e80's protocol")
     p.add_argument("--json-out", type=Path, default=None)
+    p.add_argument("--overwrite", action="store_true",
+                   help="re-measure a cell whose artifact is already on disk.  Without this the script "
+                        "skips it and exits, so a sweep that was interrupted can be re-launched as the "
+                        "same loop and costs only the cells it is missing.")
     args = p.parse_args(argv)
 
-    results = run(args)
     out = args.json_out or Path(f"runs/e92_grid_cs{args.circuit_size}_{args.shape}_k{args.k}.json")
+    #: **The skip guard is here because its absence cost a cell.** The first sweep ran all sixty cells as
+    #: one background task behind a four-hour timeout and was killed on the sixtieth, so the completion had
+    #: to be reconstructed by enumerating which files were missing and re-running that one by hand.  With
+    #: this guard the same loop is resumable: it re-launches, skips the fifty-nine, and measures only what
+    #: the timeout ate.
+    if out.exists() and not args.overwrite:
+        print(f"{out} is already on disk -- skipping (pass --overwrite to re-measure).")
+        return 0
+
+    results = run(args)
     write_json(out, results)
     print(f"\nwrote {out}")
     return 0
