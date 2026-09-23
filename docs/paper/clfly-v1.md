@@ -114,7 +114,10 @@ published 3-replicate +0.0718 at 2.13σ — a null on both metrics, with detecti
 0.043 saying the run could have seen it. So the
 best-powered measurement in that line is a null, and being *well-powered* makes it a stronger
 negative than the reversal it replaced. On that substrate EWC helps only when the read-out is narrow
-enough to make the plastic weights load-bearing, and replay — content memory — is the stronger
+enough to make the plastic weights load-bearing — **and at eight times the replicates it does not resolve
+even there** (diagonal EWC **−0.0096 ± 0.0080 = 1.21σ** against naive at forty, where five replicates gave
+2.47σ, because it *redistributes* forgetting between tasks: task 0 improves at **3.79σ** while task 1
+degrades) — and replay — content memory — is the stronger
 method in every setting, with forgetting driven to **zero or below**: at its tuned configuration, a
 contrast of **−0.0854 ± 0.0129 = 6.6σ** against naive, which is a number the project had to *recreate* —
 the published 4.2σ version had no artifact on disk, and the recreation reproduces it and strengthens it.
@@ -1432,7 +1435,9 @@ part this section is about**: the seeds' solutions are **one connected set** in 
 are **not interchangeable**, and **no measured quantity says which point of the set a seed lands on** — the sixth
 such quantity, after the drift, the gap, the two interference terms and the fit depth.
 
-**On the hardened configuration, diagonal EWC finally resolves** (5 replicates, λ=0.003, 32 Fisher batches):
+**On the hardened configuration, diagonal EWC resolves at five replicates and not at forty** — the row is
+kept below because the artifact is real and the note under it gives the forty-replicate measurement
+(5 replicates, λ=0.003, 32 Fisher batches):
 
 | method | final accuracy | mean forgetting | vs naive |
 |---|---|---|---|
@@ -1450,6 +1455,20 @@ diagonal row and the replay row all matched no artifact, while the two block row
 from `runs/e8_hardened_basis.json` (which reproduces on 280 of 280 fields, twice), `runs/e101_rate_fb32.json`
 and `runs/e61_replay96_step8.json`; the diagonal's **2.47σ** is the same figure §4.7 quotes — the two sections
 previously stated this one measurement as 2.6σ here and 2.47σ there, and only §4.7's came from a run.
+
+**And the diagonal row does not survive its own configuration at eight times the replicates.** Running the
+identical command — same seeds, same λ, same 32 Fisher batches, same read-out — at **forty** replicates gives
+`naive` **+0.0750 ± 0.0088** (per-replicate identical to the forty-replicate artifact, so the comparison is
+paired on seeds) against **diagonal EWC +0.0654 ± 0.0079**, a paired difference of **−0.0096 ± 0.0080 = 1.21σ**.
+**At five replicates the diagonal removed 71% of the naive forgetting; at forty it removes 13%**, and its
+accuracy is *lower* than naive's (0.8856 against 0.9125) where at five it was higher. **And the reason is not that
+the penalty does nothing**: per task, EWC reduces task 0's forgetting by a resolved **−0.0354 ± 0.0094 = 3.79σ**
+and *increases* task 1's by **+0.0161 ± 0.0118**, so **the mean over the two is unresolved while both of its terms
+are moving, one of them decisively**. The headline is the statistic that hides this. **The five seeds this table
+quotes are a ~1-in-55 draw** from the configuration's own distribution (their mean +0.0208 against +0.0717 for
+replicates 6–40, ranks 10, 6, 9, 1, 16 among the forty; 11,952 of 658,008 five-subsets are at least as
+favourable), which is a draw five replicates cannot rule out
+(`docs/findings/2026-09-24-diagonal-ewc-does-not-survive-its-own-configuration.md`).
 
 **And the `--frozen-body` control this section leans on is in no artifact either** — see below, and
 `docs/findings/2026-09-23-the-frozen-body-control-is-in-no-artifact.md` §1.
@@ -2025,11 +2044,11 @@ the filters are the LGCL family, not a trained spiking network, and the network 
 demonstrably cannot tell you is which of its conclusions are artefacts of the linearisation;
 §4.7 is the beginning of that check, and it overturned three of them.
 
-**Seven measurement traps, every one of which the project fell into before finding it.** *(This heading read
+**Eight measurement traps, every one of which the project fell into before finding it.** *(This heading read
 "Two" until commit `1743573`, which rewrote it to "**Five**" while adding two bullets to the two that were
 there — so it said five and listed four from the day it was written until 2026-09-24. That commit's own message
-is about stale aggregate statements, and this is the defect it was fixing, born in the fix. The count is now seven
-because the three newest traps are the ones `e122`, `e125` and the session that found the last one added.)*
+is about stale aggregate statements, and this is the defect it was fixing, born in the fix. The count is now eight
+because the four newest traps are the ones `e122`, `e125`, `e133` and the session that found the last one added.)*
 - **A benchmark can measure its decoder instead of its subject.** The network line spent
   four fires concluding that no method worked, on a benchmark whose plastic weights were
   never load-bearing: freezing them cost 0.007 accuracy and eliminated forgetting entirely.
@@ -2074,6 +2093,15 @@ because the three newest traps are the ones `e122`, `e125` and the session that 
   contrast between an experiment and its control; this is the case it was not written for — **the variable
   is the same on both sides** — and it still invalidates the comparison, which is why the arm was re-run
   rather than cited.
+- **An average can be unresolved while its components move in opposite directions, and at three tasks the mean
+  is over two numbers.** The diagonal EWC row above is `unresolved` at forty replicates — **1.21σ** against
+  naive — and **per task it reduces the first task's forgetting by a resolved 3.79σ while increasing the second
+  task's**. So the table's headline statistic is the one thing that cannot show what the method is doing, and no
+  re-derivation of the mean recovers it. This is distinct from *"resolves from zero is not differs from its
+  neighbour"*: there the point was that a single cell needs a comparator, here the comparator exists and
+  **two resolved components cancel inside the aggregate** — which is what a *trade* between tasks looks like and
+  what a benchmark with three tasks will always be able to produce
+  (`docs/findings/2026-09-24-diagonal-ewc-does-not-survive-its-own-configuration.md`).
 - **A benchmark can measure its methods against a baseline that forgets through a channel they do not
   address.** The plastic body is **two** parameter sets — 26,568 connectome-masked weights and 800 per-neuron
   offsets — and `train_task` optimises both while every penalty in this paper covers the weights alone. Holding
