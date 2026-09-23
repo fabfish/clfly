@@ -959,12 +959,16 @@ The comparison is against naive, not against the Kalman oracle.
 **Replay is the strongest method, and its earlier apparent failure was a budget artefact.**
 It had never been tuned: *every* replay result in the project's history used 16 stored
 stimuli per task and 16 replayed samples per step, which this table shows merely ties naive.
-Sweeping both knobs — pool 4/16/96 against per-step 8/16/48 — gives a monotone pool effect
-(+0.111 → +0.059 → +0.017 forgetting) and an optimum in the per-step amount (8 beats 16 and
-48), reaching **−0.010 ± 0.006 forgetting, 4.2σ, with the best accuracy in the table and
+Sweeping both knobs — pool 4/16/96 against per-step 8/16/48 — gave a monotone pool effect
+(+0.111 → +0.059 → +0.017 forgetting) and an optimum in the per-step amount, reaching
+**−0.010 ± 0.006 forgetting, 4.2σ, with the best accuracy in the table and
 forgetting driven negative**. That confirms LGCL v7's prediction that content memory beats
 regularisation in the partially-observed regime, and withdraws the earlier "replay is
-setting-dependent" claim as confounded.
+setting-dependent" claim as confounded. **Of those figures only the per-step sweep is backed**:
+`runs/e61_replay96_step{8,16,48}.json` give **−0.0125 / +0.0104 / +0.0021**, so 8 wins, while the
+pool sweep's three points and the **−0.010 ± 0.006 / 4.2σ** beside them are from the run `e62`
+found no artifact for
+(`docs/findings/2026-09-23-the-frozen-body-control-is-in-no-artifact.md` §2).
 
 **That headline result had no artifact, and the artifact has now been produced.** The census
 in `e62` found that every one of the 77 stored runs used 16 stored stimuli per task and 16
