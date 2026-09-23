@@ -1434,6 +1434,22 @@ previously stated this one measurement as 2.6σ here and 2.47σ there, and only 
 **And the `--frozen-body` control this section leans on is in no artifact either** — see below, and
 `docs/findings/2026-09-23-the-frozen-body-control-is-in-no-artifact.md` §1.
 
+**And 70% of the `naive` forgetting in that table lives where no penalty in this paper looks.** `train_task`
+optimises `[model.theta, model.bias]` (`experiments/e8_rate_network.py:72`) — **27,368 parameters** — while the
+diagonal term is a sum over `theta` and the block penalty is built from a `SynapsePartition`, whose blocks are
+partitions of **synapses**, so a per-neuron offset has no block to live in. Holding those **800** parameters
+(2.9% of the body) at their initialisation, with no penalty and no cost, takes the same configuration's
+forgetting from **+0.0750 ± 0.0088 to +0.0227 ± 0.0033** — **+0.0523 ± 0.0089 = 5.90σ over forty paired seeds,
+31 of 40 positive** — *and raises accuracy* (0.9125 → 0.9306). **Both forgettable tasks lose exactly 70% of their
+forgetting**, and the *body drifts 10% more* with the bias frozen, so the adaptation does not shrink: it **moves
+into the structured channel**. The 800 offsets are per-neuron and global, shifting their neuron's operating point
+for every task at once; the 26,568 weights are masked by the connectome and can carry adaptation along more local
+paths. **A channel with no wiring semantics turns out to be the channel that interferes most**, which is the
+opposite of the reconciliation the omission's defence offered. **At the same five seeds the free constraint is
+indistinguishable from the tuned diagonal penalty** (+0.0250 against +0.0208, a difference of **0.20σ**), and it
+is the better resolved of the two; `e133` puts both at forty replicates
+(`docs/findings/2026-09-24-the-unpenalised-channel-carries-seventy-percent.md`).
+
 This **overturns** three fires of "no Fisher-anchoring variant does anything, at any
 basis, λ, or batch count" — those were measured where nothing could resolve. It does not
 overturn the theory: LGCL makes EWC a 33%-lossy approximation, and on a benchmark where
