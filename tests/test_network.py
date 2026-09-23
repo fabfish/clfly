@@ -219,3 +219,32 @@ def test_first_order_damage_reports_its_two_factors_separately():
     assert frozen["first_order"] == 0.0
     assert frozen["cosine"] == 0.0
     assert frozen["disp_norm"] == 0.0
+
+
+def test_the_double_backward_curvature_agrees_with_an_independent_hvp():
+    """`d'Hd` by my double backward, against `torch.autograd.functional.hvp` on the same graph.
+
+    The e109 numbers include NEGATIVE quadratic forms, which is possible for a non-convex loss but is also what
+    a broken implementation looks like, and the finite-difference cross-check could not adjudicate (its two
+    steps disagreed with each other by 5x, then by sign). An independent implementation can: if these two
+    agree, the negatives are a property of the loss surface rather than of the code.
+    """
+    import torch
+
+    torch.manual_seed(0)
+    x = torch.randn(16, 6)
+    y = torch.randint(0, 3, (16,))
+    w0 = torch.randn(6, 8, requires_grad=True)
+    w1 = torch.randn(8, 3)
+
+    def loss_of(w):
+        return torch.nn.functional.cross_entropy(torch.tanh(x @ w) @ w1, y)
+
+    d = torch.randn(6, 8)
+    (grad,) = torch.autograd.grad(loss_of(w0), w0, create_graph=True)
+    (hessian_d,) = torch.autograd.grad((grad * d).sum(), w0)
+    mine = float((d * hessian_d).sum())
+
+    _, theirs = torch.autograd.functional.hvp(loss_of, w0, d)
+    independent = float((d * theirs).sum())
+    assert abs(mine - independent) < 1e-4 * max(1.0, abs(independent))

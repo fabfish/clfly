@@ -988,7 +988,24 @@ looks like when the displacement is not infinitesimal. **So on this substrate ne
 by how far the body moved, by how much the task needed it, or by the first-order interference of the two** — and
 the next candidate must be a quantity that is not a function of the read-out at all, which points at the
 task-pair structure rather than at any further aggregate over that axis
-(`docs/findings/2026-09-23-the-interference-term.md`). And the sweep validates itself: its read-out-32 plastic row is the hardened
+(`docs/findings/2026-09-23-the-interference-term.md`).
+
+**The second-order term is the first candidate that is not monotone in that axis, and it is not yet a
+confirmation.** `½ΔθᵀHΔθ` was pre-registered on a structural argument — a quadratic form is positive by
+construction, so the first-order term's sign failure cannot recur — **and that argument is refuted: the
+quadratic form is negative in 3 of the 6 task-level cases**, because this loss is not convex and `H_j` is not
+positive-semidefinite along the direction the body moved. (The negatives were adjudicated against
+`torch.autograd.functional.hvp` in a test, because a negative curvature is also what a broken implementation
+produces.) What the measurement *did* produce is why this candidate is different: `quad` is **not monotone in
+the read-out** — it is **negative at read-out 128**, the first quantity in this sequence whose structure is not a
+function of the read-out. But its ordering of the three read-outs **depends on how the tasks are pooled**:
+averaged over tasks it orders them **128 < 0 < 32**, matching the forgetting exactly, while at its maximum it
+orders them **128 < 32 < 0** and fails. **One aggregation agreeing and another failing is not a confirmation**,
+so the claim stated here is the qualitative one that survives every aggregation: **read-out 128 is the only one
+where the curvature is negative for *both* tasks, and it is the one that forgets least** — a hypothesis, with a
+cheap and specific test (a fourth read-out between 128 and 1307), and the first qualitative difference anyone has
+found at the anomalous read-out
+(`docs/findings/2026-09-23-the-second-order-term-changes-sign-at-128.md`). And the sweep validates itself: its read-out-32 plastic row is the hardened
 configuration's `naive` and comes out at **+0.0729 ± 0.0151**, reproducing `e8_hardened_basis` to the last
 printed digit (`docs/findings/2026-09-23-the-unbacked-cells-measured.md` §1).
 
