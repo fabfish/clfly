@@ -1005,7 +1005,30 @@ so the claim stated here is the qualitative one that survives every aggregation:
 where the curvature is negative for *both* tasks, and it is the one that forgets least** — a hypothesis, with a
 cheap and specific test (a fourth read-out between 128 and 1307), and the first qualitative difference anyone has
 found at the anomalous read-out
-(`docs/findings/2026-09-23-the-second-order-term-changes-sign-at-128.md`). And the sweep validates itself: its read-out-32 plastic row is the hardened
+(`docs/findings/2026-09-23-the-second-order-term-changes-sign-at-128.md`).
+
+**That test has been run and the hypothesis is refuted — and the fourth point changes what the anomaly is.**
+At read-out **512** the curvature is **positive for task 0 and negative for task 1** — not both negative, so the
+negative region is not an interval — while its forgetting is **+0.0208, the smallest of the four**. That is the
+pre-registered falsifier verbatim: the sign of the curvature does not track the level of the forgetting.
+**And the four-point series relocates the anomaly.** Along the read-out axis:
+
+| read-out | forgetting | body drift | load-bearing gap | curvature < 0 for both? |
+|---|---|---|---|---|
+| **1307** (whole) | +0.0479 | 0.0195 | −0.0111 | no |
+| **512** | **+0.0208** | 0.0258 | +0.0014 | no |
+| **128** | +0.0333 | 0.0391 | +0.0167 | **yes** |
+| **32** | +0.0729 | 0.0493 | +0.1000 | no |
+
+**The three narrow read-outs are monotone** (+0.0208 < +0.0333 < +0.0729) and the **whole state is the one point
+above them** — so the non-monotonicity is not a mid-range dip but a single configuration's excess, and it is the
+configuration where the body is *least* needed (the only negative gap, −0.0111) and the one this paper itself
+says *"contains no continual-learning problem"*. **Forgetting measured there is measuring something else**, which
+is a specific statement rather than a search. The drift and the gap remain monotone across all four points, which
+is now five fires of instrumentation saying the same thing: **every mechanical quantity this project can measure
+is monotone in the read-out.** The 512 execution was repeated and is **bit-identical** in both forgetting and
+curvature, extending the `sd = 0.0000` result to a fourth read-out
+(`docs/findings/2026-09-23-the-anomaly-is-the-whole-state-not-the-middle.md`). And the sweep validates itself: its read-out-32 plastic row is the hardened
 configuration's `naive` and comes out at **+0.0729 ± 0.0151**, reproducing `e8_hardened_basis` to the last
 printed digit (`docs/findings/2026-09-23-the-unbacked-cells-measured.md` §1).
 
