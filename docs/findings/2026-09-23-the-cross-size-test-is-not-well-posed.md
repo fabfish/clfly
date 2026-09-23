@@ -17,17 +17,51 @@ nine labels*.
 
 **The labels are the same and the partitions are not.** A pooling that leaves 29 `cell_type` groups at
 d = 1307 leaves a handful at d = 952, so the nine partitions each label names are — at every size —
-different objects. Measured, for the nine targets actually run:
+different objects. Measured, for the nine partitions, from the pressure artifacts `e80`/`e82` at each size:
 
-| size | concentration range of its nine partitions |
-|---|---|
-| d = 952 | **0.006 to 0.754** |
-| d = 1307 | 0.020 to 0.536 |
-| d = 1874 | 0.034 to 0.324 |
+| partition | d = 952 | d = 1307 | d = 1874 |
+|---|---|---|---|
+| `cell_type` min 1 | 0.0061 | 0.0199 | 0.0337 |
+| `cell_type` min 2 | 0.6904 | 0.3255 | 0.1621 |
+| `cell_type` min 3 | 0.7435 | 0.3950 | 0.1894 |
+| `cell_type` min 4 | 0.7543 | 0.4593 | 0.2382 |
+| `cell_type` min 6 | 0.7543 | 0.5363 | 0.3237 |
+| `side` | **0.4981** | **0.4985** | **0.4984** |
+| `cell_class` | 0.1594 | 0.1714 | 0.2059 |
+| `ito_lee_hemilineage` | 0.0333 | 0.0325 | 0.0375 |
+| `supertype` | 0.0123 | 0.0257 | 0.0403 |
+| **range** | **0.006–0.754** | **0.020–0.536** | **0.034–0.498** |
+
+What the table shows is **not** that the four non-`cell_type` labels are stable and the ladder is not; it is
+that **the ladder is what sets each size's concentration *range*, and the range is a function of `d`.** The
+ladder's own span narrows by a factor of **13** as the subsample shrinks — 0.006–0.754 at d = 952 against
+0.034–0.324 at d = 1874 — because a threshold `min_size m` merges more groups when `d` is small. The four
+non-rung labels move far less across the same three sizes: `supertype` 0.0123 → 0.0403 (3.3×),
+`cell_class` 0.1594 → 0.2059, `ito_lee_hemilineage` 0.0333 → 0.0375, and `side` by 0.06%. And **`side` is a
+fixed point** — 0.4981, 0.4985, 0.4984, the same partition to three decimals at all three sizes — so the
+design does contain one partition that is genuinely the same object everywhere, and it is the largest
+concentration of any non-rung row.
 
 So the first step of the "replication" is a comparison between a set with four partitions beyond 0.69 and
-a set whose coarsest is 0.536. **A rank correlation over "the same nine rows" is not comparing like with
-like**, and the overlap of all three ranges (0.034–0.324) contains enough rows at only one size.
+a set whose coarsest `cell_type` rung is 0.536. **A rank correlation over "the same nine rows" is not
+comparing like with like.** The common range of the three, **0.034–0.498**, holds **2 of 9 rows at
+d = 952, 4 of 9 at d = 1307 and 9 of 9 at d = 1874** — so restricting to the overlap cannot be computed at
+the very size whose reversal is in question (d = 952 has two rows, and no correlation on two points means
+anything). **That is the sharpest form of the problem: the design cannot be repaired by subsetting,
+because the size that reversed is the one that would have to be dropped.** *(`e86`'s own report only
+computed the overlap at d = 1874, which was correct given what it had; what it could not see is that the
+other two sizes had too few rows, which is a different statement from "only one size has enough".)*
+
+> **Correction (2026-09-23, same day).** The table above and the sentence that followed it previously read
+> "d = 1874: **0.034 to 0.324**" and "the overlap of all three ranges (**0.034–0.324**) contains enough
+> rows at only one size". Both were read off the `e86` pressure artifact **while it held five of the nine
+> rows at that size** — the five were all `cell_type` poolings, so 0.324 was its correct maximum and the
+> nine's is 0.498, set by `side`. The artifact was not *in flight* in rule 17's sense (no seed was
+> half-weighted), so no existing guard caught it; the check that does is comparing the artifact's own `n`
+> against the `n` of the claim. The correction is not cosmetic: the real overlap is computable at **two**
+> sizes rather than one, and the reason it is not computable at d = 952 is stronger than the reason the
+> old sentence gave. Rule 17 now carries this as its second shape
+> (`docs/research_plan.md`).
 
 ## 2. The result at d = 952, where the test is complete
 
