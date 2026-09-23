@@ -49,6 +49,17 @@ three different label mappings over the same 80 neurons — forgetting is +0.003
 input-level separation is why forgetting is mild, is **refuted**: removing the separation
 does not restore it.
 
+**(*Regime caveat added 2026-09-24, and it is a caveat about this table rather than about its arithmetic.*)**
+**The overlap table above was taken at the whole-state read-out, and this finding's own §4 shows that at that
+read-out the plastic weights were not load-bearing** — the frozen body reached 0.944 against the plastic arm's
+0.951. A benchmark whose decoder solves the tasks with the recurrent weights untouched **has no forgetting for
+input overlap to create**, so the refutation is **conditional on the read-out**, and at read-out 32 the narrow
+setting every later result in this project reports, the same construction gives frozen **0.8134** against plastic
+**0.9125**, a 0.10 gap. **The question is therefore open again where the body matters**, and it is registered
+there as `e142` (`docs/findings/2026-09-24-the-overlap-family-at-a-narrow-read-out-registered.md`). The
+conclusion in the paragraph below — that overlap and difficulty were the wrong two levers *for this benchmark* —
+stands as written, because it is a conclusion about the benchmark that was run.
+
 This agrees with `e7`, which found on the linear substrate that more input overlap gives
 *less* interference: sharing input directions lets a later task confirm rather than
 compete. Two substrates, same direction.
