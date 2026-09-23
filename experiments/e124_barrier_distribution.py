@@ -194,6 +194,10 @@ def main(argv=None) -> int:
     p.add_argument("--theta-dir", type=Path, default=Path("runs/e124_theta"))
     p.add_argument("--checkpoints", default="first,last", choices=("first,last", "all"),
                    help="'first,last' (2 chords per pair) or 'all' (one per checkpoint, ~3x the work)")
+    p.add_argument("--matching-seeds", type=Path, default=Path("runs/e116_r128_40reps.json"),
+                   help="C0b: the extension control -- a stored run whose first `--seeds` replicates this "
+                        "run's twelve must reproduce. Every run here uses seed0 + 100r, so a twelve-seed run "
+                        "IS the first twelve of a forty-replicate one at the same configuration")
     p.add_argument("--matching-pair", type=Path, default=Path("runs/e122_path_geometry.json"),
                    help="C0: the artifact whose seeds 0/100 chord this run's pair (0,1) must reproduce")
     p.add_argument("--json-out", type=Path, default=None)
@@ -255,6 +259,26 @@ def main(argv=None) -> int:
         print(f"    n = {ret['n']}   min {ret['min']:.4f}   median {ret['median']:.4f}   MAX {ret['max']:.4f}")
         print(f"    worst pair: {ret['max_at']}")
 
+    # C0b -- the extension control, and it is the one that generalises across read-outs. Every run of this
+    # benchmark uses `seed0 + 100r`, so a twelve-seed run's seeds ARE the first twelve of any forty-replicate
+    # run at the same configuration. At read-out 128 those twelve came out **bit-identical** to
+    # `runs/e116_r128_40reps.json`'s first twelve; this makes the same check automatic at any read-out, so a
+    # second read-out cannot quietly be a different benchmark.
+    ext = {"attempted": False}
+    if args.matching_seeds and args.matching_seeds.is_file():
+        ref = json.loads(args.matching_seeds.read_text(encoding="utf-8"))
+        ref_reps = ref["methods"]["naive"]["replicates"][:len(seeds)]
+        ref_forg = [r["mean_forgetting"] for r in ref_reps]
+        mine = [scalars[s]["mean_forgetting"] for s in seeds]
+        ext = {"attempted": True, "artifact": str(args.matching_seeds),
+               "n_compared": len(mine), "n_available": len(ref["methods"]["naive"]["replicates"]),
+               "identical": mine == ref_forg,
+               "max_abs_difference": max(abs(a - b) for a, b in zip(mine, ref_forg)),
+               "mean_new": float(np.mean(mine)), "mean_reference": float(np.mean(ref_forg))}
+        print(f"  extension control: {ext['n_compared']} of the reference's {ext['n_available']} replicates, "
+              f"max |difference| {ext['max_abs_difference']:.3e} -> "
+              f"{'BIT-IDENTICAL' if ext['identical'] else '** DIFFERS **'}")
+
     # C0 -- the chord through seeds 0 and 100, which is pair (0, 1) here, against what e122 recorded.
     c0 = {"attempted": False}
     if args.matching_pair and args.matching_pair.is_file():
@@ -308,7 +332,8 @@ def main(argv=None) -> int:
                         for s in seeds},
             "fit_tasks": fit_rows, "retained_tasks": retained_rows,
             "distributions": {"fit": fit, "retained": ret},
-            "C0": c0, "endpoint_controls": {k: {"all_agree": v["all_agree"]} for k, v in controls.items()},
+            "C0": c0, "C0b_extension_control": ext,
+            "endpoint_controls": {k: {"all_agree": v["all_agree"]} for k, v in controls.items()},
             "P3": p3, "P3_as_first_computed": p3_alt,
         })
         print(f"\nwrote {args.json_out}")
