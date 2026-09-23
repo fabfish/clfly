@@ -72,13 +72,38 @@ Two runs of one command, an hour apart, at `--fisher-batches 8`:
 And at `--fisher-batches 32`, the same comparison across processes **13 hours and five commits apart**:
 **all five arms reproduce**, block and matched-random included.
 
-**So reproducibility here is not a property of the method, the runner, or the epoch. It is a property of the
-arm *at a configuration*, and it is not inferable from the code's data flow.** The two arms that reproduce at
-both batch counts are the ones with no estimated object between them and the training signal — `naive` has no
-anchor, `ewc` has a 26,568-entry diagonal; the three that fail at 8 batches are the two that fill 5.3e7 block
-entries and the one whose numbers the previous fire used as a detector. **The practical consequence is the
-rule, not the observation: a network-line contrast needs its own reproduction run, and a reproducibility
-result at one configuration licenses nothing at another.**
+**The sweep was then run out to seven executions of the same five-arm command**, so the reproducibility claim
+is per arm *and* per batch count rather than a single pair:
+
+| run | `naive` | `ewc` | `ewc-block` | `ewc-block-rand` | `replay` | block − control | control − `naive` | block − `naive` |
+|---|---|---|---|---|---|---|---|---|
+| 8 batches, `e101` | +0.0729 | +0.0271 | +0.0167 | +0.0521 | +0.0333 | **−0.0354** | −0.0208 | −0.0562 |
+| 8 batches, `e102` #1 | +0.0729 | +0.0271 | +0.0229 | +0.0396 | +0.0500 | **−0.0167** | −0.0333 | −0.0500 |
+| 8 batches, `e102` #2 | +0.0729 | +0.0271 | +0.0229 | +0.0396 | +0.0500 | **−0.0167** | −0.0333 | −0.0500 |
+| 32 batches, 09-22 | +0.0729 | +0.0208 | +0.0604 | +0.0438 | +0.0500 | **+0.0167** | −0.0292 | −0.0125 |
+| 32 batches, `e102` | +0.0729 | +0.0208 | +0.0604 | +0.0438 | +0.0500 | **+0.0167** | −0.0292 | −0.0125 |
+| 128 batches, `e101` | +0.0729 | +0.0250 | +0.0104 | +0.0271 | +0.0333 | **−0.0167** | −0.0458 | −0.0625 |
+| 128 batches, `e102` | +0.0729 | +0.0250 | +0.0313 | +0.0375 | +0.0500 | **−0.0062** | −0.0354 | −0.0417 |
+
+**Five of the seven runs reproduce exactly against their partner — every arm, every replicate.** And the two
+that do not are **`e101`'s two runs and only those two**: `e102`'s 8-batch pair agrees on all five arms, the
+32-batch pair agrees on all five arms 13 hours apart, and it is `e101`'s 8-batch and 128-batch runs that stand
+apart. **So the two runs the previous fire declared "fully controlled" are the two that fail to reproduce, and
+the point it flagged as contaminated is the one with two exact reproductions.** That is not a subtle
+mis-ordering of evidence; it is the flag pointing at the control group.
+
+**What is reproducible and what is not, measured:**
+
+- **`naive`: all seven runs, bit-identical**, at every batch count. This is what makes it the level control.
+- **`ewc` (the diagonal): identical at every batch count** (0.0271 / 0.0208 / 0.0250, two or three runs each).
+  It is the configuration's *most* reproducible Fisher arm, which is consistent with its 26,568-entry
+  estimate against the block arms' 5.3e7.
+- **`ewc-block`, `ewc-block-rand`, `replay`: no.** Not at 8 batches, not at 128; yes at 32.
+- **The one quantity the section argues about, the block-minus-control gap, reproduces in SIGN and not in
+  magnitude**: −0.0354 and then −0.0167 twice at 8 batches; +0.0167 twice at 32; −0.0167 and −0.0062 at 128.
+  **Six of six paired runs agree in sign with their twin**, so the sign function of the batch count is
+  **−, +, −** — non-monotone, and reproducible as a *pattern*, with the magnitudes moving by up to **0.021**
+  between runs of one command.
 
 ## 3. What this does to `e101`, and what it does not
 
@@ -91,19 +116,20 @@ the 32-batch point reproduces on 280 of 280 fields and the 8-batch point does no
 three arms the sweep is about.
 
 **And P1's refutation survives with a quantified caveat.** The clause was that the block-minus-matched-random
-gap shrinks monotonically as batches rise, with the level fixed; the gap does not shrink monotonically, and it
-**changes sign**, which no account that makes the block's standing a function of its Fisher's data can
-accommodate. The caveat is the run-to-run variation just measured: **at 8 batches the gap moved 0.019 between
-two runs of one command against a within-run paired sem of 0.022**, so the sem understates the run-to-run
-uncertainty by about 1.4×, while the sign change across the batch counts is 0.033–0.052 — **larger than that
-variation, so the sign instability is not noise, and the account is still refuted on the one axis that
-isolates it.** What changes is the confidence attached to the *magnitude* of any single gap in the sweep, and
-it is now stated with its own reproduction attached rather than asserted from one run.
+gap shrinks monotonically as batches rise, with the level fixed. Measured on the seven-run table above, the
+gap's **sign is reproducible at every batch count and its magnitude is not**: negative twice at 8 batches
+(−0.0354, −0.0167, −0.0167), positive twice at 32 (+0.0167, +0.0167), negative twice at 128 (−0.0167,
+−0.0062). **So the sign function of the batch count is −, +, −**, which no account that makes the block's
+standing a function of its Fisher's data can accommodate, and **the run-to-run movement of the magnitude
+(up to 0.021) is smaller than the gap's own sign change (0.033)**. The account is therefore still refuted on
+the one axis that isolates it, and the confidence attached to any *single* gap's magnitude is what changes:
+each one in the paper is now quoted with its pair rather than alone.
 
-**And the "positive transfer result" stays withdrawn.** The contrast that made it look like a transfer was
-`block − naive`; the matched random control earns a similar advantage, so the two arms bracket the result
-rather than separating biology. The reproducibility data adds a second reason: the block's own value at 8
-batches moves by 0.006 between runs of one command.
+**And the "positive transfer result" stays withdrawn, on two independent grounds.** The contrast that made it
+look like a transfer was `block − naive`; **the matched random control beats `naive` at every batch count in
+every run too** (−0.0208, −0.0333, −0.0292, −0.0458, −0.0354), and the biology-specific contrast is smaller
+than the granularity one in every run. Second, the block's own value moves between runs of one command
+(0.006 at 8 batches, 0.021 at 128), so the arm carrying the claim is one of the three that do not reproduce.
 
 **One correction the re-runs surfaced.** The previous fire's σ figures for this contrast were computed from
 the **unpaired** sem (−0.0354 at 1.44σ), while the two arms are trained on a shared seed sequence and the

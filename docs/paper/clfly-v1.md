@@ -859,14 +859,15 @@ at the *same* batch count the **size-matched random control of the same synapses
 the same baseline, at 0.9431 accuracy**. So what resolves at this λ is *partitioning the synapses coarsely at
 `cell_class`*, and not the fly's grouping of them. **The one contrast that isolates biology is the block
 against that control, and it resolves nowhere** — negative at two of the three batch counts and positive at
-the third (−0.0354 ± 0.0218, +0.0167 ± 0.0252, −0.0167 ± 0.0134). **That contrast's value is also not
-reproducible at 8 batches**: a second run of the same command an hour apart gave −0.0167 where the first gave
-−0.0354, while `naive` and the diagonal were **bit-identical** in the two runs, so the gap is quoted with its
-run-to-run movement beside it and never as a resolution
+the third, and **reproducible in sign at every one of them**: −0.0354, −0.0167, −0.0167 at 8 batches;
++0.0167, +0.0167 at 32; −0.0167, −0.0062 at 128, from seven executions of one command. **Its magnitude is
+not reproducible**: the same command run twice moves it by up to **0.021**, while `naive` and the diagonal are
+**bit-identical** in those same pairs, so each gap is quoted with its twin beside it and never as a resolution
 (`docs/findings/2026-09-23-the-positive-transfer-result-was-not-one.md`,
 `docs/findings/2026-09-23-the-fisher-free-arm-was-not-fisher-free.md`). **The λ = 0.003
 configuration below is the exception, and it is configuration-specific**: at cs = 800 the diagonal beats `naive` on
-forgetting by **+0.0521 ± 0.0211 = 2.47σ** (`e8_hardened_basis`, 5 replicates), **at cs = 300 the same
+forgetting by **+0.0521 ± 0.0211 = 2.47σ** (`e8_hardened_basis`, 5 replicates, **and reproduced exactly by a
+second run**), **at cs = 300 the same
 contrast is +0.0104 ± 0.0421 = 0.25σ**, and **at 2 classes it is
 −0.0063 ± 0.0136, the diagonal *worse*** — so the advantage is present in **one of the three
 configurations measured**, and `e99` and `e100` between them show it is neither a size effect nor a
@@ -1593,6 +1594,7 @@ artifact as well, so the command's output can be checked rather than assumed.
 | §4.2, §4.4 | `python -m experiments.e2_topology_gap --json-out runs/e2_analytic.json` | `runs/e2_analytic.json` |
 | §5, **the corrected count** (three steps) | `python -m experiments.e6_predictor --seeds 6 --json-out runs/e64_predictor_6_perseed.json` → `python -m experiments.e64_predictor_per_seed` → `python -m experiments.e94_predictor_denominators` | `runs/e64_predictor_per_seed_analysis.json`, `runs/e94_predictor_denominators.json` |
 | §5, the **unpaired** σ this section supersedes | `python -m experiments.e6_predictor --json-out runs/e6_predictor.json` | `runs/e6_predictor.json` |
+| §4.7, the trained-network benchmark | `python -m experiments.e8_rate_network --circuit-size 800 --iters 500 --lam 0.003 --batch 32 --replay-per-task 16 --replay-batch 16 --methods naive,ewc,ewc-block,ewc-block-rand,replay --train 96 --test 48 --classes 4 --readout-size 32 --support 80 --shared-head --basis cell_class --fisher-batches {8,32,128} --pool-below 0 --pool-buckets 1 --repeats 5 --json-out runs/e101_rate_fb{N}.json` | `runs/e8_hardened_basis.json` (32), `runs/e101_rate_fb8.json`, `runs/e101_rate_fb128.json`, `runs/e101_rate_fb32.json`, `runs/e102_rate_fb8_rerun.json` |
 | §6 | `python -m clfly.lgcl.repro`, `pytest -q` | — |
 
 The connectome data is not redistributed; `python -m clfly.connectome.fetch` clones it
@@ -1606,6 +1608,17 @@ the measurement behind it is narrower than the phrase. Re-running the same comma
 delta of 2.6e-4, so the environment sits **40× below it** — which is why no conclusion has ever moved.
 But the honest phrase is **"identical to about four significant digits given an environment"**, and the
 qualification attaches to every reproduction claim here including the ones stated most strongly.
+
+**On the trained network the qualification is not uniform across arms — it is per-arm and
+per-configuration, and measured.** At `--fisher-batches 32` the whole five-arm benchmark reproduces
+**exactly**: 280 of 280 numeric fields, including every replicate of all five methods, **13 hours and five
+commits apart**. At `--fisher-batches 8` two runs of one command an hour apart agree on `naive` (+0.0729) and
+on the diagonal (`ewc`, +0.0271) and **disagree** on the biological block (+0.0167 / +0.0229), its size-matched
+random control (+0.0521 / +0.0396) and `replay` (+0.0333 / +0.0500) — which moves the one contrast §4.7 rests
+on from −0.0354 to −0.0167. **So "reproduces" is a claim about an arm at a configuration and not about the
+benchmark**, a reproduction at one configuration licenses nothing at another, and §4.7 quotes each contrast
+with whether its own arms have been re-run rather than assuming it
+(`docs/findings/2026-09-23-the-fisher-free-arm-was-not-fisher-free.md`).
 
 **And the same environment shapes the paper's *cost* figures, which §9 has never said.** Measured on the
 estimator this section derives: `expected_error_matrix` at d = 1307 takes **6.08 s at `OMP_NUM_THREADS=4` and

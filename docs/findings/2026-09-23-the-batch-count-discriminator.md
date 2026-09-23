@@ -20,10 +20,12 @@ configuration otherwise (λ = 0.003, cs = 800, 4 classes, 5 replicates); artifac
 | `ewc-block-rand` (matched) | +0.0521 ± 0.0177 | +0.0438 ± 0.0156 | +0.0271 ± 0.0091 |
 | `replay` | +0.0333 ± 0.0121 | +0.0500 ± 0.0163 | +0.0333 ± 0.0121 |
 
-*Added 2026-09-23: the 8-batch column is **one run, and it does not reproduce.** A second run of the same
-command gives `naive` +0.0729 and `ewc` +0.0271 **unchanged** and `ewc-block` **+0.0229**, `ewc-block-rand`
-**+0.0396**, `replay` **+0.0500** — the block-minus-random gap moves from −0.0354 to −0.0167. The 32-batch
-column is the only one measured twice, and it reproduces on **280 of 280 numeric fields**
+*Added 2026-09-23: the 8-batch column is **one run, and it is the one that does not reproduce.** Two further
+runs of the same command give `naive` +0.0729 and `ewc` +0.0271 **unchanged**, `ewc-block` **+0.0229**,
+`ewc-block-rand` **+0.0396** and `replay` **+0.0500** — identical to each other on all five arms — which moves
+the block-minus-random gap from −0.0354 to −0.0167. The 128-batch column behaves the same way, and the 32-batch
+column is the only one that reproduces on every arm: **five of seven executions of this command reproduce
+exactly against their partner, and the two that do not are this table's 8- and 128-batch columns**
 (`docs/findings/2026-09-23-the-fisher-free-arm-was-not-fisher-free.md`).*
 
 **P2 — the built-in control — half holds, and the half that fails is informative.** `naive` is
@@ -35,14 +37,20 @@ both new runs and **+0.0500 at the old 32-batch point**.
 > **Correction (2026-09-23, `e102`), and it inverts the diagnosis below.** This section read that difference as
 > evidence that the 32-batch run came from a different environment. **Measured, the 32-batch point is the
 > reproducible one**: re-running its command reproduces `e8_hardened_basis` on **280 of 280 numeric fields**
-> 13 hours and five commits later, `replay` included, while **two runs of the 8-batch command an hour apart
-> agree on `naive` and `ewc` and disagree on `ewc-block`, `ewc-block-rand` and `replay`**. And the arm set with
-> **no Fisher in it at all** (`--methods naive,replay`) gives `replay` the *same* 15 numbers at
-> `--fisher-batches 8` as at `32` — so the batch count is not what moved it, and `replay` is
-> **process-dependent rather than manipulation-dependent**. The level control is unaffected and remains the
-> part the argument needs; the environment-detector role is withdrawn. **Everything below is read on the
-> re-measured sweep**, and every clause that survives is quoted with its reproduction attached
+> 13 hours and five commits later, `replay` included. The sweep was then run out to **seven executions**, and
+> **five of the seven reproduce exactly against their partner on every arm and every replicate — and the two
+> that do not are `e101`'s two runs, and only those two.** And the arm set with **no Fisher in it at all**
+> (`--methods naive,replay`) gives `replay` the *same* 15 numbers at `--fisher-batches 8` as at `32` — so the
+> batch count is not what moved it, and `replay` is **process-dependent rather than manipulation-dependent**.
+> The level control is unaffected and remains the part the argument needs; the environment-detector role is
+> withdrawn, and with it the statement that only the 8-versus-128 pair is controlled. **Everything below is
+> read on the seven-run sweep**, and every clause that survives is quoted with its reproduction attached
 > (`docs/findings/2026-09-23-the-fisher-free-arm-was-not-fisher-free.md`).
+>
+> **What the seven runs establish about the clause this section decides:** the block-minus-matched-random gap
+> is **reproducible in sign at every batch count and not in magnitude** — −0.0354, −0.0167, −0.0167 at 8;
+> +0.0167, +0.0167 at 32; −0.0167, −0.0062 at 128. So the sign function is **−, +, −** and P1's monotone
+> direction appears nowhere, while the magnitude moves by up to 0.021 between runs of one command.
 
 **The old reading of the sweep's controls, kept because it was the reasoning that produced the flag:** the
 three-point sweep appeared to mix one old run with two new ones, with only the 8-versus-128 pair controlled.
