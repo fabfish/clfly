@@ -1237,11 +1237,23 @@ draws of the realisation.
   scale-independent by construction, but the effect sizes are specific to this
   `(W, assemblies)` configuration. Of the surviving rungs, `side` is robustly strong at
   both scales and `ito_lee_hemilineage` is if anything stronger at the larger one;
-  `cell_class` is **not** scale-robust and is reported as such. Note that every coarse-rung σ
-  in this paper, including `side`'s (4 groups), is a **single-draw** figure and is inflated
-  several-fold by the control-draw component (§4.3, `e12`).
-- **d = 3150 is near the ceiling at this budget.** The exact oracle is O(d³), so a larger
-  circuit costs 7× more per run than d = 1307. The "why not the whole brain" question is
+  `cell_class` is **not** scale-robust and is reported as such. **The σ in this paper are no longer
+  single-draw figures, and this bullet said they were until 2026-09-23.** The version that stood here read
+  *"every coarse-rung σ in this paper, including `side`'s (4 groups), is a single-draw figure and is inflated
+  several-fold by the control-draw component (§4.3, `e12`)"* — which was true when the draw sd was *assumed*
+  and is contradicted by §4.3's own corrected table. Measured, the five named rungs' overstatements are
+  **1.0–1.6×** (`side` 1.64×, `cell_class` 1.35×, `ito_lee_hemilineage` 1.01×, `supertype` 1.03×, `cell_type`
+  1.02×), each from its own control-draw run; **"several-fold" survives only for the granularity ladder's
+  rungs**, whose control draws move far more (`pool4`: **42.2σ → 13.7σ**, 3.1×). So the honest form of this
+  limitation is *two families with two correction factors*, not one figure applied to all of them — and note
+  that this bullet's error ran **toward a more severe limitation than the measurements support**, which is the
+  opposite of every other drift this project has logged and is the harder kind to catch, because a limitations
+  section is where a reader expects the conservative statement and therefore challenges it least.
+- **d = 3150 is near the ceiling at this budget.** The exact oracle is O(d³), and the two runs'
+  own timings put the measured cost at **8.3× per basis-evaluation** (121.5 s each at d = 3150 against
+  14.6 s at d = 1307) — *this sentence used to say "7×" and to derive it from the O(d³) scaling, which
+  predicts **2.95×** and therefore cannot be the explanation; the number was roughly right and the reason
+  given for it was wrong.* The "why not the whole brain" question is
   answered by conditioning (§3.3), not by choice.
 - **Two seeds at d = 3150** against five at d = 1307 and 18 for the headline basis result,
   so the larger-scale σ are themselves less well determined.
