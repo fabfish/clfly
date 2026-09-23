@@ -5,8 +5,8 @@
 > **Qualified 2026-09-24 by `e130`, which ran this finding's own P1 at read-out 32 and saw it fail.** Every
 > claim below is about **read-out 128** and stands there. At read-out 32 — the narrowest read-out, where this
 > axis's per-repeat spread is largest — **21 of the 66 final-checkpoint pairs exceed the 25% threshold**, the
-> worst chord peaks at **0.4419** of chance against 0.1252 here, and the margin to a wall thins from **11.1×**
-> below chance to **3.1×**. The falsifier did not fire at either read-out (nothing reached 50%), so the
+> worst chord peaks at **0.4419** of chance against 0.1252 here, and the margin to a wall thins from **7.99×**
+> below chance to **2.26×** (12.52% of chance to 44.19%). The falsifier did not fire at either read-out (nothing reached 50%), so the
 > connected-set claim is **qualified and not overturned**: the set is connected where the seeds differ least and
 > comes closest to not being so where they differ most, which is the ordering the geometry predicts
 > (`docs/findings/2026-09-24-the-connected-set-claim-is-read-out-dependent.md`). The sentence this paragraph
@@ -39,7 +39,7 @@ distribution of the barrier as a fraction of `ln 4 = 1.386`:
 | checkpoint after task 1 | 66 | 0.0108 | 0.0212 | 0.0284 | 0.0392 | 0.1221 |
 | checkpoint after task 3 | 66 | 0.0148 | 0.0310 | 0.0445 | 0.0657 | 0.1252 |
 
-**The worst chord in the whole grid has a peak at 12.5% of the chance level — a factor of 11.1 below the loss
+**The worst chord in the whole grid has a peak at 12.5% of the chance level — 7.99× below the loss
 of a solution that has learned nothing** — and the median is **3.6%**, which is `e122`'s single pair almost
 exactly (`0.05399 / 1.386 = 3.9%`). So **`e122`'s pair was typical, not lucky**, and the answer to *"is the
 multi-basin explanation dead?"* no longer rests on one draw from the seed set: it is dead for all 66 pairs, and

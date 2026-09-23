@@ -1386,7 +1386,7 @@ retained-*loss* statement this section did not previously have
 **And it is a population result, not one pair.** Twelve seeds and **all 66 pairs**, 21-point chords at the first
 and last checkpoints, pre-registered before the run: **every one of the 132 pair-checkpoints has a fit-task
 barrier below 25% of chance**, with min **0.0108**, median **0.0361** and max **0.1252** — so **the worst chord in
-the whole grid peaks at 12.5% of `ln 4`, a factor of 11.1 below the loss of a solution that has learned
+the whole grid peaks at 12.5% of `ln 4`, **7.99×** below the loss of a solution that has learned
 nothing**, and the median is **3.6%**, which is the single pair above almost exactly. The seed pair this
 paragraph opened with was **typical, not lucky**. Two further readings: the median barrier **grows with the
 number of tasks** (0.0284 after task 1 to 0.0445 after task 3), which is what more interference should do to the
@@ -1398,8 +1398,8 @@ seeds whose forgetting differs by **0.0104** while the pair with the *largest* d
 **And the claim is scoped to a read-out, which the same fire's own registered replication then showed by
 failing.** The identical grid at **read-out 32** — the narrowest, where this axis's per-repeat spread is largest
 at **0.0556** against 0.0325 — puts **21 of the 66 final-checkpoint pairs above the 25% threshold**, with the
-worst chord at **0.4419** of chance: a margin of **3.1×** below a solution that has learned nothing rather than
-**11.1×**. **The falsifier did not fire at either read-out** — nothing reached 50% — so the set is **connected
+worst chord at **0.4419** of chance: a margin of **2.26×** below a solution that has learned nothing rather than
+**7.99×**. **The falsifier did not fire at either read-out** — nothing reached 50% — so the set is **connected
 where the seeds differ least and comes closest to not being so where they differ most**, which is the ordering
 the geometry predicts. Two things make the failure interpretable rather than merely negative: it is **entirely
 at the final checkpoint** (after one task all 66 pairs are below the threshold at both read-outs, with maxima of

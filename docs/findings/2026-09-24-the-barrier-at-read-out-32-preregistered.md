@@ -17,8 +17,10 @@ geometry **and** a monotone function of the read-out would be two claims where t
 ## Why this is a replication and not a fresh question
 
 `e124` established, at read-out 128, that **every one of the 132 pair-checkpoints has a fit-task barrier below
-25% of the chance level** — median **0.0361**, worst **0.1252**, i.e. 11.1× below the loss of a solution that
-has learned nothing. The registered thresholds are reused here **verbatim**, so a failure at read-out 32 is a
+25% of the chance level** — median **0.0361**, worst **0.1252**, i.e. **7.99×** below the loss of a solution that
+has learned nothing *(**corrected 2026-09-24**: this said 11.1×, which divided `ln 4` by a *fraction of chance*
+rather than by an absolute loss — a unit mix, and the same class as `e123`'s cross-unit sd ratio. The background
+numbers stand; the factor did not.)* The registered thresholds are reused here **verbatim**, so a failure at read-out 32 is a
 failure of a claim already in the record and not of a new one fitted to this run.
 
 ## The predictions

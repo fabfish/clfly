@@ -24,7 +24,7 @@ the first of its limitations.
 | pair-checkpoints above the 0.25 threshold | **0 of 132** | **21 of 132** |
 | … at checkpoint 0 | 0 of 66 | **0 of 66** |
 | … at checkpoint 2 | 0 of 66 | **21 of 66** |
-| worst chord, as a factor below chance | **11.07×** | **3.14×** |
+| worst chord, **as a % of chance** | **12.52%** | **44.19%** |
 
 **P1 fails, and the pre-registration said in advance what that means**: *"a failure at read-out 32 is a failure of
 a claim already in the record and not of a new one fitted to this run."* **`e124`'s P1 must be restated as
