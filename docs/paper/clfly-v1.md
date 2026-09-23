@@ -1056,7 +1056,43 @@ always makes the body matter more. **But the forgetting is not monotone with it*
 read-out are monotone in *different* respects, and the second has an interior optimum. **That is also why four
 candidate mechanisms failed here rather than by coincidence**: every mechanical quantity this project has measured
 is monotone in the read-out, and a two-sided minimum cannot be ordered by a monotone quantity
-(`docs/findings/2026-09-23-the-read-out-axis-has-an-interior-minimum.md`). And the sweep validates itself: its read-out-32 plastic row is the hardened
+(`docs/findings/2026-09-23-the-read-out-axis-has-an-interior-minimum.md`).
+
+**Two points placed to *bracket* that minimum instead broke the reading and moved it, and they turned it into a
+design statement.** Read-out **300** and **700** were pre-registered as strictly between their neighbours, and
+**both predictions failed**: at 700 the forgetting is **+0.0354**, *above* 900's +0.0292, so **the wide arm is
+not monotone** — there is a local bump at 700 — and at 300 it is **+0.0083**, *below* 512's +0.0208, so the
+minimum **moved** to the narrow side and is **2.5× deeper**. The second failure is the branch the
+pre-registration set aside in advance (a deeper, shifted bowl is a *better* benchmark result and a *worse*
+location claim), which is why the two are reported separately: **the location claim is refuted and the benchmark
+statement is strengthened.** Seven points, both reported metrics:
+
+| read-out | **forgetting** | **final accuracy** | load-bearing gap | body drift |
+|---|---|---|---|---|
+| **1307** (whole) | +0.0479 | 0.9333 | −0.0111 | 0.0195 |
+| **900** | +0.0292 | 0.9347 | −0.0014 | 0.0213 |
+| **700** | **+0.0354** | 0.9431 | −0.0014 | 0.0238 |
+| **512** | +0.0208 | 0.9486 | +0.0014 | 0.0258 |
+| **300** | **+0.0083** | **0.9569** | +0.0153 | 0.0313 |
+| **128** | +0.0333 | 0.9333 | +0.0167 | 0.0391 |
+| **32** | +0.0729 | 0.9139 | +0.1000 | 0.0493 |
+
+**Read-out 300 has both the lowest forgetting and the highest accuracy of the seven**, and its forgetting is
+**the lowest plastic `naive` value in this corpus** (0.0083 against 68 such arms; the next lowest is the 2-class
+configuration's 0.0167). Task 1's forgetting there is **negative**, and task 0's minimum is **also** at 300 — so
+unlike the five-point reading, this shape is per-task consistent. **The accuracy series is non-monotone too**,
+peaking at 300, so the two metrics a practitioner cares about agree on an interior optimum.
+
+**Which separates two statements the paper makes only one of.** The load-bearing gap keeps rising monotonically
+as the read-out narrows (−0.0111 → −0.0014 → −0.0014 → +0.0014 → +0.0153 → +0.0167 → +0.1000) — that is what the
+design principle above is about — while **both reported metrics are optimized at about a quarter of the state's
+width and are worse at either extreme.** Read-out 32 has the **largest** gap and the **worst** forgetting and
+accuracy of the seven. So *"narrow the read-out so the body is load-bearing"* and *"do not narrow it past an
+optimum"* are different statements, and the second is the one a practitioner needs; it is the first design
+statement this line has produced that can be acted on. **And the five-point bowl was not a bowl**: its
+description came from monotone arms of length three and four, and two more points broke one arm and moved the
+minimum by 1.7× — the fourth shape revision in this sequence, every one of them from a pre-registered prediction
+about the next point (`docs/findings/2026-09-23-both-metrics-have-an-interior-optimum.md`). And the sweep validates itself: its read-out-32 plastic row is the hardened
 configuration's `naive` and comes out at **+0.0729 ± 0.0151**, reproducing `e8_hardened_basis` to the last
 printed digit (`docs/findings/2026-09-23-the-unbacked-cells-measured.md` §1).
 
