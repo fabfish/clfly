@@ -73,7 +73,11 @@ turns the explanation into a measurement**, and its prediction is registered her
 
 ## 4. And it is measured: P1 holds, and the extended instrument orders the effect where the old one does not
 
-`runs/e139_r32_wholebody.json` landed, and on the same forty paired seeds, task 0:
+`runs/e139_r32_wholebody.json` landed, and on the same forty paired seeds, task 0 — **and it is the same
+trajectories rather than merely the same command**: `e139`'s `naive` and `ewc` arms are **per-replicate
+bit-identical** to `e133`'s in forgetting, final accuracy and `theta_drift`, all forty replicates and both
+methods, so adding the `whole_body` instrumentation did not perturb training and the two forms are two readings
+of one set of runs.
 
 | cumulative, task 0 | naive | EWC | change | ratio |
 |---|---|---|---|---|
