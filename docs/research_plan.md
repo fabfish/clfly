@@ -1248,7 +1248,17 @@ Added 2026-09-22, after the headline metric was found to be chaotic
    the measured +33% with the upper end of an earlier *realization-based* +45–63% that the paper states
    nowhere, and neither endpoint had been overturned so neither was searched for). The check that catches
    both is to ask **where each number should be sourced** and go there, rather than to ask whether the
-   number looks familiar (`docs/findings/2026-09-23-the-abstract-had-six-stale-figures.md`).
+   number looks familiar. **And search with a whitespace-insensitive pattern.** That audit has now missed
+   something for four distinct reasons across four passes — a variant spelling ("bit-reproducible" for
+   "bit-for-bit"), a hybrid range ("+33–63%" joining a measured 33% to a realization-based 63%), and twice
+   a **line wrap**: "its standard / deviation across seeds" made a search for `standard deviation` return
+   one hit where there were four, and the phrase "bit-identical" wraps in one place and not another.
+   Replacing the patterns with `standard\s+deviation` and re-running upgraded one count from 1 to 4 and
+   found a leftover §4.7 still said "bit-identical to `e8_hardened`'s". Three of the four misses were
+   found by *reading* rather than by searching; the whitespace-insensitive pattern is the one guard that
+   cost nothing and found something
+   (`docs/findings/2026-09-23-the-abstract-had-six-stale-figures.md`,
+   `docs/findings/2026-09-23-a-third-hybrid-and-a-line-break.md`).
 
 ## Related work to differentiate against
 
