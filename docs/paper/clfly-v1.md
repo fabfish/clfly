@@ -1927,7 +1927,11 @@ the filters are the LGCL family, not a trained spiking network, and the network 
 demonstrably cannot tell you is which of its conclusions are artefacts of the linearisation;
 §4.7 is the beginning of that check, and it overturned three of them.
 
-**Five measurement traps, every one of which the project fell into before finding it.**
+**Six measurement traps, every one of which the project fell into before finding it.** *(This heading read
+"Two" until commit `1743573`, which rewrote it to "**Five**" while adding two bullets to the two that were
+there — so it said five and listed four from the day it was written until 2026-09-24. That commit's own message
+is about stale aggregate statements, and this is the defect it was fixing, born in the fix. The count is now six
+because the two newest traps are the ones `e122` and `e125` found.)*
 - **A benchmark can measure its decoder instead of its subject.** The network line spent
   four fires concluding that no method worked, on a benchmark whose plastic weights were
   never load-bearing: freezing them cost 0.007 accuracy and eliminated forgetting entirely.
@@ -1949,6 +1953,24 @@ demonstrably cannot tell you is which of its conclusions are artefacts of the li
   projected deficit, explains 83% of the draw-to-draw variance on the same relabelling (`e81`). Two
   rungs of the ladder are in fact the *same partition*, and their controls disagreed at 4.7σ while the
   seed sem called the curve's internal steps resolved.
+- **A saved state can omit a parameter, and the omission is invisible until something is recomputed
+  from it.** `e122`'s chord between two seeds' solutions reported endpoint losses of **0.105** where the
+  body's own recorded loss was **0.0017** — a factor of sixty — because `train_task` optimises
+  `[model.theta, model.bias]` (`experiments/e8_rate_network.py:72`) and `--save-theta` wrote `theta` and
+  the decoders, so every point on every chord sat on a **zero bias the benchmark never produces**. What
+  makes this a trap rather than a slip is that **no audit in this project could see it**: the artifact
+  was self-consistent, the configuration was identical, and the number was plausible. The check that
+  catches it is an **equality against a recomputation** — the chord at `t = 0` *is* a saved checkpoint, so
+  its loss must equal a figure the runner recorded while training — and a key list would pass the moment
+  somebody adds a trainable parameter and forgets it the same way.
+- **A run compared with a copy of *itself* is still a contrast across code epochs.** `e125` needed the
+  plastic arm at read-out 32 and found it on disk as `runs/e116_r32_40reps.json`, same configuration, same
+  forty seeds — and its first five replicates are **not** bit-identical to the five-replicate
+  `runs/e104_frozen_r32_plastic.json`, because the two replicate dicts carry **different key sets**
+  (`e104`'s lack `theta_drift`, `e116`'s lack `retention_loss`). Rule 27's epoch check was written for a
+  contrast between an experiment and its control; this is the case it was not written for — **the variable
+  is the same on both sides** — and it still invalidates the comparison, which is why the arm was re-run
+  rather than cited.
 
 **The predictor.** Validated on five out-of-sample conditions, on the hardened network
 configuration, and on the granularity ladder — where it reaches **+0.995** across 17 bases

@@ -1513,6 +1513,33 @@ about (`docs/findings/2026-09-23-the-last-two-unaudited-sections-were-clean.md`)
    `e119`'s variance decomposition readable — a factor of √10 of removability on a test-set term is a factor
    of ten in the noise it removes).
 
+31. **A saved state must contain every parameter the forward pass reads, and the control for that is a
+   recomputation rather than a key list.** `e122`'s chord reported endpoint losses of **0.105** for a body whose
+   own recorded loss was **0.0017** — a factor of **sixty, on the endpoint**, which is the loudest place a bug
+   can be — and the cause was not the geometry: `train_task` optimises `[model.theta, model.bias]`
+   (`experiments/e8_rate_network.py:72`), and `--save-theta` wrote `theta` and the decoders. **Every point on
+   every chord, both endpoints included, was evaluated on top of a zero bias the benchmark never produces.**
+   The rule this fire adds is about the *check*: the repaired instrument's control is that the chord at `t = 0`
+   **is** a saved checkpoint, so its loss must equal a number the runner wrote down while training —
+   an **equality**, not a tolerance — and that needed the runner to record the right number first
+   (`retention_loss[k][j]`, the retention matrix in loss, added for this). **A key-list assertion would pass the
+   moment somebody adds a trainable parameter and forgets it in the same way**, which is why the permanent test
+   (`tests/test_e122_checkpoint.py`) reloads a checkpoint into a fresh module and requires the recorded loss,
+   and why its sibling asserts *how big* the failure is (a factor of 3 on a tiny circuit, 60 on the real one) so
+   that "we would have noticed" is a measurement rather than a hope.
+
+32. **An artifact's key set dates its epoch, so a run compared with a nominal copy of *itself* is not exempt
+   from rule 27.** `e125` needed the plastic arm at read-out 32 and found it on disk twice:
+   `runs/e116_r32_40reps.json`, identical configuration at forty replicates, and
+   `runs/e104_frozen_r32_plastic.json` at five. **Their first five replicates are not bit-identical, and the
+   reason is a keyset rather than a number**: `e104`'s replicate dicts lack `theta_drift` and `e116`'s lack
+   `retention_loss`, so the two files are two code epochs. Rule 27 was written for a *contrast* between an
+   experiment and its control; this is the case it was not written for — **the same variable on both sides** —
+   and it says the run must be redone rather than cited, because a difference between two epochs is a
+   difference in code even when nothing was manipulated. The repair is cheap and the cost of not making it is a
+   comparison whose two halves are dated differently: `e125` re-runs the plastic arm in its own epoch and treats
+   the on-disk copies as **labelled, tolerance-bounded** comparators instead.
+
 ## Related work to differentiate against
 
 Four papers are close enough to require explicit positioning — all use fly
