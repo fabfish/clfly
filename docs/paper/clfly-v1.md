@@ -898,8 +898,13 @@ been **re-measured** but **not restored** — its artifact was missing, the recr
 configuration the finding describes, and its `naive` fingerprint **failed** (0.8417 against the stored
 0.8241) because rule 21's environment is not recorded for the original. Its re-measured contrast is
 **−0.104 at 6.32σ on forgetting and +0.090 at 11.87σ on accuracy, five of five replicates agreeing**, while
-replay's own forgetting is **≈ 0 (−0.0042 ± 0.0091)** and not the claimed −0.056; the class-IL row is
-still running and was never validatable. And one discovery that scopes all of it: the
+replay's own forgetting is **≈ 0 (−0.0042 ± 0.0091)** and not the claimed −0.056. **The class-IL row is no
+longer "still running" — this sentence said it was, and it was never validatable, until 2026-09-23, while the
+abstract and this section's own table report its finished result.** Its artifact was missing for the same
+reason the task-IL one was, it was re-measured by the same run (`e84`, `runs/e84_replay96_classIL_5reps.json`),
+and its contrast is **+0.042 ± 0.009 = 4.60σ with five of five replicates positive** — so both rows are now
+*re-measured and not restored*, with the same fingerprint caveat, rather than one restored and one pending.
+And one discovery that scopes all of it: the
 benchmark is **not reproducible across thread counts** — the same command under a different
 `OMP_NUM_THREADS` trains to a different result (`e77`), so the `naive` arm is a determinism control
 *within* an environment rather than across environments, and the sixteen-replicate run is a **separate
