@@ -1563,6 +1563,17 @@ about (`docs/findings/2026-09-23-the-last-two-unaudited-sections-were-clean.md`)
    and the discipline is that the *check* has to be made (a re-run, or a stored comparator at the same
    configuration) because the keyset itself cannot decide.
 
+   **And by `e135` the converse holds for the whole five-method table rather than for `naive` alone.**
+   `runs/e135_r32_methods_plastic.json` — written with `retention_loss`, `bias_norms`, the per-task checkpoint
+   *and* `--replay-batch` — reproduces **three** artifacts from older epochs **per replicate**: `e8_hardened_basis`'s
+   `naive` (**+0.0417, +0.0521, +0.1042, +0.1146, +0.0521**) and `ewc` (**+0.0417, +0.0104, +0.0313, −0.0312,
+   +0.0521**), and `e61_replay96_step8`'s `replay` (**−0.0104, −0.0208, +0.0000, −0.0104, −0.0208**). **The `ewc`
+   row is the strongest of the three**, because it is the one whose numbers pass through the Fisher's own
+   arithmetic and the anchor: a per-replicate match there says the *penalty* is epoch-stable, not merely the
+   plastic arm. So this session's `e8` additions are record-only for the whole table — **eight per-replicate
+   identity results across four read-outs (32, 128, 300, 1307) and three methods (naive, ewc, replay)** — and the count matters only because each one is a
+   case that had to be checked rather than inferred.
+
 33. **A count is a claim about the document, and nothing here was reading one.** Every audit this project has
    reads *numbers*: `e97` checks that a cited artifact exists, `e105` checks that a table's arithmetic closes,
    `e103` checks that an arm executes twice. **A count is not a number — it is a claim about the shape of the

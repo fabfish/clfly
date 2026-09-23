@@ -118,6 +118,17 @@ enough to make the plastic weights load-bearing, and replay — content memory �
 method in every setting, with forgetting driven to **zero or below**: at its tuned configuration, a
 contrast of **−0.0854 ± 0.0129 = 6.6σ** against naive, which is a number the project had to *recreate* —
 the published 4.2σ version had no artifact on disk, and the recreation reproduces it and strengthens it.
+**And that is the read-out where the comparison is least clean, because 70% of what `naive` forgets there
+lives in a channel no penalty in this paper covers.** The plastic body is **two** parameter sets, 26,568
+connectome-masked weights and **800 per-neuron offsets**, and every penalty here is built over the weights
+alone. Holding the offsets at their initialisation, with no penalty and no cost, takes that configuration's
+`naive` forgetting from **+0.0750 to +0.0227** — **+0.0523 ± 0.0089 = 5.90σ over forty paired seeds** — *and
+raises accuracy*, and **at the same five seeds a free structural constraint is 0.20σ from the tuned diagonal
+penalty**. The effect is not one configuration's accident: at read-out 128 it removes **89%** of the
+forgetting at **6.40σ**, leaving a residual **2.3σ from zero**. So *"EWC helps where the body is
+load-bearing"* is true **and** the baseline it is measured against is mostly a channel the penalty cannot see
+(`docs/findings/2026-09-24-the-unpenalised-channel-carries-seventy-percent.md`,
+`docs/findings/2026-09-24-the-bias-effect-is-not-a-read-out-32-artefact.md`).
 (The strongest evidence for that contrast is at sixteen replicates, where it is **−0.0677 ± 0.0101 =
 6.73σ with sixteen of sixteen replicates agreeing**, though replay's own forgetting there is 0.83σ from
 zero rather than resolved below it.) **The other two settings had no artifact either, and their
