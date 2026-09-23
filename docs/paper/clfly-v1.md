@@ -2014,7 +2014,12 @@ because the three newest traps are the ones `e122`, `e125` and the session that 
   four fires concluding that no method worked, on a benchmark whose plastic weights were
   never load-bearing: freezing them cost 0.007 accuracy and eliminated forgetting entirely.
   The frozen-body control is the diagnostic, and every forgetting comparison should report
-  the plastic-minus-frozen accuracy gap alongside it.
+  the plastic-minus-frozen accuracy gap alongside it. **And the body is two parameter sets, so the diagnostic
+  has to be run twice**: 26,568 connectome-masked weights and 800 per-neuron offsets, both trained, and holding
+  the offsets alone takes this configuration's forgetting from **+0.0750 to +0.0227** while *raising* accuracy —
+  so `--frozen-body` says whether the body matters and `--frozen-bias` says **which half of it the forgetting
+  lives in**, and the first answer without the second can be satisfied while 70% of the forgetting sits in the
+  half no method touches.
 - **A comparison in which one method has been tuned and another has not is not a
   comparison.** EWC's λ and basis were swept across five fires; replay's two parameters were
   never touched, and the value they were fixed at turned out to be the worst reasonable
@@ -2179,7 +2184,11 @@ why no shared rule was available and each line needed its own check.
    network benchmark on three. Both would gain more from more tasks than from more seeds.
 4. **A spiking or rate-network substrate at circuit scale with more than three behaviours**,
    which is what the frozen-body lesson says a *hard* connectome-constrained benchmark needs:
-   tasks that genuinely compete for the same plastic weights.
+   tasks that genuinely compete for the same plastic weights. **And the bias result says what "compete for the
+   same plastic weights" now has to mean**: 70% of this benchmark's forgetting is carried by 800 per-neuron
+   offsets rather than by the 26,568 masked weights, so a *harder* benchmark is one where the **structured**
+   channel is the only one available — either by freezing the offsets, or by a task family whose solution
+   genuinely requires routing through the wiring.
 5. **Report retention in loss as well as in accuracy — and note that this was measured on 2026-09-24 and the
    answer is no.** The runner records `retention_loss[k][j]`, the full-train-set loss on task *j* at checkpoint
    *k*, which is also how `e122`'s chords are validated. It is a continuous quantity where the reported metric
@@ -2194,6 +2203,16 @@ why no shared rule was available and each line needed its own check.
    of the forgetting will recover it and a practitioner reading this table should expect an error bar of about
    **half the value** whatever form it is reported in
    (`docs/findings/2026-09-24-the-loss-metric-buys-nothing.md`).
+6. **Ask the bias channel the two questions freezing it does not answer.** Holding 800 offsets at their
+   initialisation removes **70%** of this benchmark's forgetting at read-out 32 *and raises accuracy*, which
+   makes it a bound and not a recipe: **freezing is not penalising**, and a frozen parameter cannot report what
+   it would have done at an optimum it was never allowed to find. So **(a)** a *penalty* on the bias — its own
+   diagonal Fisher, or simply a smaller learning rate for it — is the arm that would say whether the channel is
+   harmful or merely unconstrained; and **(b)** the effect's **generality across read-outs** is a registered
+   run rather than an assumption, because read-out 32 is the configuration **chosen to maximise** the chance of
+   seeing it, so a bias effect at 128 or 1307 would be a new claim fitted to new data while an **ordering**
+   across the axis is one the load-bearing gaps already license (`e134`). Deterministic seeds and a
+   connectome-constrained mask make both cheap.
 
 ## 9. Reproducibility
 
