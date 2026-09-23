@@ -7,6 +7,8 @@ without it.
 
 from __future__ import annotations
 
+import os
+
 import numpy as np
 import pytest
 
@@ -138,3 +140,34 @@ def test_overlap_controlled_supports_rejects_impossible_requests():
     with pytest.raises(ValueError):
         overlap_controlled_supports(500, 5, 40, 1.5,
                                                np.random.default_rng(0))
+
+
+def test_environment_records_what_the_numbers_were_measured_in():
+    """Rule 21's standing complaint, made checkable: the artifact says which environment produced it.
+
+    A missing artifact cannot be restored across an environment (rule 21) and a difference between two runs
+    of one configuration cannot be attributed to one — and this session spent a 58-minute
+    `OMP_NUM_THREADS=1` sweep to rule the thread count out. `environment()` is what makes that free from here
+    on, so the test pins the fields a reader needs rather than the exact values.
+    """
+    from experiments.e8_rate_network import environment
+
+    env = environment()
+    for key in ("omp_num_threads", "mkl_num_threads", "torch_num_threads",
+                "torch_num_interop_threads", "torch_version", "python", "platform"):
+        assert key in env, f"environment() must record {key}"
+    assert isinstance(env["torch_num_threads"], int)
+    assert isinstance(env["torch_num_interop_threads"], int)
+    # "unset" is a *value*, not a missing key: most artifacts in this repo were produced with no OMP variable
+    # set at all, and a reader who cannot tell "unset" from "not recorded" has learned nothing.
+    assert env["omp_num_threads"] == os.environ.get("OMP_NUM_THREADS", "unset")
+
+
+def test_the_artifact_payload_includes_the_environment():
+    """The wiring, not just the function: an `environment()` nobody calls records nothing."""
+    import inspect
+
+    from experiments import e8_rate_network
+
+    src = inspect.getsource(e8_rate_network.main)
+    assert '"environment": environment()' in src

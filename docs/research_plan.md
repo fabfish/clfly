@@ -1256,6 +1256,18 @@ Added 2026-09-22, after the headline metric was found to be chaotic
    configuration is a **separate sample**, not an extension, unless its earlier replicates are compared
    and found equal (`e61` vs `e68` were not).
 
+   **And the environment is now on the record (`e102`).** Saying "given an environment" is empty while no
+   artifact says which one, and this session paid 58 minutes for it: `OMP_NUM_THREADS=1` on a five-replicate
+   sweep, run solely to learn whether the thread count was the variable responsible for a two-vector
+   difference between runs of one configuration — and the answer was *no*, which the seven artifacts already on
+   disk would have shown for free had they recorded their thread counts. `experiments/e8_rate_network.py` now
+   writes an **`environment`** block into every artifact (`omp_num_threads`, `mkl_num_threads`,
+   `torch_num_threads`, `torch_num_interop_threads`, `torch_version`, `python`, `platform`) with **`"unset"`
+   recorded as a value rather than as a missing key**, since most artifacts in this repository were produced
+   with no `OMP_NUM_THREADS` set at all and a reader who cannot distinguish "unset" from "not recorded" has
+   learned nothing. Two tests pin it (`tests/test_network.py`). **The default on this machine is 20 threads**,
+   and none of the runs compared this session recorded its own.
+
 22. **The programme table is a claim with an artifact behind every row: re-derive its status column from
    disk, not from memory.** Eight rows had drifted before `e85` audited them — four reported finished work
    as *in flight*, one row was **duplicated and contradicting itself**, and four were marked *done* while

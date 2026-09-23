@@ -128,6 +128,37 @@ def _logits(readout, x, task, shared: bool):
     return out[:, task.class_offset: task.class_offset + task.n_classes]
 
 
+def environment() -> dict:
+    """What the numbers were measured *in*, recorded in the artifact rather than inferred later.
+
+    Rule 21 is the project's standing complaint that the torch path is deterministic given an environment and
+    not across environments, and that the environment is **recorded nowhere** -- so a missing artifact cannot
+    be restored across one, and a two-vector difference among runs of one configuration cannot be attributed.
+    This session paid for that directly: the question "is the thread count the variable?" needed a 58-minute
+    `OMP_NUM_THREADS=1` run at a full five-replicate sweep, and the answer was *no*, which a recorded
+    environment would have shown for free on the runs already on disk.
+
+    Torch's own thread count is read *after* the first tensor operation, because `torch.get_num_threads()`
+    reflects what the runtime settled on rather than what was requested; `OMP_NUM_THREADS` and its two
+    siblings are recorded as strings exactly as the process saw them, including "unset", because "unset" is
+    the value most of this project's artifacts were produced under.
+    """
+    import os
+    import platform
+
+    import torch
+
+    return {
+        "omp_num_threads": os.environ.get("OMP_NUM_THREADS", "unset"),
+        "mkl_num_threads": os.environ.get("MKL_NUM_THREADS", "unset"),
+        "torch_num_threads": int(torch.get_num_threads()),
+        "torch_num_interop_threads": int(torch.get_num_interop_threads()),
+        "torch_version": torch.__version__,
+        "python": platform.python_version(),
+        "platform": platform.platform(),
+    }
+
+
 def evaluate(model, readout, task, shared: bool = False) -> float:
     """Held-out accuracy at the final timestep."""
     import torch
@@ -408,7 +439,7 @@ def main(argv=None) -> int:
               f"classes={t.n_classes}")
 
     out = {"config": vars(args), "circuit": circ.name, "n_params": net.n_params,
-           "tasks": [t.summary() for t in suite], "methods": {}}
+           "environment": environment(), "tasks": [t.summary() for t in suite], "methods": {}}
     for method in args.methods.split(","):
         reps = [run_method(net, suite, method, args, seed=args.seed0 + 100 * r,
                            partitions=partitions)

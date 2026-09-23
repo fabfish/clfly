@@ -203,6 +203,16 @@ diagnosis, the previous fire's inversion of it, and this), and the reason to sta
 revision came from a run rather than from re-reading: the first was one pair of values, the second was seven
 runs, and this one was a single named variable.
 
+**And the record will not have to be reconstructed like this again.** The default on this machine is
+**20** torch threads, and while `OMP_NUM_THREADS` was set to 1 and 4 for these two runs, **`e101`'s and `e102`'s
+seven earlier runs recorded nothing about how many threads they actually used** — so whether the X-versus-Y
+split is a thread-count difference at some value other than 1 or 4 is not answerable from the corpus, which is
+rule 21's standing complaint and the reason a 58-minute sweep was needed to rule out one value of one variable.
+`experiments/e8_rate_network.py` now writes an **`environment`** block into every artifact
+(`omp_num_threads`, `mkl_num_threads`, `torch_num_threads`, `torch_num_interop_threads`, `torch_version`,
+`python`, `platform`), with `"unset"` recorded as a *value* rather than as a missing key, and two tests pin it
+(`tests/test_network.py`). The next run of any configuration answers this question for free.
+
 **And §3's clause is unaffected in sign and further bounded in magnitude.** At 8 batches the
 block-minus-matched-random gap is now measured **four times in two environments** — −0.0354 (Y), −0.0167 (X),
 −0.0167 (X), −0.0354 (thread-limited) — so it is negative in all four and takes two values, and the monotone
