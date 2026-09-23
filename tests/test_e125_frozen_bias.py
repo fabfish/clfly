@@ -79,6 +79,13 @@ def test_the_bias_is_the_only_trained_parameter_no_penalty_sees(synthetic_circui
 
     `train_task` optimises `[model.theta, model.bias]`, and `diagonal_fisher` differentiates `theta` alone, so
     the sizes are the claim: the body is two sets, and the penalty covers one of them.
+
+    **`e136`-era note, i.e. what changed when `--anchor-bias` landed**: `diagonal_fisher` now contains an
+    **opt-in** path for the bias, so the old assertion *"``model.bias`` not in ``fisher_src``"* — which is what
+    failed when the flag arrived, exactly as it was written to — is replaced by the two assertions that say the
+    same thing more precisely: **the bias's Fisher is accumulated only under `with_bias`**, and `train_task`'s
+    default call does not pass it. A test that a source file does not mention a name would have blocked the very
+    change that made the name appear.
     """
     import inspect
 
@@ -89,9 +96,14 @@ def test_the_bias_is_the_only_trained_parameter_no_penalty_sees(synthetic_circui
     assert "[model.theta] + list(readout.parameters())" in src
     fisher_src = inspect.getsource(e8_rate_network.diagonal_fisher)
     assert "torch.zeros_like(model.theta)" in fisher_src
-    assert "model.bias" not in fisher_src, (
-        "the diagonal Fisher must differentiate theta alone; if it now includes the bias, the docstring's "
-        "justification and every EWC number in the record needs revisiting")
+    assert "with_bias" in fisher_src, (
+        "the bias's Fisher must be reachable through the explicit `with_bias` argument, so that the channel "
+        "`e125` measured and `e137` watched the adaptation move into can be penalised at all")
+    assert "if not with_bias:" in fisher_src and "return f" in fisher_src, (
+        "the default return must remain a single array for `theta`, or every existing caller's shape changes")
+    # and train_task's default path does not carry a bias term
+    assert "if len(ewc) > 3 and ewc[3] is not None:" in src, (
+        "the bias term must be optional inside train_task, so that a run without the flag is bit-identical")
 
     # and the records exist per task rather than per run
     result = _run(synthetic_circuit, tmp_path)
@@ -103,3 +115,34 @@ def test_a_frozen_bias_is_reported_as_zero_rather_than_omitted(synthetic_circuit
     result = _run(synthetic_circuit, tmp_path, frozen_body=True)
     for row in result["bias_norms"]:
         assert row["step"] == 0.0 and row["from_zero"] == 0.0
+
+
+def test_anchoring_the_bias_lowers_its_drift_and_changes_nothing_at_task_zero(synthetic_circuit, tmp_path):
+    """`--anchor-bias` must constrain the channel, and it must have nothing to constrain before task 0.
+
+    The second half is not a formality: the anchor and its Fisher are created **after** a task is trained, so the
+    first task is trained with no bias penalty in every arm — which makes *"task 0's bias step is identical across
+    arms"* an internal control that the flag changes nothing except by anchoring.
+    """
+    from argparse import Namespace
+
+    from experiments.e8_rate_network import run_method
+
+    specs = (("A", ("cell_class", ("C0",)), ("cell_class", ("C1",))),
+             ("B", ("cell_class", ("C2",)), ("cell_class", ("C3",))))
+    suite = rate_tasks.make_suite(synthetic_circuit, specs=specs, shared_head=True, n_train=32,
+                                  n_test=16, noise=1.0, n_classes=3, tau=4, cap=10)
+
+    def run(anchor_bias):
+        args = Namespace(iters=60, lr=3e-3, batch=16, lam=3e-3, fisher_batches=2, normalise_fisher=True,
+                         replay_batch=8, shared_head=True, save_theta=tmp_path,
+                         frozen_body=False, frozen_bias=False, anchor_bias=anchor_bias)
+        return run_method(build_net(synthetic_circuit, RateConfig(tau=4, seed=0)), suite, "ewc", args, seed=0)
+
+    off, on = run(None), run(1.0)
+    for a in (off, on):
+        assert a["bias_norms"][0]["step"] == off["bias_norms"][0]["step"], (
+            "task 0 is trained before any anchor exists, so its bias step must be identical across arms")
+    assert on["bias_norms"][-1]["from_zero"] < off["bias_norms"][-1]["from_zero"], (
+        f"anchoring the bias must lower its cumulative movement: "
+        f"{on['bias_norms'][-1]['from_zero']:.4f} against {off['bias_norms'][-1]['from_zero']:.4f}")

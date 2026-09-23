@@ -93,9 +93,19 @@ def train_task(model, heads, suite, k: int, iters: int, lr: float, batch: int,
         loss = lossf(_logits(readout, x, task, shared), Y[idx])
 
         if ewc is not None:
-            fisher, anchor, lam = ewc
+            fisher, anchor, lam = ewc[:3]
             loss = loss + 0.5 * lam * torch.sum(
                 torch.from_numpy(fisher).float() * (model.theta - anchor) ** 2)
+            # The bias's own anchor, when the caller has supplied one -- the channel no penalty in this project
+            # used to cover, and the one `e137` measured the adaptation relocating INTO. The Fisher is
+            # unit-mean-normalised (`normalise_fisher`) and then scaled by the caller, so that the *share* of the
+            # penalty's mass the bias carries is an explicit number rather than an accident of the raw Fisher's
+            # magnitude.
+            if len(ewc) > 3 and ewc[3] is not None:
+                fisher_b, anchor_b, bias_scale = ewc[3]
+                if bias_scale:
+                    loss = loss + 0.5 * lam * bias_scale * torch.sum(
+                        torch.from_numpy(fisher_b).float() * (model.bias - anchor_b) ** 2)
         if block_ewc is not None:
             # already bound to the blocks, anchor and lambda -- see `make_penalty`
             loss = loss + block_ewc(model.theta)
@@ -329,13 +339,20 @@ def evaluate(model, readout, task, shared: bool = False) -> float:
         return float((logits.argmax(dim=1) == Y).float().mean())
 
 
-def diagonal_fisher(model, readout, task, n_batches: int = 8, seed: int = 0) -> np.ndarray:
-    """Diagonal Fisher over the masked recurrent weights.
+def diagonal_fisher(model, readout, task, n_batches: int = 8, seed: int = 0,
+                    with_bias: bool = False):
+    """Diagonal Fisher over the masked recurrent weights, and optionally over the recurrent bias.
 
-    Accumulated over the task's own training data after training on it, which is the
-    EWC construction.  Only ``theta`` is differentiated: the decoder is task-specific
-    and the bias is shared, and letting either into the Fisher would blur the object
-    the project is studying.
+    Accumulated over the task's own training data after training on it, which is the EWC construction. **Only
+    ``theta`` is differentiated by default**: the decoder is task-specific and letting it into the Fisher would
+    blur the object the project is studying.
+
+    **The bias is a different case and the original justification did not cover it.** *"The bias is shared"* is
+    equally true of ``theta``, which **is** anchored — and `e125` measured that holding the 800 offsets at their
+    initialisation removes **70%** of this configuration's forgetting while `e137` measured that diagonal EWC
+    *relocates* 28% of the adaptation out of the weights and **into** them. So ``with_bias=True`` returns
+    ``(fisher_theta, fisher_bias)`` and lets the caller decide what to do about a channel that carries most of
+    the effect and is covered by nothing.
     """
     import torch
 
@@ -343,6 +360,7 @@ def diagonal_fisher(model, readout, task, n_batches: int = 8, seed: int = 0) -> 
     U = torch.from_numpy(task.u_train).float()
     Y = torch.from_numpy(task.y_train).long()
     fisher = torch.zeros_like(model.theta)
+    fisher_b = torch.zeros_like(model.bias) if with_bias else None
     lossf = torch.nn.CrossEntropyLoss()
     for _ in range(n_batches):
         idx = rng.integers(0, len(Y), size=min(32, len(Y)))
@@ -353,8 +371,13 @@ def diagonal_fisher(model, readout, task, n_batches: int = 8, seed: int = 0) -> 
         loss.backward()
         if model.theta.grad is not None:
             fisher += model.theta.grad.detach() ** 2
+        if with_bias and model.bias.grad is not None:
+            fisher_b += model.bias.grad.detach() ** 2
     model.zero_grad()
-    return (fisher / n_batches).cpu().numpy()
+    f = (fisher / n_batches).cpu().numpy()
+    if not with_bias:
+        return f
+    return f, (fisher_b / n_batches).cpu().numpy()
 
 
 def block_fisher(model, heads, suite, k: int, part, n_batches: int = 8,
@@ -420,6 +443,8 @@ def run_method(conn_net, suite, method: str, args, seed: int,
         heads = [torch.nn.Linear(t.n_readout, t.n_classes) for t in suite]
     fisher = None
     anchor = None
+    fisher_b_ = None                                       # the bias's accumulated Fisher, when `--anchor-bias`
+    anchor_b = None
     blocks = None
     anchor_b = None
     part = None
@@ -452,8 +477,10 @@ def run_method(conn_net, suite, method: str, args, seed: int,
         losses.append(train_task(
             model, heads, suite, k, iters=args.iters, lr=args.lr,
             batch=args.batch, seed=seed + k,
-            ewc=(fisher, anchor, args.lam) if (
-                method == "ewc" and fisher is not None) else None,
+            ewc=((fisher, anchor, args.lam,
+                  (fisher_b_, anchor_b, getattr(args, "anchor_bias", 1.0))
+                  if getattr(args, "anchor_bias", None) is not None and fisher_b_ is not None else None)
+                 if (method == "ewc" and fisher is not None) else None),
             block_ewc=block_pen,
             replay=(replay if method == "replay" else None), shared=shared,
             replay_batch=args.replay_batch,
@@ -487,8 +514,14 @@ def run_method(conn_net, suite, method: str, args, seed: int,
             L[k, j] = full_split_loss(model, readout_j, suite[j], shared, "train")
 
         if method == "ewc":
-            f = diagonal_fisher(model, heads[0] if shared else heads[k], task,
-                                n_batches=args.fisher_batches, seed=seed + k)
+            anchor_bias = getattr(args, "anchor_bias", None)
+            got = diagonal_fisher(model, heads[0] if shared else heads[k], task,
+                                  n_batches=args.fisher_batches, seed=seed + k,
+                                  with_bias=anchor_bias is not None)
+            if anchor_bias is None:
+                f, fb = got, None
+            else:
+                f, fb = got
             # Normalise the diagonal the same way `trace_normalise` normalises the
             # blocks.  Without this the two families sit at different effective
             # strengths for the same lambda -- the block Fishers are rescaled to unit
@@ -499,6 +532,16 @@ def run_method(conn_net, suite, method: str, args, seed: int,
                 f = f / f.mean()
             fisher = f if fisher is None else fisher + f
             anchor = model.theta.detach().clone()
+            if fb is not None:
+                # Unit-mean normalised, exactly as the weights' Fisher is, so that the two are at comparable
+                # per-parameter strengths and the *share* of the penalty's mass the bias carries is set by
+                # `--anchor-bias` rather than by the raw Fishers' relative magnitudes -- which differ across
+                # tasks and circuits and would make the flag's meaning configuration-dependent.
+                if args.normalise_fisher and fb.mean() > 0:
+                    fb = fb / fb.mean()
+                fisher_b = fb if fisher_b_ is None else fisher_b_ + fb
+                fisher_b_ = fisher_b
+                anchor_b = model.bias.detach().clone()
         if method.startswith("ewc-block"):
             b = block_fisher(model, heads, suite, k, part,
                              n_batches=args.fisher_batches, seed=seed + k, shared=shared)
@@ -628,6 +671,13 @@ def main(argv=None) -> int:
     p.add_argument("--frozen-body", action="store_true",
                    help="diagnostic: train only the decoder, to test whether the "
                         "plastic recurrent weights are used at all")
+    p.add_argument("--anchor-bias", type=float, default=None,
+                   help="also penalise the recurrent bias, whose 800 offsets carry 70% of this "
+                        "configuration's forgetting and are covered by no penalty (e125). The bias's "
+                        "diagonal Fisher is unit-mean normalised like the weights' and then scaled by "
+                        "this number, so the value is the RATIO of per-parameter anchoring strength; "
+                        "1.0 treats every parameter alike (the bias then carries 800/27368 = 2.9% of "
+                        "the penalty's mass) and 26568/800 = 33.2 gives the two sets equal total mass")
     p.add_argument("--frozen-bias", action="store_true",
                    help="diagnostic: freeze the recurrent bias and train the weights, the "
                         "complement of --frozen-body, which freezes both. Both penalties in this "
