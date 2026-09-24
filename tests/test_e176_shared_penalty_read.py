@@ -44,3 +44,36 @@ def test_the_twins_the_controls_rest_on_exist_and_are_the_ones_the_registration_
     for path, arm in ((e176.TWIN_EWC, "ewc"), (e176.TWIN_NAIVE, "naive"), (e176.LOW_NOISE_NAIVE, "naive")):
         assert Path(path).is_file(), path
         assert load_arm(Path(path), arm)["n"] == 40
+
+
+def test_the_verdict_is_robust_to_the_threshold_below_the_measured_share():
+    """`COLLAPSE_SHARE` is a choice, so the reading it produces has to be checked against other choices.
+
+    The competing predictions are "the effect survives at the same size" (a share of 1) and "it collapses toward
+    zero" (a share of 0), so the registered 0.5 sits between them — and what makes the verdict a *measurement*
+    rather than a threshold artefact is that every threshold below the measured share gives the same answer.
+    """
+    import json
+    from pathlib import Path
+
+    artifact = Path("runs/e176_shared_penalty_read.json")
+    if not artifact.is_file():
+        pytest.skip("runs/e176_shared_penalty_read.json not present (runs/ is gitignored)")
+
+    d = json.loads(artifact.read_text(encoding="utf-8"))
+    step, own = d["p2"]["gain_step"]["change"], d["p2"]["own_fisher_gain_step"]
+    share = step / own
+    registered = e176.COLLAPSE_SHARE
+    try:
+        for threshold in (0.0, 0.2, 0.4, 0.5, 0.6, 0.7):
+            e176.COLLAPSE_SHARE = max(threshold, 1e-9)
+            v = e176.verdict(step, d["p2"]["gain_step"]["sigma"], own=own)
+            assert v["survives"] and not v["collapsed"], threshold
+        for threshold in (0.72, 0.75, 0.8, 1.0):
+            e176.COLLAPSE_SHARE = threshold
+            v = e176.verdict(step, d["p2"]["gain_step"]["sigma"], own=own)
+            assert v["collapsed"], threshold
+    finally:
+        e176.COLLAPSE_SHARE = registered
+    # and the statement that makes it a measurement: the only flip point is the measured share itself
+    assert 0.70 < share < 0.73

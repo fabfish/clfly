@@ -44,6 +44,13 @@ part of the effect this sample can resolve (2.73σ), and the Fisher's share is s
 **Rule 42's arithmetic on that number**: the effect is 0.0104 with a per-seed sd of 0.0588, so resolving *its* 3σ
 needs about **290 seeds** — seven times this line's forty, and past the queue.
 
+**And P2's verdict does not depend on the threshold it was registered with.** `e176`'s rule is a *share* of the
+own-Fisher step rather than a σ, because the question is whether the effect survives, and the competing predictions
+are "the same size" (a share of 1) and "collapses toward zero" (0) — so the registered 0.5 sits between them. **The
+measured share is 0.718, and every threshold from 0 to 0.71 gives the same verdict**: the flip point is the
+measured share *itself*, which is the statement that makes this a measurement rather than a threshold artefact. A
+test pins the range in both directions.
+
 ## 3. Why this is the strongest form the account's evidence has taken
 
 Three kinds of evidence now agree, and they are of different kinds on purpose:
