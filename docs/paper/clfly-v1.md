@@ -305,10 +305,13 @@ at λ = 3e-4 — this family's one *resolved* penalty arm — halving it cuts `n
 moves, and **the same method at the same λ with no advantage at all where the tasks left less to forget.** The high
 end of the knob is flat — doubling the noise moves the level only **+0.0146 at 1.15σ** — so what is demonstrated is
 a *fall* and not a line, and **the asymmetry is itself the measurement: the level falls 41% when the noise halves
-and rises 19% when it doubles.** **The honest limit is that `noise` changes the training data and therefore the
-Fisher**, which is estimated at θ_init from minibatches of it, so this knob may be moving the penalty's *strength*
-rather than the room it has to work in; **`--iters` is the knob whose Fisher is bit-identical** — computed at θ_init
-and independent of how long the network trains — and it is running
+and rises 19% when it doubles.** **And the limit is structural rather than a matter of choosing a better knob**: the Fisher and the anchor are
+computed *after* each task's training, at the parameters the knob has moved (`experiments/e8_rate_network.py`,
+inside the task loop), so `noise`, `iters` and `train` each move the penalty's **inputs** as well as the room it has
+to work in. The 250-iteration arm of that test is the demonstration: it leaves the level **flat (+0.0044 at
+0.55σ)** while the advantage still falls **−0.0214 at 2.09σ** — so a knob that does nothing to the level still moves
+the gain, which is what a penalty whose Fisher is measured at a differently-trained point predicts and what the
+room account does not
 (`docs/findings/2026-09-25-the-level-knob-moves-the-gain-and-the-high-end-is-a-null.md`,
 `docs/findings/2026-09-24-the-room-account-agrees-with-every-resolved-level-move-and-does-not-explain-the-gain.md`).
 (The strongest evidence for that contrast is at sixteen replicates, where it is **−0.0677 ± 0.0101 =

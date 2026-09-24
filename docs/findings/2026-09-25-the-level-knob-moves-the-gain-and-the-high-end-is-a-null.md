@@ -61,12 +61,16 @@ how much there is to forget. A monotone Fisher effect predicts the same signs at
 resolution at one end, so it neither confirms nor excludes it — and **the high end's null makes the Fisher
 account's prediction there untestable too**.
 
-**`--iters` is the knob with zero impurity**: the Fisher is computed at θ_init and does not depend on how long the
-network trains, so the level moves while **the penalty term itself is bit-identical**. That is `e173`, registered
-last fire with the same four predictions and launched into the slot `e167` freed. **Until it is read, the honest
-statement of this unit is: the room account's direction is confirmed at a level knob that leaves the architecture,
-read-out, class structure and partition untouched — and not yet at one that leaves the Fisher untouched.**
-
+~~**`--iters` is the knob with zero impurity**~~ — **that is FALSE, corrected the same night**: the Fisher and the
+anchor are computed *after* each task's training (`experiments/e8_rate_network.py`, inside the task loop, at the
+parameters the knob has moved), so `--iters` moves the penalty's *inputs* exactly as `noise` does. **And the
+consequence is general: no single-field manipulation in this corpus can isolate the room**, because every knob
+that moves the level also moves the parameters the Fisher and the anchor are measured at. `e173`'s 250-iteration
+arm is that confound demonstrated from the other side — **the level flat at +0.0044 (0.55σ) while the advantage
+falls −0.0214 (2.09σ)** — so the honest statement of this unit is: the room account's direction is confirmed at a
+level knob that leaves the architecture, read-out, class structure and partition untouched, and the alternative
+that the knob changed the penalty's inputs is **bounded, not excluded**
+(`docs/findings/2026-09-25-the-fisher-is-measured-after-training-so-no-knob-is-clean.md`).
 ## 4. What this cannot settle
 
 - **The Fisher confound of §3**, which `e173` exists to remove and which no `noise` design can.
