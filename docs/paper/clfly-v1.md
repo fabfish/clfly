@@ -159,16 +159,19 @@ rankings are opposite at the top. **What survives without qualification**: repla
 **zero or below**: at its tuned configuration, a
 contrast of **−0.0854 ± 0.0129 = 6.6σ** against naive, which is a number the project had to *recreate* —
 the published 4.2σ version had no artifact on disk, and the recreation reproduces it and strengthens it.
-**And that sentence now has a bound rather than an adjective**: across the **five** configurations where it has
-been measured at forty replicates, `replay`'s **own** forgetting runs from **−0.0096** to **+0.0083** — within
-±0.01 of zero in all five — and because a margin over a baseline is exactly *that value minus the baseline's
-forgetting*, the family and channel differences that looked like a mechanism (**the wiring family's margin is
-92% of the base family's; the frozen arm's is 92% too; the read-out-128 arm's is 126%**) are the **baseline's**
-forgetting changing with `replay` pinned near zero. The margin's ratio is `1 − replay_own/baseline`, which the
-five measured ratios match to the third digit (1.045, 0.921, 0.918, 1.17, 1.261 against 1.045, 0.922, 0.921,
-1.17, 1.259), so *"the margin tracks the channel's share"* is refuted and *"the margin is the baseline's
-forgetting"* is the same identity with a term of size ≤ 0.01
-(`docs/findings/2026-09-24-the-floor-models-residual-is-replays-own-forgetting.md`).
+**And that sentence now has a bound rather than an adjective**: `replay`'s **own** forgetting, pooled over the
+**four distinct configurations** where it has been measured at forty replicates, is **−0.0007 ± 0.0038** — **0.19σ
+from zero, a 2σ bound of ±0.0076, and negative in three of the four** — with the individual values spanning
+**−0.0096 to +0.0083** and an across-configuration sd of **0.0076** against each value's own sem of ≈ 0.0033, i.e.
+the four are consistent with a single value. **And because a margin over a baseline is exactly *replay's own
+forgetting minus the baseline's***, the family and channel differences that looked like a mechanism (**the wiring
+family's margin is 92% of the base family's; the frozen arm's is 92% too; the read-out-128 arm's is 126%**) are the
+**baseline's** forgetting changing with that term pinned near zero. The margin's ratio is
+`1 − replay_own/baseline`, which the five measured ratios match to the third digit (1.045, 0.921, 0.918, 1.17,
+1.261 against 1.045, 0.922, 0.921, 1.17, 1.259), so *"the margin tracks the channel's share"* is refuted and
+*"the margin is the baseline's forgetting"* is the same identity with a term bounded at ±0.008
+(`docs/findings/2026-09-24-the-floor-models-residual-is-replays-own-forgetting.md`,
+`docs/findings/2026-09-24-replays-own-forgetting-pooled.md`).
 **And that is the read-out where the comparison is least clean, because 70% of what `naive` forgets there
 lives in a channel no penalty in this paper covers.** The plastic body is **two** parameter sets, 26,568
 connectome-masked weights and **800 per-neuron offsets**, and every penalty here is built over the weights
@@ -2644,9 +2647,13 @@ why no shared rule was available and each line needed its own check.
    beside the forgetting — the suite's `--test 48` is already large enough to resolve what this item is about, and
    the same forty seeds show it: **on the three arms whose aggregate is unresolved — `λ = 3e-2` at 0.58σ,
    `λ = 3e-1` at 0.85σ and the base `block-rand` at 0.28σ — the newest-task cost resolves at 9.45σ, 9.00σ and
-   2.08σ respectively**
+   2.08σ respectively** — **and the column's own price is now measured, which bounds what it can be asked**: at
+   the effects this suite produces, the *costs* resolve at 2.08σ to 12.06σ (so they need 8 to 372 seeds), while
+   `replay`'s zero needs **571 seeds** — so the recommended column's positive findings are cheap and its *null* is
+   a bound, exactly as the aggregate's are (`e157`)
    (`docs/findings/2026-09-24-the-aggregate-hides-the-diagonal-and-the-last-task-pays.md`,
-   `docs/findings/2026-09-24-the-lambda-optimum-is-a-dominance-boundary.md`).
+   `docs/findings/2026-09-24-the-lambda-optimum-is-a-dominance-boundary.md`,
+   `docs/findings/2026-09-24-what-each-live-contrast-costs-in-seeds.md`).
 
 ## 9. Reproducibility
 
