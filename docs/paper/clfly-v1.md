@@ -2496,6 +2496,7 @@ artifact as well, so the command's output can be checked rather than assumed.
 | §4.7 — **the interference instrument over both halves of the body**, forty replicates | the same command with `--methods naive,ewc` (the `whole_body` block is written by the runner, not by a flag) | `runs/e139_r32_wholebody.json`; the analysis is `python -m experiments.e139_whole_body_interference` |
 | §4.7 — **the λ axis below the swept range**, forty replicates | the same command with `--methods ewc --lam {3e-4,3e-2,3e-1}`; the **λ = 3e-3 anchor is `e133`'s `ewc` arm** | `runs/e141_r32_ewc_lam3e-4.json`, `runs/e141_r32_ewc_lam3e-2.json`, `runs/e141_r32_ewc_lam3e-1.json` |
 | §8 item 4 — **the harder family**, forty replicates | the same command with `--input-overlap 1.0 --methods naive`, adding `--frozen-body` and `--frozen-bias` for the two diagnostics | `runs/e142_r32_overlap1.json`, `runs/e142_r32_overlap1_frozen.json`, `runs/e143_r32_overlap1_frozenbias.json` |
+| §4.7 — **the harder family's four-method table**, and the three-draw control its central contrast is read against | the same command with `--input-overlap 1.0 --methods naive,ewc,ewc-block,ewc-block-rand`, and `--methods ewc-block-rand --partition-seed {1,2}` for the two extra draws | `runs/e144_r32_overlap1_methods_40reps.json`, `runs/e144_r32_overlap1_rand_draw{1,2}.json`; the analysis is `python -m experiments.e144_basis_harder_family` |
 | §6 | `python -m clfly.lgcl.repro`, `pytest -q` | — |
 
 The connectome data is not redistributed; `python -m clfly.connectome.fetch` clones it
