@@ -53,7 +53,7 @@ follow, and the second is new:
   measurement that shows what the field can and cannot be asked, and it is the reason a per-replicate cost cannot
   be compared across artifacts without a load term that no artifact carries.
 
-## 4. What is still open: P1, and a detail the second execution will show
+## 4. The half-read: P1 still open, and the asymmetry the second execution would show
 
 **P1 is the pair's own identity**: the two executions are bit-identical on all five arms and all five seeds and
 differ only in `timing_s`. The second artifact is running.
@@ -67,10 +67,47 @@ the corpus's first whose *recorded provenance* differs while its *command* does 
 them, the difference is the floor in the current epoch and the field that would have named the code is present on
 one side only — which is rule 45's problem stated by the artifacts themselves rather than by a paragraph.
 
-## 5. What this cannot settle
+## 5. P1, read once the second execution landed: **it holds**, and the asymmetry is the point
 
-- **P1**, above: one execution of the pair exists, so the floor in the current epoch is measured once and not
-  twice.
+Both executions are on disk. **They are bit-identical on all five arms and all five seeds** — `naive` 0.072917,
+`ewc` 0.027083, `ewc-block` 0.022917, `ewc-block-rand` 0.039583, `replay` 0.050000 — their `config` fields are
+identical once `json_out` is dropped, and their durations differ (1725.8 s against 1601.4 s), so they are two
+processes and not a copy. **P1 holds.**
+
+**And they differ in exactly one top-level key, which is the detail §4 pre-stated.** `code_revision` is present in
+the second execution and absent from the first:
+
+```
+e164_fb8_today_b.json  "code_revision": {"commit": "62690d118b2d45ed1abc868b596d8a6c55719462", "dirty": false}
+e164_fb8_today_a.json  (absent — launched 23:00, 35 minutes before the field existed)
+```
+
+So the corpus now contains **a pair that is identical on every arm and differs in its provenance** — the case
+`e103`'s *declared* `ARM_FIELDS` was built to survive, and it does: a provenance key is not an arm, so the
+identity check reads the pair as identical, which is right, because the arithmetic is identical. **Rule 45's ideal
+artifact pair is therefore in the corpus, and it arrived by the accident of a 35-minute window rather than by
+design.**
+
+**And the field's semantics are demonstrated by the same artifact.** The second execution was launched at 23:49
+**in a clean tree** and recorded `dirty: false` — while the half-hour that followed contained this unit's own
+uncommitted finding and plan row, which are *not* in the record. That is the truthful snapshot: the runner calls
+`code_revision()` while it builds the payload, before the replicate loop, so what it captures is the tree the
+process imported. A run launched mid-edit would instead carry `dirty: true` and the paths.
+
+**Three consequences.** (i) **The current epoch's floor is measured twice** — two executions of one command, 25
+seed-arm values bit-identical — and together with `e164_a`'s agreement with both 09-23 post-change runs, the
+current epoch now rests on three independent executions. (ii) **The pair is the first in the corpus whose recorded
+provenance differs while its command does not**, which is what makes it the clean demonstration that adding a
+provenance field does not disturb an identity claim. (iii) **The calibration tracked the wall-clock here**, in the
+*opposite* way to §3's comparison: these two runs differ by 7% in duration (1725.8 / 1601.4) and by 18% in
+`calibration_matmul_s` (0.00033 / 0.00028) — the same direction. So within one command the calibration does see
+the machine's speed; §3's `e161` comparison is the case where it does not, because the difference there was queue
+and not speed. The field is a speedometer, not a load meter, and the two artifacts together say so.
+
+## 6. What this cannot settle
+
+- **P1 was the pair's identity and it is now read** (§5); what remains is a floor measured twice rather than
+  many times.
 - **One configuration, five replicates, three tasks.** This is the 8-batch config; the 40-replicate headline
   config is `e159`, which is still running and is now ~2.5 h into a job that takes ~1.5 h alone.
 - **The epoch is bounded and still not identified.** `e163` localised it to the 15:34 → 17:03 window and excluded
