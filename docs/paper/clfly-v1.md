@@ -159,6 +159,16 @@ rankings are opposite at the top. **What survives without qualification**: repla
 **zero or below**: at its tuned configuration, a
 contrast of **−0.0854 ± 0.0129 = 6.6σ** against naive, which is a number the project had to *recreate* —
 the published 4.2σ version had no artifact on disk, and the recreation reproduces it and strengthens it.
+**And that sentence now has a bound rather than an adjective**: across the **five** configurations where it has
+been measured at forty replicates, `replay`'s **own** forgetting runs from **−0.0096** to **+0.0083** — within
+±0.01 of zero in all five — and because a margin over a baseline is exactly *that value minus the baseline's
+forgetting*, the family and channel differences that looked like a mechanism (**the wiring family's margin is
+92% of the base family's; the frozen arm's is 92% too; the read-out-128 arm's is 126%**) are the **baseline's**
+forgetting changing with `replay` pinned near zero. The margin's ratio is `1 − replay_own/baseline`, which the
+five measured ratios match to the third digit (1.045, 0.921, 0.918, 1.17, 1.261 against 1.045, 0.922, 0.921,
+1.17, 1.259), so *"the margin tracks the channel's share"* is refuted and *"the margin is the baseline's
+forgetting"* is the same identity with a term of size ≤ 0.01
+(`docs/findings/2026-09-24-the-floor-models-residual-is-replays-own-forgetting.md`).
 **And that is the read-out where the comparison is least clean, because 70% of what `naive` forgets there
 lives in a channel no penalty in this paper covers.** The plastic body is **two** parameter sets, 26,568
 connectome-masked weights and **800 per-neuron offsets**, and every penalty here is built over the weights
