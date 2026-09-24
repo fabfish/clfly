@@ -568,7 +568,26 @@ def run_method(conn_net, suite, method: str, args, seed: int,
 
     theta_initial = model.theta.detach().cpu().numpy().copy()
 
+    #: the penalty's inputs **as they stood when each task was trained** -- recorded at the top of the loop body,
+    #: which is exactly where the penalty for that task is defined. Task 0 has none (`ewc` is `None` until a
+    #: Fisher exists), and the entries are stored as empty arrays so a replay knows that.
+    stored: list | None = None
+    # `getattr` rather than attribute access: a caller that builds its own `Namespace` (the tests do, and
+    # `e122`'s geometry line did) knows nothing about a flag added later, and the project's convention is that a
+    # new flag must not break such a caller.
+    if getattr(args, "fisher_from", None) is not None:
+        if str(args.methods).startswith("ewc-block") or "ewc-block" in str(args.methods):
+            raise SystemExit("--fisher-from is implemented for the diagonal penalty: a block run's inputs are a "
+                             "partition and a trace-normalised matrix, so a stored diagonal would silently be a "
+                             "different object")
+        with np.load(args.fisher_from) as z:
+            stored = [(z[f"f{k}"], z[f"a{k}"]) for k in range(len(suite))]
+    fisher_trace: list = []
+
     for k, task in enumerate(suite):
+        fisher_trace.append((fisher, anchor if fisher is not None else None))
+        if stored is not None and stored[k][0].size:
+            fisher, anchor = stored[k][0], torch.from_numpy(stored[k][1])
         # Bind the block penalty ONCE per task, not once per training step. The Fisher and
         # the anchor are constants while a task is trained; converting them inside the step
         # loop is what made a coarse partition take hours rather than minutes.
@@ -726,6 +745,17 @@ def run_method(conn_net, suite, method: str, args, seed: int,
     # losses of ~0.105 where the benchmark's own full-train-set loss is 0.0017, a factor of sixty, on the same
     # body: the instrument was measuring an untrained network's bias. Second time in one fire that a mid-run
     # quantity was paired with a final one; the rule is to save every input the forward pass reads.
+    #: the penalty's inputs, written so a later run can be penalised by the SAME term. `e173`'s finding is that
+    #: the Fisher is measured after each task's training, so a level knob moves it; this is what lets two levels
+    #: of forgetting share one penalty, which is the only way the room account can be separated from a weaker
+    #: penalty in this runner.
+    if getattr(args, "save_fisher", None) is not None:
+        out: dict = {}
+        for k, (f, a) in enumerate(fisher_trace):
+            out[f"f{k}"] = np.zeros(0) if f is None else np.asarray(f)
+            out[f"a{k}"] = np.zeros(0) if a is None else a.detach().cpu().numpy()
+        np.savez_compressed(args.save_fisher, **out)
+
     save_dir = getattr(args, "save_theta", None)
     if save_dir:
         save_dir = Path(save_dir)
@@ -801,11 +831,11 @@ def main(argv=None) -> int:
                    help="diagnostic: train only the decoder, to test whether the "
                         "plastic recurrent weights are used at all")
     p.add_argument("--anchor-bias", type=float, default=None,
-                   help="also penalise the recurrent bias, whose 800 offsets carry 70% of this "
+                   help="also penalise the recurrent bias, whose 800 offsets carry 70%% of this "
                         "configuration's forgetting and are covered by no penalty (e125). The bias's "
                         "diagonal Fisher is unit-mean normalised like the weights' and then scaled by "
                         "this number, so the value is the RATIO of per-parameter anchoring strength; "
-                        "1.0 treats every parameter alike (the bias then carries 800/27368 = 2.9% of "
+                        "1.0 treats every parameter alike (the bias then carries 800/27368 = 2.9%% of "
                         "the penalty's mass) and 26568/800 = 33.2 gives the two sets equal total mass")
     p.add_argument("--frozen-bias", action="store_true",
                    help="diagnostic: freeze the recurrent bias and train the weights, the "
@@ -833,6 +863,19 @@ def main(argv=None) -> int:
                    help="split the merged sub-threshold labels over B groups instead of "
                         "one; bounds the block Fisher's storage, which is sum_g s_g^2 and "
                         "is otherwise dominated by a single (pooled x pooled) block")
+    p.add_argument("--save-fisher", type=Path, default=None,
+                   help="write the EWC penalty's OWN INPUTS, one entry per task: the diagonal Fisher and the "
+                        "anchor it is paired with, as they stood when that task was trained. `e173`'s finding is "
+                        "that the Fisher is measured after each task's training, so EVERY knob that moves the "
+                        "forgetting level moves the penalty's inputs too -- which means no single-field "
+                        "manipulation can separate \"less room to forget\" from \"a weaker penalty\". Storing the "
+                        "inputs is what makes that separation available: two runs at different levels can then be "
+                        "penalised by ONE term")
+    p.add_argument("--fisher-from", type=Path, default=None,
+                   help="use the inputs written by --save-fisher INSTEAD of computing them, so that two runs "
+                        "differing in a level knob are penalised identically. Refused for the block methods: "
+                        "their inputs are a partition and a trace-normalised matrix, and a stored diagonal would "
+                        "silently be a different object")
     p.add_argument("--save-theta", type=Path, default=None,
                    help="write each replicate's body — the initial one and the one after each task — as a "
                         "compressed .npz into this directory. Every seed starts from the same "

@@ -44,7 +44,9 @@ def test_the_registry_dates_forty_times_the_artifacts_e103_can_and_the_four_it_c
 
     parsers = e172.registry()
     assert len(parsers) >= 70
-    assert len(parsers["e8_rate_network.py"]) == 30
+    # a floor and not a count: this file's own premise is that a parser only ever GAINS flags, so pinning its
+    # size would make every future flag break the test that checks the premise
+    assert len(parsers["e8_rate_network.py"]) >= 30
     res = e172.classify(load_artifacts(), parsers)
     assert len(res["unique"]) >= 280 and len(res["unclaimed"]) == 4
     # the four are unclaimed for one reason: each carries `save_theta`, which its own runner does NOT define
