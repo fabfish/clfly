@@ -124,7 +124,12 @@ negative than the reversal it replaced. On that substrate EWC helps only when th
 enough to make the plastic weights load-bearing — **and at eight times the replicates it does not resolve
 even there** (diagonal EWC **−0.0096 ± 0.0080 = 1.21σ** against naive at forty, where five replicates gave
 2.47σ, because it *redistributes* forgetting between tasks: task 0 improves at **3.79σ** while task 1
-degrades) — and replay — content memory — is the stronger
+degrades **— and `e151`'s per-task audit of every forty-replicate contrast in the record adds the half no printed
+number covers: the same arm is **6.63σ below `naive`** on the *newest* task's final accuracy, which
+`mean_forgetting` — a mean over the first `T − 1` tasks — cannot contain by construction. Ten of the twelve
+distinct constrained arms pay a resolved cost there (2.08σ to 9.70σ); the one arm in the record that is not a
+constraint, `replay`, pays **0.79σ**, so its advantage is bought with no measurable last-task cost)** — and replay
+— content memory — is the stronger
 method in every setting, with forgetting driven to **zero or below**: at its tuned configuration, a
 contrast of **−0.0854 ± 0.0129 = 6.6σ** against naive, which is a number the project had to *recreate* —
 the published 4.2σ version had no artifact on disk, and the recreation reproduces it and strengthens it.
@@ -955,18 +960,22 @@ not reproducible**: the same command run twice moves it by up to **0.021**, whil
 `ewc-block-rand` **+0.0779** gives **−0.0206 ± 0.0099 = 2.08σ, 28/40 negative** in the *opposite* sign to the
 five-replicate value at the same batch count, where the biological row moved by −0.0031 and **the control's row by
 +0.0341** — so the earlier "no advantage" was largely a favourable draw of the matched-random control, one draw
-being one sample from a population this session measured at a **0.0138** draw term. **(*And the second draw settles
-it, on the opposite side: with draw 1 the same contrast is −0.00182 ± 0.00690 = 0.26σ and the mean of the two
-draws gives −0.01120 ± 0.00752 = 1.49σ, while two draws of the control differ by 2.33σ on this family. So the
-2.08σ is one sample of the control and the registered falsifier has already fired — the paper's central claim is
-strengthened, not threatened, by the measurement that was expected to break it, and the reason no mechanism
-quantity tracked the two partitions is the simplest one: there is no resolved difference to track
-(`docs/findings/2026-09-24-the-base-familys-advantage-does-not-survive-a-second-draw.md`).*)** **The honest form,
-until the third draw lands, is that the largest single-draw value ever measured here is 2.08σ, that the contrast is
-0.26σ against another draw of the same control, and that with a draw term of this size a contrast needs about
-0.024 to resolve.**
+being one sample from a population this session measured at a **0.0138** draw term. **(*And the registered
+three-draw reading is in, and it is the falsifier: draw 1 gives −0.00182 ± 0.00690 = 0.26σ and draw 2 gives
+−0.00730 ± 0.00850 = 0.85σ, so the registered combination is **−0.00990, sem_total 0.0074 = 1.33σ** with the
+control's own spread at **sd 0.0096 on 2 degrees of freedom** — the contrast keeps shrinking as the control's
+population is sampled rather than converging on the printed 2.08σ, and two draws of that control differ by
+**2.33σ** on this family. P1 fails and the falsifier fires, as they did on the wiring family at 0.99σ, so the
+paper's central claim is strengthened rather than threatened by the measurement that was expected to break it,
+and the reason no mechanism quantity tracked the two partitions is the simplest one: there is no resolved
+difference to track
+(`docs/findings/2026-09-24-the-base-familys-advantage-does-not-survive-a-second-draw.md`).*)** **The honest form
+is now that the largest single-draw value ever measured here is 2.08σ, that the same contrast is 0.26σ, 0.85σ and
+1.33σ at three draws and their mean, and that with a draw term of this size a contrast needs about 0.024 to
+resolve.**
 (`docs/findings/2026-09-24-at-forty-the-biologys-own-contrast-flips-sign.md`). Two more control draws for this
-family are registered, so that the contrast can be quoted against the mean of three rather than against one)
+family are registered, so that the contrast can be quoted against the mean of three rather than against one —
+**all three are now in and the reading is in the correction above**)
 **And the claim has now been tested on the one family that stresses the opposite channel — and the base family's
 own single-draw advantage does not survive a second draw of its control.** The sentence above
 rests on a benchmark where **70%** of the forgetting is carried by 800 offsets no partition can act on; `e143`

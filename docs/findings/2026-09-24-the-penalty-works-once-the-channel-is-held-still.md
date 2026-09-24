@@ -73,6 +73,15 @@ the penalty.
 
 - **One read-out (32), one circuit, three tasks, and one λ for this arm**; the λ = 3e-3 arm will say whether the
   near-zero is a property of the *combination* or of this particular λ.
+- **CORRECTED 2026-09-24 by `e151`, which decomposed this contrast per task: the accuracy sentence in §1 holds of
+  the mean and not of the newest task.** "*1.49σ below* the freeze's, i.e. the same" is the mean over three tasks;
+  per task against the freeze alone, task 0 is **+0.0297 (5.52σ, better)**, task 1 **−0.0073 (1.54σ)** and the
+  newest task **−0.0328 (6.49σ, worse)** — and against `naive` the same three are **+0.0750 (5.80σ)**,
+  **+0.0281 (2.35σ)** and **−0.0594 (9.16σ)**. **So the pair's near-zero forgetting is partly bought on the one
+  task `mean_forgetting` cannot see**, the price is invisible in the mean accuracy because the two old tasks
+  improve, and the unaffected sentence is the forgetting one (+0.0026 is +0.0026). The audit that found this, and
+  the twelve-arm version of the pattern, is in
+  `docs/findings/2026-09-24-the-aggregate-hides-the-diagonal-and-the-last-task-pays.md`.
 - **`--frozen-bias` remains a diagnostic and not a method**: it changes the model class, and a ranking produced
   under it is a ranking on a body whose offsets never move. **What this fire establishes is not that practitioners
   should freeze the offsets — it is that the diagonal penalty's measured effect is conditional on a channel the

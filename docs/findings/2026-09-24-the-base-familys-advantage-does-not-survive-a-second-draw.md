@@ -2,8 +2,9 @@
 
 **Date:** 2026-09-24
 **Artifacts:** `runs/e140_r32_methods_plastic_40reps.json` (the five-method table; its `ewc-block-rand` row is
-**draw 0**) and `runs/e140_r32_rand_draw1.json` (**draw 1**, `--partition-seed 1`, fingerprint `3058aa874ae6`).
-Draw 2 is still running; this is the two-draw reading of a three-draw registration.
+**draw 0**), `runs/e140_r32_rand_draw1.json` (**draw 1**, `--partition-seed 1`) and
+`runs/e140_r32_rand_draw2.json` (**draw 2**, `--partition-seed 2`). **All three draws are in, so this is the
+registered three-draw reading** — sections 1 and 2 were written at two draws and section 5 is the third.
 **Context:** earlier this session the base family's central contrast was reported as *"the strongest it has ever
 been measured — 2.08σ in favour of the biology"* after five replicates gave **+0.0167 in the opposite direction**.
 **It is the control's own draw variation.**
@@ -70,12 +71,46 @@ by the measurement that was expected to break it.
 
 ## 4. What it cannot settle
 
-- **Draw 2 is running**, so the registered three-draw form is not yet computable; the two-draw reading is decisive
-  enough to report because P1 and the falsifier are both already crossed, but the three-draw number is the
-  registered one and will be reported when it exists.
+- ~~**Draw 2 is running**, so the registered three-draw form is not yet computable~~ — **it landed, and §5 is the
+  registered form.**
 - **One degree of freedom estimates the draw sd here**, so 0.00804 is a bound rather than a measurement, and the
-  same is true of the wiring family's 0.0086.
+  same is true of the wiring family's 0.0086. **At three draws it is two degrees of freedom, 0.0096** — better,
+  and still a bound.
 - **And it does not say the partitions are equivalent** — it says the difference this design can see is smaller
   than the variation of its own control, which is a statement about the design's resolution: **with a draw term of
   this size, a contrast needs roughly 3σ × 0.008 ≈ 0.024 to resolve, and the largest single-draw value ever
   measured here is 0.0206.**
+
+## 5. The third draw, and the registered three-draw reading
+
+| | forgetting | accuracy |
+|---|---|---|
+| `ewc-block` (biological) | +0.0573 | 0.9168 |
+| `ewc-block-rand`, **draw 0** | +0.0779 | 0.9054 |
+| `ewc-block-rand`, **draw 1** | +0.0591 | 0.9189 |
+| `ewc-block-rand`, **draw 2** | **+0.0646** | — |
+
+| control used | `ewc-block` − `ewc-block-rand` | resolution |
+|---|---|---|
+| draw 0 | −0.02057 ± 0.00990 | 2.08σ |
+| draw 1 | −0.00182 ± 0.00690 | 0.26σ |
+| draw 2 | −0.00730 ± 0.00850 | 0.85σ |
+| **the registered combination, K = 3** | **−0.00990** | **1.33σ** |
+
+**The registered combination, in the form the registration names** — the mean of the three draws with the two
+variance components reported separately: **mean −0.0099, sem_draw 0.0056 + sem_paired 0.0049 → sem_total 0.0074 =
+1.33σ**, and the control's own spread is **sd 0.0096 on 2 degrees of freedom**.
+
+**So P1 (the contrast stays negative *and* at least as large as 2.08σ) FAILS and the falsifier (within 2σ of zero)
+FIRES**, which is the same outcome the wiring family's three-draw control produced at 0.99σ. The mean moved from
+**1.49σ at two draws to 1.33σ at three** — the third draw is the *least* favourable to the biology of the three
+(−0.0073, 0.85σ), so the quantity keeps shrinking as the control's population is sampled rather than converging
+towards the printed 2.08σ.
+
+**And the per-task decomposition says the single-draw number was not an eighth-trap artefact, which is worth
+recording because the aggregate now is.** On draw 0 the contrast was a balanced pair — task 0 **−0.0198 (1.38σ)**
+and task 1 **−0.0214 (2.27σ)**, both negative — while on draws 1 and 2 it is sub-2σ on each task and mixed in sign
+on draw 1 (task 0 **+0.0010**, task 1 **−0.0047**). So the *defect* in the printed 2.08σ was never a cancelling
+average; it was **one sample of a control population**, which is exactly what rule 10 says a single draw is. The
+newest task's retention is flat throughout (+0.0021 at 0.34σ on draw 0), so the biology's advantage was never
+bought with a worse last task either.
