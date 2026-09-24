@@ -2403,7 +2403,15 @@ why no shared rule was available and each line needed its own check.
    **3.74σ → 4.85σ** — **every direction agrees, three of the four are stronger on loss and the fourth is equal,
    and the one contrast the accuracy metric failed is the one the loss metric carries**. Those five rows are not
    five replications (one configuration, one read-out, three tasks, the same forty seeds), so what replicates is
-   the *metric's* behaviour across contrasts rather than the contrasts themselves.
+   the *metric's* behaviour across contrasts rather than the contrasts themselves. **And it decides both of the
+   session's knife-edge registrations**: `e142`'s P1 (overlap 1.0 − overlap 0.0) **fails at 2.99σ against its 3σ
+   bar and gives 4.92σ on the loss-valued forgetting**, and `e141`'s P2 fails at 1.60σ and gives 4.24σ — **two of
+   two**, with `e143`'s falsifier reading 5.04σ on accuracy and **10.35σ** on loss and the freeze within each
+   family reading 5.90σ / **8.69σ** and 5.04σ / **10.42σ**. Across the **eight contrasts** read both ways this
+   session the directions agree **8 of 8**, the loss-valued reading is stronger in **7** and equal in **1**, and
+   both threshold-misses are among them — so the honest form of both verdicts is *"failed on the metric the
+   registration named, met on the other quantity in the same file"*, and the failure is a statement about the
+   registration.
 6. **Ask the bias channel the two questions freezing it does not answer.** Holding 800 offsets at their
    initialisation removes **70%** of this benchmark's forgetting at read-out 32 *and raises accuracy*, which
    makes it a bound and not a recipe: **freezing is not penalising**, and a frozen parameter cannot report what

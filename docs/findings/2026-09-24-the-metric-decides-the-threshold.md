@@ -117,3 +117,34 @@ not the contrasts themselves** — and §4's caveat stands unchanged, since a tr
 the accuracy metric measures generalisation. The form of the claim is therefore: *on the configuration this
 session has swept, the loss-valued retention resolves the same effects at least as well, and the one registered
 threshold the accuracy metric missed is one it would have met.*
+
+## 7. And it decides *both* of the session's knife-edge registrations
+
+Two registrations this session missed their bars — `e142`'s **3σ** by **0.012σ** and `e141`'s **2σ** by **0.4σ** —
+and both are cases where the *other* recorded metric clears the bar comfortably. The harder-family contrasts can
+be read both ways for the same reason (every artifact carries both matrices), and they make the pattern sharper
+because they are **independent measurements rather than more λ points**:
+
+| contrast | accuracy-valued | loss-valued |
+|---|---|---|
+| **`e142`'s P1: overlap 1.0 − overlap 0.0, plastic** | **+0.03177 ± 0.01063 = 2.99σ — the registered bar is 3σ** | **+0.11372 ± 0.02310 = 4.92σ** |
+| `e143`'s falsifier: the surviving family difference under the freeze | +0.03724 ± 0.00739 = 5.04σ | +0.08038 ± 0.00776 = **10.35σ** |
+| the freeze within overlap 0.0 | −0.05234 ± 0.00887 = 5.90σ | −0.11997 ± 0.01381 = **8.69σ** |
+| the freeze within overlap 1.0 | −0.04687 ± 0.00929 = 5.04σ | −0.15331 ± 0.01471 = **10.42σ** |
+
+**So the metric decides both of the session's threshold-miss cases**: `e142`'s registered P1 fails at **2.99σ**
+against its 3σ bar and the same forty pairs give **4.92σ** on the loss-valued forgetting, and `e141`'s P2 fails at
+1.60σ and gives 4.24σ. **Two of two.**
+
+**And the knife-edges were already suspect for an independent reason**, which is why this is a repair of the
+reading rather than of the value: rule 37 was written from `e142`'s miss, and rule 38's bracketed-optimum language
+exists because a bar at 3.00σ whose sem is estimated from forty pairs cannot separate 2.7 from 3.4. **What this
+section adds is that the same data carry a second quantity which resolves it** — so the honest form of both
+verdicts is *"failed on the metric the registration named, met on the other quantity in the same file"*, and the
+registration's failure is a statement about the registration.
+
+**And the pattern's count, for the record**: across the **eight contrasts** this session read both ways, the
+directions agree **8 of 8**, the loss-valued reading is stronger in **7** and equal in **1**, and both
+threshold-misses are among them. That is a pattern about *this configuration's two recorded metrics*, not about
+either metric in general — §4's train-split caveat still stands, and the read-out-128 comparison in §3 still found
+the loss metric no more precise than accuracy at a tenfold test set.
