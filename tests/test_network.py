@@ -297,3 +297,23 @@ def test_the_artifact_payload_identifies_its_read_out_draw():
     # draw; that fallback is the same rule the draw itself uses, asserted in
     # test_the_readout_draw_defaults_to_seed0_so_older_artifacts_are_unaffected
     assert "args.seed0 if args.readout_seed is None else args.readout_seed" in src
+
+
+def test_the_environment_block_carries_a_calibration():
+    """A cost quoted without a speed cannot be compared with another cost, and §9 asks for exactly that.
+
+    The block already records versions and thread counts — none of which is a *rate*. The calibration is one
+    fixed matmul, so two artifacts' `timing_s` can be compared in the same units even when the machine was not
+    equally fast. The test checks that it is present, positive, and in the units it claims.
+    """
+    import torch  # noqa: F401  (the block imports torch itself)
+
+    from experiments.e8_rate_network import calibration, environment
+
+    env = environment()
+    assert "calibration_matmul_s" in env
+    assert isinstance(env["calibration_matmul_s"], float) and env["calibration_matmul_s"] > 0
+    # a 256x256 matmul is microseconds-to-milliseconds on any machine this project runs on
+    assert env["calibration_matmul_s"] < 0.5
+    # and a second call is not wildly different, i.e. it measures a rate rather than a one-off
+    assert 0.2 < calibration() / env["calibration_matmul_s"] < 5.0

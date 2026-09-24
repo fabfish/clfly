@@ -178,7 +178,34 @@ def environment() -> dict:
         "torch_version": torch.__version__,
         "python": platform.python_version(),
         "platform": platform.platform(),
+        # A **calibration**: one fixed matmul, timed, so that two artifacts' costs can be compared in the same
+        # units. The costs already are environment-shaped (rule 21, and §9 says so about the figures themselves)
+        # and today's per-replicate costs span **44.6 s to 132 s** across sixteen artifacts of this session with
+        # nothing in the record to attribute the 3.0× to -- the thread counts are recorded and the *load* is not,
+        # and no artifact says how fast the machine was at that moment. A calibration is the honest instrument:
+        # it measures the machine rather than asking the run to describe its own queue.
+        "calibration_matmul_s": calibration(),
     }
+
+
+def calibration(side: int = 256, reps: int = 8) -> float:
+    """Time a fixed matmul. A cheaper, portable proxy for "how fast was this machine just now".
+
+    Not a load count: the runner cannot see what else is running. It is a rate, so a 3× slower artifact can be
+    compared against a 3× slower calibration and the two costs become commensurable -- which is what §9 means by
+    quoting a cost beside the environment it was measured in.
+    """
+    import time
+
+    import torch
+
+    a = torch.randn(side, side)
+    b = torch.randn(side, side)
+    a @ b                                        # warm-up, excluded from the timing
+    t0 = time.perf_counter()
+    for _ in range(reps):
+        a @ b
+    return round((time.perf_counter() - t0) / reps, 6)
 
 
 def full_split_loss(model, readout, task, shared: bool = False, split: str = "train") -> float:
