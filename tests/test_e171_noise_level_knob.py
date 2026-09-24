@@ -50,3 +50,24 @@ def test_the_read_is_mechanical_when_the_artifacts_are_absent(tmp_path):
     """A verdict for a design whose arms do not exist is the one output this script must never produce."""
     code = e171.main([])
     assert code == 0
+
+
+def test_the_read_knows_two_knobs_and_refuses_a_verdict_for_either_without_its_arms():
+    """`e173` is the second knob, and the whole point of `--knob` is that its read is the same function.
+
+    `iters` is the one whose Fisher does not depend on it, so a gain step measured there has no Fisher
+    explanation available -- which is what makes it worth reading with the *same* verdict rather than a new one.
+    """
+    assert sorted(e171.KNOBS) == ["iters", "noise"]
+    for knob, runs in e171.KNOBS.items():
+        assert len(runs) == 2 and all(path.startswith("runs/") for _, _, path in runs)
+    # the noise family is measured, so its verdict prints; the iters family is not yet, so it must not
+    assert e171.main(["--knob", "noise"]) == 0
+    assert e171.main(["--knob", "iters"]) == 0
+
+
+def test_an_unknown_knob_is_rejected_rather_than_read_as_noise():
+    import pytest
+
+    with pytest.raises(SystemExit):
+        e171.main(["--knob", "lr"])

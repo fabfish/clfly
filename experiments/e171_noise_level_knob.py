@@ -42,11 +42,20 @@ from experiments.e151_pertask_contrast_audit import load_arm, paired
 #: the noise-1.0 reference: `naive` from `e133` (forty replicates, `lam = 3e-3`) and `ewc` from `e141` at 3e-4
 REFERENCE_NAIVE = "runs/e133_r32_naive_ewc_40reps.json"
 REFERENCE_EWC = "runs/e141_r32_ewc_lam3e-4.json"
-#: the two arms `e167` ran, by the noise value in the registration
-NOISE_RUNS = (("0.5", 0.5, "runs/e167_r32_noise0.5_lam3e-4.json"),
-              ("2.0", 2.0, "runs/e167_r32_noise2.0_lam3e-4.json"))
+#: **the knobs this read knows how to read, and the arms each one ran.** The name is the module's for historical
+#: reasons (`e167` was the first), and the `--knob` flag is what makes the *same* read usable for `e173`, whose
+#: `--iters` arms have the property `e167`'s do not: the Fisher does not depend on them, so a gain step measured
+#: there has no Fisher explanation available.
+KNOBS = {
+    "noise": (("0.5", 0.5, "runs/e167_r32_noise0.5_lam3e-4.json"),
+              ("2.0", 2.0, "runs/e167_r32_noise2.0_lam3e-4.json")),
+    "iters": (("250", 250, "runs/e173_r32_iters250_lam3e-4.json"),
+              ("1000", 1000, "runs/e173_r32_iters1000_lam3e-4.json")),
+}
 #: the resolution a sign needs before it is evidence
 RESOLVED = 2.0
+#: what the reference artifacts were run at, for the printout rather than for the arithmetic
+REFERENCE_LEVEL = "the registered baseline: noise 1.0, iters 500, lam 3e-4"
 
 
 def verdict(level_sigma: float, gain_change: float, gain_sigma: float) -> dict:
@@ -65,14 +74,17 @@ def verdict(level_sigma: float, gain_change: float, gain_sigma: float) -> dict:
 
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    ap.add_argument("--knob", default="noise", choices=sorted(KNOBS),
+                    help="which registered level knob to read; `iters` has no Fisher confound")
     ap.add_argument("--json-out", type=Path, default=None)
     args = ap.parse_args(argv)
+    knob = args.knob
 
     naive = load_arm(Path(REFERENCE_NAIVE), "naive")
     ewc = load_arm(Path(REFERENCE_EWC), "ewc")
-    out: dict = {"reference": {"naive": float(naive["forgetting"].mean()),
+    out: dict = {"knob": knob, "reference": {"naive": float(naive["forgetting"].mean()),
                                "gain": float((naive["forgetting"] - ewc["forgetting"]).mean())}}
-    print("== the reference, at noise 1.0 ==")
+    print(f"== the reference, at {REFERENCE_LEVEL} ==")
     print(f"   `naive` forgetting {naive['forgetting'].mean():.4f} over {naive['n']} seeds "
           f"(`e133`, forty replicates)")
     print(f"   the penalty's gain at lam = 3e-4: "
@@ -80,11 +92,11 @@ def main(argv=None) -> int:
     print("   (the reference pairs `e133` with `e141`, which differ in `lam` -- a field `e160` derives as unread")
     print("    by `naive`, so the level is one number rather than two; the gain is what `lam` moves)")
 
-    print("\n== `e167`, noise 0.5 and 2.0 against that reference, forty paired seeds ==")
-    print(f"   {'noise':<8}{'naive forgetting':>18}{'level step':>12}{'sigma':>8}"
+    print(f"\n== the `{knob}` arms against that reference, forty paired seeds ==")
+    print(f"   {knob:<8}{'naive forgetting':>18}{'level step':>12}{'sigma':>8}"
           f"{'gain':>10}{'gain step':>12}{'sigma':>8}")
     ends = []
-    for label, value, path in NOISE_RUNS:
+    for label, value, path in KNOBS[knob]:
         if not Path(path).is_file():
             print(f"   {label:<8}{'NOT RUN YET':>18}")
             continue
@@ -102,7 +114,7 @@ def main(argv=None) -> int:
               f"{gain_now:>+10.4f}{gain['change']:>+12.4f}{gain['sigma']:>8.2f}")
         ends.append((label, v))
     if not ends:
-        print("\n   `e167` has no artifact yet: the registration's row carries the predictions, and this script")
+        print(f"\n   `{knob}` has no artifact yet: the registration's row carries the predictions, and this script")
         print("   refuses to print a verdict for a design whose arms do not exist.")
     else:
         moved = [label for label, v in ends if v["level_moved"]]
