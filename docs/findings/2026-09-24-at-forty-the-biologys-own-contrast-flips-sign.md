@@ -91,3 +91,32 @@ three draws, the control's contribution to the standard error is roughly **0.008
 needs an effect of about **0.024** — and the single-draw 0.0206 is just under it. **So the honest expectation is
 that the three-draw measurement lands near its own bar**, which is rule 37's situation and is why the form of the
 reading is registered here rather than chosen afterwards.
+
+## 5. And it is not the eighth trap: both tasks move the same way
+
+**The project's eighth measurement trap is that an aggregate can be the cancellation of two resolved
+components**, and the diagonal is exactly that shape: at these forty seeds `ewc` improves task 0's forgetting by
+**−0.0355 (3.79σ)** and *worsens* task 1's by **+0.0162**, so its unresolved mean is a trade. **The paper's central
+contrast is not that shape**:
+
+| `ewc-block` − `ewc-block-rand` | value | resolution |
+|---|---|---|
+| **task 0** | −0.0198 | **1.38σ** (22/40 negative) |
+| **task 1** | −0.0214 | **2.27σ** (26/40 negative) |
+| mean of the two | −0.0206 | 2.08σ |
+
+**Both terms are negative and neither resolves on its own, so the 2.08σ aggregate is a fair summary of two terms
+that move together** — weak in size, consistent in sign, and the opposite of the diagonal's cancelling shape.
+**So the central contrast's weakness is its magnitude and not its shape**, which matters for what could change it:
+a draw of the control, not a different summary.
+
+**And the matched random control behaves as a same-size random partition should**: against `naive` it is
+**−0.0016 ± 0.0157 = 0.10σ on task 0 and −0.0042 ± 0.0126 = 0.33σ on task 1** — indistinguishable from the
+baseline on both, i.e. it constrains nothing useful. That is the control doing its job, and it is the first time
+this project has said so at forty replicates on this family.
+
+**For contrast, the two contrasts that *do* resolve resolve consistently across tasks**: `replay` − `naive` is
+**−0.0906 ± 0.0137 = 6.63σ** on task 0 and **−0.0661 ± 0.0096 = 6.91σ** on task 1, and `ewc-block` − `naive` is
+1.36σ and 1.60σ. **So on this configuration the resolved contrasts are resolved on both tasks and the unresolved
+ones are unresolved on both** — the diagonal is the single exception, and it is the one the paper's §4.2 caption
+was written about.
