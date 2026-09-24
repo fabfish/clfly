@@ -127,7 +127,7 @@ def main(argv=None) -> int:
         print(f"   falsifier (a resolved gain step of the opposite sign): "
               f"{'FIRES at ' + ', '.join(against) if against else 'does not fire'}")
         if not moved:
-            print("   null worth keeping: neither end moves the level, so `noise` is not a level knob for this")
+            print(f"   null worth keeping: neither end moves the level, so `{knob}` is not a level knob for this")
             print("   metric and the room account gets no test from this design either")
 
     if args.json_out:

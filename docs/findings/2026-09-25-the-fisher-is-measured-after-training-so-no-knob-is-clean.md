@@ -93,3 +93,32 @@ wrong.
   unit's claim obsolete and the registration right.
 - **And it does not say the room account is false** — only that this corpus cannot run the experiment that would
   isolate it, which is a statement about the corpus and not about the mechanism.
+
+## 4. Both `iters` arms, read: the knob is flat at both ends, and it has a second confound
+
+The 1000-iteration arm landed, so `e171 --knob iters` now reads both ends of the design that was supposed to remove
+the confound:
+
+| setting | `naive` forgetting | level step | resolution | the penalty's gain | gain step | resolution |
+|---|---|---|---|---|---|---|
+| iters 500 (reference) | 0.0750 | — | — | **+0.0354** | — | — |
+| iters 250 | 0.0794 | +0.0044 | **0.55σ** | +0.0141 | −0.0214 | **2.09σ** |
+| iters 1000 | 0.0786 | +0.0036 | **0.38σ** | +0.0320 | −0.0034 | 0.28σ |
+
+**P1 fails at both ends, P2 agrees nowhere, the falsifier does not fire, and the null applies.** And the null is
+the finding rather than a failure to find one: **quadrupling the training length (250 → 1000) moves `naive`'s
+forgetting by 0.0008** — the level is flat at both ends of a fourfold range, while `noise` moved it by 0.0312 at
+3.55σ. **So on this configuration the forgetting level is set by the tasks' difficulty and not by how long the
+network trains**, which is a property of the benchmark and not of the penalty: the tasks are learned to
+convergence well inside 250 iterations, and more iterations add nothing to forget.
+
+**And it identifies a second, independent reason this knob cannot isolate the room**: **the penalty acts *during*
+training**, so `--iters` changes how many steps it is applied for — at 250 iterations the term has half as many
+steps to act in. The gain's fall at 250 (−0.0214 at 2.09σ) is therefore over-determined: a shorter dose *and* a
+different Fisher, both in the same direction. Task 0 has no penalty at all and the last task has no future, so the
+dose is exactly proportional to the iteration count in between.
+
+**None of this touches the noise result**, which is what the paper's §4.7 carries: there the level moved at 3.55σ
+and the gain with it at 3.57σ, on a knob whose impurity is the Fisher alone. What this unit adds to that section is
+that **the alternative explanations are bounded rather than excluded, and that the design which would exclude them
+is now built** — `e175` is running, and `e176` reads it.
