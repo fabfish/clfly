@@ -172,7 +172,13 @@ point measured on the forgetting: **it is the largest λ at which the knob has n
 itself**, and no constraint in this paper reaches the level `replay` reaches without a last-task price at all —
 `replay` is the only arm not dominated on either axis (2-axis and 3-axis), every other constrained arm paying
 between 2.08σ and 9.70σ on the newest task** (**12.06σ** for the frozen-plus-penalised arm at λ = 3e-3, which
-landed after this measurement and is quantified below) —
+landed after this measurement and is quantified below) — **and the same four cells say *why* λ is about the
+channel: with the offsets held still the knob's own step reverses sign.** Raising λ from 3e-4 to 3e-3 costs
+**+0.0258 (3.74σ)** of forgetting with the channel free and **helps by 0.0047** with it frozen, an interaction of
+**−0.0305 ± 0.0074 = 4.10σ** (**5.61σ** on the loss-valued metric) — while on the newest task the same step costs
+accuracy in **both** channels (2.97σ and 5.74σ) with an interaction of only **1.23σ**. **So λ's stability effect
+is a property of the channel it displaces adaptation into and λ's plasticity cost is a property of the penalty**,
+and the two factors have different owners on the same forty seeds** —
 with raising λ moving
 adaptation out of `theta` and into the 800 offsets (**16.63σ** on the top contrast's bias path and **22.35σ** on
 θ's drift) while the forgetting *rises*: **the more movement the penalty displaces into the channel carrying the

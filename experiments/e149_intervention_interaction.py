@@ -40,6 +40,17 @@ every field that defines the seed stream and differ only in the two knobs) and t
 cannot be quoted without the bound that makes it meaningful -- and a share is *refused* rather than printed when
 either main effect is itself below 2 sigma.
 
+**And the script carries a SECOND 2x2, because the record can assemble it and it asks the other question of the
+same design.** The four cells are the channel (`free` / `frozen`) against the penalty's **strength**
+(`lam = 3e-4` / `3e-3`): `e141` and `e133`'s `ewc` for the free cells, `e147`'s two arms for the frozen ones.
+There the quantity is not a shared part but **the difference of the two steps** -- *how much the knob's effect
+changes when the channel is frozen* -- and it resolves where the first 2x2 does not: **-0.0305 +/- 0.0074 =
+4.10 sigma on the accuracy-valued forgetting and 5.61 sigma on the loss-valued one, with the step's sign
+reversing** (+0.0258 worse free, -0.0047 better frozen), while on the newest task the same knob costs accuracy in
+**both** channels (2.97 sigma and 5.74 sigma) with an interaction of only **1.23 sigma**. **So lambda's stability
+effect is the channel's and lambda's plasticity cost is the penalty's**, and the two 2x2s are deliberately kept
+side by side because they answer oppositely on the same seeds.
+
 **What would refute the shared-carrier reading.** ``I`` within 2 sigma of zero on every metric: then the two
 interventions are additive at this resolution and the licensed sentence is *their overlap is below the
 resolution of forty paired seeds*, which is a bound and not a zero. The metric axis is part of the test, not
@@ -70,6 +81,17 @@ ARMS: dict[str, tuple[str, str, str]] = {
     "freeze": ("runs/e125_r32_frozenbias.json", "naive", "offsets frozen, no penalty"),
     "pen": ("runs/e141_r32_ewc_lam3e-4.json", "ewc", "ewc lam=3e-4, offsets free"),
     "both": ("runs/e147_r32_frozenbias_ewc_lam3e-4.json", "ewc", "ewc lam=3e-4 on frozen offsets"),
+}
+
+#: The **second** 2x2 the record can assemble, and it is a different pair of factors: the channel
+#: (`free` / `frozen`) against the penalty's **strength** (`lam = 3e-4` / `3e-3`). Its question is not
+#: whether the two interventions share an effect (that is the block above) but whether **the channel changes
+#: what the knob does**, which is the difference of the two steps.
+CHANNEL_LAMBDA: dict[tuple[str, str], tuple[str, str]] = {
+    ("free", "3e-4"): ("runs/e141_r32_ewc_lam3e-4.json", "ewc"),
+    ("free", "3e-3"): ("runs/e133_r32_naive_ewc_40reps.json", "ewc"),
+    ("frozen", "3e-4"): ("runs/e147_r32_frozenbias_ewc_lam3e-4.json", "ewc"),
+    ("frozen", "3e-3"): ("runs/e147_r32_frozenbias_ewc_lam3e-3.json", "ewc"),
 }
 
 #: every field that defines the seed stream. The four arms must agree on all of them.
@@ -114,6 +136,9 @@ def load_arm(path: Path, method: str) -> dict | None:
                                       for r in reps]),
         "forgetting_task1": np.array([(r.get("forgetting_per_task") or [float("nan"), float("nan")])[1]
                                       for r in reps]),
+        # the newest task's final accuracy: the column a mean over the first T-1 tasks cannot contain.
+        # `nan` for artifacts that predate the field, so an older file loads rather than raising.
+        "newest": np.array([(r.get("final_per_task") or [float("nan")])[-1] for r in reps]),
         "config": payload.get("config", {}),
         "n": len(reps),
     }
@@ -148,6 +173,40 @@ def load_wb(path: Path, method: str) -> dict | None:
         "config": payload.get("config", {}),
         "n": len(arr),
     }
+
+
+def step_interaction(arms: dict, metric: str) -> dict | None:
+    """The channel x knob interaction, in the form the question takes: **the difference of the two steps.**
+
+    With the knob written as the step from its lower to its higher value, and the channel as its two settings:
+
+        step_free   = arm(free, high)   - arm(free, low)
+        step_frozen = arm(frozen, high) - arm(frozen, low)
+        interaction = step_frozen - step_free
+
+    ``interaction`` is therefore *how much the knob's effect changes when the channel is frozen* -- the quantity a
+    "the knob is about the channel" claim is about, and one no single step can show. Both steps are paired on the
+    seeds; the interaction's sem is theirs in quadrature, and that is an **upper bound** because the two steps
+    share two of the four arms (`e133`'s `ewc` is one of them at both λ). None when a cell is missing.
+    """
+    keys = (("free", "3e-4"), ("free", "3e-3"), ("frozen", "3e-4"), ("frozen", "3e-3"))
+    if any(k not in arms or arms[k] is None for k in keys):
+        return None
+    step_free = paired(arms[("free", "3e-3")][metric], arms[("free", "3e-4")][metric])
+    step_frozen = paired(arms[("frozen", "3e-3")][metric], arms[("frozen", "3e-4")][metric])
+    # The interaction is computed **per seed** and not as the two steps' sems in quadrature: the two steps sit
+    # on different arms but the SAME forty seeds, so their per-seed differences are correlated and quadrature
+    # would overstate the interaction's uncertainty. The quadrature sum is reported beside it as that bound.
+    d_free = arms[("free", "3e-3")][metric] - arms[("free", "3e-4")][metric]
+    d_frozen = arms[("frozen", "3e-3")][metric] - arms[("frozen", "3e-4")][metric]
+    inter = paired(d_frozen, d_free)
+    quadrature = math.sqrt(step_frozen["sem"] ** 2 + step_free["sem"] ** 2)
+    return {"step_free": step_free, "step_frozen": step_frozen,
+            "interaction": dict(inter, sem_quadrature=quadrature),
+            "levels": {"free/3e-4": float(arms[("free", "3e-4")][metric].mean()),
+                       "free/3e-3": float(arms[("free", "3e-3")][metric].mean()),
+                       "frozen/3e-4": float(arms[("frozen", "3e-4")][metric].mean()),
+                       "frozen/3e-3": float(arms[("frozen", "3e-3")][metric].mean())}}
 
 
 def pairing_check(arms: dict[str, dict]) -> dict:
@@ -314,6 +373,27 @@ def main() -> int:
         print(f"  {'':<12} freeze alone {d['d_freeze']['change']:+.4f} ({d['d_freeze']['sigma']:.2f}s) -> "
               f"given pen {d['freeze_given_pen']['change']:+.4f} "
               f"({d['freeze_given_pen']['sigma']:.2f}s), retained {d['retention_of_freeze']:.2f}x")
+
+    print("\n== the second 2x2: the channel against the penalty's STRENGTH ==")
+    cl_arms = {}
+    for key, (path, method) in CHANNEL_LAMBDA.items():
+        cl_arms[key] = load_arm(Path(path), method)
+        if cl_arms[key] is None:
+            print(f"   missing {key} <- {path} [{method}]")
+    for metric in ("forgetting", "loss_forgetting", "accuracy", "newest"):
+        st = step_interaction(cl_arms, metric)
+        if st is None:
+            print(f"   {metric}: not printable, a cell is missing")
+            continue
+        lv = st["levels"]
+        print(f"   {metric:<16} levels free {lv['free/3e-4']:+.4f} {lv['free/3e-3']:+.4f} "
+              f"| frozen {lv['frozen/3e-4']:+.4f} {lv['frozen/3e-3']:+.4f}")
+        print(f"   {'':<16} step with the channel FREE {st['step_free']['change']:+.4f} "
+              f"({st['step_free']['sigma']:.2f}s)  FROZEN {st['step_frozen']['change']:+.4f} "
+              f"({st['step_frozen']['sigma']:.2f}s)")
+        print(f"   {'':<16} INTERACTION (frozen step - free step) {st['interaction']['change']:+.4f} "
+              f"+/- {st['interaction']['sem']:.4f} = {st['interaction']['sigma']:.2f}s "
+              f"(quadrature bound {st['interaction']['sem_quadrature']:.4f})")
 
     print("\n== reading ==")
     for metric, verdict in verdicts(decomp).items():

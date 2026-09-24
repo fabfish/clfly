@@ -161,3 +161,55 @@ def test_the_verdict_follows_the_resolution_and_not_the_size():
     # the same mean with a quiet spread resolves, in the direction the metric's sign says
     quiet = e149.decompose(_four(np.full(40, 0.01)))["forgetting"]
     assert e149.verdicts({"forgetting": quiet})["forgetting"].startswith("sub-additive")
+
+
+def _cell(step_mean: float, n: int = 40, sd: float = 0.03) -> "np.ndarray":
+    """A paired difference with this mean and sd, so a step's sigma is arithmetic."""
+    d = np.zeros(n)
+    d[0] = 1.0
+    d = d - d.mean()
+    d = d / d.std(ddof=1)
+    return step_mean + sd * d
+
+
+def _channel_lambda(free_step: float, frozen_step: float, n: int = 40) -> dict:
+    base = np.zeros(n)
+    return {
+        ("free", "3e-4"): {"forgetting": base.copy(), "loss_forgetting": base.copy(),
+                           "accuracy": base.copy(), "newest": base.copy(), "config": {}, "n": n},
+        ("free", "3e-3"): {"forgetting": base + _cell(free_step, n), "loss_forgetting": base + _cell(free_step, n),
+                           "accuracy": base + _cell(free_step, n), "newest": base + _cell(free_step, n),
+                           "config": {}, "n": n},
+        ("frozen", "3e-4"): {"forgetting": base.copy(), "loss_forgetting": base.copy(),
+                             "accuracy": base.copy(), "newest": base.copy(), "config": {}, "n": n},
+        ("frozen", "3e-3"): {"forgetting": base + _cell(frozen_step, n),
+                             "loss_forgetting": base + _cell(frozen_step, n),
+                             "accuracy": base + _cell(frozen_step, n), "newest": base + _cell(frozen_step, n),
+                             "config": {}, "n": n},
+    }
+
+
+def test_the_step_interaction_is_the_difference_of_the_two_steps_and_flips_when_they_do():
+    arms = _channel_lambda(free_step=+0.025, frozen_step=-0.005)
+    st = e149.step_interaction(arms, "forgetting")
+    assert abs(st["step_free"]["change"] - 0.025) < 1e-12
+    assert abs(st["step_frozen"]["change"] + 0.005) < 1e-12
+    assert abs(st["interaction"]["change"] + 0.030) < 1e-12
+    # the interaction's sem is its OWN per-seed difference's sem, and the quadrature sum is carried beside it
+    # as the bound it would be if the two steps were independent -- which they are not, sharing the seeds.
+    per_seed = (arms[("frozen", "3e-3")]["forgetting"] - arms[("frozen", "3e-4")]["forgetting"]) - \
+               (arms[("free", "3e-3")]["forgetting"] - arms[("free", "3e-4")]["forgetting"])
+    assert abs(st["interaction"]["sem"] - per_seed.std(ddof=1) / np.sqrt(len(per_seed))) < 1e-12
+    assert st["interaction"]["sem"] <= st["interaction"]["sem_quadrature"] + 1e-12
+    assert st["interaction"]["sigma"] > 2
+    # one cell missing is not a zero: the second 2x2 prints nothing rather than a number
+    partial = dict(arms)
+    del partial[("frozen", "3e-3")]
+    assert e149.step_interaction(partial, "forgetting") is None
+
+
+def test_the_second_2x2_reports_the_same_interaction_for_every_metric_it_is_given():
+    arms = _channel_lambda(free_step=+0.02, frozen_step=-0.01)
+    for metric in ("forgetting", "loss_forgetting", "accuracy", "newest"):
+        st = e149.step_interaction(arms, metric)
+        assert abs(st["interaction"]["change"] + 0.030) < 1e-12
