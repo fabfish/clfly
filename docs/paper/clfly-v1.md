@@ -315,8 +315,15 @@ room account does not. **And the route around that limit now exists in the runne
 `--save-fisher` stores the diagonal Fisher and the anchor **as they stood when each task was trained**, and
 `--fisher-from` replays them, with a replayed run **bit-identical** to the run that computed them (identical
 `forgetting_per_task` on every task, worst difference **0.0**, and configs differing only in the two flags) — so
-two levels of forgetting can be penalised by **one** term. That is the isolating test, and it is running
-(`docs/findings/2026-09-25-the-fisher-is-measured-after-training-so-no-knob-is-clean.md`,
+two levels of forgetting can be penalised by **one** term. **That is the isolating test, and it has now been
+run**: with the Fisher, the anchor and λ **identical** across the two levels, the level falling **−0.0312** still
+costs the penalty **−0.0266 of its advantage at 2.73σ** — where each run with its own Fisher lost **−0.0370** — so
+**the room accounts for the whole part of the effect forty seeds can resolve**, and the Fisher's own share, measured
+by differencing the two low-noise runs (which share a level and a seed stream and differ only in where the Fisher
+came from), is **+0.0104 ± 0.0093 = 1.13σ**, i.e. **28% by point estimate and not resolvable**: resolving *it* at
+3σ needs about 290 seeds. **A design registered to overturn the account did not**
+(`docs/findings/2026-09-25-the-room-account-survives-the-penalty-being-held-fixed.md`,
+`docs/findings/2026-09-25-the-fisher-is-measured-after-training-so-no-knob-is-clean.md`,
 `docs/findings/2026-09-25-the-level-knob-moves-the-gain-and-the-high-end-is-a-null.md`,
 `docs/findings/2026-09-24-the-room-account-agrees-with-every-resolved-level-move-and-does-not-explain-the-gain.md`).
 (The strongest evidence for that contrast is at sixteen replicates, where it is **−0.0677 ± 0.0101 =
