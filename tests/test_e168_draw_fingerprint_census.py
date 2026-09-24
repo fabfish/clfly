@@ -63,7 +63,10 @@ def test_the_corpus_records_the_draw_in_a_fifth_of_the_artifacts_that_need_it():
     assert exp["recording_the_draw"] >= 7
     assert exp["unidentifiable"] == exp["artifacts_with_a_rand_arm"] - exp["recording_the_draw"]
     assert exp["unidentifiable"] >= 3 * exp["recording_the_draw"], "most users of the control cannot say which"
-    assert exp["fingerprints"] == ["000b42be6ba2", "3058aa874ae6", "f6a658eabf9c"]
+    # the cell_class@800 triple is present, and the *list* is not pinned: the corpus gains fingerprints as new
+    # bases and circuits are run with a recorded draw, and the meaningful check is per artifact -- that each
+    # artifact's reconstruction reproduces its own recorded value, which `identified_draws` verifies.
+    assert {"000b42be6ba2", "3058aa874ae6", "f6a658eabf9c"} <= set(exp["fingerprints"])
     assert exp["pairs"]["one_side_only"] > 200 and exp["pairs"]["both_different"] > 0
 
 
@@ -109,9 +112,13 @@ def test_the_reconstruction_reproduces_every_recorded_fingerprint():
     from experiments.e103_reproducibility_audit import load_artifacts
 
     recorded = set(e168.exposure(load_artifacts())["fingerprints"])
+    # the default basis's three seeds reproduce three of them, and the rest are reproduced *per artifact* by
+    # `identified_draws`, which reconstructs each artifact's own inputs rather than the default ones
     rebuilt = {seed: e168.reconstruct_fingerprint(seed=seed) for seed in (0, 1, 2)}
-    assert set(rebuilt.values()) == recorded
+    assert set(rebuilt.values()) <= recorded
     assert rebuilt[0] == "000b42be6ba2", "seed 0 is the default draw e144 used and e153 recorded"
+    ids = e168.identified_draws(load_artifacts())
+    assert not ids["mismatched"] and set(ids["recorded"].values()) == recorded
 
 
 @needs_data
