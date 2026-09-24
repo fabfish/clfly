@@ -1735,13 +1735,17 @@ about (`docs/findings/2026-09-23-the-last-two-unaudited-sections-were-clean.md`)
    the arm whose forgetting is highest of the three penalties**. **So a part-assembled instrument's null is not
    only a null about the part — the whole-body form is the one that carries the effect, which makes the
    original account *repaired* rather than discarded.** **And the same fire produced the companion defect one
-   step over**: ordering the **four** penalty arms on this configuration by the **bias's cumulative path** gives
-   **3.4452 → +0.0292**, **4.2190 → +0.0352**, **3.6835 → +0.0396**, **4.2819 → +0.0654** — up, down, up — while
-   **within each knob it is monotone** (the anchoring axis: 4.2819 against 3.4452; the λ axis: 4.2819 against
-   3.6835). **Three points along a single intervention is a co-movement, not a carrier**, and the test of whether
-   a quantity carries an effect is a **second, independent knob** — the same reason a correlation along a
+   step over**: ordering the penalty arms on this configuration by the **bias's cumulative path** gives
+   **3.4452 → +0.0292**, **3.6835 → +0.0396**, **4.2190 → +0.0352**, **4.2819 → +0.0654**, **5.4367 → +0.0810**,
+   **6.2313 → +0.0846** — **Spearman +0.943 with exactly one inversion, and that inversion unresolved at 0.69σ**
+   — while **within each knob it is perfect** (+1.000 over the four λ arms, +1.000 over the three anchoring arms).
+   **So a three-point ordering along a single intervention is a co-movement, not a carrier**, and the test of
+   whether a quantity carries an effect is a **second, independent knob** — the same reason a correlation along a
    read-out axis is confounded by everything else that axis moves, arriving here on an *intervention* axis rather
-   than on a configuration axis (`docs/findings/2026-09-24-the-lambda-sweeps-floor-is-where-the-effect-is.md`).
+   than on a configuration axis. **And the test cuts both ways**: the first reading of this table was three arms
+   and the second was four, and *both* were too strong — the six-arm version is neither the clean ordering the
+   first claimed nor the breakage the second reported
+   (`docs/findings/2026-09-24-the-lambda-sweeps-floor-is-where-the-effect-is.md`).
 
 37. **A registered threshold on a statistic needs that statistic's own uncertainty, or it is a coin-flip
     dressed as a bar.** `e142` registered "raising the input overlap raises the forgetting, resolved at
