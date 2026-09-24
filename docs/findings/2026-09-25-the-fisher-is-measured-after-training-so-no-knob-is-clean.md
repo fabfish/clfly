@@ -64,10 +64,20 @@ the knob has moved. So:
   alternative — that the knob changed the penalty's inputs — is bounded and not excluded.** The paper now says
   this instead of the sentence it said an hour ago.
 
-**A design that would isolate it, named but not run**: hold the penalty's inputs fixed *by construction* while
-moving the level — e.g. run both arms from a **stored Fisher and anchor** (`--save-theta` exists, and the Fisher
-could be), so that two levels of forgetting are penalised by the *same* term. That is a runner change and not a
-flag, which is why it is named here rather than launched.
+**A design that would isolate it, named and then built**: hold the penalty's inputs fixed *by construction* while
+moving the level, so that two levels of forgetting are penalised by the **same** term. That needed a runner change
+and it now exists — **`--save-fisher` writes the inputs (the diagonal Fisher and its anchor, one entry per task, as
+they stood when that task was trained) and `--fisher-from` uses them instead of computing them** — and what makes
+it trustworthy is that a replayed run is **bit-identical** to the run that computed them: verified by an actual
+pair of runs, identical `forgetting_per_task` on every task, worst difference **0.0**, configs differing only in the
+two flags and the output path. `--fisher-from` is **refused** for the block methods, whose inputs are a partition
+and a trace-normalised matrix, because a stored diagonal would silently be a different object.
+
+**And the flags' own `--help` found a defect that had been hiding the runner's flag list**: `argparse`
+`%`-formats help strings, so a bare `70%` in `--anchor-bias`'s help raised `TypeError` and **`uv run python
+experiments/e8_rate_network.py --help` could not print at all** — two such percents (`70%`, `2.9%`) are now escaped
+and a test refuses any future bare one, since that failure mode makes the documentation unprintable rather than
+wrong.
 
 ## 3. What this cannot settle
 
