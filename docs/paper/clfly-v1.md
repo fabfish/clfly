@@ -171,7 +171,14 @@ family's margin is 92% of the base family's; the frozen arm's is 92% too; the re
 1.261 against 1.045, 0.922, 0.921, 1.17, 1.259), so *"the margin tracks the channel's share"* is refuted and
 *"the margin is the baseline's forgetting"* is the same identity with a term bounded at ±0.008
 (`docs/findings/2026-09-24-the-floor-models-residual-is-replays-own-forgetting.md`,
-`docs/findings/2026-09-24-replays-own-forgetting-pooled.md`).
+`docs/findings/2026-09-24-replays-own-forgetting-pooled.md`). **And the same quantity on the loss-valued metric is
+ten to two hundred times tighter — 0.0000 to 0.0005 with per-seed sds of 0.0000–0.0023, against the accuracy
+metric's 0.0198–0.0230 in the same files** — because the accuracy metric's per-seed sd is the test set's
+granularity (48 held-out examples per task, the runner's own standing warning) while the training loss, once
+driven to its interpolated floor (`e121`), has nowhere to go. **So the ±0.008 above is a statement about the
+accuracy metric's noise rather than about the method**, and the training-split bound is not the one to headline
+because a fit-based bound on an interpolating benchmark is a bound on the fit
+(`docs/findings/2026-09-24-the-same-bound-on-two-metrics.md`).
 **And that is the read-out where the comparison is least clean, because 70% of what `naive` forgets there
 lives in a channel no penalty in this paper covers.** The plastic body is **two** parameter sets, 26,568
 connectome-masked weights and **800 per-neuron offsets**, and every penalty here is built over the weights

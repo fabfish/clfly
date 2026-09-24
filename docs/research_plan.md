@@ -934,7 +934,10 @@ What the line established today, in the order it matters:
    1.045, 0.922, 0.921, 1.17, 1.259). **So the only free quantity is `replay`'s own forgetting, and pooled over
    the four distinct configurations where it is measured it is −0.0007 ± 0.0038** — 0.19σ from zero, a 2σ bound of
    **±0.0076** — which is the paper's *"replay drives the forgetting to zero"* stated as a number rather than as an
-   adjective.
+   adjective. **And on the loss-valued metric the same quantity is zero to four decimals in three of the four
+   configurations and 0.0005 in the fourth, with per-seed sds of 0.0000–0.0023 against accuracy's 0.0198–0.0230** —
+   so **the ±0.008 is the accuracy metric's test-set granularity rather than a property of `replay`**, and the
+   tighter number is a training-split bound on an interpolating benchmark, which is why it is not the one to quote.
 8. **In flight at this writing**: `e153` (the shared-input family's five-method table in one artifact, and that
    configuration's second execution) and `e155` (the floor model — replay's margin ≈ the baseline's forgetting —
    tested across the read-out axis, where the baseline's forgetting is already measured at five levels). **And
