@@ -2718,7 +2718,17 @@ qualification attaches to every reproduction claim here including the ones state
 **On the trained network the qualification is not uniform across arms — it is per-arm and
 per-configuration, and measured.** At `--fisher-batches 32` the whole five-arm benchmark reproduces
 **exactly**: 280 of 280 numeric fields, including every replicate of all five methods, **13 hours and five
-commits apart**. At `--fisher-batches 8` two runs of one command an hour apart agree on `naive` (+0.0729) and
+commits apart**. **That sentence is a statement about the base family at five replicates, and the same day's
+first execution of the *wiring* family at forty replicates breaks it on the three penalty arms** — where `naive`
+agrees to the last digit and `ewc`, `ewc-block` and `ewc-block-rand` move by up to **0.229 per replicate** on the
+same seed stream, in the same epoch for the penalty path (the runner's last change predates both runs, and the
+one that added `partition_seed` is confined to the matched-random partition, whose default draw is unchanged).
+**What that single pair cannot say is whether `e144` was an outlier or the penalty arms are run-to-run
+non-reproducible**, so a third execution of the same command is registered and running; what it *can* say is that
+the two readings differ in consequence — the between-run movements already seen on those arms' means (**0.0068**,
+**0.0201**, **0.0112**) are the same order as the paired sems this section's method table quotes
+(`docs/findings/2026-09-24-e153s-own-control-fails-on-the-three-penalty-arms.md`). At `--fisher-batches 8` two
+runs of one command an hour apart agree on `naive` (+0.0729) and
 on the diagonal (`ewc`, +0.0271) and **disagree** on the biological block (+0.0167 / +0.0229), its size-matched
 random control (+0.0521 / +0.0396) and `replay` (+0.0333 / +0.0500) — which moves the one contrast §4.7 rests
 on from −0.0354 to −0.0167. **So "reproduces" is a claim about an arm at a configuration and not about the
