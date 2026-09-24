@@ -33,9 +33,13 @@ import numpy as np
 def loss_forgetting(retention_loss: list[list[float]]) -> float:
     """``mean_{j < T-1} ( L[T-1][j] - min_{k >= j} L[k][j] )``, in nats.
 
-    The accuracy forgetting is ``max_k R[k][j] - R[T-1][j]``; this is the same expression with the two
-    directions swapped, because loss falls where accuracy rises. ``min`` includes ``k = T-1``, so the value is
-    non-negative by construction, exactly as the accuracy form is.
+    The accuracy forgetting is ``R[j, j] - R[T-1, j]`` -- **the diagonal, not a max over checkpoints**: the
+    runner fills `R` for `j <= k` only, so its window `nanmax(R[:j+1, j])` holds exactly one finite entry, and
+    `e154` verifies that identity to the last digit over 243 method-arms. The literature's convention takes the
+    max over the **later** checkpoints, which can only be larger, so this form is a lower bound on it. Here the
+    expression is ``L[T-1][j] - min_{k >= j} L[k][j]``, the same shape with the two directions swapped, because
+    loss falls where accuracy rises; the ``min`` includes ``k = T-1``, so the value is non-negative by
+    construction, exactly as the accuracy form is.
     """
     L = np.asarray(retention_loss, dtype=float)
     T = L.shape[0]

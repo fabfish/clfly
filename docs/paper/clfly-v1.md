@@ -2298,7 +2298,18 @@ trap.)*
   and the method they are all charged against is the one the paper calls strongest — which means the comparison
   the tables print is not merely incomplete but **biased in one direction, against the methods the paper is
   about** (`docs/findings/2026-09-24-the-aggregate-hides-the-diagonal-and-the-last-task-pays.md`,
-  `docs/findings/2026-09-24-the-censuses-now-cover-todays-arms.md`).
+  `docs/findings/2026-09-24-the-censuses-now-cover-todays-arms.md`). **And the two quantities are complements by
+  construction, which `e154` verified rather than assumed**: the runner fills the retention matrix for `j <= k`
+  only, so `forgetting_per_task[j] == learned[j] - final[j]` to the last digit over **243** method-arms — the
+  window `nanmax(R[:j+1, j])` holds exactly one finite entry, the diagonal — and the newest task's accuracy
+  **is** the diagonal, so no interference can enter it. The mean is pure retention, that column is pure
+  acquisition, and no re-weighting of the mean recovers it. **And the same audit measures what this definition
+  costs against the literature's**: the conventional accuracy forgetting takes the max over the **later**
+  checkpoints, and the gap is strictly positive in **15.2%** of 5,762 (task, replicate) observations (mean
+  0.00449, p90 0.02083, max 0.10417), so every forgetting number in this paper is a **lower bound** on the
+  statistic a reader from that literature would compute — while the loss-valued metric in the same paper uses the
+  *other* window and is therefore already conventional, differing from its own diagonal in **5.8%** of
+  observations (`docs/findings/2026-09-24-the-aggregate-and-the-last-task-are-complements-by-construction.md`).
 - **An instrument assembled from part of the object reports a null about the part it read.** The first-order
   interference term is built from `theta` alone, and the body is two parameter sets — so when §4.2 measures that
   the offsets carry 70% of the forgetting, the term's five-fire inability to order the forgetting becomes a
@@ -2594,6 +2605,7 @@ artifact as well, so the command's output can be checked rather than assumed.
 | §4.7 — **the harder family's four-method table**, and the three-draw control its central contrast is read against | the same command with `--input-overlap 1.0 --methods naive,ewc,ewc-block,ewc-block-rand`, and `--methods ewc-block-rand --partition-seed {1,2}` for the two extra draws | `runs/e144_r32_overlap1_methods_40reps.json`, `runs/e144_r32_overlap1_rand_draw{1,2}.json`; the analysis is `python -m experiments.e144_basis_harder_family` |
 | §4.2 — **the per-task decomposition of every forty-replicate contrast in the record**, including the newest task's accuracy that `mean_forgetting` cannot contain | `python -m experiments.e151_pertask_contrast_audit --json-out runs/e151_pertask_audit.json` — an audit: it reads artifacts and runs nothing, and its registry is the list of what it covers. **Its registry was extended on 2026-09-24 from 22 contrasts to 27 when the arms that landed that evening were added**, which is why the counts in §4.2 and §8 are the extended ones | `runs/e151_pertask_audit.json`, over the 27 arms it names |
 | §4.7 — **the two-axis plane and the dominance frontier over the λ ladder**, and the same plane on the shared-input family | `python -m experiments.e152_stability_plasticity_trade --json-out runs/e152_trade.json` — analysis only. **Extended on 2026-09-24: the base plane holds ten arms and a second five-arm plane on the shared-input family was added** | `runs/e152_trade.json` |
+| §7, §8 item 7 — **what the retention matrix makes each printed number** (the aggregate is pure retention, the newest task's accuracy is pure acquisition, and the accuracy metric is a lower bound on the literature's window) | `python -m experiments.e154_retention_matrix_audit --json-out runs/e154_retention_structure.json` — an audit over every artifact carrying a matrix: 129 artifacts, 243 method-arms, no runs | `runs/e154_retention_structure.json` |
 | §6 | `python -m clfly.lgcl.repro`, `pytest -q` | — |
 
 The connectome data is not redistributed; `python -m clfly.connectome.fetch` clones it
