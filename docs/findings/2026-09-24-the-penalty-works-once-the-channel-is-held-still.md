@@ -60,6 +60,14 @@ the penalty.
   value, *"the penalty adds nothing once the channel is held still"*. **It adds −0.0201 ± 0.0036 = 5.53σ**, i.e.
   it adds more than the freeze did — and the refutation is in the *constructive* direction, which is the outcome
   the registration listed third and expected least.
+- **And the falsifier's own consequence clause is refuted by the same contrast, which the registration did not
+  organise.** The falsifier was *"the two arms are within 2σ of each other"*, and what it was registered to imply
+  was stated in one breath: λ's whole effect runs through the uncovered channel, so `--frozen-bias` at both λ
+  **would agree with each other and with `e125`'s frozen arm (+0.0227)**. The first clause is still pending — the
+  second arm is running — but the second clause is already measured: this arm is **5.53σ below `e125`**, so
+  *"λ's entire effect runs through the uncovered channel"* is refuted whatever the 3e-3 arm does. Two of the
+  registration's three outcomes are therefore decided, in the same direction, by one arm; only the λ-against-λ
+  clause remains.
 
 ## 4. What this cannot settle
 
