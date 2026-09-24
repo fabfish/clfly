@@ -101,7 +101,14 @@ paired seeds, where the unanchored rule is **1.21σ**; and `e137` measures the u
 adaptation into exactly those offsets, which is why squeezing harder along λ presses a channel the adaptation
 leaves. **So "no λ works" was true of the family that was swept and is a statement about coverage rather than
 about strength** (`docs/findings/2026-09-24-the-penalty-relocates-the-adaptation.md`,
-`docs/findings/2026-09-24-the-arm-that-fixes-the-forgetting-has-more-interference.md`).
+`docs/findings/2026-09-24-the-arm-that-fixes-the-forgetting-has-more-interference.md`). **And the blockquote's
+second half — *"replay … is the only method that clearly works"* — has its own measured qualifier**: re-running
+the whole five-method table with the offsets frozen in **every** arm cuts replay's advantage over `naive` by
+**66%** (−0.0854 → −0.0292, a move of **2.23σ**) while the three Fisher penalties' contrasts move by 0.42σ, 0.21σ
+and 0.48σ — so with the channel removed from all arms the ranking is **ewc < replay < block-rand < block < naive**
+and **diagonal EWC is the best method**. *"Replay is the only method that works"* is a claim about the **plastic**
+configuration and is partly a claim about the baseline's unpenalised channel
+(`docs/findings/2026-09-24-the-confound-removal-changes-one-contrast.md`).
 
 And the specific transfer claim is dead in a way that is now well-characterised:
 
