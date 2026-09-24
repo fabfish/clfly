@@ -41,6 +41,13 @@ the forgetting by 42%** (0.0750 → 0.1068) while costing 2.7σ of final accurac
 
 ## 3. What the registration feared, and did not happen
 
+**And the premise is verified rather than quoted from a docstring.** `overlap_controlled_supports(1307, 3, 80,
+1.0, rng)` — the construction the runner calls — returns three supports of **80 neurons each with |A ∩ B| = 80**
+and A = B = C, against **40** at overlap 0.5 and **0** at 0.0, on the circuit the run actually used
+(`max_neurons=800` extracts **1307** neurons, which is why the configuration is written `mb+cx+al@n1307 (cs = 800)`
+throughout). So *"three identical input populations"* is a property of the construction and not an assumption:
+the three tasks differ **only** in their class templates.
+
 The registration listed a **knife-edge** as a possible outcome: if the shared-input family's `learned` accuracies
 collapsed toward chance, the family would be **too hard rather than harder**, and the forgetting would be
 uninterpretable. **They did not collapse**: the diagonal is 0.9682 / 0.9547 / 0.9724 against the overlap-0
