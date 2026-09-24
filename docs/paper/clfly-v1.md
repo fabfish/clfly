@@ -232,9 +232,15 @@ by accident on the **wiring** family at forty replicates and is **the strongest 
 the three penalty arms all beat `naive` on forgetting (**`ewc` −0.0370 ± 0.0101 = 3.68σ**, `ewc-block` **4.21σ**,
 `ewc-block-rand` **3.44σ**) at newest-task costs of only 2.5–3.1 points, where the base family's own top swept λ
 is already *worse* than `naive` (+0.0060 at 3e-2, 0.58σ) at a cost three times larger (9.45σ) — so **the family
-difference `e144` measured at one λ is a difference in the range of λ each family tolerates**, and the matched-λ
-base-family arm that would separate that from the wiring family's 42% larger room is registered and running
-(`docs/findings/2026-09-24-e153-is-also-the-wiring-family-at-lambda-one.md`). So 3e-4 is not merely the best
+difference `e144` measured at one λ is a difference in the range of λ each family tolerates** — the wiring family
+is **λ-insensitive over two and a half decades** (a **333-fold** increase leaves its diagonal unmoved on both axes:
+**+0.0068 at 0.62σ** forgetting, **+0.0021 at 0.33σ** newest, with `naive`'s step **exactly zero** as the design's
+own control), and at that top point its two block arms **gain stability** — margins over `naive` of **2.26σ → 4.21σ**
+and **2.48σ → 3.44σ** — while **acquiring their first resolved plasticity cost** (**−0.0266 at 4.29σ**, **−0.0219
+at 4.19σ**), where at λ = 3e-3 they paid nothing (1.10σ, 0.65σ) — and the matched-λ base-family arm that would
+separate that from the wiring family's 42% larger room is registered and running
+(`docs/findings/2026-09-24-e153-is-also-the-wiring-family-at-lambda-one.md`,
+`docs/findings/2026-09-24-the-wiring-family-is-lambda-insensitive.md`). So 3e-4 is not merely the best
 point measured on the forgetting: **it is the largest λ at which the knob has not yet started to charge for
 itself**, and no constraint in this paper reaches the level `replay` reaches without a last-task price at all —
 `replay` is the only arm not dominated on either axis (2-axis and 3-axis), every other constrained arm paying

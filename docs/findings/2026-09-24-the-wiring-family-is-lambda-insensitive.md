@@ -1,0 +1,68 @@
+# The wiring family is λ-insensitive over two and a half decades, and its block arms gain stability there
+
+**Date:** 2026-09-24
+**Script:** `experiments/e162_wiring_lambda_step.py` — analysis only, no runs. Artifact:
+`runs/e162_wiring_lambda_step.json`.
+**Artifacts read:** `runs/e144_r32_overlap1_methods_40reps.json` (λ = 3e-3) and
+`runs/e153_r32_overlap1_methods_40reps.json` (λ = 1.0) — **the same four arms, the same family, the same forty
+seeds**, so every step below is paired and the only manipulated field is `lam` (which `e160` derives that `ewc` and
+both block arms read and `naive` does not — hence the control).
+
+---
+
+## 1. The step, and its control
+
+| arm | forgetting, 3e-3 → 1.0 | resolution | newest-task accuracy, 3e-3 → 1.0 | resolution |
+|---|---|---|---|---|
+| **`naive`** — *the control* | **0.0000** | **exactly zero** | **0.0000** | **exactly zero** |
+| `ewc` (diagonal) | +0.0068 | **0.62σ** | +0.0021 | **0.33σ** |
+| `ewc-block` (biological) | **−0.0201** | **2.03σ** | **−0.0266** | **4.29σ** |
+| `ewc-block-rand` (its control) | −0.0112 | 1.09σ | **−0.0219** | **4.19σ** |
+
+**The control is exact**, which is this design's own manipulation check: `naive` cannot read `lam`, and it does not
+move at the last digit — so the differences above are the field's effect and nothing else.
+
+**And each arm against its own `naive`, at both λ:**
+
+| λ | arm | forgetting | resolution | newest-task | resolution |
+|---|---|---|---|---|---|
+| 3e-3 | `ewc` | −0.0437 | **4.73σ** | −0.0297 | 4.57σ |
+| 3e-3 | `ewc-block` | −0.0234 | 2.26σ | −0.0047 | **1.10σ** |
+| 3e-3 | `ewc-block-rand` | −0.0216 | 2.48σ | −0.0026 | **0.65σ** |
+| **1.0** | `ewc` | −0.0370 | **3.68σ** | −0.0276 | 4.65σ |
+| **1.0** | `ewc-block` | **−0.0435** | **4.21σ** | −0.0313 | 5.60σ |
+| **1.0** | `ewc-block-rand` | **−0.0328** | **3.44σ** | −0.0245 | 4.60σ |
+
+## 2. Two results, and the second is the inverse of the base family's
+
+**First, the diagonal does not care.** A **333-fold** increase in λ — from 3e-3, near the base family's own
+optimum, to the runner's default — leaves the diagonal's forgetting and its newest-task accuracy **unmoved on both
+axes** (0.62σ and 0.33σ). **On the base family one step of the ladder (3e-4 → 3e-3) already worsens both axes with
+both resolved** (+0.0258 at 3.74σ and −0.0229 at 2.97σ), and λ = 3e-2/3e-1 are each dominated by seven of the
+other eight arms in the plane. **So the same knob that is the whole story on one family is a dead knob on the
+other, over a range 2.5 decades wide.**
+
+**Second, the block arms are the ones that respond, and they respond by *gaining* stability.** Between the two λ,
+the biological block arm's margin over `naive` grows from **2.26σ to 4.21σ** and its matched-random control's from
+**2.48σ to 3.44σ** — while *both* acquire their **first resolved plasticity cost** (−0.0266 at 4.29σ and −0.0219 at
+4.19σ), where at λ = 3e-3 they paid nothing (1.10σ and 0.65σ). **So on this family the strongest penalty the
+record holds is better on both counts than the weaker one for the coarse partitions**, and the diagonal is simply
+flat — which is the opposite of the base family, where the top of the swept range is dominated *because* of the
+plasticity axis.
+
+**And that gives `e144`'s family result its mechanism-shaped form**: the diagonal's advantage over `naive` is
+**4.73σ** on this family at λ = 3e-3 against **1.21σ** on the base family, and here it **persists at 3.68σ when λ
+is 333× larger** — so what differs between the families is not where the optimum sits but **how much of λ's range
+is usable**, which is what the λ = 1.0 point measures.
+
+## 3. What this cannot settle
+
+- **Two λ per family**, five-fold and 333-fold apart, and the families' ranges do not overlap (the base family's
+  top swept λ is 3e-1): **the comparison is "the wiring family at 1.0" against "the base family's top swept λ"**,
+  and `e161` — the base family's own λ = 1.0, registered and running — is the matched-λ arm that closes it.
+- **The wiring family has exactly one 40-replicate λ = 1.0 table**, and it exists because a paraphrase omitted
+  `--lam` (rule 44); its numbers are sound and its provenance is an accident.
+- **One read-out (32), three tasks, one seed stream**, and the newest-task axis is one task — where the block arms'
+ *first* resolved cost appears at the top of the range, so the shape of that cost's growth with λ is one point.
+- And **the block arms' λ step is 2.03σ and 1.09σ on forgetting** — resolved for the biological one and not for its
+  control, so "the block arms gain stability with λ" is one-and-a-half of two arms on that axis.
