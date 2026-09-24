@@ -90,3 +90,26 @@ biology not help, **the coarser partition is not even the better granularity her
 - **And the diagonal's 4.73σ is one contrast on one family**: it is not evidence that the diagonal is generally
   good, since on the base family at the same forty replicates it is 1.21σ, and this session's own λ sweep shows
   the diagonal's magnitude is hyper-parameter-shaped (`e141`: 3e-4 gives 4.27σ, 3e-3 gives 1.21σ).
+
+## 5. And the two families differ in the *shape* of the diagonal's effect, not only in its size
+
+The per-task decomposition — the project's eighth trap, applied to the contrast that *did* resolve here:
+
+| diagonal − naive, per task | task 0 | task 1 |
+|---|---|---|
+| **base family** (`overlap 0.0`) | **−0.0354 ± 0.0094 = 3.79σ** | **+0.0161 ± 0.0118 = 1.37σ — *worse*** |
+| **wiring family** (`overlap 1.0`) | **−0.0693 ± 0.0133 = 5.20σ** | **−0.0182 ± 0.0161 = 1.13σ — also better** |
+
+**On the base family the diagonal buys task-0 retention and pays for it on task 1; on the wiring family it
+improves both** — one decisively, the other unresolved. So the two families differ in the **shape** of the
+penalty's effect and not only in the size of its mean, and **the shape difference is what the channel story
+predicts**: on the base family the penalty's displacement into the 800 offsets is what costs the later task
+(`e133` and `e137`), while on the wiring family there is no such displacement to pay with, because the difficulty
+is already in the channel the penalty covers. **A trade is what a penalty looks like when part of the adaptation
+escapes into something it does not press.**
+
+**And the central contrast's null is uniform rather than a cancellation**: `ewc-block` − `ewc-block-rand` is
+**−0.0047 ± 0.0118 = 0.40σ on task 0 and +0.0010 ± 0.0147 = 0.07σ on task 1** — flat on both, in *opposite*
+directions, so the three-draw mean of −0.0078 is not two resolved terms cancelling but two unresolved terms
+sitting near zero. **Which is the same shape its falsifier's firing implies, and the opposite of the base
+family's, where the same contrast was uniform in sign on both tasks.**
