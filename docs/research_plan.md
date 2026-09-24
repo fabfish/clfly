@@ -1157,9 +1157,18 @@ Added 2026-09-22, after the headline metric was found to be chaotic
    draws can be told apart without storing the partition. **The honest form of every
    `ewc-block-rand` number quoted before that date — `e135`'s −0.0125, the paper's §4.2 block
    rows — is *"one draw"* rather than *"the control"***, and the network's own draw sd is
-   **unmeasured**: the ≈1e-3 above is a measurement of the linear substrate's excess and not
-   of this network's forgetting, which is what the three-draw control in `e144` exists to
-   measure (`docs/findings/2026-09-24-the-basis-question-on-the-wiring-family-registered.md`).
+   **measured the same day, on two families**: two draws of one arm on the same forty seeds differ by
+   **1.33σ (0.0138)** on the shared-input family and by **2.33σ (0.01875)** on the base family — against the
+   ≈1e-3 above, which is a measurement of the **linear** substrate's excess and not of this network's
+   forgetting. **And the consequence is on record**: the base family's central contrast was **2.08σ** in favour
+   of the biology against one draw and **0.26σ** against the second, with the mean of the two at 1.49σ — so the
+   strongest single-draw value this project has ever measured for its own central contrast **did not survive one
+   more sample of its control**, and the paper's claim was strengthened rather than threatened by the
+   measurement that was expected to break it. The three-draw machinery is `--partition-seed` and the
+   `partition_draw` fingerprint, and the amendment that reads a contrast against the **mean of K draws** with
+   the between-draw component reported beside the paired one
+   (`docs/findings/2026-09-24-the-draw-moves-the-control-by-0014.md`,
+   `docs/findings/2026-09-24-the-base-familys-advantage-does-not-survive-a-second-draw.md`).
 11. **Artifacts are strict JSON.** Non-finite floats go in as `null`, never as `NaN`
    or `Infinity` — Python reads those back happily, and `JSON.parse`, `serde_json`,
    `encoding/json` and `pandas.read_json` all refuse them. Seven rate-network
@@ -1788,6 +1797,21 @@ about (`docs/findings/2026-09-23-the-last-two-unaudited-sections-were-clean.md`)
     (`docs/findings/2026-09-24-the-lambda-sweeps-floor-is-where-the-effect-is.md`,
     `docs/findings/2026-09-23-the-cost-range-excluded-the-expensive-rung.md`,
     `docs/findings/2026-09-23-the-read-out-axis-has-an-interior-minimum.md`).
+
+39. **A registered prediction must name the *arm* it is measured on, because a prediction about a quantity the
+    manipulated variable cannot reach is not a prediction but a guaranteed outcome.** `e146` registered *"the
+    uncovered share falls below 70% when λ falls"* — and the uncovered share is **the share of the `naive` arm's
+    forgetting that freezing the offsets removes**, while `naive` builds no Fisher and **cannot read `--lam`**. The
+    artifact came back **bit-identical to its comparator** (forty replicates, forgetting and accuracy and drift,
+    with `lam` and `fisher_batches` both differing in `config`) — **and that is the tell**: an exact match where a
+    difference was predicted means the prediction was fixed before the data, not that the effect is absent. **The
+    repair is to put the control on the arm that carries the effect**, which is what `e147` does (`--frozen-bias
+    --methods ewc`, where the penalty *is* the manipulated thing). **And the same shape has a benign twin worth
+    keeping apart from it**: `e140`'s C0b probe asked whether four unread settings reach an arm and was registered
+    as a **control that must hold**, so its bit-identical outcome was the prediction; **the defect is not "a
+    setting the code does not read" but "a prediction about a quantity the manipulation cannot move"**
+    (`docs/findings/2026-09-24-the-third-point-could-not-exist.md`,
+    `docs/findings/2026-09-24-the-frozen-body-control-is-in-no-artifact.md`).
 
 ## Related work to differentiate against
 
