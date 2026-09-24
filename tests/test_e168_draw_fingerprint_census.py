@@ -112,3 +112,24 @@ def test_the_reconstruction_reproduces_every_recorded_fingerprint():
     rebuilt = {seed: e168.reconstruct_fingerprint(seed=seed) for seed in (0, 1, 2)}
     assert set(rebuilt.values()) == recorded
     assert rebuilt[0] == "000b42be6ba2", "seed 0 is the default draw e144 used and e153 recorded"
+
+
+@needs_data
+def test_every_rand_artifact_is_identified_and_the_recorded_ones_verify_the_reconstruction():
+    """The extension: 9 recorded + 31 reconstructed, no disagreements, and the pairs fully classified.
+
+    This is the test the *guard* is in: it reconstructs the artifacts that record a fingerprint as well, and a
+    reconstruction that disagreed with them would be wrong rather than merely uncheckable. The first version of
+    `draw_inputs` was, and it was this check that caught it -- the runner seeds the draw with `partition_seed`
+    when the flag is set, so an artifact that set it draws from *that* seed, and four of the nine record one.
+    """
+    from experiments.e103_reproducibility_audit import load_artifacts
+
+    ids = e168.identified_draws(load_artifacts())
+    assert not ids["mismatched"], f"a recorded fingerprint contradicts its reconstruction: {ids['mismatched']}"
+    assert len(ids["reconstructed"]) >= 40 and len(ids["recorded"]) >= 9
+    assert len(set(ids["inputs"].values())) <= 8, "the partitions are cached by their determining tuple"
+    # and the pairs are classified rather than mostly unidentifiable
+    vals = sorted(ids["reconstructed"].values())
+    same = sum(1 for i in range(len(vals)) for j in range(i + 1, len(vals)) if vals[i] == vals[j])
+    assert same >= 440

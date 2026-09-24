@@ -67,6 +67,60 @@ def fingerprint_of(partition) -> str:
     return hashlib.sha1(" ".join(str(int(i)) for g in partition.groups for i in g[:8]).encode()).hexdigest()[:12]
 
 
+#: the `config` fields that determine the matched-random draw, with the runner's default for each. The defaults
+#: matter because a `vars(args)` dump may **omit** a field (the parser had no such flag) or store it as `None`
+#: (the flag existed and was not given) -- `pool_buckets` appears as both `1` and `None` in this corpus, and they
+#: are the same partition. This is `e170`'s `effective()` lesson one level up, and getting it wrong would silently
+#: reconstruct the *wrong* draw for four artifacts rather than fail.
+DRAW_INPUTS = (("basis", "cell_class"), ("pool_below", 0), ("pool_buckets", 1), ("circuit_size", 800),
+               ("seed0", 0))
+
+
+def draw_inputs(config: dict) -> tuple:
+    """The tuple that determines the draw, with an absent or `None` field read as the runner's default.
+
+    **The last element is not `seed0`, and the reconstruction was wrong until it was.** The runner seeds the draw
+    with `partition_seed` when that flag is set and with `seed0` otherwise, so an artifact that set the flag draws
+    from *its* seed -- and four artifacts in this corpus do. The verification that reconstructs the recorded
+    fingerprints is what caught it: all four disagreements were `_rand_draw1`/`_rand_draw2` artifacts whose
+    reconstruction came out as the seed-0 partition, which is the answer a five-field tuple gives.
+    """
+    seed0 = config.get("seed0") if config.get("seed0") is not None else 0
+    part_seed = config.get("partition_seed")
+    return (config.get("basis") or "cell_class",
+            config.get("pool_below") if config.get("pool_below") is not None else 0,
+            config.get("pool_buckets") if config.get("pool_buckets") is not None else 1,
+            config.get("circuit_size") or 800,
+            seed0,
+            seed0 if part_seed is None else part_seed)
+
+
+def identified_draws(artifacts: list[dict], *, verify: bool = True) -> dict:
+    """Every `-rand` artifact's draw: **recorded** where the field exists, else **reconstructed** from its config.
+
+    The reconstruction is only worth anything if it reproduces what was recorded, so with ``verify`` the
+    artifacts that do record a fingerprint are reconstructed *as well* and any disagreement is reported rather
+    than averaged away. The partitions are cached by `draw_inputs`, because this corpus's 40 `-rand` artifacts
+    come from six distinct tuples.
+    """
+    users = [a for a in artifacts if rand_arms(a["payload"])]
+    cache: dict[tuple, str] = {}
+    out = {"recorded": {}, "reconstructed": {}, "mismatched": [], "inputs": {}}
+    for a in users:
+        inputs = draw_inputs(a["config"])
+        out["inputs"][a["name"]] = inputs
+        if inputs not in cache:
+            cache[inputs] = reconstruct_fingerprint(basis=inputs[0], pool_below=inputs[1], pool_buckets=inputs[2],
+                                                    circuit_size=inputs[3], seed=inputs[5])
+        rec = fingerprint(a["payload"])
+        out["reconstructed"][a["name"]] = cache[inputs]
+        if rec is not None:
+            out["recorded"][a["name"]] = rec
+            if verify and rec != cache[inputs]:
+                out["mismatched"].append({"name": a["name"], "recorded": rec, "reconstructed": cache[inputs]})
+    return out
+
+
 def reconstruct_fingerprint(*, circuit_size: int = 800, basis: str = "cell_class", pool_below: int = 0,
                             pool_buckets: int = 1, seed: int = 0) -> str:
     """Rebuild the matched-random draw from the config fields that determine it, and fingerprint it.
@@ -132,6 +186,9 @@ def draw_size() -> dict:
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--json-out", type=Path, default=None)
+    ap.add_argument("--identify", action="store_true",
+                    help="reconstruct the draw of EVERY -rand artifact and re-classify the pairs (loads the "
+                         "connectome)")
     ap.add_argument("--reconstruct", action="store_true",
                     help="rebuild the three draws from their seeds and check them (loads the connectome)")
     args = ap.parse_args(argv)
@@ -209,6 +266,29 @@ def main(argv=None) -> int:
               f"{got[0]} = e153's recorded {fp_b} -> {got[0] == fp_b}")
     else:
         print("      (pass --reconstruct to rebuild the draws; it loads the connectome)")
+
+    if args.identify:
+        ids = identified_draws(load_artifacts())
+        out["identified"] = {k: v for k, v in ids.items() if k != "inputs"}
+        print("\n== every `-rand` artifact's draw, identified from its config ==")
+        print(f"   artifacts identified: {len(ids['reconstructed'])}; of those, recorded {len(ids['recorded'])} "
+              f"and reconstructed {len(ids['reconstructed']) - len(ids['recorded'])}")
+        print(f"   distinct partition-determining tuples: {len(set(ids['inputs'].values()))} "
+              f"(so this costs that many partition builds, not one per artifact)")
+        print(f"   disagreements between a recorded fingerprint and its reconstruction: "
+              f"{len(ids['mismatched'])}")
+        for m in ids["mismatched"]:
+            print(f"      {m['name']}: recorded {m['recorded']} vs reconstructed {m['reconstructed']}")
+        identified = dict(ids["reconstructed"])
+        pairs = {"same": 0, "different": 0}
+        names = sorted(identified)
+        for a, b in itertools.combinations(names, 2):
+            pairs["same" if identified[a] == identified[b] else "different"] += 1
+        print(f"   pairs of `-rand` artifacts: {pairs['same']} drawn from ONE partition, "
+              f"{pairs['different']} from different ones")
+        print(f"   -> by rule 46 the `different` pairs are **not** comparable through their `-rand` arms, and "
+              f"before this")
+        print(f"      reconstruction only {exp['pairs']['both_same']} pairs were licensed to say so.")
 
     if args.json_out:
         write_json(args.json_out, out)

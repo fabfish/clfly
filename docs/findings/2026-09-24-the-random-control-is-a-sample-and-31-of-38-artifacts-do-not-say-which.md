@@ -131,3 +131,47 @@ in one field.
   before a change to `fisher.py` — a limitation `code_revision` also cannot fix retroactively.
 - **Nothing here licenses a `-rand` comparison across *different* circuit sizes or bases**, where the biological
   partition itself differs and the fingerprints are therefore not comparable objects at all.
+
+## 7. Extended within the hour: every `-rand` artifact's draw is now identified, and the guard found a missing input
+
+§1 counted **31 of 38 artifacts that cannot say which sample they used**. That was a statement about what the
+*artifacts* say, and §3 showed one of them can be identified by reconstruction anyway. `e168 --identify` now does
+that for all of them: **40 `-rand` artifacts, 9 recording the fingerprint and 31 reconstructed**, from
+**7 distinct partition-determining tuples** (so the cost is seven partition builds, not forty).
+
+**The three numbers that make it worth having:**
+
+| | before | after |
+|---|---|---|
+| `-rand` artifacts whose draw is identified | 9 | **40** |
+| pairs licensed as **one** partition | **5** | **440** |
+| pairs known to be **different** partitions | 16 | **340** |
+| pairs that cannot be classified | 682 | **0** |
+
+**And the guard is what made it correct rather than merely complete.** The mode reconstructs the *recorded*
+fingerprints as well, and the first run reported **4 disagreements** — every one of them a
+`_rand_draw1`/`_rand_draw2` artifact whose reconstruction came out as the seed-0 partition. The cause is a rule in
+the code that the five-field tuple did not carry: **the runner seeds the draw with `partition_seed` when that flag
+is set and with `seed0` otherwise**, so an artifact that set the flag draws from *its* seed. With that input added
+the disagreements are **0**, and the check is permanent: `identified_draws(..., verify=True)` reconstructs
+everything that records a fingerprint before trusting itself on anything that does not.
+
+**What it changes for rule 46.** The rule asks a cross-artifact `-rand` contrast to identify both draws, and the
+answer used to be "print the field or reconstruct it, which for this corpus means 9 artifacts and 5 licensed
+pairs". It is now a complete census: **440 of the 780 pairs are drawn from one partition and are comparable through
+their `-rand` arms, and 340 are drawn from different ones and are not** — including 16 that the record already
+said so about by fingerprint, and 324 that only the reconstruction reveals. **A reader checking `e152`'s planes or
+any other `-rand` comparison now has a classification rather than a caution.**
+
+## 8. What §7 cannot settle
+
+- **The reconstruction's three links are §3's**, unchanged, and the fourth — the seeding rule — is now carried:
+  what makes all of this work is that `random_matched` and its call site are in the version history and have not
+  changed, so a draw is a function of the config. **An artifact written before a change to either is not
+  reconstructible at all**, and the method would return a *confident wrong* answer rather than an error.
+- **7 tuples, 5 of them with one artifact each**, so the `side`, `ito_lee_hemilineage` and `supertype` bases and
+  the 300-neuron circuit are each identified from a single build that nothing cross-checks — the recorded
+  fingerprints they *do* carry are the only verification, and they carry them.
+- **The pairs count is over artifacts, not over analyses**, and two artifacts from one partition can still differ
+  in everything else (read-out draw, λ, arm set), so "comparable through the `-rand` arm" is a necessary and not a
+  sufficient condition — rule 46 removes one confound and not the others.
