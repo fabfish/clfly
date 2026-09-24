@@ -140,3 +140,19 @@ the explanation of replay's margin would need to be about replay rather than abo
 (the base family has replay 0.0618 better than the diagonal — 9.35σ against 1.21σ). If the diagonal's 4.73σ here
 is real, the two methods may be much closer on this family, which would make the family the first configuration
 where the paper's headline *"replay is the stronger method"* is contested by a penalty.
+
+### The outcome, added when the arm landed
+
+**P1 HOLDS AND IS LARGER THAN THE BASE FAMILY'S: −0.0984 ± 0.0091 = 10.79σ, 38/40 negative. P2 FAILS, AND THE
+FALSIFIER DOES NOT FIRE EITHER: the margin is larger by 0.0201 ± 0.0124 = 1.62σ — the falsifier's direction, below
+its 2σ bar.** So the registered prediction is contradicted in sign and unresolved in size, and this is the third
+registered threshold today to land inside its own uncertainty (`e141`'s P2 at 1.60σ against 2σ, `e142`'s P1 at
+2.99σ against 3.00σ). **The reading the data do support is simpler than the registry's**: both `replay` arms
+drive the forgetting to ≈ 0 (+0.0083 and −0.0034), so the margin is whatever the baseline had — **ratio 1.045 on
+the base family and 0.921 on the wiring family**, i.e. a **floor effect** that needs no channel-share mechanism,
+and `e135`'s 66% cut is the same model applied to a baseline whose forgetting the freeze had reduced. **And both
+descriptive checks keep the paper's headline standing**: `replay` beats the wiring family's diagonal by **7.30σ**,
+so the family chosen to contest it does not, and `replay` again pays nothing on the newest task (1.12σ against
+the diagonal's 4.57σ). The full reading, including a caution about two aggregates that agree to 1.5 × 10⁻⁹ while
+their per-replicate values differ, is in
+`docs/findings/2026-09-24-replays-margin-tracks-the-baselines-forgetting.md`.

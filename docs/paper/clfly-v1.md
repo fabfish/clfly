@@ -999,7 +999,17 @@ family reverses the *granularity* half of the claim at the same time**: there th
 **−0.0437 ± 0.0093 = 4.73σ** where on the base family at the same forty replicates it is **1.21σ**, and it
 **beats both block arms** (`ewc` − `ewc-block` = −0.0203 ± 0.0105 = 1.94σ, with the block arms themselves only
 2.26σ and 2.48σ from `naive`) — **so the coarser partition is not even the better granularity on the family whose
-difficulty is where the partition looks** (`docs/findings/2026-09-24-on-the-wiring-family-the-biology-still-shows-nothing.md`)
+difficulty is where the partition looks** — **and `replay` was then run on that family, because it is the method
+the paper calls strongest and it was missing from the one table where the diagonal is at its best: it beats
+`naive` by **−0.0984 ± 0.0091 = 10.79σ** (38/40, larger than the base family's 9.35σ) and it beats that family's
+**diagonal** by **−0.0547 ± 0.0075 = 7.30σ**, so the family chosen to contest *"replay is the stronger method"*
+does not contest it. The registered prediction that its margin would *shrink* there — because `e135`'s arithmetic
+ties replay's advantage to the share of the baseline's forgetting that no penalty covers, and that share is 44%
+here against 70% — **fails, and the registered falsifier's direction is what the data show, at 1.62σ, below its
+2σ bar**: the margin is larger by 0.0201. **The simpler account fits both families and the frozen arm with no free
+parameter — `replay` drives the forgetting to ≈ 0 in both, so its margin is whatever the baseline had, a ratio of
+1.045 on the base family and 0.921 here** (`docs/findings/2026-09-24-replays-margin-tracks-the-baselines-forgetting.md`)
+(`docs/findings/2026-09-24-on-the-wiring-family-the-biology-still-shows-nothing.md`)
 (`docs/findings/2026-09-23-the-positive-transfer-result-was-not-one.md`,
 `docs/findings/2026-09-23-the-fisher-free-arm-was-not-fisher-free.md`). **The λ = 0.003
 configuration below is the exception, and it is configuration-specific**: at cs = 800 the diagonal beats `naive` on
