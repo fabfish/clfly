@@ -83,13 +83,17 @@ def test_the_registry_resolves_and_the_reference_is_on_disk():
     from pathlib import Path
     missing = [c[0] for c in e152.ARMS if not Path(c[1]).is_file()] + \
               [c[0] for c in e152.WIRING_ARMS if not Path(c[1]).is_file()] + \
-              [n for n in (e152.REFERENCE[0], e152.WIRING_REFERENCE[0])
-               if not Path(e152.REFERENCE[1] if n == e152.REFERENCE[0] else e152.WIRING_REFERENCE[1]).is_file()]
+              [c[0] for c in e152.FROZEN_ARMS if not Path(c[1]).is_file()] + \
+              [n for n in (e152.REFERENCE[0], e152.WIRING_REFERENCE[0], e152.FROZEN_REFERENCE[0])
+               if not Path({"naive": e152.REFERENCE[1], "naive (wiring)": e152.WIRING_REFERENCE[1],
+                            "naive (frozen arm)": e152.FROZEN_REFERENCE[1]}[n]).is_file()]
     assert missing == [], f"the registry names artifacts that are not on disk: {missing}"
 
 
-def test_the_two_planes_are_separate_registries_against_separate_baselines():
-    """The shared-input plane must be its own reference: contrasting it against the base `naive` would be wrong."""
-    assert e152.REFERENCE[1] != e152.WIRING_REFERENCE[1]
-    assert {a[0] for a in e152.ARMS}.isdisjoint({a[0] for a in e152.WIRING_ARMS})
+def test_the_three_planes_are_separate_registries_against_separate_baselines():
+    """Each plane must carry its own reference: contrasting one family's arms against another's baseline is wrong."""
+    assert len({e152.REFERENCE[1], e152.WIRING_REFERENCE[1], e152.FROZEN_REFERENCE[1]}) == 3
+    labels = [{a[0] for a in reg} for reg in (e152.ARMS, e152.WIRING_ARMS, e152.FROZEN_ARMS)]
+    assert labels[0].isdisjoint(labels[1]) and labels[1].isdisjoint(labels[2]) and labels[0].isdisjoint(labels[2])
     assert e152.WIRING_REFERENCE[1] == "runs/e144_r32_overlap1_methods_40reps.json"
+    assert e152.FROZEN_REFERENCE[1] == "runs/e140_r32_methods_frozenbias_40reps.json"

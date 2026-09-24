@@ -67,6 +67,18 @@ WIRING_ARMS: tuple[tuple[str, str, str, str], ...] = (
 )
 WIRING_REFERENCE = ("naive (wiring)", "runs/e144_r32_overlap1_methods_40reps.json", "naive")
 
+#: The **third plane**: the base family with the unpenalised channel removed from **every** arm (`e140`'s frozen
+#: arm, which landed after this script was first written). Its reference is that arm's own `naive`, and it is the
+#: only plane here in which the methods were all run under one manipulation rather than as separate arms.
+FROZEN_ARMS: tuple[tuple[str, str, str, str], ...] = (
+    ("ewc (frozen arm)", "runs/e140_r32_methods_frozenbias_40reps.json", "ewc", "the diagonal"),
+    ("block (frozen arm)", "runs/e140_r32_methods_frozenbias_40reps.json", "ewc-block", "the coarse partition"),
+    ("block-rand (frozen arm)", "runs/e140_r32_methods_frozenbias_40reps.json", "ewc-block-rand",
+     "its group-size-matched control"),
+    ("replay (frozen arm)", "runs/e140_r32_methods_frozenbias_40reps.json", "replay", "not a constraint"),
+)
+FROZEN_REFERENCE = ("naive (frozen arm)", "runs/e140_r32_methods_frozenbias_40reps.json", "naive")
+
 
 def plane(arms: dict[str, dict], ref: dict) -> dict:
     """Each arm's position: the stability gain, the plasticity cost, and the index between them.
@@ -222,11 +234,43 @@ def main() -> int:
                       f"newest {e['newest_sigma']:>5.2f}s   -> {e['grade']}")
         wiring_summary = {"plane": pts_w, "frontier": fr_w}
 
+    print("\n== and the plane on the base family with the channel removed from EVERY arm ==")
+    frozen_arms, missing_f = {}, []
+    for label, path, method, note in FROZEN_ARMS:
+        a = load_arm(Path(path), method)
+        if a is None:
+            missing_f.append(f"{label} <- {path} [{method}]")
+        frozen_arms[label] = a
+    ref_f = load_arm(Path(FROZEN_REFERENCE[1]), FROZEN_REFERENCE[2])
+    frozen_summary = None
+    if missing_f or ref_f is None:
+        print("   not printed: " + "; ".join(missing_f + ([] if ref_f else [FROZEN_REFERENCE[0]])))
+    else:
+        pts_f = plane(frozen_arms, ref_f)
+        print(f"   {'arm':<24}{'d_forgetting':>13}{'sigma':>7}{'d_newest':>11}{'sigma':>7}"
+              f"{'newest':>9}{'index':>8}")
+        for label, p in sorted(pts_f.items(), key=lambda kv: kv[1]["forgetting_change"]):
+            print(f"   {label:<24}{p['forgetting_change']:>+13.4f}{p['forgetting_sigma']:>7.2f}"
+                  f"{p['newest_change']:>+11.4f}{p['newest_sigma']:>7.2f}{p['newest_level']:>9.4f}"
+                  f"{p['efficiency']:>8.2f}")
+        fr_f = frontier(pts_f, frozen_arms)
+        for label in sorted(pts_f, key=lambda k: len(fr_f["arms"][k]["dominated_by"])):
+            dom = fr_f["arms"][label]["dominated_by"]
+            print(f"   {label:<24} dominated by {len(dom):>2} arm(s)"
+                  + (" -- ON THE FRONTIER" if not dom else ""))
+            for k in dom:
+                e = fr_f["arms"][label]["evidence"][k]
+                print(f"       by {k:<24} forgetting {e['forgetting_sigma']:>5.2f}s  "
+                      f"newest {e['newest_sigma']:>5.2f}s   -> {e['grade']}")
+        frozen_summary = {"plane": pts_f, "frontier": fr_f}
+
     if args.json_out:
         write_json(args.json_out, {"reference": REFERENCE[0], "plane": pts,
                                    "frontier": fr, "ladder_steps": ladder_steps(arms),
                                    "wiring_reference": WIRING_REFERENCE[0],
-                                   "wiring": wiring_summary})
+                                   "wiring": wiring_summary,
+                                   "frozen_reference": FROZEN_REFERENCE[0],
+                                   "frozen": frozen_summary})
         print(f"\nwrote {args.json_out}")
     return 0
 
