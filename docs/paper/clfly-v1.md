@@ -2383,7 +2383,20 @@ why no shared rule was available and each line needed its own check.
    handicap against the drift is a property of *the quantity* rather than of its estimator, so no re-expression
    of the forgetting will recover it and a practitioner reading this table should expect an error bar of about
    **half the value** whatever form it is reported in
-   (`docs/findings/2026-09-24-the-loss-metric-buys-nothing.md`).
+   (`docs/findings/2026-09-24-the-loss-metric-buys-nothing.md`). **And a second measurement qualifies that
+   conclusion's generality, in the direction that matters for a reader deciding what to report.** On the λ arms
+   at **read-out 32**, both quantities are already in the artifacts, and the loss-valued forgetting is the **more
+   precise of the two in all five arms** — its relative per-repeat spread is **33.6–51.9%** against the accuracy
+   metric's **62.5–113.4%** — and, more consequentially, **it resolves a contrast the accuracy metric could not**:
+   `e141`'s registered P2 (*λ = 3e-2 worse than 3e-3*) is **1.60σ on accuracy and 4.24σ on loss**, the same forty
+   pairs and the same artifact. The two metrics are not in conflict — they agree on the arms' ordering and rank
+   the forty seeds at **+0.51 to +0.71 within each of the five arms**, which **replicates this item's +0.785 at a
+   different read-out** — so what differs is whether a 0.016 effect is resolvable at forty pairs, which is the
+   threshold question rather than the effect question. **And the loss-valued retention is a *training-split* loss**
+   (`full_split_loss(..., "train")`), so it measures fit where the accuracy metric measures generalisation: a
+   reason to read it as a second reading rather than as a replacement, and the reason the sentence above is
+   *"the same question answers differently on the other recorded metric"* and not *"the loss metric is right"*
+   (`docs/findings/2026-09-24-the-metric-decides-the-threshold.md`).
 6. **Ask the bias channel the two questions freezing it does not answer.** Holding 800 offsets at their
    initialisation removes **70%** of this benchmark's forgetting at read-out 32 *and raises accuracy*, which
    makes it a bound and not a recipe: **freezing is not penalising**, and a frozen parameter cannot report what
