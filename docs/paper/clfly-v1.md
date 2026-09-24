@@ -2420,7 +2420,16 @@ why no shared rule was available and each line needed its own check.
    session the directions agree **8 of 8**, the loss-valued reading is stronger in **7** and equal in **1**, and
    both threshold-misses are among them — so the honest form of both verdicts is *"failed on the metric the
    registration named, met on the other quantity in the same file"*, and the failure is a statement about the
-   registration.
+   registration. **But not for the central contrast, and with twelve contrasts the pattern corrects itself**:
+   `e140`'s plastic arm supplies the block/diagonal/replay rows and makes the split **9 stronger against 3
+   weaker**, where **the three weaker are exactly the small contrasts** — `ewc` − naive **1.21σ → 0.09σ**,
+   `ewc-block` − naive **2.09σ → 1.87σ** and **`ewc-block` − `ewc-block-rand`, this paper's central contrast,
+   **2.08σ → 1.43σ***. **So "the loss-valued reading is stronger" is a property of the contrast and not of the
+   metric**, and the decomposition says why: the loss-valued effect is **0.17× to 4.17×** the accuracy-valued one
+   while its sem is **1.05× to 2.29×** larger, so the σ ratio is the quotient of those two and the loss metric
+   wins exactly where the effect estimate scales up more than the noise does. **The central claim is therefore not
+   one the other metric rescues** — the more useful fact, and the reason the two-ratio decomposition is reported
+   instead of a direction.
 6. **Ask the bias channel the two questions freezing it does not answer.** Holding 800 offsets at their
    initialisation removes **70%** of this benchmark's forgetting at read-out 32 *and raises accuracy*, which
    makes it a bound and not a recipe: **freezing is not penalising**, and a frozen parameter cannot report what

@@ -148,3 +148,47 @@ directions agree **8 of 8**, the loss-valued reading is stronger in **7** and eq
 threshold-misses are among them. That is a pattern about *this configuration's two recorded metrics*, not about
 either metric in general — §4's train-split caveat still stands, and the read-out-128 comparison in §3 still found
 the loss metric no more precise than accuracy at a tenfold test set.
+
+## 8. And with twelve contrasts the pattern I reported above is an artefact of *which* contrasts I looked at
+
+`e140`'s plastic arm arrived with five methods at forty replicates, and it supplies **four more contrasts** — the
+three block/diagonal rows and replay, all on the paper's hardened configuration. Adding them to the nine Read
+previously gives twelve, and the split is not what §6 and §7 said:
+
+| contrast | acc. effect | loss effect | acc. sem | loss sem | acc. σ | loss σ | |
+|---|---|---|---|---|---|---|---|
+| λ floor − 3e-3 | −0.0258 | −0.0606 | 0.0069 | 0.0125 | 3.74 | **4.85** | stronger |
+| λ P2 | +0.0156 | +0.0651 | 0.0098 | 0.0154 | 1.60 | **4.24** | stronger |
+| freeze, base family | −0.0523 | −0.1200 | 0.0089 | 0.0138 | 5.90 | **8.69** | stronger |
+| freeze, harder family | −0.0469 | −0.1533 | 0.0093 | 0.0147 | 5.04 | **10.42** | stronger |
+| the surviving family difference | +0.0372 | +0.0804 | 0.0074 | 0.0078 | 5.04 | **10.35** | stronger |
+| the harder family | +0.0318 | +0.1137 | 0.0106 | 0.0231 | 2.99 | **4.92** | stronger |
+| anchored 33.2 − naive | −0.0458 | −0.0810 | 0.0095 | 0.0163 | 4.84 | **4.98** | stronger |
+| anchored − unanchored | −0.0362 | −0.0826 | 0.0090 | 0.0167 | 4.03 | **4.93** | stronger |
+| `replay` − naive | −0.0784 | −0.1807 | 0.0084 | 0.0145 | 9.35 | **12.48** | stronger |
+| **`ewc` − naive** | −0.0096 | **+0.0016** | 0.0080 | 0.0182 | 1.21 | **0.09** | **weaker** |
+| **`ewc-block` − naive** | −0.0177 | −0.0279 | 0.0085 | 0.0149 | 2.09 | **1.87** | **weaker** |
+| **`ewc-block` − `ewc-block-rand`** | −0.0206 | −0.0231 | 0.0099 | 0.0162 | 2.08 | **1.43** | **weaker** |
+
+**Nine stronger, three weaker — and the three are exactly the small contrasts** (accuracy σ of 1.21, 2.09, 2.08),
+while all nine stronger ones have accuracy σ ≥ 2.99. **So "the loss-valued reading is stronger" is not a property
+of the metric; it is a property of the contrast**, and the decomposition says why:
+
+- **the loss-valued *effect* is 0.17× to 4.17× the accuracy-valued one**, and
+- **the loss-valued *sem* is 1.05× to 2.29× the accuracy-valued one**,
+
+so the σ ratio is the quotient of those two numbers, and **the loss metric wins exactly when its effect estimate
+scales up more than its noise does**. For `replay` that is 2.30× against 1.73× — a win. For the diagonal it is
+**0.17×** against 2.29× — the effect estimate nearly vanishes while the noise doubles, and it loses badly. **For
+the paper's central contrast it is 1.12× against 1.63× — a loss.**
+
+**Which corrects §6 and §7 explicitly.** Those sections said the loss-valued reading is *"stronger in 7 of 8
+contrasts"*; with the block rows added it is **9 of 12**, and more importantly **the three exceptions are the
+contrasts this paper is about**. **A reader applying §6's pattern to the central claim would be misled by it**,
+and the fix is not a different pattern — it is the two-ratio decomposition, which is a *mechanism* rather than a
+direction.
+
+**And it sharpens §1's verdict rather than changing it**: `e141`'s P2 and `e142`'s P1 remain cases where the
+registered metric missed a bar the other quantity clears (4.24σ and 4.92σ against 1.60σ and 2.99σ). **But the
+central contrast is not one of them** — it is *weaker* on the loss metric, which is the one place a reader might
+have hoped the other metric would rescue the paper's own claim.
