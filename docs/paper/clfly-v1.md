@@ -2574,7 +2574,11 @@ why no shared rule was available and each line needed its own check.
    second-coarsest. `side` is the rung the neuron result most implicates, and it has now
    been run — `runs/e10_rung_side.json`, reported in the C2b section above, where the
    negative holds and the test is too weak to be decisive (−0.0116 accuracy against a
-   benchmark whose per-repeat sd is 0.048). *(This paragraph said "never been run; it is in
+   benchmark whose per-repeat sd is 0.048). **It also has a better-powered instance the item did not cite**:
+   `e60_side_lam0.1_16reps.json` gives the same sign at **sixteen** replicates and λ = 0.1 — **−0.0152 ± 0.0128 =
+   1.19σ**, four times the replicates and still unresolved — and the requirement recomputed from that sd (0.0511,
+   *larger* than the triple's 0.0462) is **102 replicates** rather than 144. `e178` runs at 144, which is
+   conservative: at that sd a 0.0152 effect reads at **3.6σ**. *(This paragraph said "never been run; it is in
    flight" until 2026-09-23, which was stale in the same direction as the plan's matching
    sentence — see the finding on the predictor's denominators for the audit that found it.)*
    The sub-rung dial is not a substitute — `pool_below` does

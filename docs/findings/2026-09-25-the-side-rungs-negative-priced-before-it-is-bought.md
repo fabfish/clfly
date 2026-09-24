@@ -78,3 +78,33 @@ replicated at** — which is the honest form of "too weak to be decisive": not a
   went red, which is the suite doing its job: the meaningful claim is **per artifact** (that each artifact's
   reconstruction reproduces its own recorded value, which `e168`'s `identified_draws` checks and which passes with
   **zero** mismatches), not that the corpus records only three draws.
+
+## 5. The item's own corpus holds a better-powered instance, and it re-sizes the run
+
+Reading §8's item sent me looking for other `side`-rung artifacts, and the corpus holds exactly one outside
+`cell_class` with more than five replicates: **`runs/e60_side_lam0.1_16reps.json`** — the same three arms, the
+same basis, **sixteen** replicates, and λ = 0.1 rather than 1.0. **The item does not cite it.** Read the same way:
+
+| artifact | λ | replicates | `ewc-block` − `ewc-block-rand` | paired sd | resolution |
+|---|---|---|---|---|---|
+| `e10_rung_side` | 1.0 | 3 | **−0.0116** | 0.0462 | **0.43σ** |
+| **`e60_side_lam0.1_16reps`** | **0.1** | **16** | **−0.0152** | 0.0511 | **1.19σ** |
+
+**Three things follow, and the third is about the run this unit just launched.**
+
+1. **The negative reproduces at four times the replicates and a different λ** — same sign, comparable size
+   (−0.0152 against −0.0116) — and it is **still unresolved at 1.19σ**. So "the negative holds and the test is too
+   weak to be decisive" now has a second instance, better powered by 4× and still weak.
+2. **`ewc-block` is worse than `naive` by more than it is worse than its own random control** on this rung:
+   −0.0326 (sd 0.0709) against −0.0152 (sd 0.0511) at sixteen replicates. That is the "granularity beats biology"
+   negative appearing in the *comparison against no penalty at all* rather than only against the matched control.
+3. **The requirement, recomputed from the better sd, is 102 replicates and not 144** — the 16-replicate sd is
+   **larger** (0.0511 against 0.0462), so the three-replicate triple under-estimated the spread and `e178` is
+   **~40% over-sized**. That is the safe direction: at 144 replicates and sd 0.0511 the sem is **0.0043**, so an
+   effect as large as 0.0152 reads at **3.6σ** and P1's 2σ threshold is met with room. **The run is not
+   resized** — a size chosen before the data and defended afterwards is not a size — and what it buys is the more
+   confident reading either way.
+
+**And it is a fourth instance of a pattern this night keeps producing**: the artifact that answers the item's
+question best was already on disk, and the item cited the weaker one. `e10` is the artifact whose *sentence* the
+paper wrote; `e60` is the one with four times the replicates.
