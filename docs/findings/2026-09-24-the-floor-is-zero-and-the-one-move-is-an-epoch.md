@@ -139,3 +139,9 @@ measured rather than assumed:
   `config` keysets and `environment` is top-level, so a sibling field adds no rows to the epoch report. Two unit
   tests pin it, one of which requires that an unreadable revision say `unknown` **with the exception's name**
   rather than invent a hash.
+- **The mtimes in §2 and §3 date the *end* of each run, not its start** (rule 47, found later the same day on a
+  four-hour run): the fb8 artifacts take about **16 minutes** each, so the epoch window this finding brackets is
+  accurate to minutes, but the correction is worth stating because a long run's timestamp can sit on the wrong
+  side of a commit the run never contained. The epochs in §2 are also *read*, not timed: they are the presence or
+  absence of a top-level field, which a process can only have from the parser it loaded
+  (`docs/findings/2026-09-24-the-random-control-is-a-sample-and-31-of-38-artifacts-do-not-say-which.md` §3).

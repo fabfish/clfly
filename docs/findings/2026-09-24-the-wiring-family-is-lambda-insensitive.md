@@ -66,3 +66,37 @@ is usable**, which is what the λ = 1.0 point measures.
  *first* resolved cost appears at the top of the range, so the shape of that cost's growth with λ is one point.
 - And **the block arms' λ step is 2.03σ and 1.09σ on forgetting** — resolved for the biological one and not for its
   control, so "the block arms gain stability with λ" is one-and-a-half of two arms on that axis.
+
+---
+
+## 4. Checked the same day, and the column stands: the unrecorded draw was reconstructible
+
+`e168` found that the two artifacts this section's block-rand column is computed from **do not both say which
+matched-random partition they drew**: `e144` (λ = 3e-3) carries no `partition_draw` at all, while `e153` (λ = 1.0)
+records `000b42be6ba2`. The control is a **population** and one draw is one **sample** (rule 10), so the pair's two
+sides were not *known* to be one sample — and the corpus can measure how much that could matter, because `e144`'s
+own draw 1 and draw 2 are on disk as two 40-seed runs differing in nothing else: **two samples of this family's
+control differ by 0.0138 on forgetting (1.33σ) and 0.0068 on the newest task (1.48σ)**.
+
+**The identification was then recovered rather than assumed, and the draw is the same on both sides:**
+
+- `e144`'s process began **around 09:57** (`timing_s` = 15474 s = 4.30 h, file written at 14:18), i.e. **24
+  minutes before `5a0f06e` added `--partition-seed` at 10:21** — which is why an artifact newer than that commit
+  has no `partition_seed` in its `config`;
+- the pre-flag call site is `random_matched(bio, np.random.default_rng(args.seed0))`, and the flag defaults to the
+  same value, so `e144` drew seed 0;
+- `random_matched`'s body is byte-identical to the version that introduced it, and **rebuilding the draw from the
+  recorded fields reproduces all three recorded fingerprints exactly** — seed 0 gives `000b42be6ba2`, which is
+  `e153`'s own value.
+
+**So the two sides are one sample and the block-rand column needs no correction.** What the measurement above
+therefore does is *bound the risk that was taken*: had the draws differed, the forgetting column (step 0.0112,
+1.09σ, against a 0.0138 draw difference) would have been uninterpretable, while the newest-task column (**−0.0219
+at 4.19σ, 3.2× the draw**) would have survived. **The margin rows equal the step rows because `naive` is
+bit-identical across this pair** (the design's own control, step 0.0000).
+
+**And the biological block arm never depended on the draw at all**: `ewc-block`'s partition comes from
+`circ.labels[basis]` through `from_labels`, with no seed anywhere in it — the draw enters only the `rand` branch.
+So of the two block arms this section reports, only its matched-random control's column was ever exposed, and that
+is the one `e168` checked
+(`docs/findings/2026-09-24-the-random-control-is-a-sample-and-31-of-38-artifacts-do-not-say-which.md`).

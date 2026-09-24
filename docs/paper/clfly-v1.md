@@ -238,7 +238,17 @@ is **λ-insensitive over two and a half decades** (a **333-fold** increase leave
 **+0.0068 at 0.62σ** forgetting, **+0.0021 at 0.33σ** newest, with `naive`'s step **exactly zero** as the design's
 own control), and at that top point its two block arms **gain stability** — margins over `naive` of **2.26σ → 4.21σ**
 and **2.48σ → 3.44σ** — while **acquiring their first resolved plasticity cost** (**−0.0266 at 4.29σ**, **−0.0219
-at 4.19σ**), where at λ = 3e-3 they paid nothing (1.10σ, 0.65σ) — and the matched-λ base-family arm that would
+at 4.19σ**), where at λ = 3e-3 they paid nothing (1.10σ, 0.65σ). **And that column was checked the same day
+rather than left standing on an assumption**: the two artifacts it is computed from do not both *say* which
+matched-random partition they drew (`e144` carries no `partition_draw`; `e153` records the default), and rule 10's
+point — the control is a population, a draw is a sample — is now a **number**, because this family's own two draws
+differ by **0.0138 on forgetting** (1.33σ) and **0.0068 on the newest task** (1.48σ). Had the draws differed, the
+forgetting column (step 0.0112, 1.09σ) would have been uninterpretable and the newest-task column (**3.2×** the
+draw) would have survived — **and the identification was recovered instead of assumed**: `e144`'s process began
+about 24 minutes before `--partition-seed` existed, the pre-flag line seeds the draw with the same value the flag
+defaults to, and rebuilding the draw from the recorded fields **reproduces all three recorded fingerprints
+exactly**, seed 0 included. The biological block arm never depended on the draw at all — the draw enters only the
+`rand` branch of the code. And the matched-λ base-family arm that would
 separate that from the wiring family's 42% larger room **has now been run, and it separates them**: at λ = 1.0 the
 base family's own `ewc` **loses 0.0091 to `naive` (0.91σ)** while paying a newest-task cost of **0.0719
 (13.91σ)**, against the wiring family's **gain of 0.0370 (3.68σ)** at a cost of **0.0276 (4.65σ)**, so the
