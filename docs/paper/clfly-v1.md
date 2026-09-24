@@ -132,7 +132,18 @@ distinct constrained arms pay a resolved cost there (**2.08σ to 12.06σ**), the
 constraint, `replay`, pays **0.79σ** on the base family and **1.12σ** on the shared-input family, so its advantage
 is bought with no measurable last-task cost on either)** — and replay
 — content memory — is the stronger
-method in every setting, with forgetting driven to **zero or below**: at its tuned configuration, a
+method **wherever the baseline is allowed the channel a penalty cannot see** — the qualification this paragraph
+now carries in full: **with the 800 offsets frozen in *every* arm, the ordering inverts** (`e140` at forty
+replicates: `ewc` **−0.0021**, `replay` **+0.0018**, `ewc-block` +0.0062, `ewc-block-rand` +0.0091, `naive`
++0.0227), replay's margin is **cut 73% at 6.15σ**, and **`ewc − replay` becomes −0.0039 ± 0.0038 = 1.04σ, i.e.
+indistinguishable, from 9.40σ with the channel free** — so *"the stronger method in every setting"* is a
+statement about the baseline's channel, exactly as `e135`'s five-replicate version (a 66% cut at 2.23σ) suggested
+and could not settle. **And in the same arm the method that becomes best on the forgetting is the worst on the
+other axis** (`ewc`'s newest-task accuracy is **8.95σ** below `naive`'s against `replay`'s **0.15σ**), so the two
+rankings are opposite at the top. **What survives without qualification**: replay reaches zero forgetting with
+**no constraint at all**, and it is the only method here whose last-task accuracy is untouched
+(`docs/findings/2026-09-24-with-the-channel-frozen-in-every-arm-the-order-inverts.md`) — with forgetting driven to
+**zero or below**: at its tuned configuration, a
 contrast of **−0.0854 ± 0.0129 = 6.6σ** against naive, which is a number the project had to *recreate* —
 the published 4.2σ version had no artifact on disk, and the recreation reproduces it and strengthens it.
 **And that is the read-out where the comparison is least clean, because 70% of what `naive` forgets there
