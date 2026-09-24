@@ -59,6 +59,33 @@ def check_paper(path: Path = PAPER) -> dict:
             "missing_findings": [f for f in findings if not Path(f).exists()]}
 
 
+def check_commands(path: Path = PAPER) -> dict:
+    """Do the commands the paper names resolve — a module that exists, flags that exist?
+
+    §9's table is the paper's reproducibility contract and it has already been wrong once in a way prose could
+    not see (*"two rows named the command behind a superseded number"*). This asks the mechanical part of the
+    question: **every `python -m <module>` in the paper names a file on disk, and every `--flag` in the command
+    appears in that module's own source.** It cannot check that the command produces the number beside it — that
+    is what the artifact column is for — and **the denominators are printed** because a zero here is otherwise
+    indistinguishable from a check that never fired.
+    """
+    text = path.read_text(encoding="utf-8", errors="replace")
+    commands = re.findall(r"`python -m ([A-Za-z0-9_.]+)([^`]*)`", text)
+    modules_missing, flags_missing, n_flags = [], [], 0
+    for module, rest in commands:
+        src_path = Path(module.replace(".", "/") + ".py")
+        if not src_path.is_file():
+            modules_missing.append(module)
+            continue
+        src = src_path.read_text(encoding="utf-8", errors="replace")
+        for flag in sorted(set(re.findall(r"--[a-z0-9-]+", rest))):
+            n_flags += 1
+            if f'"{flag}"' not in src and f"'{flag}'" not in src:
+                flags_missing.append({"module": module, "flag": flag})
+    return {"n_commands": len(commands), "n_flags": n_flags,
+            "modules_missing": modules_missing, "flags_missing": flags_missing}
+
+
 def check_document(path: Path) -> dict:
     text = path.read_text(encoding="utf-8", errors="replace")
     arts_line = ARTIFACTS_LINE.search(text)
@@ -185,6 +212,19 @@ def main() -> int:
         print("   the denominators are printed because a count of zero is otherwise indistinguishable from a")
         print("   check that never fired, and because the paper is the document a reader arrives at first.")
 
+    commands = check_commands()
+    print()
+    print(f"   the commands it names: {commands['n_commands']} invocations of `python -m ...`, "
+          f"{commands['n_flags']} flags checked")
+    print(f"   of those, modules not on disk: {len(commands['modules_missing'])}; flags not in the module's "
+          f"source: {len(commands['flags_missing'])}")
+    for m in commands["modules_missing"]:
+        print(f"       missing module: {m}")
+    for f in commands["flags_missing"]:
+        print(f"       {f['module']}: no {f['flag']} in its source")
+    print("   so a command §9 names resolves to a module and to flags that exist; it does NOT say the command")
+    print("   produces the number beside it, which is what the artifact column is for.")
+
     print()
     print("=" * 108)
     print("5. HOW MUCH OF THE CORPUS IS MACHINE-CHECKABLE AT ALL")
@@ -209,7 +249,7 @@ def main() -> int:
                                    no_artifacts_line=[r["name"] for r in no_art],
                                    dates_without_artifacts_line=dict(dates),
                                    known_case_control=kc,
-                                   paper_citations=paper))
+                                   paper_citations=paper, paper_commands=commands))
     print(f"\nwrote {args.json_out}")
     return 0
 

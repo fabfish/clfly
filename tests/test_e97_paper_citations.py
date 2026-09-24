@@ -58,3 +58,37 @@ def test_a_paper_whose_citations_all_exist_reports_zero_missing_with_a_nonzero_d
 
     assert got["n_findings_cited"] == 2 and got["n_runs_cited"] == 0
     assert got["missing_findings"] == [] and got["missing_runs"] == []
+
+
+def test_the_command_check_reports_the_module_and_the_flag_it_cannot_find(tmp_path):
+    """A stale flag in the reproducibility table is the defect this asks about, and it must be named.
+
+    §9's table named a superseded command once already, which prose could not see. The check compares each
+    `python -m <module>` against a file on disk and each `--flag` against that module's own source, so both
+    halves need a positive case -- the denominators alone would let a check that never fires look clean.
+    """
+    from experiments.e97_findings_corpus_audit import check_commands
+
+    paper = tmp_path / "paper.md"
+    paper.write_text(
+        "`python -m experiments.e_present --a-flag --missing-flag`\n"
+        "`python -m experiments.e_absent --whatever`\n",
+        encoding="utf-8")
+    (tmp_path / "experiments").mkdir()
+    (tmp_path / "experiments" / "e_present.py").write_text(
+        'import argparse\np = argparse.ArgumentParser()\np.add_argument("--a-flag")\n', encoding="utf-8")
+
+    import os
+
+    cwd = os.getcwd()
+    os.chdir(tmp_path)
+    try:
+        got = check_commands(paper)
+    finally:
+        os.chdir(cwd)
+
+    assert got["n_commands"] == 2                                 # the denominator
+    # only the present module's flags are checked: a module that is absent cannot be asked about its flags
+    assert got["n_flags"] == 2
+    assert got["modules_missing"] == ["experiments.e_absent"]
+    assert got["flags_missing"] == [{"module": "experiments.e_present", "flag": "--missing-flag"}]
