@@ -57,6 +57,14 @@ has an interior optimum at `pool8`, while the *distance-to-oracle* question is m
 level up, between two ways of scoring the same ladder. **The ladder's lesson is a statement in the matched-control
 quantity**, because that is the quantity the paper's claim is about.
 
+**And the two ladders differ in a second field, deliberately: `--support`.** The d = 1307 ladder drives **80**
+neurons per task and the d = 1874 one drives **150** — **10% of the circuit in both**, which is the line's
+convention rather than an accident. So the comparison above is *"the same relative support at two sizes"*, and that
+matters for the mechanism: **the support scales with the circuit and the pooling threshold does not**, and that
+asymmetry — a *relative* design knob against an *absolute* rung — is exactly the kind of thing that can move an
+optimum. A third circuit is registered below to separate them; without it, "the optimum moves 2×" is a statement
+about a comparison in which two things changed and one of them (support) changed on purpose.
+
 **And it is a fourth time this night that the right artifact was already on disk**: `e83` is the file that makes the
 like-for-like comparison available, and the first version of this read did not look for it.
 
