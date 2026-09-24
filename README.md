@@ -148,7 +148,14 @@ of each claim** — its C2b section opens with a dated status block, and its mea
 Eleven of our own earlier conclusions were retracted or overturned as artefacts of these
 traps — including, twice, my own explanation for why an earlier retraction happened, and once a
 result that turned out never to have been in the file it cited. All eleven are in the findings log
-with the same prominence as the results.
+with the same prominence as the results. **The paper's §8 counts thirteen, and the difference is one of selection
+rather than arithmetic**: this list is the retractions *these traps* caused — it names two that the paper's list
+folds into others (`"no Fisher-anchoring variant helps on the network"`, and `"more anisotropy gives a larger gap"`
+as the replacement mechanism) — while the paper adds the λ = 0.1 rung contrast *resolving*, whose main term was
+three seeds, and the "every point resolves individually" form of the wiring sign flip, one of whose five points
+does not resolve once the control-draw component is included. **And this file is outside the enumeration audit**,
+which covers the paper, the research plan and the findings corpus: a count here has no checker, which is how the
+two front doors came to disagree in the first place.
 
 `docs/findings/` holds the dated logs — one per result, negative results included, because
 those are the useful kind. The eleven retractions and refutations, in order:
