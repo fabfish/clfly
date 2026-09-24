@@ -50,7 +50,14 @@ def test_a_field_is_emitted_even_when_it_equals_the_runners_default():
 
 
 def test_an_unmapped_config_key_is_refused_rather_than_left_to_the_default():
-    with pytest.raises(ValueError, match="maps to no runner flag"):
+    """Two refusals, and the test names which: a key the *mapping* lacks, and a config no runner can claim.
+
+    The first is the `e153` defect's guard; the second is what the runner inference adds when the caller does not
+    say which runner wrote the artifact -- and they are different sentences because they are different problems.
+    """
+    with pytest.raises(ValueError, match="maps to no e8 runner flag"):
+        e163.command_from_config({"lam": 0.003, "mystery_knob": 7}, runner="e8")
+    with pytest.raises(ValueError, match="cannot tell which runner"):
         e163.command_from_config({"lam": 0.003, "mystery_knob": 7})
 
 
@@ -113,3 +120,36 @@ def test_the_floor_is_zero_only_over_groups_that_record_one_environment():
     assert out["movement_without_a_recorded_environment"]["worst_forgetting"] == pytest.approx(0.0396)
     assert out["arms_identical"] == 1 and out["arms_compared"] == 2
     assert out["groups_with_no_movement"] == 1
+
+
+# --- the second runner: the analytic line's commands must be derivable too ------------------------------------
+
+
+def test_the_helper_knows_the_analytic_runner_and_infers_it_from_the_config_keys():
+    """`e3_basis_selection` produced the ladder comparisons, and its commands were written by hand until now.
+
+    Inference is the same test `e172` makes for authorship -- a `config` is `vars(args)`, so a runner can have
+    written it only if it can name every field -- and it is why the helper needs no `--runner` in the common case.
+    """
+    cfg = {"circuit_size": 300, "support": 30, "seeds": 12, "q": 0.02, "ladder": True, "topologies": ("real",)}
+    assert e163.runner_for(cfg) == ["e3"]
+    parts = e163.command_from_config(cfg, json_out="runs/x.json")
+    assert parts[1].endswith("e3_basis_selection.py")
+    # a `store_true` flag is emitted, a string-valued field is passed through, and `None` is omitted
+    assert "--ladder" in parts and parts[parts.index("--support") + 1] == "30"
+    # a training-runner config infers to the other runner, so the two maps do not collide
+    assert e163.runner_for({"lam": 0.003, "methods": "ewc", "repeats": 40}) == ["e8"]
+
+
+def test_a_tuple_valued_field_is_joined_because_the_runner_itself_splits_on_commas():
+    """`e3_basis_selection` transforms its namespace before dumping it, so the artifact holds a tuple.
+
+    `args.topologies = tuple(t for t in args.topologies.split(",") if t)` is the runner's own line, so the join is
+    that transform's inverse -- and a field the helper cannot invert is refused rather than emitted as a Python
+    repr, which would be a command that cannot run.
+    """
+    parts = e163.command_from_config({"topologies": ("real", "swap0.5")}, runner="e3")
+    assert parts[parts.index("--topologies") + 1] == "real,swap0.5"
+    assert not any("(" in p for p in parts), "no Python repr may reach the command line"
+    with pytest.raises(ValueError, match="maps to no e3 runner flag"):
+        e163.command_from_config({"not_a_flag": 1}, runner="e3")

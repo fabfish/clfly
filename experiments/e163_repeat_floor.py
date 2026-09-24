@@ -57,8 +57,41 @@ DEFAULT_TRUE = {"normalise_fisher"}
 
 RUNNER = "experiments/e8_rate_network.py"
 
+#: **the runners whose commands can be derived, and the flag each `config` key belongs to.** Only the training
+#: runner was mapped when this helper was written, and the analytic line's flags were therefore written out by
+#: hand -- which is rule 44's failure mode with a smaller blast radius: a hand-written command is a paraphrase, and
+#: a paraphrase is where `e153` lost `--lam`. `e3_basis_selection` computes the LGCL effect size without training
+#: and produced this project's ladder comparisons, so it is the second runner that needed one.
+RUNNERS = {
+    "e8": ("experiments/e8_rate_network.py", None),          # None = the FLAGS map below
+    "e3": ("experiments/e3_basis_selection.py", {
+        "circuit_size": "--circuit-size", "support": "--support", "seeds": "--seeds", "seed0": "--seed0",
+        "q": "--q", "topologies": "--topologies", "align_top": "--align-top", "control_draws": "--control-draws",
+        "json_out": "--json-out", "report_from": "--report-from",
+    }),
+}
+#: the `store_true` flags of each runner, and the ones whose default is already True
+BOOLEAN_BY_RUNNER = {"e8": BOOLEAN, "e3": {"ladder", "extra_bases", "no_realized"}}
+DEFAULT_TRUE_BY_RUNNER = {"e8": DEFAULT_TRUE, "e3": set()}
 
-def command_from_config(config: dict, json_out: str | None = None) -> list[str]:
+
+def runner_for(config: dict) -> list[str]:
+    """The runners whose flag map covers **every** key this `config` carries (ignoring unset keys).
+
+    The inference is the same shape as `e172`'s authorship test -- a `config` is `vars(args)`, so a runner can
+    have written it only if it can name every field -- and it is a *list* because a small config can be covered
+    by more than one runner, in which case the caller has to say which.
+    """
+    keys = {k for k, v in config.items() if v is not None and k != "json_out"}
+    out = []
+    for name, (_, flags) in RUNNERS.items():
+        known = set(FLAGS if flags is None else flags) | set(BOOLEAN_BY_RUNNER[name])
+        if keys <= known:
+            out.append(name)
+    return sorted(out)
+
+
+def command_from_config(config: dict, json_out: str | None = None, runner: str | None = None) -> list[str]:
     """The command line that re-executes ``config``, with ``json_out`` replaced.
 
     Every key must be either in `FLAGS` or in `BOOLEAN`; anything else raises, because an unmapped field is one
@@ -70,23 +103,43 @@ def command_from_config(config: dict, json_out: str | None = None) -> list[str]:
     command say something the artifact does not. `json_out` is dropped from the config first: it names an output,
     not a measurement.
     """
+    if runner is None:
+        found = runner_for(config)
+        if len(found) != 1:
+            raise ValueError(f"cannot tell which runner wrote this config: {found or 'none'} covers its keys; "
+                             f"pass runner= explicitly")
+        runner = found[0]
+    runner_path, own = RUNNERS[runner]
+    mapping = FLAGS if own is None else own
+    booleans = BOOLEAN_BY_RUNNER[runner]
+    defaults_true = DEFAULT_TRUE_BY_RUNNER[runner]
     flags: list[str] = []
     for key in sorted(config):
         value = config[key]
         if key == "json_out" or value is None:
             continue
-        if key in BOOLEAN:
+        if key in booleans:
             if value:
-                flags.append(FLAGS.get(key, "--" + key.replace("_", "-")))
-            elif key in DEFAULT_TRUE:
+                flags.append(mapping.get(key, "--" + key.replace("_", "-")))
+            elif key in defaults_true:
                 raise ValueError(f"{key} = False has no command-line form; it cannot be reproduced")
             continue
-        if key not in FLAGS:
-            raise ValueError(f"config key {key!r} maps to no runner flag -- the command would use its default")
-        flags.extend([FLAGS[key], str(value)])
+        if key not in mapping:
+            raise ValueError(f"config key {key!r} maps to no {runner} runner flag -- the command would use its "
+                             f"default")
+        # **a config value can fail to round-trip to its own flag, exactly as a config key can fail to exist in
+        # its parser.** `e3_basis_selection` transforms its own namespace before dumping it --
+        # `args.topologies = tuple(t for t in args.topologies.split(",") if t)` -- so the artifact records a tuple
+        # where the flag takes a comma-separated string. The join here is that transform's inverse and it is the
+        # *only* value transform this helper knows: a field it cannot invert is refused below rather than emitted
+        # as a Python repr, which would be a command that cannot run.
+        if isinstance(value, (list, tuple)):
+            flags.extend([mapping[key], ",".join(str(v) for v in value)])
+        else:
+            flags.extend([mapping[key], str(value)])
     if json_out is not None:
         flags.extend(["--json-out", str(json_out)])
-    return ["python", RUNNER, *flags]
+    return ["python", runner_path, *flags]
 
 
 def floor(groups: list[dict]) -> dict:
@@ -165,6 +218,8 @@ def main(argv=None) -> int:
     ap.add_argument("--command", type=Path, default=None,
                     help="print the re-execution command derived from this artifact's own config")
     ap.add_argument("--methods", default=None, help="override --methods in the printed command")
+    ap.add_argument("--runner", default=None, choices=sorted(RUNNERS),
+                    help="which runner's flags to map; inferred from the config's keys when omitted")
     args = ap.parse_args(argv)
 
     if args.command is not None:
@@ -172,7 +227,8 @@ def main(argv=None) -> int:
         cfg = dict(payload["config"])
         if args.methods:
             cfg["methods"] = args.methods
-        parts = command_from_config(cfg, json_out=str(args.command).replace(".json", "_rerun.json"))
+        parts = command_from_config(cfg, json_out=str(args.command).replace(".json", "_rerun.json"),
+                                    runner=args.runner)
         print(" ".join(parts))
         return 0
 
