@@ -1588,7 +1588,17 @@ recovers **84.8%** of the gap between the unanchored penalty and the free freeze
 **0.9073** rather than the 0.8856 the unanchored penalty costs. **So the difference between *"diagonal EWC does
 not resolve here"* and *"it resolves at 4.84σ"* is a channel this paper's formulation of the penalty does not
 cover** — and it is not a hyper-parameter, because a λ sweep presses the same 97.1% harder while `e137` measures
-the adaptation escaping into the 2.9%. **The arm that works also carries *more* of the interference term the
+the adaptation escaping into the 2.9%. **And the channel's freedom is what *masks* the penalty: hold the offsets
+still and the same λ does nine times better.** `--frozen-bias --methods ewc --lam 3e-4` gives **+0.0026** —
+**−0.0724 ± 0.0084 = 8.61σ below `naive`** (38/40), **−0.0201 ± 0.0036 = 5.53σ below the freeze alone** (29/40)
+and **−0.0370 ± 0.0077 = 4.82σ below the identical penalty unanchored** — i.e. **forgetting at 3.5% of `naive`'s
+and 11.5% of the freeze's**, at an accuracy statistically indistinguishable from the freeze's (0.9271 against
+0.9306, 1.49σ) and above `naive`'s (2.55σ). **So the freeze is not a floor, and "a penalty is not a freeze" cuts
+both ways**: freezing the offsets is not the best a constraint on them can do, because it *removes* their
+adaptation without penalising the weights — and it is the **pair** that closes the problem, which is the
+constructive form of the substitution `e137` measured
+(`docs/findings/2026-09-24-the-penalty-works-once-the-channel-is-held-still.md`). **The arm that works also
+carries *more* of the interference term the
 account names**: its θ-only first-order term is cut **9.8-fold** where the unanchored arm's is cut **44.6-fold**,
 and across the two arms it is **2.69σ above** the unanchored one's with its cosine **4.46σ above** — on the same
 seeds, in the arm with **4.03σ less** forgetting
@@ -2460,7 +2470,11 @@ why no shared rule was available and each line needed its own check.
 6. **Ask the bias channel the two questions freezing it does not answer.** Holding 800 offsets at their
    initialisation removes **70%** of this benchmark's forgetting at read-out 32 *and raises accuracy*, which
    makes it a bound and not a recipe: **freezing is not penalising**, and a frozen parameter cannot report what
-   it would have done at an optimum it was never allowed to find. So **(a)** a *penalty* on the bias — its own
+   it would have done at an optimum it was never allowed to find. **And the pair answers it**: freezing the
+   offsets *and* penalising the weights at **λ = 3e-4** reaches **+0.0026** — **8.61σ below `naive`** and
+   **5.53σ below the freeze alone** — so **the freeze is not a bound on what a constraint on the channel can
+   do**, and the two mechanisms are complementary rather than alternatives: the freeze removes the offsets'
+   adaptation, the penalty covers the weights, and either alone leaves most of the forgetting standing. So **(a)** a *penalty* on the bias — its own
    diagonal Fisher, or simply a smaller learning rate for it — is the arm that would say whether the channel is
    harmful or merely unconstrained; and **(b)** the effect's **generality across read-outs** is a registered
    run rather than an assumption, because read-out 32 is the configuration **chosen to maximise** the chance of
