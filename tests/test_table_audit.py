@@ -373,3 +373,30 @@ def test_the_corpus_scan_counts_the_columns_it_could_not_check(tmp_path):
     assert [d["document"] for d in got["with_not_checkable_columns"]] == ["corr.md", "delta.md"]
     kinds = sorted(e["kind"] for d in got["with_not_checkable_columns"] for e in d["not_checkable"])
     assert kinds == ["correlation", "delta column (external reference)"]
+
+
+# --- the plan's tables, the surface neither other section reads -------------------------------------
+
+def test_the_plan_scan_counts_its_rows_and_reports_the_resolved_share(tmp_path):
+    """The programme table is a claim with an artifact behind every row, and its numbers had no reader.
+
+    The check reports a *listing* rather than a verdict, exactly as the paper's section 2 does, so what has to be
+    right is that the rows are counted, the denominators are printed, and a cell that resolves only as an array's
+    mean is counted apart from one a field holds.
+    """
+    from experiments.e105_table_audit import scan_plan
+
+    plan = tmp_path / "plan.md"
+    plan.write_text(
+        "| what | row | why | done |\n|---|---|---|---|\n"
+        "| run | C2b | why | artifacts give +0.0729 and +0.0396 as a mean |\n"
+        "| run | C2b | why | a number no artifact holds: +0.98765 |\n",
+        encoding="utf-8")
+    arts = [artifact("e8.json", {"naive": {"mean_forgetting": 0.072917,
+                                           "theta_drift": [0.0390, 0.0402]}})]
+    index, agg = corpus_index(arts), corpus_index(arts, aggregates=True)
+    got = scan_plan(plan, index, 0.25, agg)
+    assert got["n_rows"] == 2                    # data rows only; the header names columns
+    assert got["matched"] >= 1 and got["aggregate"] >= 1
+    assert got["unmatched"] >= 1
+    assert got["rows"] and all(0.0 <= r["share"] <= 1.0 for r in got["rows"])

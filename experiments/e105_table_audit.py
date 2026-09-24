@@ -389,6 +389,34 @@ def parse_tables(text: str) -> list[dict]:
             for rows in tables]
 
 
+def scan_plan(path: Path, index: list, share: float, aggregate_index: list | None = None) -> dict:
+    """Location counts over the plan's tables, the surface neither of the other two sections reads.
+
+    `e105` audits the paper and, with `--findings`, the corpus. **The plan's programme table is a claim with an
+    artifact behind every row (rule 22) and its cells carry numbers, and no location audit had ever read them.**
+    The cells are mostly *derived* -- a ratio, an absolute difference against a comparator named in the same cell
+    -- so this reports a listing rather than a verdict, exactly as the paper's section 2 does.
+    """
+    tables = parse_tables(path.read_text(encoding="utf-8", errors="replace"))
+    out = {"plan": str(path), "n_tables": len(tables), "n_rows": 0, "matched": 0, "aggregate": 0,
+           "unmatched": 0, "rows": []}
+    for t in tables:
+        a = audit_table(t, index, aggregate_index)
+        for row in a["rows"]:
+            out["n_rows"] += 1
+            out["matched"] += row["matched"]
+            out["aggregate"] += row["aggregate"]
+            out["unmatched"] += row["unmatched"]
+            total = row["matched"] + row["aggregate"] + row["unmatched"]
+            if total and (row["matched"] + row["aggregate"]) / total >= share:
+                out["rows"].append({"line": row["line"], "matched": row["matched"],
+                                    "aggregate": row["aggregate"], "unmatched": row["unmatched"],
+                                    "share": (row["matched"] + row["aggregate"]) / total,
+                                    "unmatched_tokens": row["unmatched_tokens"]})
+    out["rows"].sort(key=lambda r: -r["share"])
+    return out
+
+
 def scan_findings(directory: Path, index: list, share: float) -> dict:
     """Run both checks over every findings document, and count the shapes that matter at corpus level.
 
@@ -455,6 +483,10 @@ def main(argv=None) -> int:
     p.add_argument("--findings", type=Path, default=None,
                    help="also audit every markdown table under this directory, which is the gap e105's own "
                         "finding named: the paper is audited and the corpus of findings is not")
+    p.add_argument("--plan", type=Path, default=None,
+                   help="also audit the PLAN's tables. The programme table is a claim with an artifact behind "
+                        "every row (rule 22) and its cells carry numbers, but no location audit had ever read "
+                        "them: the paper was audited by e105 and the corpus by `--findings`")
     p.add_argument("--share", type=float, default=0.25,
                    help="a table is listed as interesting when at least this share of its numbers locate")
     p.add_argument("--runs", type=Path, default=Path("runs"))
@@ -589,6 +621,26 @@ def main(argv=None) -> int:
             best = max(doc["mixed"], key=lambda m: m["share"])
             print(f"     {doc['document']:60} {best['matched']:3} located, {best['unmatched']:3} not "
                   f"({best['share']:.0%})")
+
+    plan = None
+    if args.plan:
+        plan = scan_plan(args.plan, index, args.share, agg_index)
+        print()
+        print("=" * 104)
+        print("4. THE PLAN'S TABLES, which neither the paper's audit nor the corpus's covers")
+        print("=" * 104)
+        print(f"   {plan['plan']}: {plan['n_tables']} tables, {plan['n_rows']} rows, "
+              f"{plan['matched']} numbers located, {plan['aggregate']} as an array's mean, "
+              f"{plan['unmatched']} not")
+        print(f"   rows that are >= {args.share:.0%} resolved: {len(plan['rows'])}")
+        for row in plan["rows"][:12]:
+            print(f"     line {row['line']:5}  {row['matched']:3} located, {row['aggregate']:2} as a mean, "
+                  f"{row['unmatched']:3} not  ({row['share']:.0%})")
+            if row["unmatched_tokens"]:
+                print(f"        unmatched: {', '.join(row['unmatched_tokens'])[:96]}")
+        print("   the programme table is a claim with an artifact behind every row (rule 22) and its cells are")
+        print("   mostly DERIVED -- a ratio, an *absolute* difference against a stated comparator -- so an")
+        print("   unmatched token here is a reading aid rather than a defect, exactly as in section 2.")
 
     if args.json_out:
         write_json(args.json_out, {"paper": str(args.paper), "n_indexed": len(index),
