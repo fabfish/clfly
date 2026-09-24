@@ -66,12 +66,22 @@ the knob has moved. So:
 
 **A design that would isolate it, named and then built**: hold the penalty's inputs fixed *by construction* while
 moving the level, so that two levels of forgetting are penalised by the **same** term. That needed a runner change
-and it now exists — **`--save-fisher` writes the inputs (the diagonal Fisher and its anchor, one entry per task, as
-they stood when that task was trained) and `--fisher-from` uses them instead of computing them** — and what makes
+and it now exists — **`--save-fisher` writes the inputs (the diagonal Fisher and its anchor, as they stood when that task was
+trained) into a directory — one file per method and replicate, one entry per task inside it — and `--fisher-from`
+uses them instead of computing them** — and what makes
 it trustworthy is that a replayed run is **bit-identical** to the run that computed them: verified by an actual
 pair of runs, identical `forgetting_per_task` on every task, worst difference **0.0**, configs differing only in the
 two flags and the output path. `--fisher-from` is **refused** for the block methods, whose inputs are a partition
 and a trace-normalised matrix, because a stored diagonal would silently be a different object.
+
+**And the per-replicate keying is a correction, not a detail**: `diagonal_fisher` is seeded `seed + k` and `seed`
+differs for every replicate, so **the penalty term is a different object in each of the forty seeds** and a single
+file cannot hold "the term" for them. The first version stored one file per task, which would have made `e175`'s
+comparison meaningless rather than merely imprecise — thirty-nine of its forty replicates would have been penalised
+by another replicate's Fisher. **What caught it was the size of the saved file on the first run of the experiment**
+(1 KB, i.e. empty arrays, four minutes in), which is the kind of tell this project keeps finding: the artifact said
+the run was not what it claimed. `--fisher-from` now **refuses** when this replicate's entry is missing, rather
+than borrowing one.
 
 **And the flags' own `--help` found a defect that had been hiding the runner's flag list**: `argparse`
 `%`-formats help strings, so a bare `70%` in `--anchor-bias`'s help raised `TypeError` and **`uv run python

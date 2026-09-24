@@ -580,7 +580,17 @@ def run_method(conn_net, suite, method: str, args, seed: int,
             raise SystemExit("--fisher-from is implemented for the diagonal penalty: a block run's inputs are a "
                              "partition and a trace-normalised matrix, so a stored diagonal would silently be a "
                              "different object")
-        with np.load(args.fisher_from) as z:
+        # **per replicate, not per task**: `diagonal_fisher` is seeded `seed + k` and `seed` differs for every
+        # replicate, so the penalty term is a different object in each one and a single file cannot hold "the
+        # term" for forty seeds. A first version wrote one file per task and was wrong for thirty-nine of the
+        # forty replicates -- which is a flaw that would have made `e175`'s comparison meaningless rather than
+        # merely imprecise, and it was caught by the saved file's *size* on the first run.
+        source = Path(args.fisher_from) / f"{method}_seed{seed}.npz"
+        if not source.is_file():
+            raise SystemExit(f"--fisher-from {args.fisher_from} has no entry for {method} seed {seed}: "
+                             f"{source} is missing, and replaying another replicate's inputs would silently be "
+                             f"a different penalty")
+        with np.load(source) as z:
             stored = [(z[f"f{k}"], z[f"a{k}"]) for k in range(len(suite))]
     fisher_trace: list = []
 
@@ -754,7 +764,9 @@ def run_method(conn_net, suite, method: str, args, seed: int,
         for k, (f, a) in enumerate(fisher_trace):
             out[f"f{k}"] = np.zeros(0) if f is None else np.asarray(f)
             out[f"a{k}"] = np.zeros(0) if a is None else a.detach().cpu().numpy()
-        np.savez_compressed(args.save_fisher, **out)
+        target = Path(args.save_fisher) / f"{method}_seed{seed}.npz"
+        target.parent.mkdir(parents=True, exist_ok=True)
+        np.savez_compressed(target, **out)
 
     save_dir = getattr(args, "save_theta", None)
     if save_dir:
@@ -864,7 +876,9 @@ def main(argv=None) -> int:
                         "one; bounds the block Fisher's storage, which is sum_g s_g^2 and "
                         "is otherwise dominated by a single (pooled x pooled) block")
     p.add_argument("--save-fisher", type=Path, default=None,
-                   help="write the EWC penalty's OWN INPUTS, one entry per task: the diagonal Fisher and the "
+                   help="write the EWC penalty's OWN INPUTS into this directory, one file per method and replicate "
+                        "and one entry per task in it -- because the Fisher is seeded per seed, the "
+                        "penalty term is a different object in each replicate: the diagonal Fisher and the "
                         "anchor it is paired with, as they stood when that task was trained. `e173`'s finding is "
                         "that the Fisher is measured after each task's training, so EVERY knob that moves the "
                         "forgetting level moves the penalty's inputs too -- which means no single-field "

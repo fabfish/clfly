@@ -41,8 +41,11 @@ def test_the_two_flags_exist_and_are_documented(capsys):
 def test_a_replayed_run_is_bit_identical_to_the_run_that_computed_the_inputs(tmp_path):
     from experiments import e8_rate_network
 
-    saved, replayed, store = tmp_path / "saved.json", tmp_path / "replayed.json", tmp_path / "f.npz"
+    saved, replayed = tmp_path / "saved.json", tmp_path / "replayed.json"
+    store = tmp_path / "inputs"           # a DIRECTORY: one file per (method, replicate), because the Fisher is
+                                          # seeded per replicate and so is a different object in each one
     assert e8_rate_network.main([*TINY, "--save-fisher", str(store), "--json-out", str(saved)]) == 0
+    assert (store / "ewc_seed0.npz").is_file(), "one entry per method and replicate, named for both"
     assert e8_rate_network.main([*TINY, "--fisher-from", str(store), "--json-out", str(replayed)]) == 0
 
     a = json.loads(saved.read_text(encoding="utf-8"))["methods"]["ewc"]["replicates"]
@@ -78,3 +81,14 @@ def test_no_help_string_contains_a_bare_percent():
                 offenders.append(([a.value for a in node.args if isinstance(a, ast.Constant)],
                                   kw.value.value[:60]))
     assert not offenders, f"a help string would break --help: {offenders}"
+
+
+@needs_data
+def test_a_missing_entry_for_this_replicate_is_refused_rather_than_borrowed(tmp_path):
+    """Replaying another replicate's inputs would silently be a different penalty, so it must stop."""
+    from experiments import e8_rate_network
+
+    empty = tmp_path / "empty"
+    empty.mkdir()
+    with pytest.raises(SystemExit, match="no entry for"):
+        e8_rate_network.main([*TINY, "--fisher-from", str(empty), "--json-out", str(tmp_path / "x.json")])
