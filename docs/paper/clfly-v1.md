@@ -160,18 +160,25 @@ rankings are opposite at the top. **What survives without qualification**: repla
 contrast of **−0.0854 ± 0.0129 = 6.6σ** against naive, which is a number the project had to *recreate* —
 the published 4.2σ version had no artifact on disk, and the recreation reproduces it and strengthens it.
 **And that sentence now has a bound rather than an adjective**: `replay`'s **own** forgetting, pooled over the
-**four distinct configurations** where it has been measured at forty replicates, is **−0.0007 ± 0.0038** — **0.19σ
-from zero, a 2σ bound of ±0.0076, and negative in three of the four** — with the individual values spanning
-**−0.0096 to +0.0083** and an across-configuration sd of **0.0076** against each value's own sem of ≈ 0.0033, i.e.
-the four are consistent with a single value. **And because a margin over a baseline is exactly *replay's own
-forgetting minus the baseline's***, the family and channel differences that looked like a mechanism (**the wiring
-family's margin is 92% of the base family's; the frozen arm's is 92% too; the read-out-128 arm's is 126%**) are the
-**baseline's** forgetting changing with that term pinned near zero. The margin's ratio is
-`1 − replay_own/baseline`, which the five measured ratios match to the third digit (1.045, 0.921, 0.918, 1.17,
-1.261 against 1.045, 0.922, 0.921, 1.17, 1.259), so *"the margin tracks the channel's share"* is refuted and
-*"the margin is the baseline's forgetting"* is the same identity with a term bounded at ±0.008
+**five distinct configurations** where it has been measured at forty replicates, is **−0.0004 ± 0.0030** — **0.14σ
+from zero, a 2σ bound of ±0.0059, and negative in two of the five** — with the individual values spanning
+**−0.0096 to +0.0083** and an across-configuration sd of **0.0066** against each value's own sem of ≈ 0.0033, i.e.
+the five are consistent with a single value. **And because a margin over a baseline is exactly *replay's own
+forgetting minus the baseline's***, the family, channel and read-out differences that looked like a mechanism
+(**the wiring family's margin is 92% of the base family's; the frozen arm's is 92% too; the read-out-128 arm's is
+126%; the read-out-700 arm's is 96%**) are the **baseline's** forgetting changing with that term pinned near zero.
+The margin's ratio is `1 − replay_own/baseline`, which the five measured ratios match to the third digit (1.045,
+0.921, 0.916, 1.259, 0.968 against 1.045, 0.922, 0.921, 1.259, 0.964), so *"the margin tracks the channel's share"*
+is refuted and *"the margin is the baseline's forgetting"* is the same identity with a term bounded at ±0.006
 (`docs/findings/2026-09-24-the-floor-models-residual-is-replays-own-forgetting.md`,
-`docs/findings/2026-09-24-replays-own-forgetting-pooled.md`). **And the same quantity on the loss-valued metric is
+`docs/findings/2026-09-24-replays-own-forgetting-pooled.md`,
+`docs/findings/2026-09-24-the-discriminating-arm-refutes-the-channel-reading.md`). **And the read-out axis decided
+it**: the arm registered as the discriminating one — read-out 700, where the baseline forgets 0.0221 — gives a
+margin of **−0.0214 ± 0.0045 = 4.71σ**, which is the whole number to **0.0008 (0.12σ)** and requires a **97%**
+unpenalised-channel share to be a proportional effect, against the **89% and 83%** measured at the neighbouring
+read-outs. **So the channel reading is refuted and the floor identity is untouched** — and the identity, being
+arithmetic, was never what the arm could confirm; what it measured is the fifth value of `replay`'s own forgetting,
+**+0.0008**. **And the same quantity on the loss-valued metric is
 ten to two hundred times tighter — 0.0000 to 0.0005 with per-seed sds of 0.0000–0.0023, against the accuracy
 metric's 0.0198–0.0230 in the same files** — because the accuracy metric's per-seed sd is the test set's
 granularity (48 held-out examples per task, the runner's own standing warning) while the training loss, once
@@ -934,7 +941,13 @@ types. So "circuit overlap" is not a variable there.
 **What does predict interference is the propagated representation** — the alignment of
 the tasks' precision subspaces after the propagator mixes their disjoint inputs — at
 **ρ = +0.939**, with a leave-one-out range of [+0.917, +0.983] (so no single pair
-carries it) and no meaningful size confound (+0.164).
+carries it) and no meaningful size confound (+0.164). **And it is configuration-robust across the two
+realizations the record holds**: the same ten-pair table at cs 300 with support 30 gives **ρ = +0.976**, and the
+per-pair orderings behind the two agree at **ρ = +0.867** — for the propagation values and, independently, for
+the interference values. **What is *not* in the record is the half the ordering itself needs**: the ten pairs'
+values are **three-seed means with no per-pair sem anywhere in `runs/`**, so by the rule this session wrote (43)
+the coefficient is quoting inputs whose resolution it cannot state
+(`docs/findings/2026-09-24-rule-43-applied-to-the-papers-rank-correlations.md`).
 
 The benchmark-design conclusion is concrete:
 

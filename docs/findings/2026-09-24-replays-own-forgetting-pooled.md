@@ -45,7 +45,18 @@ unpenalised channel's share; the answer is no, and the reason is that the margin
 minus a term bounded at ±0.008*. **So the model's last free quantity is measured, and the model reduces to the
 paper's own claim about content memory** — which is a reduction and not an explanation, and the finding says so.
 
-## 3. What this cannot settle
+## 3. The next day's fifth configuration tightens it — added in place
+
+`e155`'s **read-out-700** arm landed and measured `replay`'s own forgetting there at **+0.0008**, so the pool is
+now **five** distinct configurations: **−0.0004 ± 0.0030** (0.14σ from zero, a 2σ bound of **±0.0059**, 95%
+[−0.0062, +0.0054]). The five values span −0.0096 to +0.0083 with an across-configuration sd of **0.0066**, so the
+conclusion is unchanged and the bound is 22% tighter. **That arm is also the one the registration named as the
+discriminating one, and it refuted the alternative reading rather than confirming this one** — the margin there is
+the baseline's forgetting to 0.12σ, while a proportional-to-the-share reading would need the offsets to carry
+**97%** of that baseline's forgetting against **89%** and **83%** at the neighbouring read-outs
+(`docs/findings/2026-09-24-the-discriminating-arm-refutes-the-channel-reading.md`).
+
+## 5. What this cannot settle
 
 - **Four configurations, one suite**: one circuit (`cs = 800`), three tasks, one seed stream, one read-out axis,
   and the four arms share the same base model. A fifth configuration with a *different* task family would be the
