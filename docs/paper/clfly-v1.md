@@ -109,7 +109,11 @@ and it beats both block arms, so **the coarser partition is not even the better 
 is in the channel it covers**. **That null now has three independent supports**: the shared-input family's
 three-draw contrast **0.99σ**, the base family's **1.33σ** — whose single-draw 2.08σ was one sample of a control
 whose own spread is **sd 0.0096** — and **the same five-method table re-run with the unpenalised channel frozen in
-every arm**, where the contrast is **−0.0029 ± 0.0029 = 0.98σ** in a design that redraws no partition at all.
+every arm**, where the contrast is **−0.0029 ± 0.0029 = 0.98σ**, redrawing no partition). **And the null is a bound whose price is known**: at the
+effects measured, resolving that contrast at 3σ would need **83 seeds** on the base family, **372** with the
+channel removed, and **1,237 to 12,567** on the shared-input family (50,269 if the effect is half of what forty
+seeds suggest), so no affordable run would turn it positive-or-negative — the honest form is the bound, with its
+size stated (`docs/findings/2026-09-24-what-each-live-contrast-costs-in-seeds.md`).
 **And the method comparison is conditional in a way that matters for practice**: with that channel removed from
 every arm the ordering **inverts** — the plain diagonal **−0.0021** first and `replay` **+0.0018** second, with
 `ewc − replay` at **1.04σ** where it is **9.40σ** with the channel free — **while `replay` is the only method
