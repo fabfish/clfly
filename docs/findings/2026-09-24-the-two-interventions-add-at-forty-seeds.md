@@ -97,7 +97,39 @@ interaction that would explain how they combine is 1.61σ. **This is `e108` / `e
 the other side: the quantity on which the two interventions are exactly additive is a quantity this project has
 already shown does not order the effect.** If the 1.61σ interaction is real, it is not in the motion.
 
-## 4. Why forty seeds cannot answer this question, in one number
+## 4. The same four cells on `e139`'s whole-body interference — the ordering holds on task 0 and not on task 1
+
+The decomposition runs a second time on the quantity `e139` built its ordering claim on, and the four cells are
+available for it because the two arms whose artifacts predate the instrument are carried by later artifacts that
+hold **the same arms**: `e140`'s plastic `naive` row is per-replicate identical to `e133`'s (C0a) and `e146`'s
+frozen `naive` row to `e125`'s (`e146`'s own identity). Same forty seeds, and the instrument check passes in the
+form the freeze forces: the bias's share of the task-0 whole-body term is **0.4524** on `naive` — reproducing
+`e139`'s 45% — **0.6888** on the penalty arm, and **exactly 0.0000** on both frozen cells, which is what a
+frozen offset must give.
+
+| whole-body first-order term | `naive` | freeze | penalty | both | additive | I | resolution |
+|---|---|---|---|---|---|---|---|
+| task 0 | 0.4266 | 0.2142 | 0.2472 | 0.0520 | 0.0347 | +0.0173 | **0.25σ** |
+| task 1 | 0.2614 | 0.1087 | **0.4505** | 0.0464 | 0.2978 | −0.2514 | 1.14σ |
+| mean | 0.3440 | 0.1614 | 0.3488 | 0.0492 | 0.1663 | −0.1171 | 0.96σ |
+
+**The interaction is additive here too**, at 0.25σ on task 0 and 1.14σ on task 1, with per-seed spreads of 2.46×
+and 9.17× their ceilings — the interference is a *noisier* quantity than the forgetting on this design, not a
+sharper one. (The mean's ceiling, 0.0048, is not interpretable: the penalty's main effect on the mean is
++0.0048, an unresolved level, and the reader now refuses to quote a share when either main effect is below 2σ.)
+
+**And the ordering result is the more interesting half.** Sorted by the task-0 whole-body term the four arms run
+**`both` < freeze < penalty < `naive`** — *identically* the ordering by forgetting, which is `e139`'s claim
+extended to two cells the instrument had never covered (a frozen arm and a freeze-plus-penalty arm). Sorted by
+the task-1 term it runs **`both` < freeze < `naive` < penalty**: the penalty arm has **1.72× `naive`'s**
+interference on task 1 while its task-1 forgetting is **0.0250 against `naive`'s 0.0536, less than half**.
+
+So **`e139`'s whole-body ordering is a task-0 statement**, and the task where it breaks is the one where the
+diagonal penalty does the relocation `e137` measured: on task 1 the penalty *raises* the first-order interference
+while lowering the forgetting. That is `e138`'s "the arm that fixes the forgetting has more interference"
+appearing here as a per-task sign, and it is why the mean is a cancelling pair rather than a summary.
+
+## 5. Why forty seeds cannot answer this question, in one number
 
 The seed-level spread of I is **0.0604** on the accuracy-valued forgetting and **0.0918** on the loss-valued one,
 against per-seed spreads of the metric itself of **0.0556** and **0.0916**. The ratios are **1.09** and **1.00**.
@@ -114,10 +146,10 @@ and leaves the interaction's spread at the metric's own per-seed spread, so its 
 | θ drift | 244,666 | 550,499 |
 
 So *"do the freeze and the weak penalty remove the same forgetting"* is **not answerable at forty seeds**, and a
-registered test of it would have to either carry ~70–140 seeds or ask a different question — `e139`'s *share*
-form, which is a within-arm quantity and does not need four cells.
+registered test of it would have to carry ~70–140 seeds — or change the question, and §4 shows that the
+interference is not the change: it is additive at the same forty seeds and noisier.
 
-## 5. What this cannot settle
+## 6. What this cannot settle
 
 - **It is exploratory and it is not a registration.** The prediction in the script's docstring was written after
   three of the four artifacts had been read, so this is the one reader in `experiments/` whose numbers are not a
@@ -134,10 +166,11 @@ form, which is a within-arm quantity and does not need four cells.
 - Both λ-sweep arms say this configuration's optimum is at the edge of the measured grid, so "the penalty" here
   is *the weakest penalty this project has measured*, not the penalty.
 
-## 6. What would decide it
+## 7. What would decide it
 
 Either the seeds — a registered test at 62–140 replicates, which is a queue cost the project has been avoiding
-all session — or a change of form: attribute instead of subtract. `e139`'s instrument already gives each arm a
-*share* of the forgetting it does not cover, and the question "do the two interventions' uncovered shares
-compose additively" is answerable from arms that already exist, on a quantity whose noise is not the metric's
-own. That is the cheaper next step and it is not this 2x2.
+all session — or a *third* quantity that carries the effect with less noise than the metric does. §4 asked the
+interference to be that quantity and it is not: it is additive at the same forty seeds and its per-seed spread is
+2.5× to 9× its own ceiling. What §4 does hand the next fire is narrower and real: **the ordering claim is a
+task-0 claim**, and the task-1 exception is where the penalty's relocation shows, so the instrument that could
+separate the two interventions' shared part may have to be per task rather than per arm.

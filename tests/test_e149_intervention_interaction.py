@@ -70,6 +70,39 @@ def test_retention_fractions_are_the_interaction_read_from_the_other_end():
     assert abs((1 - d["retention_of_pen"]) - d["interaction"]["change"] / abs(d["d_pen"]["change"])) < 1e-12
 
 
+def test_a_share_is_refused_when_a_main_effect_is_itself_unresolved():
+    # the penalty's effect is ~0.001 against a seed spread of 0.05: not an effect, so no ceiling to share
+    arms = _four(np.full(40, 0.01))
+    for k in ARM_KEYS:
+        base = arms[k]["forgetting"]
+        arms[k]["accuracy"] = base.copy()
+    arms["pen"]["accuracy"] = arms["naive"]["accuracy"] + 0.001 + 0.05 * np.linspace(-1, 1, 40)
+    d = e149.decompose(arms, ("accuracy",))["accuracy"]
+    assert d["main_effects_sigma"]["pen"] < 2
+    assert d["ceiling_interpretable"] is False
+    quiet = e149.decompose(_four(np.full(40, 0.01)), ("accuracy",))["accuracy"]
+    assert quiet["ceiling_interpretable"] is True
+
+
+def test_the_whole_body_loader_takes_ratios_of_means_and_the_frozen_bias_is_exactly_zero(tmp_path):
+    def rep(wb0, bias0, wb1):
+        return {"interference": [
+            {"task": 0, "whole_body": {"cumulative": wb0, "bias_only_cumulative": bias0}},
+            {"task": 1, "whole_body": {"cumulative": wb1, "bias_only_cumulative": 0.0}}]}
+    payload = {"methods": {"naive": {"replicates": [rep(0.4, 0.2, 0.1), rep(0.6, 0.0, 0.3)]}},
+               "config": {}}
+    path = tmp_path / "wb.json"
+    path.write_text(json.dumps(payload), encoding="utf-8")
+    arm = e149.load_wb(path, "naive")
+    assert np.allclose(arm["whole_body_task0"], [0.4, 0.6])
+    assert np.allclose(arm["whole_body_task1"], [0.1, 0.3])
+    assert np.allclose(arm["whole_body_mean"], [0.25, 0.45])
+    # the share is a ratio of MEANS: 0.1 / 0.5 = 0.2, not the mean of 0.5 and 0.0
+    assert abs(float(arm["bias_only_task0"].mean()) / float(arm["whole_body_task0"].mean()) - 0.2) < 1e-12
+    assert e149.load_wb(path, "ewc") is None
+    assert e149.load_wb(tmp_path / "nope.json", "naive") is None
+
+
 def test_a_missing_quarter_reads_as_missing_not_as_a_zero(tmp_path):
     payload = {"methods": {"naive": {"replicates": [
         {"mean_forgetting": 0.1, "final_accuracy": 0.9, "theta_drift": [0.01, 0.01, 0.01],
@@ -81,6 +114,9 @@ def test_a_missing_quarter_reads_as_missing_not_as_a_zero(tmp_path):
     assert e149.load_arm(part, "ewc") is None            # method absent
     assert e149.load_arm(tmp_path / "nope.json", "naive") is None
     assert e149.load_arm(part, "ewc") is None
+    # an artifact that predates `forgetting_per_task` loads, with the per-task series undefined rather than 0.0
+    arm = e149.load_arm(part, "naive")
+    assert np.isnan(arm["forgetting_task0"]).all() and np.isnan(arm["forgetting_task1"]).all()
 
 
 def test_ties_are_dropped_and_counted_rather_than_folded_into_a_side():
