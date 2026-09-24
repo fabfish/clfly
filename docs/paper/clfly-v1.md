@@ -951,6 +951,24 @@ synapse strengths. Three behavioural tasks on distinct circuits — odour identi
 (antennal lobe → Kenyon cells) — each reaching ~0.92 accuracy against 0.25 chance in
 three independent runs. Whole experiment: minutes on CPU.
 
+**Which number that column is, exactly** — because everything below is read off it, and pinning it down took
+eight hours of forty-replicate work. For a retention matrix `R[k, j]` (accuracy on task `j` after training through
+task `k`, filled for `j ≤ k`), the runner records
+
+    forgetting_per_task[j] = max_{k ≤ j} R[k, j] − R[T−1, j]        mean_forgetting = mean over j < T−1
+
+and **that window's maximum is the diagonal `R[j, j]`** — the accuracy right after task `j` was learned — because
+the fill leaves exactly one finite entry in it. So `mean_forgetting = mean_j (learned[j] − final[j])`, verified to
+the last digit over **243** method-arms (`e154`), and the third task's own term is 0 by construction. **Two
+consequences, and both are load-bearing below.** First, the conventional definition in the continual-learning
+literature takes the max over the **later** checkpoints, which can only be larger: this record's number is a
+**lower bound** on it, and the gap is strictly positive in **15.2%** of 5,762 (task, replicate) observations
+(mean 0.00449, p90 0.02083, max 0.10417), so a comparison against a published forgetting is a comparison of two
+statistics. Second, the quantity is **pure retention measured from acquisition**, whose complement is the **newest
+task's** final accuracy — which *is* the diagonal, and therefore pure acquisition, into which no interference can
+enter by construction. §8 item 7 recommends printing it beside the forgetting for exactly that reason, and the
+constrained methods' cost shows up there and nowhere else.
+
 | method | final accuracy | mean forgetting |
 |---|---|---|
 | naive | 0.824 ± 0.036 | +0.101 ± 0.049 |
