@@ -145,3 +145,29 @@ measured rather than assumed:
   side of a commit the run never contained. The epochs in §2 are also *read*, not timed: they are the presence or
   absence of a top-level field, which a process can only have from the parser it loaded
   (`docs/findings/2026-09-24-the-random-control-is-a-sample-and-31-of-38-artifacts-do-not-say-which.md` §3).
+
+## 6. Addendum, same night: the environment split fired for the first time, on a pair that is bit-identical
+
+§1's claim that *"not one group contains two recorded environments, so the environment split `e103` documents has
+never fired on real data"* was true when written and is now historical. **`e164`'s pair is the corpus's eleventh
+repeated configuration and its first with two recorded environments**, because the two `environment` dicts differ
+in **exactly one field** — `calibration_matmul_s`, **0.00033 against 0.00028** — while the other seven are equal.
+**And every arm is bit-identical across the "two environments"**: the split's first real member is a pair whose
+movement is **0.0000 on both axes**, so it confirms the floor rather than complicating it. The class was empty and
+its first member is the strongest possible one.
+
+**The lesson is about the field and not the pair: `environment` is not the arithmetic's environment.** A *timing*
+lives inside it, so two runs that are identical in every determinant of the numbers get classified as two
+environments. `e160` found the same defect from the other side — as a table-confounding cause, where treating the
+environment as one field cost `replay` its clean `lam` verdict — and this is the second independent instance, now
+of the *grouping* rather than of the join.
+
+**Named improvement, to be implemented in the audit rather than in the runner**: group by the environment with its
+timing excluded. Moving the field out of `environment` would give every artifact written after the change an
+environment that no older artifact shares, which would make the split fire on **every** cross-epoch pair instead
+of on the pairs that actually differ — the opposite of the fix.
+
+**And the counts in §1 have moved, as the paper's §9 says such counts must**: **11 groups, 42 runs, 23
+arm-comparisons** now, with the floor itself unchanged at **8 groups / 33 runs / 0.0000 on both axes** and the
+seven unrecorded-epoch runs still the only ones that move
+(`docs/findings/2026-09-24-e164s-first-execution-is-the-current-epoch-and-the-numbers-do-not-depend-on-the-machine.md`).

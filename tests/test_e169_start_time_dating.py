@@ -56,11 +56,14 @@ def test_the_corpus_answers_zero_for_start_time_and_three_for_write_time():
              "payload": a["payload"]} for a in load_artifacts() if e169.in_scope(a)]
     for r in rows:
         r["start"] = e169.start_time(r)
-    assert len(rows) == 129
+    # 129 artifacts and 5,263 nested pairs when this unit was written; the corpus grows, so the count is a floor
+    # and the *identity* below is the part that must hold at any size -- both clocks order the same pair set, so
+    # every pair write time gets wrong is one start time gets right.
+    assert len(rows) >= 129
     w = e169.nested_violations(rows, "mtime")
     s = e169.nested_violations(rows, "start")
     assert len(w["violations"]) == 3 and s["violations"] == []
-    assert w["ordered_correctly"] + 3 == s["ordered_correctly"] == 5263
+    assert w["ordered_correctly"] + len(w["violations"]) == s["ordered_correctly"] >= 5263
     # the misplaced side is always the long run, and never the artifact whose config gained the key
     assert all(v["durations_h"][0] > v["durations_h"][1] for v in w["violations"])
     assert {v["earlier_keyset"] for v in w["violations"]} == {

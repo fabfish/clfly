@@ -56,8 +56,13 @@ def test_the_corpus_records_the_draw_in_a_fifth_of_the_artifacts_that_need_it():
     from experiments.e103_reproducibility_audit import load_artifacts
 
     exp = e168.exposure(load_artifacts())
-    assert exp["artifacts_with_a_rand_arm"] == 38 and exp["recording_the_draw"] == 7
-    assert exp["unidentifiable"] == 31
+    # The counts grow with the corpus -- 38 rand-arm artifacts, 7 recording the draw and 31 not when this unit
+    # was written, and every run the project makes from here adds to all three. What is pinned is the claim and
+    # the census's own arithmetic, so that a growing corpus cannot quietly falsify the ratio or double-count.
+    assert exp["artifacts_with_a_rand_arm"] >= 38
+    assert exp["recording_the_draw"] >= 7
+    assert exp["unidentifiable"] == exp["artifacts_with_a_rand_arm"] - exp["recording_the_draw"]
+    assert exp["unidentifiable"] >= 3 * exp["recording_the_draw"], "most users of the control cannot say which"
     assert exp["fingerprints"] == ["000b42be6ba2", "3058aa874ae6", "f6a658eabf9c"]
     assert exp["pairs"]["one_side_only"] > 200 and exp["pairs"]["both_different"] > 0
 
