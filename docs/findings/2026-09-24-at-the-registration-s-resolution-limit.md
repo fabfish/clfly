@@ -84,3 +84,9 @@ effect* — arriving on the **threshold**. `docs/research_plan.md` rule **37** r
   this is a statement about *overlap* and not about the default tasks.
 - **No method has been run on the harder family.** The fire can say the problem is harder and nothing about which
   method handles it — and `e140`/`e141`, which would, are on the training-free configuration.
+- **And the extra forgetting's channel has only a negative first reading.** The two families' bodies move the same
+  amount — the bias's cumulative path differs by **0.01σ** and θ's drift by 0.00σ / 1.43σ / **−4.45σ** — which on
+  norms alone says nothing about which channel carries the 42%, and `e137`'s own lesson is why it says nothing:
+  an intervention that removes 70% of an effect can coexist with a weak across-seed correlation. `e143`
+  (`--frozen-bias` at overlap 1.0) is the run that decides it, registered with a convergence prediction and the
+  opposite falsifier (`docs/findings/2026-09-24-the-harder-family-moves-the-body-the-same-amount.md`).
