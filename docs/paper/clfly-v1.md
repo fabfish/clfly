@@ -157,7 +157,15 @@ costs *less* accuracy than the unanchored penalty does (0.9073 against 0.8856) �
 interference term the account names, whose θ-only form is cut **9.8-fold** in the arm that works against
 **44.6-fold** in the arm that does not
 (`docs/findings/2026-09-24-the-penalty-relocates-the-adaptation.md`,
-`docs/findings/2026-09-24-the-arm-that-fixes-the-forgetting-has-more-interference.md`). **And the anchor is not the
+`docs/findings/2026-09-24-the-arm-that-fixes-the-forgetting-has-more-interference.md`). **And the pair's *reach*
+turns out to scale with the task family while its *price* does not**: freezing the same offsets and adding the
+same penalty on the shared-input family (whose baseline forgets 42% more) leaves **+0.0190** — removing **68.3%**
+of that family's freeze residual against the base family's **88.5%**, an absolute effect **2.04× larger there
+(−0.0409 against −0.0201, a difference of −0.0208 ± 0.0070 = 2.99σ)** — **while the newest-task cost of the pair
+moves by 0.13σ between families** (−0.0339 against −0.0328). With §4.7's channel result that is the separation in
+full: **the penalty buys stability at a rate that depends on the channel and the family (4.10σ and 2.99σ) and pays
+for it at a price that depends on neither (1.23σ and 0.13σ)**
+(`docs/findings/2026-09-24-the-penalty-is-family-dependent-in-stability-and-blind-in-cost.md`). **And the anchor is not the
 only route to the same level — the penalty's *strength* is the other, and the λ that works is below every value
 any sweep in this paper tried.** At forty paired seeds the diagonal at **λ = 3e-4**, five times below the floor of
 the sweeps, beats `naive` by **4.27σ** on forgetting **and is not worse on accuracy** (+0.0049 ± 0.0053 = 0.91σ,
