@@ -1145,7 +1145,19 @@ Added 2026-09-22, after the headline metric was found to be chaotic
    two components separately, and never rest a claim about a curve's *shape* on
    single-draw controls. The paired column needs ≥12 seeds to be usable: at 3
    seeds the sample correlation hits ±1.00 by chance and σ_p disagrees with σ by
-   up to 3×.
+   up to 3×. **And this rule was violated for the whole network record until 2026-09-24**:
+   `e8_rate_network.py` built one `random_matched` partition **outside** the replicate
+   loop, so all forty replicates of an `ewc-block-rand` arm shared a **single** draw and that
+   arm's sem contained **no draw term at all** — while the linear line had `--control-draws`
+   and recorded `sd_across_draws` the whole time. `--partition-seed` now names the draw
+   (defaulting to `--seed0`, so every artifact written before it is bit-identical under an
+   unchanged command) and the artifact records a **fingerprint** of the partition, so two
+   draws can be told apart without storing the partition. **The honest form of every
+   `ewc-block-rand` number quoted before that date — `e135`'s −0.0125, the paper's §4.2 block
+   rows — is *"one draw"* rather than *"the control"***, and the network's own draw sd is
+   **unmeasured**: the ≈1e-3 above is a measurement of the linear substrate's excess and not
+   of this network's forgetting, which is what the three-draw control in `e144` exists to
+   measure (`docs/findings/2026-09-24-the-basis-question-on-the-wiring-family-registered.md`).
 11. **Artifacts are strict JSON.** Non-finite floats go in as `null`, never as `NaN`
    or `Infinity` — Python reads those back happily, and `JSON.parse`, `serde_json`,
    `encoding/json` and `pandas.read_json` all refuse them. Seven rate-network
