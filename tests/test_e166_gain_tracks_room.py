@@ -84,7 +84,10 @@ def test_the_level_moving_manipulations_lean_the_room_accounts_way_and_none_reso
     from experiments.e103_reproducibility_audit import load_artifacts
     rows = [r for p in e166.pairs(e166.candidates(load_artifacts())) for r in e166.rows_for(p)]
     moving = [r for r in rows if r["level_resolved"]]
-    assert len(moving) == 13 and {r["field"] for r in moving} == {"classes", "frozen_bias", "readout_size"}
+    # 13 rows over three fields when this unit was written; `e167`'s pair added `noise` as a fourth, which is the
+    # field this census said the corpus had never varied and which the unit then went out and varied.
+    assert len(moving) >= 13
+    assert {"classes", "frozen_bias", "readout_size"} <= {r["field"] for r in moving}
     agree = [r for r in moving if r["same_sign"] and r["gain_resolved"]]
     against = [r for r in moving if not r["same_sign"] and r["gain_resolved"]]
     assert len(agree) >= 5 and not against
