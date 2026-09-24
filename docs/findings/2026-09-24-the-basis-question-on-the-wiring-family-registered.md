@@ -88,3 +88,15 @@ one draw, and nothing in the record said so.** So the σ quoted for the base fam
 substrate's excess rather than on this network's forgetting: **the network's draw sd is unmeasured until these
 three draws exist**, and the honest form of every block contrast quoted before today is *"one draw"* rather than
 *"the control"*.
+
+**And the flag is validated on a real artifact before the main run finishes.** Draw 1's file carries
+`config.partition_seed = 1`, `partition_draw = {matched_random_draw_seed: 1, n_groups: 100, fingerprint_sha1:
+3058aa874ae6}`, and — the defect the source test guards — **`readout.draw_seed = 0`**, so the partition seed did
+not leak into the read-out's own draw, which is what its first version would have done.
+
+**And the draw's own level is worth recording before the comparison exists, because it sets what P1 has to
+resolve**: draw 1's `ewc-block-rand` forgets **+0.1010** at accuracy **0.8983**, against this family's plastic
+`naive` at **+0.1068** and **0.8939** — so **the matched-random block penalty barely moves this family's
+forgetting**, where on the base family the same row reached **+0.0104 to +0.0625** at five replicates. That is one
+draw of one arm and it is not a result; it is the level that decides whether a ≥3σ contrast is available at forty
+pairs, and it is recorded here so that the verdict cannot be read as if the control had been quiet.
