@@ -258,7 +258,24 @@ python -m clfly.connectome.fetch --check   # status only
 ## Install
 
 Requires Python >= 3.10. The connectome data is **not** in this repository; it is
-downloaded on demand (see `LICENSE` for the data's own terms).
+**cloned into `data/` (gitignored) by one command, which also records the commit hash of each source** so a
+result can be traced back to the bytes that produced it (see `LICENSE` for the data's own terms):
+
+```bash
+python -m clfly.connectome.fetch            # clone whatever is missing (~136 MB)
+python -m clfly.connectome.fetch --check    # report status and pinned revisions, download nothing
+```
+
+Two sources, both open and both fetched over `git clone`: `philshiu/Drosophila_brain_model` (MIT) for
+`Connectivity_783.parquet` and `flyconnectome/flywire_annotations` for the annotation table the anchoring bases
+come from. Verified from a working checkout:
+
+```
+drosophila_brain_model  @ 91bdd1e7dcf1   OK
+    Connectivity_783.parquet             100.8 MB
+flywire_annotations     @ 8587524c1748   OK
+    supplemental_files/...annotations.tsv  31.9 MB
+```
 
 ```bash
 # core only — enough for the LGCL work
