@@ -311,8 +311,13 @@ inside the task loop), so `noise`, `iters` and `train` each move the penalty's *
 to work in. The 250-iteration arm of that test is the demonstration: it leaves the level **flat (+0.0044 at
 0.55σ)** while the advantage still falls **−0.0214 at 2.09σ** — so a knob that does nothing to the level still moves
 the gain, which is what a penalty whose Fisher is measured at a differently-trained point predicts and what the
-room account does not
-(`docs/findings/2026-09-25-the-level-knob-moves-the-gain-and-the-high-end-is-a-null.md`,
+room account does not. **And the route around that limit now exists in the runner rather than in an argument**:
+`--save-fisher` stores the diagonal Fisher and the anchor **as they stood when each task was trained**, and
+`--fisher-from` replays them, with a replayed run **bit-identical** to the run that computed them (identical
+`forgetting_per_task` on every task, worst difference **0.0**, and configs differing only in the two flags) — so
+two levels of forgetting can be penalised by **one** term. That is the isolating test, and it is running
+(`docs/findings/2026-09-25-the-fisher-is-measured-after-training-so-no-knob-is-clean.md`,
+`docs/findings/2026-09-25-the-level-knob-moves-the-gain-and-the-high-end-is-a-null.md`,
 `docs/findings/2026-09-24-the-room-account-agrees-with-every-resolved-level-move-and-does-not-explain-the-gain.md`).
 (The strongest evidence for that contrast is at sixteen replicates, where it is **−0.0677 ± 0.0101 =
 6.73σ with sixteen of sixteen replicates agreeing**, though replay's own forgetting there is 0.83σ from
