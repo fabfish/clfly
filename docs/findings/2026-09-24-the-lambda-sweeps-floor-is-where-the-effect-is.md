@@ -134,6 +134,33 @@ penalty arms are not a one-parameter family and nothing in the artifacts ranks t
 arms, when they land, will add two more points **on the λ axis** — which is the axis along which the ordering
 above does hold — so they test the co-movement within one knob and say nothing about the cross-knob question.
 
+**(*And with the complete λ axis that reading was itself too strong — both the lead and its obituary were
+three-point statements.*)** λ = 3e-2 and 3e-1 have now landed, so the cross-knob table has **six** penalty arms,
+and sorted by the bias's cumulative path they read:
+
+| arm | bias cumulative path | forgetting |
+|---|---|---|
+| λ = 3e-3, offsets anchored **33.2** | 3.4452 | **+0.0292** |
+| **λ = 3e-4**, unanchored | 3.6835 | +0.0396 |
+| λ = 3e-3, offsets anchored **1.0** | 4.2190 | +0.0352 |
+| λ = 3e-3, unanchored | 4.2819 | +0.0654 |
+| λ = 3e-2 | 5.4367 | +0.0810 |
+| λ = 3e-1 | 6.2313 | +0.0846 |
+
+**Spearman +0.943 with exactly ONE inversion, and that inversion is 0.69σ** — the anchored-1.0 arm's 0.0352
+against λ = 3e-4's 0.0396, a paired difference of **−0.0044 ± 0.0064**. So the honest statement is the opposite
+of the obituary above: **within each knob the path orders the forgetting perfectly (+1.000 over the four λ arms
+and +1.000 over the three anchoring arms), and across the six penalty arms it orders them at +0.943 with its
+single inversion unresolved** — i.e. **consistent with monotone across both knobs at the resolution forty seeds
+give**. **The unpenalised arm remains the exception and it is a different kind of point**: including it drops the
+correlation to **+0.750**, because λ = 0 is not a weaker penalty but the absence of one, and a quantity that
+orders a family of *interventions* need not order the baseline they are interventions on.
+
+**And the practical reading is that three routes land in the same place.** The strong anchor (+0.0292), the weak
+anchor (+0.0352) and λ = 3e-4 (+0.0396) are pairwise **0.69σ, 0.88σ and 1.21σ** apart — so **this data cannot
+separate "weaken the penalty" from "cover the channel", weakly or strongly**, and the honest recommendation is
+the cheapest route rather than the best one.
+
 ## 4. What this cannot settle
 
 - **It is four λ on one axis, and the sweep is complete.** The registration's **P1 and P2b HOLD in the strongest
