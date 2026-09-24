@@ -905,7 +905,16 @@ at any Fisher batch count tried among **8 and 32** — *a 128-batch count is sta
 section and in §8 and appears in no artifact at all, and the same correction applies at both places*
 (`docs/findings/2026-09-23-the-fisher-batch-sweep-is-a-stitch-of-first-replicates.md`). **At λ = 0.003 all
 three Fisher variants do beat `naive` — and so does the size-matched random block partition, which is why this
-is a statement about granularity rather than about biology.** At 128 Fisher batches the biological block
+is a statement about granularity rather than about biology.** **And the floor of that range is where the effect
+was, which the forty-replicate measurement found**: every sweep here stops at **λ = 0.003**, and at forty
+replicates λ = 3e-3 does **not** resolve against `naive` (**1.21σ**, §4.2's note) — while **λ = 3e-4, five times
+smaller and below every point any sweep in this paper tried, resolves at −0.0354 ± 0.0083 = 4.27σ with accuracy
+*not* worse than `naive`'s** (0.9174 against 0.9125, 0.91σ) **and improves both forgettable tasks** (3.54σ and
+2.87σ), where λ = 0.003 at forty has its second task *worse*. **So "λ = 0.003 is the only useful setting" is a
+statement about a grid whose floor was the optimum it found**, and the relocation into the 800 offsets is present
+even at the weak end — the bias's cumulative path is **4.21σ** above `naive`'s there — so weakening λ reduces the
+forgetting without removing the substitution
+(`docs/findings/2026-09-24-the-lambda-sweeps-floor-is-where-the-effect-is.md`). At 128 Fisher batches the biological block
 forgets **+0.0104 ± 0.0132 against `naive`'s +0.0729 ± 0.0151 (−3.12σ)** at **0.950 accuracy against 0.914**;
 at the *same* batch count the **size-matched random control of the same synapses** reaches **−2.60σ against
 the same baseline, at 0.9431 accuracy**. So what resolves at this λ is *partitioning the synapses coarsely at
