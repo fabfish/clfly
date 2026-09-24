@@ -2329,6 +2329,14 @@ trap.)*
   and a quantity movable forty-five-fold by an intervention, with its effect unmoved, is not the effect's
   carrier. A correlation could never settle it here, because everything on this axis is monotone in the read-out
   and a correlation across configurations inherits exactly that confound
+  (`docs/findings/2026-09-24-the-interference-instrument-is-channel-blind.md`). **And the ten-cell version of the
+  correlation sharpens "cannot order" into the narrower sentence the measurements support**: with the five-method
+  table now run twice — channel free and channel removed from every arm — the **whole-body** form orders the ten
+  cells at ρ = **+0.927** (41/45 pairs) and the **θ-only** form orders them *too*, at ρ = **+0.721** (36/45,
+  p = 0.019). **So the defect is not that the θ-only form cannot rank arms; it is that it ranks them worse and is
+  blind to the bias's share of the term — which on this benchmark the diagonal drives to 95.1% of it** — and that
+  is why a 9.8-fold cut of the θ-only term leaves the effect standing. The two claims are different, and only the
+  first is what the corpus says at this scope
   (`docs/findings/2026-09-24-the-interference-instrument-is-channel-blind.md`).
 - **A benchmark can measure its methods against a baseline that forgets through a channel they do not
   address.** The plastic body is **two** parameter sets — 26,568 connectome-masked weights and 800 per-neuron

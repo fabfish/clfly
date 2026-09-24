@@ -151,6 +151,15 @@ interference is not the change: it is additive at the same forty seeds and noisi
 
 ## 6. What this cannot settle
 
+- **CORRECTED 2026-09-24, the same day, by `e156`**: §4's closing sentence — *"the whole-body ordering is a
+  task-0 statement"* — is **too strong**. With the five-method table now run twice (the channel free, and the
+  unpenalised channel removed from every arm), the same instrument orders **ten** cells at ρ = **+0.927**, and its
+  **task-1** form is *better* than its task-0 form (**+0.952** against +0.879; 42/45 pairs against 39/45). What
+  this finding actually found is a violation **inside its own four-cell freeze×penalty design**, not a task
+  asymmetry of the instrument, so the licensed statement is *"the ordering broke in that four-cell set"* and the
+  ten-cell test does not reproduce it
+  (`docs/findings/2026-09-24-the-channel-resolved-form-orders-ten-cells-and-the-theta-only-form-mostly-does.md`).
+
 - **It is exploratory and it is not a registration.** The prediction in the script's docstring was written after
   three of the four artifacts had been read, so this is the one reader in `experiments/` whose numbers are not a
   pre-registered result, and nothing here should be cited as one.
