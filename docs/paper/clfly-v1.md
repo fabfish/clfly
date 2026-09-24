@@ -226,7 +226,15 @@ unpenalised, **+0.0396 at 3e-4**, +0.0654 at 3e-3, +0.0810 at 3e-2, +0.0846 at 3
 is not a trade: one step up the ladder from the optimum, 3e-4 → 3e-3, worsens *both* axes and both are resolved
 (forgetting +0.0258 at 3.74σ and the newest task's final accuracy −0.0229 at 2.97σ, the second quantity being the
 one a mean over the first `T − 1` tasks cannot contain), the next step again worsens the newest task at 2.84σ, and
-λ = 3e-2 and 3e-1 are each dominated by seven of the other eight arms in the plane. So 3e-4 is not merely the best
+λ = 3e-2 and 3e-1 are each dominated by seven of the other eight arms in the plane. **And the bracket's upper end
+now has a properly powered point three and a half decades out**: the same command's default, **λ = 1.0**, was run
+by accident on the **wiring** family at forty replicates and is **the strongest bracket the record holds** — there
+the three penalty arms all beat `naive` on forgetting (**`ewc` −0.0370 ± 0.0101 = 3.68σ**, `ewc-block` **4.21σ**,
+`ewc-block-rand` **3.44σ**) at newest-task costs of only 2.5–3.1 points, where the base family's own top swept λ
+is already *worse* than `naive` (+0.0060 at 3e-2, 0.58σ) at a cost three times larger (9.45σ) — so **the family
+difference `e144` measured at one λ is a difference in the range of λ each family tolerates**, and the matched-λ
+base-family arm that would separate that from the wiring family's 42% larger room is registered and running
+(`docs/findings/2026-09-24-e153-is-also-the-wiring-family-at-lambda-one.md`). So 3e-4 is not merely the best
 point measured on the forgetting: **it is the largest λ at which the knob has not yet started to charge for
 itself**, and no constraint in this paper reaches the level `replay` reaches without a last-task price at all —
 `replay` is the only arm not dominated on either axis (2-axis and 3-axis), every other constrained arm paying
