@@ -46,38 +46,59 @@ three Fisher variants do beat `naive`"*, which is true on the five-replicate tab
 λ = 3e-3 is **1.21σ** from `naive` there (18/40 negative) while λ = 3e-4 is **4.27σ** (27/40). **So the sentence
 was right about the setting and wrong about the resolution**, in the same way §4.2's diagonal row was.
 
-## 2b. And the middle of the sweep: an interior optimum, with the forgetting tracking how much movement the penalty displaces into the offsets
+## 2b. And the sweep is complete: a **bracketed** interior optimum, with the forgetting tracking how much movement the penalty displaces into the offsets
 
-`λ = 3e-2` landed (`runs/e141_r32_ewc_lam3e-2.json`), and with it the λ axis has **four** points including the
-unpenalised one:
+`λ = 3e-2` and `λ = 3e-1` landed (`runs/e141_r32_ewc_lam3e-2.json`, `runs/e141_r32_ewc_lam3e-1.json`), so the λ
+axis has **five** points including the unpenalised one, and the registered sweep is finished:
 
 | λ | mean forgetting | accuracy | bias cumulative path | θ drift, tasks 0–1 |
 |---|---|---|---|---|
 | **0** (`naive`) | +0.0750 ± 0.0088 | 0.9125 | 3.5206 | 0.0496 |
 | **3e-4** | **+0.0396** | **0.9174** | 3.6835 | 0.0471 |
 | **3e-3** | +0.0654 | 0.8856 | 4.2819 | 0.0443 |
-| **3e-2** | **+0.0810** | **0.8592** | **5.4367** | **0.0406** |
+| **3e-2** | +0.0810 | 0.8592 | 5.4367 | 0.0406 |
+| **3e-1** | **+0.0846** | **0.8469** | **6.2313** | **0.0349** |
 
-**The forgetting has an interior minimum in λ, and it is at or below the bottom of the range every sweep in this
-project has covered**: 0 (unpenalised) is worse than 3e-4 by **4.27σ**, and 3e-4 is better than 3e-3 by **3.74σ**
-and than 3e-2 by **4.20σ**. At λ = 3e-2 the penalty is **no better than `naive`** at all (+0.0060 ± 0.0104 =
-0.58σ, nominally *worse*) and its accuracy is **8.33σ below `naive`'s**.
+**The optimum is now bracketed rather than merely at the edge.** λ = 0 is worse than 3e-4 by **4.27σ** and
+λ = 3e-3 is worse than 3e-4 by **3.74σ**, so the forgetting falls from 0 to 3e-4 and rises from 3e-4 onwards:
+**λ\\* ∈ (0, 3e-3), and 3e-4 is the best point measured.** What the five points do not do is *locate* it — the
+bracket is two decades wide — so the licensed sentence is the one rule 38 asks for: *the best point measured is
+3e-4, inside a bracket whose lower end is the unpenalised arm.*
 
-**And along this axis the forgetting tracks the movement the penalty displaces into the offsets.** The bias's
-cumulative path rises monotonically with λ — **3.6835 → 4.2819 → 5.4367** — and the forgetting does too
-(**+0.0396 → +0.0654 → +0.0810**), while **θ's drift falls monotonically the other way** (0.0471 → 0.0443 →
-0.0406) and the same contrasts are enormous: the bias path at λ = 3e-2 is **+1.1548 ± 0.0807 = 14.30σ** above
-3e-3's with **0 of 40** replicates against it, and θ's drift is **−0.0037 ± 0.0002 = 15.17σ** below with 39 of
-40. **So the registered P1 and P2b hold on the three penalty arms in the strongest form the statistics allow**:
-raising λ moves adaptation out of `theta` and into the 800 offsets, and **the more it moves, the worse the
-forgetting** — a dose–response for `e137`'s substitution, with the *unpenalised* arm as the one point that does
-not fit (its bias path is the lowest of all four and it is the second-worst).
+**And the top of the sweep is dominated on both metrics**: at λ = 3e-1 the forgetting is **no better than
+`naive`** (+0.0096 ± 0.0113 = 0.85σ, nominally worse) and the accuracy is **8.86σ below** it, so the two ends of
+the sweep are worse than the baseline for opposite reasons — the unpenalised end by not helping, this end by
+over-constraining.
 
-**And the registered P2 fails.** It read *"the forgetting does not fall as λ rises — registered as the ordered
-contrast λ = 3e-2 worse than λ = 3e-3 (larger forgetting) resolving at ≥ 2σ"*, and the measured contrast is
+**Along this axis the forgetting tracks the movement the penalty displaces into the offsets, and with four
+penalty arms the co-movement is now a four-point relation rather than a three-point lead.** The bias's cumulative
+path rises monotonically with λ — **3.6835 → 4.2819 → 5.4367 → 6.2313** — and the forgetting does too
+(**+0.0396 → +0.0654 → +0.0810 → +0.0846**), while **θ's drift falls monotonically the other way**
+(0.0471 → 0.0443 → 0.0406 → 0.0349) and the top contrasts are enormous: the bias path at λ = 3e-1 is
+**+1.9494 ± 0.1173 = 16.63σ** above 3e-3's with **0 of 40** replicates against it, and θ's drift is
+**−0.0095 ± 0.0004 = 22.35σ** below with **40 of 40**. **So the two registered predictions that concern the
+mechanism hold in the strongest form the statistics allow**: raising λ moves adaptation out of `theta` and into
+the 800 offsets, and **the more it moves, the worse the forgetting** — with the *unpenalised* arm the one point
+that does not fit (its bias path is the lowest of all five and it is the second-worst).
+
+**And the third prediction fails.** P2 read *"the forgetting does not fall as λ rises — registered as the ordered
+contrast λ = 3e-2 worse than λ = 3e-3 (larger forgetting) resolving at ≥ 2σ"*, and the measurement is
 **+0.0156 ± 0.0098 = 1.60σ**: the **direction** is exactly as registered and the magnitude is **0.4σ below the
-bar**. **That is the second time today a registered threshold has landed inside its own uncertainty** (`e142`'s
-3.00σ bar missed by 0.012σ), and the two together are why rule 37 exists.
+bar**. **The falsifier does not fire either** — the top arm is 1.74σ *worse* than 3e-3, not ≥3σ better — so the
+registration's three outcomes are: **P1 holds at 16.63σ, P2b holds at 22.35σ, P2 fails at 1.60σ, and the
+falsifier is silent.** That is the second time today a registered threshold has landed inside its own
+uncertainty (`e142`'s 3.00σ bar missed by 0.012σ), and the two together are why rule 37 exists.
+
+**And along this axis the forgetting tracks the movement the penalty displaces into the offsets, and with four
+penalty arms the co-movement is a four-point relation rather than the three-point lead that died in §3.** The
+bias's cumulative path rises monotonically with λ — **3.6835 → 4.2819 → 5.4367 → 6.2313** — and the forgetting
+does too (**+0.0396 → +0.0654 → +0.0810 → +0.0846**), while **θ's drift falls monotonically the other way**
+(0.0471 → 0.0443 → 0.0406 → 0.0349), and the top contrasts are enormous: the bias path at λ = 3e-1 is
+**+1.9494 ± 0.1173 = 16.63σ** above 3e-3's with **0 of 40** replicates against it, and θ's drift is
+**−0.0095 ± 0.0004 = 22.35σ** below with **40 of 40**. **So the registered P1 and P2b hold in the strongest form
+the statistics allow**: raising λ moves adaptation out of `theta` and into the 800 offsets, and **the more it
+moves, the worse the forgetting** — a dose–response for `e137`'s substitution, with the *unpenalised* arm as the
+one point that does not fit (its bias path is the lowest of all five and it is the second-worst).
 
 ## 3. And the relocation is present even at the weak end
 
@@ -115,13 +136,13 @@ above does hold — so they test the co-movement within one knob and say nothing
 
 ## 4. What this cannot settle
 
-- **It is three λ on one axis, not a curve.** The registration's **P1 and P2b hold on the three penalty arms
-  measured** (the bias path rises at **14.30σ** and θ's drift falls at **15.17σ** across 3e-3 → 3e-2), **P2 fails
-  at 1.60σ** against its registered 2σ, and **the falsifier is still undecided** because it needs the top of the
-  sweep — λ = 3e-1 — where the registered *top* contrast (against 3e-3) would be tested at ≥3σ.
-- **And the falsifier cannot be reached from below.** λ = 3e-4 is **better** than 3e-3 by 3.74σ, so the forgetting
-  is **not monotone** in λ over the arms measured, and a falsifier that requires the *top* arm to be the best can
-  only fire if λ = 3e-1 is better than 3e-3 — which would be a different sentence from the one registered.
+- **It is four λ on one axis, and the sweep is complete.** The registration's **P1 and P2b HOLD in the strongest
+  form the statistics allow** (the bias path rises at **16.63σ** and θ's drift falls at **22.35σ** on the top
+  contrast, with 0 of 40 and 40 of 40 replicates), **P2 FAILS at 1.60σ** against its registered 2σ, and **the
+  falsifier does not fire** — the top arm is 1.74σ *worse* than 3e-3 rather than ≥3σ better.
+- **And the optimum is bracketed but not located.** The bracket is **two decades wide** — λ\\* ∈ (0, 3e-3) with
+  3e-4 the best point measured — so the licensed sentence is *"the best point measured"* and the locating sweep
+  would be λ ∈ (1e-5, 3e-4), not another decade upwards.
 - **One read-out (32), one circuit, three tasks, one Fisher batch count (32).** `e101`'s sweep found the batch
   count moves the penalty's effective strength, so **λ and the batch count are confounded here as everywhere**:
   3e-4 with 32 batches is a *weaker* penalty, and whether the optimum is in λ or in the product is not separated
