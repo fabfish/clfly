@@ -54,3 +54,26 @@ verification of it.
   size of the movement, which is `e171`'s subject and not the table's.
 - **And the table's own churn is the caveat**: every artifact added decides cells it was not run for (this one,
   one cell at n=40), and every count in it is as-of-a-run. The plan's rows now say so rather than quoting totals.
+
+## 4. Two more cells, one fire later — and both from experiments run for other questions
+
+| field | arm | verdict now | evidence |
+|---|---|---|---|
+| `noise` | `naive` | **`read`** | `e167`'s own two arms, `only noise`, **n=40** (predicted in §2 and now true) |
+| `iters` | `ewc` | **`read`** | `e141` against **`e173`'s iters-250 and iters-1000 arms**, `only iters`, **n=40** each |
+
+**`noise × naive`** is the arrival §2 predicted: the pair that decides it is `e167`'s two arms, and the second one
+landing is what decided it. **`iters × ewc` is the more interesting of the two, because nobody ran `e173` for the
+readership table**: it was registered to test whether the room account can be isolated, it produced two arms at
+λ = 3e-4 with forty seeds differing in `iters` alone, and the census then read them as field evidence.
+
+**That is worth naming as a pattern rather than a curiosity**: a table whose rows are decided by the *corpus* grows
+as a side effect of experiments aimed elsewhere, and it grows with **better evidence than the table's own median
+pair** — these two cells rest on n=40 single-field pairs, where much of the table rests on n=5 or n=1. The cost is
+that a cell's decision can owe its existence to a design chosen for another question, so the *reason* a pair exists
+is not evidence about the field; the pair's isolation is.
+
+**And it says what `e173` did not test.** Its own read is a null on the level (`iters` is not a level knob on this
+configuration) — but the same two artifacts are a **clean single-field `iters` pair**, so they answer a question
+about readership that the experiment was not asking. A null on one question is a measurement on another, which is
+the most useful thing to say about a design that failed its own premise.
