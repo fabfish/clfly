@@ -2324,7 +2324,14 @@ why no shared rule was available and each line needed its own check.
    0.9682/0.9526/0.9667) at a cost of 2.7σ of final accuracy — **a harder benchmark rather than an impossible
    one**, which is what this item asked for; and the registered 3σ bar for that claim was missed by **0.01σ**,
    which is a statement about the bar rather than about the effect
-   (`docs/findings/2026-09-24-at-the-registration-s-resolution-limit.md`).
+   (`docs/findings/2026-09-24-at-the-registration-s-resolution-limit.md`). **And the check that makes it a harder
+   benchmark rather than a harder decoder passes at 9.16σ**: the frozen body reaches **0.8446** against the
+   plastic arm's **0.8939**, with its forgetting at exactly **+0.0000** and its θ drift exactly zero — against a
+   **0.007** gap at the whole-state read-out, which is what made the 2026-09-22 refutation conditional. **The
+   shape is worth stating**: this family makes the body **less** necessary than the disjoint one (a **0.0493**
+   gap against **0.0991**) while making it forget **42% more**, so it is harder on the *same* wiring rather than
+   harder by needing more of it — and the frozen arm's `learned` diagonal says where it bites, **0.7500** on the
+   last task against the plastic arm's 0.9724, while the first two are within 0.08.
 5. **Report retention in loss as well as in accuracy — and note that this was measured on 2026-09-24 and the
    answer is no.** The runner records `retention_loss[k][j]`, the full-train-set loss on task *j* at checkpoint
    *k*, which is also how `e122`'s chords are validated. It is a continuous quantity where the reported metric
