@@ -2103,11 +2103,13 @@ the filters are the LGCL family, not a trained spiking network, and the network 
 demonstrably cannot tell you is which of its conclusions are artefacts of the linearisation;
 §4.7 is the beginning of that check, and it overturned three of them.
 
-**Nine measurement traps, every one of which the project fell into before finding it.** *(This heading read
+**Ten measurement traps, every one of which the project fell into before finding it.** *(This heading read
 "Two" until commit `1743573`, which rewrote it to "**Five**" while adding two bullets to the two that were
 there — so it said five and listed four from the day it was written until 2026-09-24. That commit's own message
-is about stale aggregate statements, and this is the defect it was fixing, born in the fix. The count is now nine
-because the five newest traps are the ones `e122`, `e125`, `e133`, `e139` and the session that found the last one added.)*
+is about stale aggregate statements, and this is the defect it was fixing, born in the fix. The count is now ten
+because the five newest traps are the ones `e122`, `e125`, `e133`, `e139` and the session that found the last one
+added, and the tenth was added on the same day by the bias-anchored arm's benefit-side form of the aggregate
+trap.)*
 - **A benchmark can measure its decoder instead of its subject.** The network line spent
   four fires concluding that no method worked, on a benchmark whose plastic weights were
   never load-bearing: freezing them cost 0.007 accuracy and eliminated forgetting entirely.
@@ -2153,14 +2155,21 @@ because the five newest traps are the ones `e122`, `e125`, `e133`, `e139` and th
   is the same on both sides** — and it still invalidates the comparison, which is why the arm was re-run
   rather than cited.
 - **An average can be unresolved while its components move in opposite directions, and at three tasks the mean
-  is over two numbers.** The diagonal EWC row above is `unresolved` at forty replicates — **1.21σ** against
-  naive — and **per task it reduces the first task's forgetting by a resolved 3.79σ while increasing the second
-  task's**. So the table's headline statistic is the one thing that cannot show what the method is doing, and no
+  is over two numbers.** The diagonal EWC row above is `unresolved` at forty replicates — **1.21σ against
+  naive**, as formulated, and **the same row resolves at 4.84σ once the penalty also covers the 800 offsets**,
+  which §4.2 records — and **per task it reduces the first task's forgetting by a resolved 3.79σ while increasing
+  the second task's**. So the table's headline statistic is the one thing that cannot show what the method is
+  doing, and no
   re-derivation of the mean recovers it. This is distinct from *"resolves from zero is not differs from its
   neighbour"*: there the point was that a single cell needs a comparator, here the comparator exists and
   **two resolved components cancel inside the aggregate** — which is what a *trade* between tasks looks like and
   what a benchmark with three tasks will always be able to produce
   (`docs/findings/2026-09-24-diagonal-ewc-does-not-survive-its-own-configuration.md`).
+- **And the same trap has a benefit-side form, which the bias-anchored arm produced the same day.** There the
+  *mean* forgetting improves by a resolved **4.20σ** while the **last** task's final accuracy *falls* by
+  **2.11σ**, and the mean cannot show it because it is over the first `T − 1` tasks: an aggregate that improves
+  is silent about the term it does not contain, exactly as one that fails to resolve is silent about the terms
+  that cancelled inside it (`docs/findings/2026-09-24-the-arm-that-fixes-the-forgetting-has-more-interference.md`).
 - **An instrument assembled from part of the object reports a null about the part it read.** The first-order
   interference term is built from `theta` alone, and the body is two parameter sets — so when §4.2 measures that
   the offsets carry 70% of the forgetting, the term's five-fire inability to order the forgetting becomes a
