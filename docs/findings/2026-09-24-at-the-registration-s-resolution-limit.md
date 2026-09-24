@@ -2,12 +2,13 @@
 
 **Date:** 2026-09-24
 **Script:** `experiments/e8_rate_network.py`, unchanged.
-**Artifact:** `runs/e142_r32_overlap1.json` — `--input-overlap 1.0 --readout-size 32 --shared-head --repeats 40`.
+**Artifacts:** `runs/e142_r32_overlap1.json` and `runs/e142_r32_overlap1_frozen.json` —
+`--input-overlap 1.0 --readout-size 32 --shared-head --repeats 40`, the second adding `--frozen-body`.
 **Comparator:** `runs/e133_r32_naive_ewc_40reps.json`'s `naive` — the **same** `make_overlap_suite` at
 `--input-overlap 0.0`, the same seeds, the same configuration in every other respect.
 **Pre-registration:** `docs/findings/2026-09-24-the-overlap-family-at-a-narrow-read-out-registered.md`.
-**The plastic arm has landed. P1 misses its registered bar by 0.01σ; the falsifier does not fire; the frozen-body
-premise is still running.**
+**Both arms have landed. C1 passes at 9.16σ — the body is load-bearing, so the premise holds — and P1 misses its
+registered bar by 0.01σ while the falsifier does not fire.**
 
 ---
 
@@ -35,9 +36,20 @@ the forgetting by 42%** (0.0750 → 0.1068) while costing 2.7σ of final accurac
   numerically.
 - **The falsifier does not fire.** It was registered at "within 2σ of `e133`'s `naive`", and 2.99σ is not within
   2σ — so the outcome that would have **emptied §8's second route** did not happen either.
-- **C1, the premise, is still running.** The frozen-body arm at the same setting is in flight, and it is the
-  control that says whether the body is load-bearing for *this* family — the whole reason the question was worth
-  asking at a narrow read-out. **Nothing above is interpreted until it lands.**
+- **C1, the premise, PASSES at 9.16σ — and it is the arm that makes the rest readable.** The frozen body reaches
+  **0.8446 ± 0.0013** against the plastic arm's **0.8939**, a gap of **+0.0493 ± 0.0054 = 9.16σ**, with its
+  forgetting at **exactly +0.0000 ± 0.0000** and its θ drift at exactly zero (**71.19σ** from the plastic arm's
+  0.0465, which is the control validating itself). **So the recurrent weights are load-bearing on this family**,
+  and the 42% above is a fact about a benchmark the body has to solve rather than about its decoder. **The
+  comparison that matters is with the two regimes this line has already measured**: at the whole-state read-out
+  the plastic-minus-frozen gap is **0.007** — which is why the earlier refutation was conditional — and at
+  overlap 0.0 on the same narrow read-out it is **0.0991** (`e125`'s 0.9125 against 0.8134). **The harder family
+  makes the body *less* necessary than the disjoint one (0.0493 against 0.0991) while making it forget 42% more**,
+  which is a shape worth recording: the shared-input family is not harder because it needs the wiring more, it is
+  harder because the same wiring is asked for two things. And one detail of the frozen arm says where: its
+  `learned` diagonal is **0.8974 / 0.8865 / 0.7500** against the plastic arm's 0.9682 / 0.9547 / 0.9724, so the
+  frozen decoder gets within 0.07–0.08 on the first two tasks and **fails the third outright** — the last task is
+  the one that needs the body.
 
 ## 3. What the registration feared, and did not happen
 
@@ -79,10 +91,13 @@ effect* — arriving on the **threshold**. `docs/research_plan.md` rule **37** r
 
 ## 5. What this cannot settle
 
-- **C1 is in flight and it is the premise.** If the frozen body matches the plastic arm at overlap 1.0, then
-  sharing the input population has restored decoder-solvability, the body is not load-bearing for this family
-  either, and **the 42% is a fact about a benchmark that the decoder can solve alone** — which would be the
-  registration's C1 failing rather than P1 deciding anything.
+- **C1 passed, and what it closes is the alternative reading rather than the effect.** The frozen body is
+  9.16σ worse than the plastic arm, so *"the decoder solves it alone"* — the explanation that made the
+  2026-09-22 refutation conditional — is **excluded at this read-out**, and the 42% is a fact about a benchmark
+  the body has to solve. **What it does not close is the mechanism**: the frozen arm's accuracy loss (0.0493) is
+  *smaller* than the disjoint family's (0.0991) while its forgetting is larger, so the extra forgetting is not
+  explained by the body mattering more, and `e143` — `--frozen-bias` at the same setting — is the run that asks
+  which of the two parameter sets it lives in.
 - **One overlap value (1.0), one read-out (32), one seed set, the shared head.** The suite supports 0.25/0.5/0.75
   and a *shape* in overlap is the second fire; per-task heads would change what the body must do and are not
   varied.

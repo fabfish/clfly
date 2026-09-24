@@ -80,6 +80,20 @@ At noise 6 the tasks are barely above chance (0.303 against 0.250) and **sequent
 training still does not forget** (+0.028). Headroom in accuracy is not headroom for
 forgetting, which rules out "the benchmark is too easy" as the explanation.
 
+**(*Regime caveat added 2026-09-24, and it is the same one §2 now carries.*)** **This table's four rows are from
+the same runs whose `--frozen-body` diagnostic is §4 — where freezing the recurrent weights costs 0.007 accuracy
+and eliminates forgetting entirely.** In that regime the body is not doing the work, so *"difficulty does not
+create forgetting"* is a statement about **a benchmark the decoder solves**, and it cannot be read as a statement
+about what difficulty does where the plastic weights are load-bearing. **The same construction at read-out 32
+gives a 0.10 accuracy gap between the plastic and frozen bodies**, and nothing in this project has yet measured a
+noise or class-count sweep there. **So the two levers this finding closed — input separation and task
+difficulty — are closed at the whole-state read-out and open at the narrow one**, with the caveat that the
+difficulty axis differs from the overlap axis in one respect: the `e142` registration could name an existing
+comparator at read-out 32 (`e133`'s `naive`, the same construction at overlap 0), while a noise sweep at
+read-out 32 has **no comparator in the record at all** and would need its own `naive` arm measured with it. That
+is why the overlap arm was the one run first, and the noise axis is recorded here as the next one rather than as
+a second launch.
+
 ## 4. The actual explanation: the plastic weights were never load-bearing
 
 A `--frozen-body` diagnostic — train only the decoder, freeze the recurrent weights —
@@ -160,7 +174,17 @@ Re-running the method comparison at read-out 32 (5 replicates, λ = 0.003, 32 Fi
 | replay (16 stimuli/task) | 0.932 ± 0.008 | +0.050 ± 0.016 | −0.023 ± 0.022 (1.0σ) |
 
 **Diagonal EWC finally resolves a benefit over naive — 2.5σ — and it is the best method on
-forgetting, with accuracy also slightly better.** Replay, which was the one method that
+forgetting, with accuracy also slightly better.** **(*Superseded in two steps, both measured on 2026-09-24, and
+neither by re-running this table.*)** Running the identical command at **forty** replicates gives a paired
+**−0.0096 ± 0.0080 = 1.21σ** against `naive` — **the five seeds above are a ~1-in-55 draw** from this
+configuration's own distribution (their mean +0.0208 against +0.0717 for replicates 6–40, ranks 10, 6, 9, 1, 16
+among the forty), so the 2.5σ does not survive; **and then the same forty seeds with the 800 offsets *inside* the
+penalty give −0.0458 ± 0.0095 = 4.84σ**, recovering 84.8% of the gap to the free freeze. **So this section's
+direction was right and its evidence was five seeds**: the row does resolve, at **4.84σ** rather than 2.5σ, once
+the penalty covers the channel that carries 70% of this configuration's forgetting — and §4.2 of the paper
+carries both corrections
+(`docs/findings/2026-09-24-diagonal-ewc-does-not-survive-its-own-configuration.md`,
+`docs/findings/2026-09-24-the-arm-that-fixes-the-forgetting-has-more-interference.md`). Replay, which was the one method that
 resolved anything on the *unhardened* benchmark, no longer resolves here.
 
 This reverses three consecutive fires of "no Fisher-anchoring variant does anything, at any
