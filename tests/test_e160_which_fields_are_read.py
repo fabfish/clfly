@@ -155,4 +155,6 @@ def test_the_corpus_table_has_no_conflict_left_about_a_field():
              if decided(sharp[a].get(f, e160.UNTESTED)) and not decided(table[a].get(f, e160.UNTESTED))]
     lost = [(a, f) for a in arms for f in allf
             if decided(table[a].get(f, e160.UNTESTED)) and not decided(sharp[a].get(f, e160.UNTESTED))]
-    assert len(extra) == 23 and lost == [("naive", "fisher_batches")]
+    assert len(extra) >= 23 and lost == [("naive", "fisher_batches")], (
+        "the sharper rule decides more cells as the corpus grows; the cell it must never decide is the one this "
+        "rule upgrades, and that is structural rather than a count")

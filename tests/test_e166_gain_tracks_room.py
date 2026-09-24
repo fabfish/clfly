@@ -101,8 +101,12 @@ def test_the_rank_statistic_is_uninterpretable_here_which_is_why_rule_43_is_prin
     """20 of 102 cells at n >= 5 resolve on either axis, so rho is a statistic over mostly-unresolved inputs."""
     from experiments.e103_reproducibility_audit import load_artifacts
     rows = [r for p in e166.pairs(e166.candidates(load_artifacts())) for r in e166.rows_for(p)]
-    assert len(rows) == 127
-    assert sum(1 for r in rows if r["level_resolved"]) == 13
-    assert sum(1 for r in rows if r["gain_resolved"]) == 8
-    assert len([r for r in rows if r["level_resolved"] and r["gain_resolved"]]) == 5
+    # the counts grow with the corpus (127 rows, 13 level-resolved, 8 gain-resolved, 5 both when written), so
+    # what is pinned is the shape: the level is the scarce axis and almost nothing resolves on both
+    assert len(rows) >= 127
+    level = sum(1 for r in rows if r["level_resolved"])
+    gain = sum(1 for r in rows if r["gain_resolved"])
+    both = len([r for r in rows if r["level_resolved"] and r["gain_resolved"]])
+    assert level >= 13 and gain >= 8 and both >= 5
+    assert level < len(rows) / 4 and both <= gain
     assert np.isnan(e166.rank([1.0], [1.0])["rho"])

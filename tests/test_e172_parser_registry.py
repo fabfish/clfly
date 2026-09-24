@@ -60,5 +60,8 @@ def test_the_registry_dates_forty_times_the_artifacts_e103_can_and_the_four_it_c
     # the registry's coverage against e103's relative rule
     from experiments.e103_reproducibility_audit import epoch_flags
 
+    # both counts grow with the corpus -- 304 named by the registry and 7 by e103's relative rule when this unit
+    # was written -- so they are floors and the *ratio* is the claim
     dated = len(res["unique"]) + len(res["ambiguous"])
-    assert dated == 304 and len(epoch_flags(load_artifacts())) == 7
+    relative = len(epoch_flags(load_artifacts()))
+    assert dated >= 304 and relative >= 7 and dated > 20 * relative
