@@ -67,3 +67,28 @@ which is a speed. **A calibration is the missing half.**
   did not obviously buy wall-clock and did lengthen every result, but since the thread setting is not the lever,
   **the queue's tuning is unmeasured** — which is exactly what the calibration is for, and why this fire records
   the spread and the instrument rather than a policy.
+
+## 5. And the instrument's first version was too noisy to be one, which the same fire measured
+
+The calibration went in as **256², 8 repetitions, mean** — and five calls in one process spanned **0.000190 to
+0.000522, a 2.75× swing**. **An instrument that swings 2.75× on a fixed operation cannot separate a 2× slower
+machine from its own noise**, so the first version was a rate-shaped number rather than a rate.
+
+**The repair is the minimum rather than the mean, and the sizes were measured rather than chosen.** Contention
+only ever *adds* time to an operation, so the **minimum** of many repetitions is the least-contaminated estimate
+of the machine's speed — a standard argument, and here it is also a measured one:
+
+| configuration | five calls, max/min (mean) | five calls, max/min (minimum) |
+|---|---|---|
+| 256², 8 reps | 1.59 | 1.26 |
+| 512², 25 reps | 1.44 | **1.14** |
+| **512², 50 reps** | 1.32 | **1.08** |
+
+**So the calibration is `min` over 50 repetitions of a 512² matmul, at a cost of about 20 ms**, and its
+repeatability is **1.08× against the 2.75× of the version it replaces** — which is the difference between an
+instrument that can see a 1.3× machine difference and one that cannot.
+
+**Which is the same defect this finding is about, one level down.** The session could not attribute a 3.0× cost
+spread because the record had no speed in it; the fix for that was an instrument; **and the instrument's own
+repeatability had to be measured before it could be called one.** A number that is a measurement of *something*
+is not thereby a measurement of the thing it is named after.

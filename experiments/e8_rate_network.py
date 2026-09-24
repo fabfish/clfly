@@ -188,12 +188,20 @@ def environment() -> dict:
     }
 
 
-def calibration(side: int = 256, reps: int = 8) -> float:
-    """Time a fixed matmul. A cheaper, portable proxy for "how fast was this machine just now".
+def calibration(side: int = 512, reps: int = 50) -> float:
+    """Time a fixed matmul, and report the **minimum** of the repetitions.
 
-    Not a load count: the runner cannot see what else is running. It is a rate, so a 3× slower artifact can be
-    compared against a 3× slower calibration and the two costs become commensurable -- which is what §9 means by
-    quoting a cost beside the environment it was measured in.
+    A cheaper, portable proxy for "how fast was this machine just now". Not a load count: the runner cannot see
+    what else is running. It is a rate, so a 3× slower artifact can be compared against a 3× slower calibration
+    and the two costs become commensurable -- which is what §9 means by quoting a cost beside the environment it
+    was measured in.
+
+    **The minimum rather than the mean, and the sizes are measured rather than chosen.** The first version of
+    this (256², 8 reps, mean) spanned **2.75× within one process** over five calls -- useless as a rate, since it
+    cannot separate a 2× slower machine from its own noise. Contention only ever *adds* time, so the minimum is
+    the least-contaminated estimate of the machine's speed, and it is measurably better: five calls give a
+    max/min of **1.59** at 256²/8 (mean), **1.26** at 256²/8 (min), **1.14** at 512²/25 (min) and **1.08** at
+    512²/50 (min). The default is the last of those, at a cost of about 20 ms.
     """
     import time
 
@@ -202,10 +210,12 @@ def calibration(side: int = 256, reps: int = 8) -> float:
     a = torch.randn(side, side)
     b = torch.randn(side, side)
     a @ b                                        # warm-up, excluded from the timing
-    t0 = time.perf_counter()
+    fastest = float("inf")
     for _ in range(reps):
+        t0 = time.perf_counter()
         a @ b
-    return round((time.perf_counter() - t0) / reps, 6)
+        fastest = min(fastest, time.perf_counter() - t0)
+    return round(fastest, 6)
 
 
 def full_split_loss(model, readout, task, shared: bool = False, split: str = "train") -> float:
