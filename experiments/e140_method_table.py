@@ -65,14 +65,21 @@ def load_arm(path: Path, method: str) -> dict | None:
 
 
 def load_series(path: Path, method: str) -> dict | None:
-    """The per-replicate fields of a named comparator, for the identity controls."""
+    """The per-replicate fields of a named comparator, **under the same keys `load_arm` uses**.
+
+    The first version returned the *artifact's* field names (`mean_forgetting`, `final_accuracy`) while
+    `identity` was called with the arm dictionary's keys (`forgetting`, `accuracy`) — a KeyError that the tests
+    missed because they exercised `identity` on raw arrays and never through `control_check`. The names are the
+    interface between the two halves, so they are mapped here once and asserted by a test.
+    """
     if not Path(path).is_file():
         return None
     payload = json.loads(Path(path).read_text(encoding="utf-8"))["methods"]
     if method not in payload:
         return None
     reps = payload[method]["replicates"]
-    return {f: np.array([r[f] for r in reps]) for f in SERIES}
+    return {"forgetting": np.array([r["mean_forgetting"] for r in reps]),
+            "accuracy": np.array([r["final_accuracy"] for r in reps])}
 
 
 def paired(a: np.ndarray, b: np.ndarray) -> dict:

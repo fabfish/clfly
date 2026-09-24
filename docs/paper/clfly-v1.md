@@ -939,11 +939,20 @@ forgets **+0.0104 ± 0.0132 against `naive`'s +0.0729 ± 0.0151 (−3.12σ)** at
 at the *same* batch count the **size-matched random control of the same synapses** reaches **−2.60σ against
 the same baseline, at 0.9431 accuracy**. So what resolves at this λ is *partitioning the synapses coarsely at
 `cell_class`*, and not the fly's grouping of them. **The one contrast that isolates biology is the block
-against that control, and it resolves nowhere** — negative at two of the three batch counts and positive at
-the third, and **reproducible in sign at every one of them**: −0.0354, −0.0167, −0.0167 at 8 batches;
+against that control, and at five replicates it resolves nowhere** — negative at two of the three batch counts and
+positive at the third, and **reproducible in sign at every one of them**: −0.0354, −0.0167, −0.0167 at 8 batches;
 +0.0167, +0.0167 at 32; −0.0167, −0.0062 at 128, from seven executions of one command. **Its magnitude is
 not reproducible**: the same command run twice moves it by up to **0.021**, while `naive` and the diagonal are
 **bit-identical** in those same pairs, so each gap is quoted with its twin beside it and never as a resolution
+(**and at forty replicates it both resolves further and reverses**: `ewc-block` **+0.0573** against
+`ewc-block-rand` **+0.0779** gives **−0.0206 ± 0.0099 = 2.08σ, 28/40 negative** in the *opposite* sign to the
+five-replicate value at the same batch count, where the biological row moved by −0.0031 and **the control's row by
++0.0341** — so the earlier "no advantage" was largely a favourable draw of the matched-random control, one draw
+being one sample from a population this session measured at a **0.0138** draw term. **The honest form is that the
+biology's own contrast is the strongest it has ever been measured, at 2.08σ, that it is not resolved, and that it
+is still a single-draw measurement of a control whose spread is about the size of the effect**
+(`docs/findings/2026-09-24-at-forty-the-biologys-own-contrast-flips-sign.md`). Two more control draws for this
+family are registered, so that the contrast can be quoted against the mean of three rather than against one)
 (`docs/findings/2026-09-23-the-positive-transfer-result-was-not-one.md`,
 `docs/findings/2026-09-23-the-fisher-free-arm-was-not-fisher-free.md`). **The λ = 0.003
 configuration below is the exception, and it is configuration-specific**: at cs = 800 the diagonal beats `naive` on
