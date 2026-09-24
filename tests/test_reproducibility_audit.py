@@ -237,3 +237,37 @@ def test_the_comparison_still_sees_a_real_difference_in_an_arm_field():
                     "losses": [0.1]}]}
     got = arm_matches([artifact("x", BASE, ["naive"], a), artifact("y", BASE, ["naive"], b)], "naive")
     assert got["exact"] is False
+
+
+def env_artifact(name, environment):
+    """A one-arm run artifact carrying an `environment` block and nothing else that matters."""
+    rep = {"learned": [1.0], "mean_forgetting": 0.1, "retention": [[1.0, None]], "final_accuracy": 0.9}
+    return {"name": name, "config": {"x": 1}, "mtime": 0.0,
+            "payload": {"config": {"x": 1}, "environment": environment,
+                        "methods": {"naive": {"replicates": [rep], "mean_forgetting": 0.1,
+                                              "final_accuracy": 0.9}}}}
+
+
+def test_the_machines_speed_is_not_part_of_the_runs_environment():
+    """`e164`'s pair: identical on every arm, differing only in how fast the machine was.
+
+    Grouping by the raw `environment` dict made the split call that pair "two environments" and so reported a
+    movement of 0.0000 as an environmental difference. The timing is now reported per group instead of keyed on.
+    """
+    slow = env_artifact("a.json", {"omp_num_threads": "unset", "calibration_matmul_s": 0.00033})
+    fast = env_artifact("b.json", {"omp_num_threads": "unset", "calibration_matmul_s": 0.00028})
+    groups = group_repeats([slow, fast])
+    assert len(groups) == 1
+    assert len(groups[0]["environments"]) == 1, "a speed difference is not an environment difference"
+    assert groups[0]["subgroups"] == []
+    # and the timing is not lost: it is reported on the group, where a cost comparison can find it
+    assert groups[0]["calibration_matmul_s"] == [0.00028, 0.00033]
+
+
+def test_a_thread_difference_is_still_an_environment_difference():
+    """The exclusion must be the timing and nothing else -- that is what the split exists to catch."""
+    plain = env_artifact("a.json", {"omp_num_threads": "unset", "calibration_matmul_s": 0.0003})
+    threaded = env_artifact("b.json", {"omp_num_threads": "1", "calibration_matmul_s": 0.0003})
+    groups = group_repeats([plain, threaded])
+    assert len(groups[0]["environments"]) == 2
+    assert [s["runs"] for s in groups[0]["subgroups"]] == [1, 1]

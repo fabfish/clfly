@@ -171,3 +171,32 @@ of on the pairs that actually differ — the opposite of the fix.
 arm-comparisons** now, with the floor itself unchanged at **8 groups / 33 runs / 0.0000 on both axes** and the
 seven unrecorded-epoch runs still the only ones that move
 (`docs/findings/2026-09-24-e164s-first-execution-is-the-current-epoch-and-the-numbers-do-not-depend-on-the-machine.md`).
+
+## 7. The fix §6 named, implemented: the timing leaves the environment identity, and the floor gains the pair
+
+§6 named the improvement and this is it, in the audit rather than in the runner: `e103` now keys a group's
+environment on **the environment minus `TIMING_KEYS`**, and reports the calibration *on the group* instead, where a
+cost comparison can find it (`experiments/e103_reproducibility_audit.py`). Two tests pin both directions — two
+environments differing only in `calibration_matmul_s` key into one, and two differing in `OMP_NUM_THREADS` still
+key into two — because an exclusion that swallowed the thread count would destroy the split's whole purpose.
+
+**What changes, measured:**
+
+| | before the fix | after |
+|---|---|---|
+| repeated configurations | 10 groups / 40 runs / 18 arm-comparisons | **11 / 42 / 23** |
+| **the floor** (one recorded environment) | **8 groups / 33 runs / 0.0000** | **9 groups / 35 runs / 0.0000** |
+| two recorded environments | 0, then 1 (that pair) | **0 again** |
+| bit-identical arm-comparisons | 10 of 18 | **15 of 23** |
+| groups that do not move | 8 of 10 | **9 of 11** |
+
+**The pair joins the floor**, which is the correct outcome and not merely a tidier one: two executions whose every
+arm is identical are `e163`'s own definition of the floor, and the raw-dict rule had been excluding them on the
+strength of a *performance* measurement. And **§1's claim is true again as written** — no group contains two
+recorded environments — with §6 standing as the record of the one night when it was not. The audit's own output
+now says the difference out loud rather than hiding it, printing beside the group that *"the machine's speed
+differs across these runs: calibration_matmul_s 0.00028, 0.00033"*, so a reader comparing their costs is warned
+while their arithmetic is not silently split.
+
+**And the seven unrecorded-epoch runs are still the only ones that move** (2 groups / 7 runs, worst movement
+0.0396 forgetting / 0.0458 accuracy), which is the finding's original point surviving the change.

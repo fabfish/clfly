@@ -38,6 +38,13 @@ from clfly.bench.artifacts import write_json
 RUNS = Path("runs")
 #: the one key a config must differ in for two runs of the *same* command to coexist on disk
 VOLATILE = ("json_out",)
+#: the `environment` entries that measure the machine rather than determine the arithmetic. **Excluded from the
+#: grouping**, because a run's *speed* is not one of its inputs: on 2026-09-25 `e164`'s pair -- two executions of
+#: one command whose every arm is bit-identical -- differed in `calibration_matmul_s` (0.00033 against 0.00028) and
+#: in nothing else, so the split reported a pair that moved by 0.0000 as "two environments". `e160` found the same
+#: field doing the same damage from the other side, as a confound in the readership join, where treating the
+#: environment as one field cost `replay` its clean `lam` verdict.
+TIMING_KEYS = ("calibration_matmul_s",)
 #: replicate fields that define an arm, in the order they are reported. **Declared, not inferred**: comparing
 #: the whole replicate dict makes the verdict a statement about the *schema*, and adding a field broke it --
 #: `e107`, `e108` and `e109` put `theta_drift`, `interference` and `second_order` into the replicate records, and
@@ -67,6 +74,19 @@ def load_artifacts(root: Path = RUNS, skip: tuple[str, ...] = ()) -> list[dict]:
                     "mtime": path.stat().st_mtime})
     out.sort(key=lambda a: a["mtime"])
     return out
+
+
+def environment_key(payload: dict) -> str:
+    """What a run's numbers were measured *in*, with the machine's **speed** removed from the identity.
+
+    Two runs of one command can differ in their `environment` because one machine was busier, not because they
+    were computed differently -- see `TIMING_KEYS`. The timing is reported per group instead, so the information
+    is kept while the grouping is a statement about the arithmetic.
+    """
+    env = payload.get("environment")
+    if not isinstance(env, dict):
+        return "unrecorded"
+    return json.dumps({k: v for k, v in env.items() if k not in TIMING_KEYS}, sort_keys=True, default=str)
 
 
 def signature(config: dict) -> str:
@@ -112,6 +132,11 @@ def group_repeats(artifacts: list[dict], min_runs: int = 2) -> list[dict]:
     reports a recorded cause as an unexplained one. Measured: the 8-batch group is five runs, of which two set
     `OMP_NUM_THREADS` explicitly; pooling them makes every arm look irreproducible, while within the three
     default-thread runs `naive` and `ewc` are bit-identical.
+
+    **"Different environments" means different in what the numbers were computed *in*, and not in how fast the
+    machine was**: `TIMING_KEYS` is excluded from the identity and reported on the group instead. The instance
+    that forced it is `e164`'s pair, two executions of one command identical on all five arms and differing in
+    `calibration_matmul_s` alone, which the raw-dict rule classified as two environments.
     """
     groups: dict[str, list[dict]] = {}
     for a in artifacts:
@@ -136,10 +161,12 @@ def group_repeats(artifacts: list[dict], min_runs: int = 2) -> list[dict]:
         # rather than grouped with each other by a shared empty dict.
         keyed: dict[str, list[dict]] = {}
         for m in members:
-            env = m["payload"].get("environment")
-            key = json.dumps(env, sort_keys=True, default=str) if isinstance(env, dict) else "unrecorded"
-            keyed.setdefault(key, []).append(m)
+            keyed.setdefault(environment_key(m["payload"]), []).append(m)
         record["environments"] = {k: len(v) for k, v in keyed.items()}
+        record["calibration_matmul_s"] = sorted({round(m["payload"]["environment"]["calibration_matmul_s"], 6)
+                                                 for m in members
+                                                 if isinstance(m["payload"].get("environment"), dict)
+                                                 and "calibration_matmul_s" in m["payload"]["environment"]})
         if len(keyed) > 1:
             for key, sub in sorted(keyed.items()):
                 if len(sub) < 2:
@@ -284,6 +311,11 @@ def main(argv=None) -> int:
     print(f"repeated configurations (>= {args.min_runs} runs): {len(groups)}")
     for g in groups:
         print(f"\n  {g['runs']} runs: {', '.join(g['names'])}")
+        if len(g.get("calibration_matmul_s", [])) > 1:
+            # the exclusion, made visible: these runs were grouped *despite* a speed difference, so a cost
+            # comparison across them is not like-for-like even though their arithmetic is
+            print(f"    (the machine's speed differs across these runs: calibration_matmul_s "
+                  f"{', '.join('%g' % v for v in g['calibration_matmul_s'])})")
         for meth, v in sorted(g["arms"].items()):
             mark = "identical" if v["exact"] else "DIFFER   "
             print(f"    {meth:16} {mark} move {v['movement_forgetting']:.4f} forgetting, "

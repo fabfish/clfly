@@ -46,6 +46,7 @@ FLAGS = {
     "replay_batch": "--replay-batch", "replay_per_task": "--replay-per-task", "seed0": "--seed0",
     "support": "--support", "test": "--test", "train": "--train", "json_out": "--json-out",
     "readout_seed": "--readout-seed", "partition_seed": "--partition-seed", "anchor_bias": "--anchor-bias",
+    "save_theta": "--save-theta",
 }
 #: keys whose flag is `store_true`: True emits the flag and False is the omission, which is faithful **only**
 #: when the runner's own default is False -- so the two directions have to be read separately.
@@ -64,12 +65,15 @@ def command_from_config(config: dict, json_out: str | None = None) -> list[str]:
     the emitted command would set by default -- which is the `e153` defect exactly (an omitted `--lam` is 1.0).
     **Every non-boolean field is emitted even when it equals the runner's default**, which is the whole point:
     the command is derived from the artifact, so it cannot depend on what the default happens to be today.
-    `json_out` is dropped from the config first: it names an output, not a measurement.
+    **A field recorded as `None` is omitted**, because in a `vars(args)` dump that is the flag not having been
+    given -- the runner's optional flags all default to `None` -- so emitting it would be the one way to make the
+    command say something the artifact does not. `json_out` is dropped from the config first: it names an output,
+    not a measurement.
     """
     flags: list[str] = []
     for key in sorted(config):
         value = config[key]
-        if key == "json_out":
+        if key == "json_out" or value is None:
             continue
         if key in BOOLEAN:
             if value:
