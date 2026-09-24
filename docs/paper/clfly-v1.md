@@ -99,7 +99,14 @@ where the confound it removes is strongest (§4.3).
 
 On a **trained connectome-constrained rate network**, the same question has a **null** answer: the
 biological synapse partition shows no advantage over its size-matched random control at `cell_class`
-(0.925 constrained) — the second-coarsest synapse rung, and the one the published negative used. *It is
+(0.925 constrained) — the second-coarsest synapse rung, and the one the published negative used. **And that null has now been measured
+where it matters most**, on a family whose extra forgetting **survives freezing the 800 offsets at 5.04σ** and
+therefore lives in the **26,568 weights the partition acts on**: there the contrast against the **mean of three**
+control draws — the amendment this session's own draw-sd measurement forced — is **0.99σ**, with the registered
+falsifier (within 2σ of zero) firing. **And the same family reverses the *granularity* half of the claim**: the
+plain diagonal beats `naive` at **4.73σ** there against **1.21σ** on the base family at the same forty replicates,
+and it beats both block arms, so **the coarser partition is not even the better granularity where the forgetting
+is in the channel it covers**. *It is
 **not** the rung where the neuron-level result is largest, as this parenthetical said until 2026-09-23:
 measured on the neuron substrate, `side` carries the largest advantage (**−0.00480** expected-error excess
 against its control) and `cell_class` is **second of five** at −0.00307, with `cell_type` the only rung where
@@ -953,6 +960,18 @@ biology's own contrast is the strongest it has ever been measured, at 2.08σ, th
 is still a single-draw measurement of a control whose spread is about the size of the effect**
 (`docs/findings/2026-09-24-at-forty-the-biologys-own-contrast-flips-sign.md`). Two more control draws for this
 family are registered, so that the contrast can be quoted against the mean of three rather than against one)
+**And the claim has now been tested on the one family that stresses the opposite channel.** The sentence above
+rests on a benchmark where **70%** of the forgetting is carried by 800 offsets no partition can act on; `e143`
+measured a shared-input family whose extra forgetting **survives freezing those offsets at 5.04σ**, so its
+difficulty is in the **26,568 connectome-masked weights** — the channel a synapse partition acts on. **On that
+family the biology still shows nothing**: the block-against-matched-random contrast, measured against the **mean
+of three control draws** as this session's own draw-sd measurement requires, is **−0.0078 with a draw sd of
+0.0086 and a total sem of 0.0079 → 0.99σ** (the registered falsifier, within 2σ of zero, **fired**). **And the
+family reverses the *granularity* half of the claim at the same time**: there the plain diagonal beats `naive` by
+**−0.0437 ± 0.0093 = 4.73σ** where on the base family at the same forty replicates it is **1.21σ**, and it
+**beats both block arms** (`ewc` − `ewc-block` = −0.0203 ± 0.0105 = 1.94σ, with the block arms themselves only
+2.26σ and 2.48σ from `naive`) — **so the coarser partition is not even the better granularity on the family whose
+difficulty is where the partition looks** (`docs/findings/2026-09-24-on-the-wiring-family-the-biology-still-shows-nothing.md`)
 (`docs/findings/2026-09-23-the-positive-transfer-result-was-not-one.md`,
 `docs/findings/2026-09-23-the-fisher-free-arm-was-not-fisher-free.md`). **The λ = 0.003
 configuration below is the exception, and it is configuration-specific**: at cs = 800 the diagonal beats `naive` on
