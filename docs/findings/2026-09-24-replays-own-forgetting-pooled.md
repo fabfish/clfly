@@ -56,7 +56,7 @@ the baseline's forgetting to 0.12σ, while a proportional-to-the-share reading w
 **97%** of that baseline's forgetting against **89%** and **83%** at the neighbouring read-outs
 (`docs/findings/2026-09-24-the-discriminating-arm-refutes-the-channel-reading.md`).
 
-## 5. What this cannot settle
+## 4. What this cannot settle
 
 - **Four configurations, one suite**: one circuit (`cs = 800`), three tasks, one seed stream, one read-out axis,
   and the four arms share the same base model. A fifth configuration with a *different* task family would be the
