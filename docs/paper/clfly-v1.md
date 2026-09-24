@@ -296,6 +296,21 @@ among themselves is identical in both arms** — the *basis* question is confoun
 stronger method"* is a claim about the plastic configuration and is partly a claim about the baseline's
 unpenalised channel: **a method that drives the forgetting to zero cannot be credited with the forgetting a
 baseline does not have to suffer either** (`docs/findings/2026-09-24-the-confound-removal-changes-one-contrast.md`).
+
+**And that principle is now measurable on the λ axis, with a knob that moves nothing but the amount there is to
+forget.** The stimulus noise leaves the architecture, the read-out, the class structure and the partition alone, and
+at λ = 3e-4 — this family's one *resolved* penalty arm — halving it cuts `naive`'s forgetting **from 0.0750 to
+0.0438, a step of −0.0312 at 3.55σ**, while the penalty's advantage over `naive` falls **from +0.0354 (4.27σ) to
+−0.0016 (unresolved), a step of −0.0370 at 3.57σ**: the same sign as the level's, larger than the whole effect it
+moves, and **the same method at the same λ with no advantage at all where the tasks left less to forget.** The high
+end of the knob is flat — doubling the noise moves the level only **+0.0146 at 1.15σ** — so what is demonstrated is
+a *fall* and not a line, and **the asymmetry is itself the measurement: the level falls 41% when the noise halves
+and rises 19% when it doubles.** **The honest limit is that `noise` changes the training data and therefore the
+Fisher**, which is estimated at θ_init from minibatches of it, so this knob may be moving the penalty's *strength*
+rather than the room it has to work in; **`--iters` is the knob whose Fisher is bit-identical** — computed at θ_init
+and independent of how long the network trains — and it is running
+(`docs/findings/2026-09-25-the-level-knob-moves-the-gain-and-the-high-end-is-a-null.md`,
+`docs/findings/2026-09-24-the-room-account-agrees-with-every-resolved-level-move-and-does-not-explain-the-gain.md`).
 (The strongest evidence for that contrast is at sixteen replicates, where it is **−0.0677 ± 0.0101 =
 6.73σ with sixteen of sixteen replicates agreeing**, though replay's own forgetting there is 0.83σ from
 zero rather than resolved below it.) **The other two settings had no artifact either, and their
