@@ -248,7 +248,16 @@ draw) would have survived — **and the identification was recovered instead of 
 about 24 minutes before `--partition-seed` existed, the pre-flag line seeds the draw with the same value the flag
 defaults to, and rebuilding the draw from the recorded fields **reproduces all three recorded fingerprints
 exactly**, seed 0 included. The biological block arm never depended on the draw at all — the draw enters only the
-`rand` branch of the code. And the matched-λ base-family arm that would
+`rand` branch of the code. **And that control's exposure over the whole corpus is now a census rather than a
+caveat**: **40** artifacts carry a `-rand` arm, **9** of them record which of the three partitions they drew and
+**31** do not — **and all 40 are identified anyway**, because `random_matched`'s body is unchanged since the commit
+that introduced it, so a draw is a function of the config alone (7 distinct partition-determining inputs, so the
+reconstruction is seven builds rather than forty). **The verification is what makes that usable rather than
+merely complete**: the check reconstructs the *recorded* fingerprints as well, and its first version disagreed with
+**four** of them, because the runner seeds the draw with `partition_seed` when that flag is set and the first tuple
+did not carry it. With the seventh input in place, **440 of the corpus's 780 `-rand` pairs are drawn from one
+partition and are comparable through that arm, and 340 are drawn from different ones and are not** — against the
+**5** and **16** the fingerprints alone could classify. And the matched-λ base-family arm that would
 separate that from the wiring family's 42% larger room **has now been run, and it separates them**: at λ = 1.0 the
 base family's own `ewc` **loses 0.0091 to `naive` (0.91σ)** while paying a newest-task cost of **0.0719
 (13.91σ)**, against the wiring family's **gain of 0.0370 (3.68σ)** at a cost of **0.0276 (4.65σ)**, so the
@@ -2776,11 +2785,26 @@ same group) and `naive` did not move here; no commit touching `experiments/` or 
 nearest are 13:06 and 19:06); and in the `--fisher-batches 128` configuration the **same three arms** move with
 `replay` taking **exactly the same two values** (0.0333, 0.0500) against 8 Fisher batches and 128, which `e160`
 derives `replay` does not read — a change in the replay path. **Where an environment is recorded the floor is
-exactly zero: 8 configurations and 33 runs, 10 of 18 arm-comparisons bit-identical, not "identical to four
-digits"** — and the corpus's non-zero movements sit in **all seven** repeated runs written before the
+exactly zero**, and the corpus has grown enough to say it as a measurement rather than an anecdote: **10
+configurations and 37 runs, 20 of 28 arm-comparisons bit-identical, not "identical to four digits"** — the floor
+was **8 configurations and 33 runs two experiments earlier** and every addition since is a pair whose arms are
+identical — and the corpus's non-zero movements sit in **all seven** repeated runs written before the
 `environment` field existed, so the two sets coincide and the record cannot separate "the old runs" from "the runs
-that moved"
-(`docs/findings/2026-09-24-the-floor-is-zero-and-the-one-move-is-an-epoch.md`).
+that moved". **The strongest instance is the wiring family's own five-arm table, executed twice three hours
+apart**: five arms × forty seeds is **200 values, every one bit-identical**, which is the corpus's largest exact
+reproduction and the reason the paper's §4.7 table can be read as a table rather than as a run
+(`docs/findings/2026-09-24-the-floor-is-zero-and-the-one-move-is-an-epoch.md`,
+`docs/findings/2026-09-25-e159-reproduces-the-wiring-familys-five-arm-table-exactly.md`).
+
+**And the identity that decides which of those pairs is one environment is not the raw `environment` block**:
+the machine's *speed* (`calibration_matmul_s`) is not one of a run's inputs, so the grouping excludes it and
+reports it on the group instead. That matters at exactly the size that counts: **both members of the 200-value
+reproduction differ in that field and in nothing else** (0.000201 against 0.000309), and the raw-dict rule
+classified them as two environments. `e160` had found the same field doing the same damage from the other side,
+where treating the environment as one value cost `replay` its clean `λ` verdict. **So the floor's size and its
+classification rest on `config` plus the environment-minus-timing, and the two fields are separately checked** —
+`experiments/e169_start_time_dating.py` dates each artifact by `mtime − timing_s` (rule 47, **0 violations of
+5,263 nested-keyset pairs against write time's 3**).
 
 **And the corpus says why that had to be learned the hard way.** Of the **204** artifacts under `runs/` that
 carry a `config`, **38** are run artifacts, they hold **35 distinct configurations**, and **2 of the 35 have
