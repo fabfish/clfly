@@ -70,3 +70,24 @@ rather than of one draw.**
   `--partition-seed 1` and `2`, `--methods ewc-block-rand`), so that the paper's central contrast is quoted as
   **block minus the mean of three draws** rather than against one. The harder family's three draws are already
   running for exactly this reason.
+
+## 4. The follow-up, launched and specified rather than named
+
+**Two more draws of the base family's control are running**: the identical command with
+`--methods ewc-block-rand --partition-seed {1,2}`, forty replicates each, writing
+`runs/e140_r32_rand_draw{1,2}.json`. Draw 0 is the `ewc-block-rand` row of `runs/e140_r32_methods_plastic_40reps.json`
+itself, so the three-draw control needs no fourth run.
+
+**How the contrast will be read, registered before the draws land**: `ewc-block` against the **mean of the three
+draws**, over the same forty seeds, with the standard error's two components reported separately — the
+between-draw term (**2** degrees of freedom at three draws) and the ordinary paired one. **P1**: the three-draw
+contrast stays **negative and at least as large as the single-draw 2.08σ**, i.e. the biology's advantage was not
+the favourable draw. **Falsifier**: the three-draw contrast is **within 2σ of zero**, which would say the 2.08σ
+was the draw rather than the biology — the same falsifier form the harder family's registration uses, for the same
+reason.
+
+**And the threshold is quoted in the units this session measured**: with the draw sd at about **0.0138** over
+three draws, the control's contribution to the standard error is roughly **0.008**, so a 3σ three-draw contrast
+needs an effect of about **0.024** — and the single-draw 0.0206 is just under it. **So the honest expectation is
+that the three-draw measurement lands near its own bar**, which is rule 37's situation and is why the form of the
+reading is registered here rather than chosen afterwards.
