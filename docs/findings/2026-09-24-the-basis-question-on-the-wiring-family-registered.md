@@ -57,3 +57,34 @@ not.**
   two differ; this family gets one measurement at forty and no five-replicate companion.
 - **And it says nothing about `replay`**, which `e135` found is the method whose margin the unpenalised channel
   was inflating — and which `e140` is measuring at forty on the base family now.
+
+## Amendment, made before the first artifact lands: the control is a *population*, and one draw is one sample
+
+**As first registered, `e144` would have evaluated P1 against a single draw of the matched-random partition.**
+`experiments/e8_rate_network.py` builds `SynapsePartition.random_matched(bio, np.random.default_rng(args.seed0))`
+**once, outside the replicate loop**, so all forty replicates of an `ewc-block-rand` arm share **one** partition
+and that arm's sem contains **no draw variance at all**. **Rule 10 says the control is the *population* of
+size-matched random partitions and one draw is one sample from it** — and the **linear** line implements exactly
+that (`e3_basis_selection --control-draws`, which records `sd_across_draws`) — **so the network line has been
+running its central biological-versus-random contrast with no mechanism to vary the control.**
+
+**What is added, as a flag rather than a re-design.** `--partition-seed` names the draw (default `--seed0`, so
+every artifact written before the flag is **bit-identical under an unchanged command**), and the artifact now
+records `partition_draw.matched_random_draw_seed`, its group count and a **fingerprint** of the assignment, so two
+artifacts' `ewc-block-rand` rows can be told apart without storing the partition. **The first `e144` run supplies
+draw 0; two more runs at seeds 1 and 2 supply the rest**, and the in-flight artifact is dated by its missing
+keyset as the pre-flag epoch (rule 27).
+
+**How P1 is evaluated, amended in advance of the data.** The contrast is `ewc-block` minus the **mean of the three
+`ewc-block-rand` draws**, with the standard error of the control's mean carrying the **between-draw** term: three
+draws give that term **two** degrees of freedom, so **P1's ≥3σ threshold is now a three-draw control's**, and the
+sd across draws is reported beside the mean whether or not the contrast resolves. The falsifier keeps its form —
+the contrast within 2σ of zero — and is read on the averaged control too.
+
+**And the same defect is in every `ewc-block-rand` row this project has**, which is why this is a finding and not
+only a fix: `e135`'s five-replicate **−0.0125**, the paper's §4.2 block rows, `e140`'s arms in flight — **each is
+one draw, and nothing in the record said so.** So the σ quoted for the base family's block contrast has been a sem
+**without** the draw term, and rule 10's ≈1e-3 estimate of a coarse partition's draw sd is measured on the *linear*
+substrate's excess rather than on this network's forgetting: **the network's draw sd is unmeasured until these
+three draws exist**, and the honest form of every block contrast quoted before today is *"one draw"* rather than
+*"the control"*.

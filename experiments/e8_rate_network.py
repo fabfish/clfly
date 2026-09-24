@@ -716,6 +716,13 @@ def main(argv=None) -> int:
                         "`choice(size=32)` -- so the 'read-out axis' is a sequence of unrelated neuron "
                         "samples, and the only way to test whether a shape along it is about the SIZE rather "
                         "than about WHICH neurons were drawn is to hold one fixed while the other moves")
+    p.add_argument("--partition-seed", type=int, default=None,
+                   help="seed for the matched-random partition draw; defaults to --seed0, so every artifact "
+                        "written before this flag existed is unaffected. A matched-random control is the "
+                        "POPULATION of size-matched random partitions and one draw is one sample from it "
+                        "(rule 10, which the linear line implements with `--control-draws` and this line had no "
+                        "way to vary at all), so independent draws are run as independent artifacts and averaged "
+                        "in analysis with the between-draw sd reported beside the mean")
     p.add_argument("--frozen-body", action="store_true",
                    help="diagnostic: train only the decoder, to test whether the "
                         "plastic recurrent weights are used at all")
@@ -795,18 +802,30 @@ def main(argv=None) -> int:
 
     # Synapse partitions for the block-EWC variants, plus the matched random control.
     partitions = None
+    partition_draw = None
     pre, post = net.synapse_endpoints()
     if any(m.startswith("ewc-block") for m in args.methods.split(",")):
         labels = circ.labels[args.basis]
         bio = SynapsePartition.from_labels(labels, pre, post, name=args.basis,
                                            pool_below=args.pool_below,
                                            pool_buckets=args.pool_buckets)
-        partitions = {"bio": bio,
-                      "rand": SynapsePartition.random_matched(
-                          bio, np.random.default_rng(args.seed0))}
+        # The matched-random control is the POPULATION of size-matched partitions and one draw is one sample
+        # from it (rule 10, which the linear line implements with `--control-draws` and this one did not have a
+        # way to vary at all): `--partition-seed` names the draw, defaults to `--seed0` so every artifact written
+        # before the flag is unaffected, and the artifact records a fingerprint of it. Independent draws are run
+        # as independent artifacts and averaged in analysis, with the between-draw sd reported beside the mean.
+        part_seed = args.seed0 if args.partition_seed is None else args.partition_seed
+        rand = SynapsePartition.random_matched(bio, np.random.default_rng(part_seed))
+        partitions = {"bio": bio, "rand": rand}
+        rand_sha1 = hashlib.sha1(
+            " ".join(str(int(i)) for g in rand.groups for i in g[:8]).encode()).hexdigest()[:12]
+        partition_draw = {"matched_random_draw_seed": int(part_seed), "n_groups": int(rand.n_groups),
+                          "fingerprint_sha1": rand_sha1}
         print(f"  block partition ({args.basis}): {bio.n_groups} groups, "
               f"{bio.n_entries:,} block entries ({bio.describe()['block_gb']:.2f} GB), "
               f"constrained {bio.constrained_fraction():.4f}")
+        print(f"  matched-random control: draw seed {part_seed}, {rand.n_groups} groups, "
+              f"fingerprint {rand_sha1}")
 
     print(f"circuit {circ.name}: {circ.n_neurons} neurons, suite: {suite_label}, "
           f"{net.n_params:,} trainable recurrent weights")
@@ -823,7 +842,11 @@ def main(argv=None) -> int:
            "readout": ({"size": int(len(rs)), "draw_seed": int(draw_seed), "subset_sha1": draw_hash}
                        if rs is not None else
                        {"size": int(circ.n_neurons), "draw_seed": None, "subset_sha1": None}),
-           "environment": environment(), "tasks": [t.summary() for t in suite], "methods": {}}
+           "environment": environment(), "tasks": [t.summary() for t in suite], "methods": {},
+           # Which matched-random partition this run used, when it used one: the control is a population and
+           # this is the sample, so two artifacts whose block-rand rows differ are not comparable unless their
+           # fingerprints agree (or unless the draws are averaged, which is what rule 10 asks for).
+           **({"partition_draw": partition_draw} if partition_draw is not None else {})}
     for method in args.methods.split(","):
         reps = [run_method(net, suite, method, args, seed=args.seed0 + 100 * r,
                            partitions=partitions)
