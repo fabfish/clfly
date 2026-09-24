@@ -222,7 +222,8 @@ any sweep in this paper tried.** At forty paired seeds the diagonal at **λ = 3e
 the sweeps, beats `naive` by **4.27σ** on forgetting **and is not worse on accuracy** (+0.0049 ± 0.0053 = 0.91σ,
 where λ = 3e-3 costs **2.69σ** of it) **and improves both forgettable tasks**, where λ = 3e-3 at forty resolves
 at only 1.21σ and has its second task *worse*. **The λ axis is then a bracketed interior optimum** — +0.0750
-unpenalised, **+0.0396 at 3e-4**, +0.0654 at 3e-3, +0.0810 at 3e-2, +0.0846 at 3e-1 — **and `e152` shows the rise
+unpenalised, **+0.0396 at 3e-4**, +0.0654 at 3e-3, +0.0810 at 3e-2, +0.0846 at 3e-1, **+0.0841 at 1.0** (the
+base family's own top, added at forty replicates by `e161`) — **and `e152` shows the rise
 is not a trade: one step up the ladder from the optimum, 3e-4 → 3e-3, worsens *both* axes and both are resolved
 (forgetting +0.0258 at 3.74σ and the newest task's final accuracy −0.0229 at 2.97σ, the second quantity being the
 one a mean over the first `T − 1` tasks cannot contain), the next step again worsens the newest task at 2.84σ, and
@@ -238,8 +239,16 @@ is **λ-insensitive over two and a half decades** (a **333-fold** increase leave
 own control), and at that top point its two block arms **gain stability** — margins over `naive` of **2.26σ → 4.21σ**
 and **2.48σ → 3.44σ** — while **acquiring their first resolved plasticity cost** (**−0.0266 at 4.29σ**, **−0.0219
 at 4.19σ**), where at λ = 3e-3 they paid nothing (1.10σ, 0.65σ) — and the matched-λ base-family arm that would
-separate that from the wiring family's 42% larger room is registered and running
-(`docs/findings/2026-09-24-e153-is-also-the-wiring-family-at-lambda-one.md`,
+separate that from the wiring family's 42% larger room **has now been run, and it separates them**: at λ = 1.0 the
+base family's own `ewc` **loses 0.0091 to `naive` (0.91σ)** while paying a newest-task cost of **0.0719
+(13.91σ)**, against the wiring family's **gain of 0.0370 (3.68σ)** at a cost of **0.0276 (4.65σ)**, so the
+**paired interaction is +0.0461 ± 0.0131 = 3.52σ on forgetting and +0.0443 ± 0.0077 = 5.79σ on the newest task** —
+two families separated at matched λ on both axes and in opposite directions. **And the base family's own top rung
+is flat rather than falling**: above λ = 3e-2 two tenfold increases move neither axis by more than **0.4σ**
+(3e-2 → 3e-1 is +0.0036 at **0.36σ**, 3e-1 → 1.0 is −0.0005 at **0.05σ**), so λ ≥ 3e-2 is one regime and not a
+slope — the knob has stopped acting, not merely stopped paying
+(`docs/findings/2026-09-24-the-base-familys-lambda-response-saturates-and-the-matched-lambda-separates-the-families.md`,
+`docs/findings/2026-09-24-e153-is-also-the-wiring-family-at-lambda-one.md`,
 `docs/findings/2026-09-24-the-wiring-family-is-lambda-insensitive.md`). So 3e-4 is not merely the best
 point measured on the forgetting: **it is the largest λ at which the knob has not yet started to charge for
 itself**, and no constraint in this paper reaches the level `replay` reaches without a last-task price at all —
@@ -2747,6 +2756,21 @@ on from −0.0354 to −0.0167. **So "reproduces" is a claim about an arm at a c
 benchmark**, a reproduction at one configuration licenses nothing at another, and §4.7 quotes each contrast
 with whether its own arms have been re-run rather than assuming it
 (`docs/findings/2026-09-23-the-fisher-free-arm-was-not-fisher-free.md`).
+**And a day later that pair can be read for what it is, which changes which sentence it licenses.** The two
+executions "an hour apart" are `e101_rate_fb8` (15:34) and `e102_rate_fb8_rerun` (17:03); a **third** execution,
+`..._rerun2` (17:48), agrees with `rerun` on all five arms **and all five seeds** and differs from it only in
+`timing_s` (**968.766 s against 969.858 s**, so two processes and not a re-dump) — **so the movement is not noise:
+noise separates a repeated pair, and these two repeated and agreed.** It is an epoch, and three of its properties
+are measured rather than argued: the thread knob is excluded because it moves `naive` (**0.0729 → 0.0792** in this
+same group) and `naive` did not move here; no commit touching `experiments/` or `clfly/` falls in the window (the
+nearest are 13:06 and 19:06); and in the `--fisher-batches 128` configuration the **same three arms** move with
+`replay` taking **exactly the same two values** (0.0333, 0.0500) against 8 Fisher batches and 128, which `e160`
+derives `replay` does not read — a change in the replay path. **Where an environment is recorded the floor is
+exactly zero: 8 configurations and 33 runs, 10 of 18 arm-comparisons bit-identical, not "identical to four
+digits"** — and the corpus's non-zero movements sit in **all seven** repeated runs written before the
+`environment` field existed, so the two sets coincide and the record cannot separate "the old runs" from "the runs
+that moved"
+(`docs/findings/2026-09-24-the-floor-is-zero-and-the-one-move-is-an-epoch.md`).
 
 **And the corpus says why that had to be learned the hard way.** Of the **204** artifacts under `runs/` that
 carry a `config`, **38** are run artifacts, they hold **35 distinct configurations**, and **2 of the 35 have
@@ -2770,7 +2794,11 @@ configuration**, and a bit-identity across differing configs is evidence about w
 (rule 39's benign twin) rather than a second execution. The extension that finds those pairs without being told
 about them — pairing artifacts by shared arm rather than by identical signature — is in the same script and
 reports **283 identical pairs across 3,294 cross-signature pairs**, of which the five hand-established controls
-of this session are five (`docs/findings/2026-09-24-the-reproducibility-count-is-a-scripts-output.md`,
+of this session are five — **and both counts move with the corpus, which is the reason §9 states them as a
+script's output rather than as a fact: the same check reads 286 of 3,351 one unit later** (the pairs are
+`artifacts × arms`, so every new artifact adds their product, and the two censuses differ in what they count
+without either being wrong)
+(`docs/findings/2026-09-24-the-reproducibility-count-is-a-scripts-output.md`,
 `docs/findings/2026-09-24-the-penalty-arms-were-never-non-reproducible.md`).
 
 **And the same environment shapes the paper's *cost* figures, which §9 has never said.** Measured on the
