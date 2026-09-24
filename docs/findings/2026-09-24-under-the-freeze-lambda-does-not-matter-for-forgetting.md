@@ -72,7 +72,19 @@ because those two audits' registries were fixed before this arm existed and neit
 on point estimates, resolved on one axis (12.47σ on the newest task) and 0.30σ — i.e. not resolved — on the
 other.**
 
-## 4. What this cannot settle
+## 4. And the same day's second arm bounds §1: λ's frozen-channel effect reappears where the residual is large
+
+The base family's λ step under the freeze is **1.46σ** — and the *same* design on the shared-input family, whose
+freeze leaves **0.0599** instead of **0.0227**, gives **−0.0182 ± 0.0042 = 4.34σ**, with the two steps differing by
+**2.61σ**. So *"with the channel held still λ's only resolvable effect is on the other axis"* is a statement about
+**a freeze that left little behind**, not about frozen channels: three configurations order by the residual the
+knob has to work on (free base +0.0750 → the step is 3.74σ in the *opposite* direction; frozen shared-input
++0.0599 → 4.34σ; frozen base +0.0227 → 1.46σ), while λ's newest-task price moves by only 1.44σ between the two
+frozen families. The registration's second clause — *is the pair a λ-invariant unit?* — is therefore answered
+**no**, and the full reading is in
+`docs/findings/2026-09-24-lambdas-frozen-channel-effect-reappears-where-the-residual-is-large.md`.
+
+## 5. What this cannot settle
 
 - **One read-out (32), one circuit, three tasks, one seed stream, and one freeze variant** (the offsets, not the
   body). `--frozen-bias` is a **diagnostic and not a method**: the ranking under it is not advice for a

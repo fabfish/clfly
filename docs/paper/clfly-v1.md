@@ -2545,7 +2545,15 @@ why no shared rule was available and each line needed its own check.
    falsifier fires) while both sit 5.5σ and 5.9σ below the freeze — the penalty's presence matters enormously and
    its strength does not — and with the channel frozen λ's only resolvable effect is on the other axis
    (newest-task accuracy 0.9073 against 0.8750, 5.74σ). That arm also measures the record's best non-replay
-   forgetting, 0.30σ from `replay` and 12.47σ below it on the newest task** (`docs/findings/2026-09-24-under-the-freeze-lambda-does-not-matter-for-forgetting.md`). So **(a)** a *penalty* on the bias — its own
+   forgetting, 0.30σ from `replay` and 12.47σ below it on the newest task**. **And the second of those
+   sentences has since acquired its bound, on the harder family**: there, with the *same* freeze, the λ step is
+   **−0.0182 ± 0.0042 = 4.34σ** (λ = 3e-3 removes **98.7%** of that freeze's residual against λ = 3e-4's 68.3%)
+   against **1.46σ** on the base family, and **the two steps differ by 2.61σ**. So *"λ's strength does not
+   matter once the channel is held still"* is a statement about **a freeze that left 0.0227 of forgetting
+   behind**: three configurations order by the residual available to the knob — base **free** +0.0750 (the step
+   is 3.74σ in the *opposite* direction), shared-input **frozen** +0.0599 (4.34σ), base **frozen** +0.0227
+   (1.46σ) — while λ's *price* on the newest task moves by 1.44σ between the two frozen families
+   (`docs/findings/2026-09-24-lambdas-frozen-channel-effect-reappears-where-the-residual-is-large.md`). So **(a)** a *penalty* on the bias — its own
    diagonal Fisher, or simply a smaller learning rate for it — is the arm that would say whether the channel is
    harmful or merely unconstrained; and **(b)** the effect's **generality across read-outs** is a registered
    run rather than an assumption, because read-out 32 is the configuration **chosen to maximise** the chance of
