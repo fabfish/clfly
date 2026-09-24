@@ -96,8 +96,11 @@ effect* — arriving on the **threshold**. `docs/research_plan.md` rule **37** r
   2026-09-22 refutation conditional — is **excluded at this read-out**, and the 42% is a fact about a benchmark
   the body has to solve. **What it does not close is the mechanism**: the frozen arm's accuracy loss (0.0493) is
   *smaller* than the disjoint family's (0.0991) while its forgetting is larger, so the extra forgetting is not
-  explained by the body mattering more, and `e143` — `--frozen-bias` at the same setting — is the run that asks
-  which of the two parameter sets it lives in.
+  explained by the body mattering more. **And that question is now answered**: `e143`'s `--frozen-bias` arm at the
+  same setting leaves **+0.0599** against the base family's frozen **+0.0227**, **5.04σ** apart — so freezing the
+  offsets removes 44% of this family's forgetting and **70%** of the other's, the extra forgetting **survives the
+  freeze**, and **it lives in the 26,568 connectome-masked weights** rather than in the channel that carries the
+  base family's forgetting (`docs/findings/2026-09-24-the-harder-family-moves-the-body-the-same-amount.md`).
 - **One overlap value (1.0), one read-out (32), one seed set, the shared head.** The suite supports 0.25/0.5/0.75
   and a *shape* in overlap is the second fire; per-task heads would change what the body must do and are not
   varied.

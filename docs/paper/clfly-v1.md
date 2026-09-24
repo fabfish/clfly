@@ -2331,7 +2331,16 @@ why no shared rule was available and each line needed its own check.
    shape is worth stating**: this family makes the body **less** necessary than the disjoint one (a **0.0493**
    gap against **0.0991**) while making it forget **42% more**, so it is harder on the *same* wiring rather than
    harder by needing more of it — and the frozen arm's `learned` diagonal says where it bites, **0.7500** on the
-   last task against the plastic arm's 0.9724, while the first two are within 0.08.
+   last task against the plastic arm's 0.9724, while the first two are within 0.08. **And the channel question is
+   answered too, in the direction this item wanted**: freezing the 800 offsets at overlap 1.0 leaves **+0.0599**
+   against the base family's frozen **+0.0227** — **5.04σ** apart — so the freeze removes **44%** of the harder
+   family's forgetting against **70%** of the base family's, and **the extra forgetting survives the freeze**,
+   i.e. it lives in the **26,568 connectome-masked weights** rather than in the channel that carries the base
+   family's forgetting. **That is what makes this family a harder benchmark for a connectome-constrained model
+   rather than a harder version of the same one**: its difficulty is in the wiring, and the offsets are still
+   worth freezing at overlap 1.0 (a **5.04σ** removal that *raises* accuracy 0.8939 → 0.9104), so the two
+   diagnostics say different things — **the whole body is load-bearing at 9.16σ, and the offsets are not where
+   the family difference lives**.
 5. **Report retention in loss as well as in accuracy — and note that this was measured on 2026-09-24 and the
    answer is no.** The runner records `retention_loss[k][j]`, the full-train-set loss on task *j* at checkpoint
    *k*, which is also how `e122`'s chords are validated. It is a continuous quantity where the reported metric
