@@ -159,6 +159,46 @@ def group_repeats(artifacts: list[dict], min_runs: int = 2) -> list[dict]:
     return out
 
 
+def overlap_check(artifacts: list[dict]) -> list[dict]:
+    """Pairs with a **shared arm** but a **different signature** -- the check `group_repeats` cannot make.
+
+    `group_repeats` groups by the whole config signature, so a re-run that *adds* a method, or changes a setting
+    the compared method cannot read, is a different configuration to it and its overlapping arm is never
+    compared -- which is exactly the case this project's C0a/C0b probes rely on (`e140`'s frozen arm against
+    `e125`'s, `e155`'s two arms against `e116`'s, `e146` against `e125`). The pre-filter is behavioural rather
+    than editorial: the pair must share the arm, the replicate count and `seed0`, so the seeds are the same
+    stream. Ties are reported as movement like everywhere else in this script.
+    """
+    by_arm: dict[str, list[dict]] = {}
+    for a in artifacts:
+        methods = a["payload"].get("methods")
+        if not isinstance(methods, dict):
+            continue
+        for name in methods:
+            by_arm.setdefault(name, []).append(a)
+    out = []
+    for name, members in sorted(by_arm.items()):
+        for i in range(len(members)):
+            for j in range(i + 1, len(members)):
+                a, b = members[i], members[j]
+                if signature(a["config"]) == signature(b["config"]):
+                    continue                                   # that pair is `group_repeats`' business
+                seeds_a = (a["config"].get("seed0"), a["config"].get("repeats"))
+                seeds_b = (b["config"].get("seed0"), b["config"].get("repeats"))
+                if seeds_a != seeds_b:
+                    continue
+                na = len((a["payload"]["methods"][name]).get("replicates") or [])
+                nb = len((b["payload"]["methods"][name]).get("replicates") or [])
+                if na == 0 or na != nb:
+                    continue
+                v = arm_matches([a, b], name)
+                out.append({"arm": name, "a": a["name"], "b": b["name"], "n": na,
+                            "exact": bool(v.get("exact")), "movement_forgetting": v.get("movement_forgetting"),
+                            "movement_accuracy": v.get("movement_accuracy")})
+    out.sort(key=lambda r: (not r["exact"], -(r["movement_forgetting"] or 0.0), r["a"]))
+    return out
+
+
 def maximal_keyset(configs: list[dict]) -> set[str]:
     """The key set that contains the most others -- the closest thing to "what the parser defines now".
 
@@ -271,9 +311,22 @@ def main(argv=None) -> int:
     if not stale:
         print("    (none -- every artifact carries the keys its runner's newest artifact defines)")
 
+    overlaps = overlap_check(artifacts)
+    exact_o = [r for r in overlaps if r["exact"]]
+    print(f"\nshared arms across DIFFERENT signatures (the check `group_repeats` cannot make): "
+          f"{len(overlaps)} pairs, {len(exact_o)} identical, {len(overlaps) - len(exact_o)} differing")
+    for r in exact_o[:12]:
+        print(f"    IDENTICAL  {r['arm']:16} {r['a']} vs {r['b']}  (n={r['n']})")
+    for r in overlaps[:12]:
+        if not r["exact"]:
+            print(f"    DIFFER     {r['arm']:16} {r['a']} vs {r['b']}  "
+                  f"move {r['movement_forgetting']:.4f} forgetting")
+    if len(exact_o) > 12:
+        print(f"    ... and {len(exact_o) - 12} more identical pairs (the JSON holds all of them)")
+
     if args.json_out:
         write_json(args.json_out, {"n_artifacts": len(artifacts), "min_runs": args.min_runs,
-                                   "repeated": groups, "missing_keys": stale})
+                                   "repeated": groups, "missing_keys": stale, "overlaps": overlaps})
         print(f"\nwrote {args.json_out}")
     return 0
 

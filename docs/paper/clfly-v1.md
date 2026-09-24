@@ -2735,6 +2735,18 @@ reproduction for every repeated configuration is `experiments/e103_reproducibili
 script dates each artifact's code epoch from its `config` keyset, because a runner that dumps `vars(args)`
 cannot omit a flag its parser defines
 (`docs/findings/2026-09-23-the-config-keyset-dates-five-artifacts.md`).
+**And running that script against the corpus as it stands now, one day later, gives the updated sentence —
+because those figures were prose and the script is not**: `e103` counts **303** artifacts carrying a `config`
+(the two censuses differ in what they count and both are now stated with their definitions rather than
+reconciled) and **10 configurations executed more than once**, of which **8 have every present arm identical**
+and **2 have a differing arm** — both in the `--fisher-batches 8`/`128` family whose mechanism the paragraph above
+gives. **Today's additions are on the identical side**: `e155`'s read-out-128 and read-out-700 arms reproduce
+`e116`'s `naive` row **bit-for-bit** across two more configurations, `e140`'s frozen arm reproduces `e125`'s
+across four settings its method cannot read, and `e140`'s plastic arm reproduces `e133`'s `ewc` **and** `naive`
+rows — and the extension that finds those without being told about them (pairing artifacts by shared arm rather
+than by identical signature) is in the same script and reports **283 identical pairs across 3,294 cross-signature
+pairs**, of which the five hand-established controls of this session are five
+(`docs/findings/2026-09-24-the-reproducibility-count-is-a-scripts-output.md`).
 
 **And the same environment shapes the paper's *cost* figures, which §9 has never said.** Measured on the
 estimator this section derives: `expected_error_matrix` at d = 1307 takes **6.08 s at `OMP_NUM_THREADS=4` and
