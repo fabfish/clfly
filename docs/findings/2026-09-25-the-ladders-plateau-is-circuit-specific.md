@@ -1,71 +1,74 @@
-# The ladder's plateau is circuit-specific: the optimum moves 16× when the circuit grows 1.43×
+# The ladder's plateau is circuit-specific — by 2×, not 16×, and only the like-for-like quantity says so
 
 **Date:** 2026-09-25
-**Read of:** `runs/e73_ladder_named_head_to_head.json` (its `ladder_rows`, the d = 1307 ladder from
-`e3_ladder_v2.json`) against `runs/e79_ladder_d1874_perseed.json` (`topologies["real"]`, d = 1874). No new script
-and no runs: §8's first item asks whether the ladder's *plateau* transfers to a second circuit, and both circuits'
-ladders are already on disk at **twelve seeds each** with the **same eight rung names**.
+**Read of:** `runs/e73_ladder_named_head_to_head.json`'s `ladder_rows` (d = 1307, the `delta` quantity) against
+`runs/e83_ladder_d1874_robustness.json`'s `pool_ladder` (d = 1874, **the same `delta` quantity**), with
+`runs/e79_ladder_d1874_perseed.json` as the *other* d = 1874 analysis and the source of this finding's first error.
+**Corrects an earlier version of this finding written an hour earlier**, whose headline — "the optimum moves from
+`pool4` to `pool64`, sixteen times coarser, and on the second circuit there is no interior optimum at all" — was an
+artefact of comparing two different quantities.
 
 ---
 
-## 1. What the two ladders look like
+## The correction first
 
-`pool_below = N` merges every annotation label appearing in fewer than **N neurons**, so `pool1` is the
-unpooled end and `pool128` the coarse end. Both ladders are complete over `pool1 … pool128`, at twelve seeds:
+The first version of this read took d = 1307 from `e73`'s `delta` — *the biological partition's advantage over its
+group-size-matched random control* — and d = 1874 from `e79`'s `excess_mean` — *the distance from the analytic
+oracle*. **Those are different questions**, and they have different shapes: the matched-control quantity has an
+**interior optimum**, while the oracle-distance quantity is **monotone toward the coarsest rungs** (0.014713 at
+`pool1` down to 0.001208 at `pool64`/`pool128`). Comparing them produced a 16× shift and the disappearance of the
+interior optimum. **A fourth look at the corpus found the right artifact**: `e83_ladder_d1874_robustness.json`'s
+`pool_ladder` is the d = 1874 ladder in the **same `delta`** as `e73`'s rows.
 
-| rung | d = 1307 — `delta` (bio minus its matched control; lower is better) | d = 1874 — excess over the oracle |
+## The like-for-like comparison
+
+| rung | d = 1307 — `delta` (n = 12) | d = 1874 — `delta` (n = 12) |
 |---|---|---|
-| `pool1` | +0.000191 ± 0.000026 | +0.014713 ± 0.000156 |
-| `pool2` | −0.008007 ± 0.000343 | +0.006727 ± 0.000130 |
-| **`pool4`** | **−0.008844 ± 0.000199** | +0.004822 ± 0.000096 |
-| `pool8` | −0.006852 ± 0.000221 | +0.002025 ± 0.000029 |
-| `pool16` | −0.007651 ± 0.000197 | +0.001468 ± 0.000024 |
-| `pool32` | −0.006986 ± 0.000192 | +0.001467 ± 0.000024 |
-| **`pool64`** | −0.005485 ± 0.000269 | **+0.001208 ± 0.000022** |
-| **`pool128`** | −0.004094 ± 0.000229 | **+0.001208 ± 0.000022** |
-
-**The two columns are different quantities and are not comparable in value** — the first is a *matched-control
-contrast* (negative means the biological partition beats its group-size-matched random control) and the second is
-an *excess over the analytic oracle*. What is comparable is the **shape**, and that is what the item asks about.
-
-## 2. The answer: the direction transfers and the plateau does not
+| `pool1` | +0.000191 ± 0.000026 | +0.000353 ± 0.000036 |
+| `pool2` | −0.008007 ± 0.000343 | −0.005859 ± 0.000084 |
+| **`pool4`** | **−0.008844 ± 0.000199** | −0.007218 ± 0.000181 |
+| **`pool8`** | −0.006852 ± 0.000221 | **−0.007763 ± 0.000169** |
+| `pool16` | −0.007651 ± 0.000197 | −0.005898 ± 0.000102 |
+| `pool32` | −0.006986 ± 0.000192 | −0.005014 ± 0.000082 |
+| `pool64` | −0.005485 ± 0.000269 | −0.004068 ± 0.000181 |
+| `pool128` | −0.004094 ± 0.000229 | −0.004801 ± 0.000196 |
 
 | | d = 1307 | d = 1874 |
 |---|---|---|
-| minimum rung | **`pool4`** (−0.008844) | **`pool64`** (+0.001208) |
-| rungs within 2 sem of the minimum | **{4}** — one rung | **{64, 128}** — the coarse end |
-| is `pool1` (no pooling) worst? | **yes** (+0.000191) | **yes** (+0.014713) |
-| interior optimum? | **yes** | **no** — the curve is monotone toward the coarsest rungs |
+| minimum rung | **`pool4`** (−0.008844) | **`pool8`** (−0.007763) |
+| rungs within 2 sem of the minimum | **{4}** | **{8}** |
+| interior optimum? | **yes** | **yes** |
+| `pool1` (no pooling) worst? | **yes** | **yes** |
 
-**So the lesson transfers and its location does not.** On both circuits **pooling helps and no pooling is the worst
-rung** — the qualitative claim §4.3 makes — while the **plateau sits sixteen times coarser** on the larger circuit
-(`pool4` → `pool64`), and on the second circuit there is **no interior optimum at all**: the two coarsest rungs are
-tied at 2 sem and are the best.
+**So: the lesson transfers, the plateau is one rung wide on both circuits and interior on both, and its location
+moves from `pool4` to `pool8` — a factor of two, not sixteen.**
 
-## 3. Why, and why it matters for how the ladder is read
+## What this does to the mechanism, and to the hole it fills
 
-**The threshold is an absolute neuron count, so a rung is not a fixed amount of pooling across circuits.** `pool4`
-merges labels with fewer than four neurons; on a circuit with 1.43× the neurons the same label is bigger, so fewer
-labels fall below the threshold and the *same rung does less*. **The ladder is therefore not scale-free, and its
-optimum can move with the circuit for a reason that has nothing to do with biology** — which is a caveat the
-paper's ladder reading does not currently carry. The observed shift (16×) is larger than the size ratio (1.43×), so
-size is not the whole story — the annotation vocabulary's own distribution across circuits is in there too — but the
-direction is the one this mechanism predicts.
+**The mechanism is better supported at 2× than at 16×.** `pool_below` is an **absolute neuron count**, so the same
+rung merges fewer labels on a larger circuit and the optimum should sit *coarser* there: the circuits differ by
+**1.43×** and the optimum moved by **2×**, which is the direction and roughly the size the mechanism predicts. The
+16× figure was too large for a 1.43× circuit — it was the sign that the comparison was wrong, and the correction
+removes it.
 
-**And it re-frames the item's own sentence.** §8 asks for "the plateau **re-measured** on a second circuit",
-implying a location that a measurement can confirm or move. It has been measured and it moved: **what needs
-re-measuring is not whether the lesson holds but *where*, and a second circuit answers that it is elsewhere.**
+**And the two d = 1874 analyses disagree in shape, which is the informative part**: the *matched-control* question
+has an interior optimum at `pool8`, while the *distance-to-oracle* question is monotone to the coarsest partition.
+**The metric decides the shape** — the lesson §6 of the paper draws about the ratio metric, appearing again one
+level up, between two ways of scoring the same ladder. **The ladder's lesson is a statement in the matched-control
+quantity**, because that is the quantity the paper's claim is about.
 
-## 4. What this cannot settle
+**And it is a fourth time this night that the right artifact was already on disk**: `e83` is the file that makes the
+like-for-like comparison available, and the first version of this read did not look for it.
 
-- **The two columns measure different things**, so "16×" is a statement about where each curve bottoms and not
-  about how much better either is. A like-for-like comparison needs the *same* estimator at both circuits, and the
-  artifacts on disk do not provide one.
-- **Two circuits are two points**, and the shift is not shown to be monotone in size: a third circuit (d = 1307's
-  own `--circuit-size 300`, or the 3000-neuron `e3_large`) would say whether the optimum tracks the size or the
-  vocabulary.
-- **`pool4`'s minimum at d = 1307 sits in a *single* rung's plateau** (one rung within 2 sem), which is a sharper
-  statement than the paper's "pool the rarest groups" and is not what that phrase describes — the phrase suggests a
-  region, and the region is one rung wide there.
-- **Both ladders are twelve seeds**, so each rung's own resolution is what the table shows and the *shape* claims
-  above are read at 2 sem, not tested as an interval.
+## What this cannot settle
+
+- **Two circuits are two points.** The shift (2×) is consistent with the size ratio (1.43×) but does not show the
+  optimum is a function of size: a third circuit would say whether it tracks size, the vocabulary, or neither.
+- **`e3_seeds18.json` is the d = 1307 ladder at eighteen seeds** and this read did not use it: its
+  `topologies["real"]` rungs are not named `bio:pool*` like `e79`'s, so a like-for-like pull needs its own look.
+  **So the first circuit's plateau at 18 seeds is not checked here.**
+- **Both ladders are twelve seeds**, so each rung carries its own resolution and the "one rung wide" claim is read
+  at 2 sem rather than tested as an interval.
+- **And the first version of this finding stood for an hour.** It was caught by looking for *another* artifact of
+  the same kind rather than by any audit: the numbers in it were all correct and its error was entirely in which
+  two numbers to compare.
