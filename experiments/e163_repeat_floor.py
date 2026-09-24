@@ -218,6 +218,9 @@ def main(argv=None) -> int:
     ap.add_argument("--command", type=Path, default=None,
                     help="print the re-execution command derived from this artifact's own config")
     ap.add_argument("--methods", default=None, help="override --methods in the printed command")
+    ap.add_argument("--census", action="store_true",
+                    help="report how much of the corpus's configs the derived-command path can handle, and why "
+                         "the rest are refused")
     ap.add_argument("--runner", default=None, choices=sorted(RUNNERS),
                     help="which runner's flags to map; inferred from the config's keys when omitted")
     args = ap.parse_args(argv)
@@ -230,6 +233,37 @@ def main(argv=None) -> int:
         parts = command_from_config(cfg, json_out=str(args.command).replace(".json", "_rerun.json"),
                                     runner=args.runner)
         print(" ".join(parts))
+        return 0
+
+    if args.census:
+        from collections import Counter
+
+        from experiments.e103_reproducibility_audit import load_artifacts
+
+        ok, refused, examples, mapped = 0, Counter(), {}, Counter()
+        for a in load_artifacts():
+            cfg = a["config"]
+            if not cfg:
+                continue
+            found = runner_for(cfg)
+            for r in found:
+                mapped[r] += 1
+            try:
+                command_from_config(cfg, json_out="runs/x.json")
+                ok += 1
+            except ValueError as exc:
+                why = ("ambiguous or unmapped: no single runner covers every key"
+                       if "cannot tell which runner" in str(exc) else
+                       "a key the runner's own mapping lacks: " + str(exc).split("'")[1])
+                refused[why] += 1
+                examples.setdefault(why, a["name"])
+        print("== how much of the corpus can be re-executed by a command derived from its own artifact ==")
+        print(f"   configs the path handles: {ok}")
+        for why, n in refused.most_common():
+            print(f"   refused ({n}): {why}   e.g. {examples[why]}")
+        print(f"   runners mapped: {sorted(RUNNERS)}; artifacts per runner: {dict(mapped)}")
+        print("   -> a refusal is the safe direction: an unmapped artifact yields **no** command rather than one")
+        print("      that would run with defaults for the fields this helper cannot name (rule 44).")
         return 0
 
     groups = group_repeats(load_artifacts())

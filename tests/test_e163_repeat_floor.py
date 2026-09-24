@@ -153,3 +153,18 @@ def test_a_tuple_valued_field_is_joined_because_the_runner_itself_splits_on_comm
     assert not any("(" in p for p in parts), "no Python repr may reach the command line"
     with pytest.raises(ValueError, match="maps to no e3 runner flag"):
         e163.command_from_config({"not_a_flag": 1}, runner="e3")
+
+
+def test_the_census_reports_coverage_and_the_corpus_is_half_derivable(capsys):
+    """Roughly half the corpus's configs derive a command, and the other half are refused on purpose.
+
+    The census is what keeps the coverage number from being prose (this project's recurring defect), and the
+    number is a *design* statement rather than a gap: two runners are mapped, and an artifact of any other one gets
+    no command instead of a command that would run with this helper's defaults for the fields it cannot name.
+    """
+    assert e163.main(["--census"]) == 0
+    out = capsys.readouterr().out
+    assert "configs the path handles:" in out and "refused (" in out
+    handled = int(out.split("configs the path handles:")[1].split()[0])
+    refused = int(out.split("refused (")[1].split(")")[0])
+    assert handled >= 100 and refused >= 100
