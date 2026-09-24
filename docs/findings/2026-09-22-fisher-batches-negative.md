@@ -134,7 +134,13 @@ Combined with the previous fires, the rate-network picture is:
 - **replay** drives forgetting to ~0 with the best accuracy — the only method that
   clearly works, at ~2σ over naive;
 - **no Fisher-anchoring variant resolves a benefit over naive**, in the neuron diagonal
-  basis or in a biological block basis, at any λ or Fisher batch count tried;
+  basis or in a biological block basis, at any λ or Fisher batch count tried — **(and a
+  correction measured on 2026-09-24: the diagonal does resolve, at **4.84σ** against `naive` over
+  forty paired seeds, **once the 800 per-neuron offsets are inside the penalty** — they carry
+  70% of this configuration's forgetting and no variant swept here covered them; with them free
+  the same λ is **1.21σ**. **The bullet stands as written about the variants that were swept**,
+  and what it needs is a channel rather than a strength:
+  `docs/findings/2026-09-24-the-arm-that-fixes-the-forgetting-has-more-interference.md`)**;
 - and the family is **badly behaved as its curvature estimate improves** (§3), which is
   the most interesting thing this fire produced.
 

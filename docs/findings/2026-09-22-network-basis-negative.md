@@ -60,6 +60,13 @@ partition of identical capacity.
 leaves earlier tasks slightly *better* than when they were learned. No EWC variant
 resolves a benefit over naive: the diagonal's apparent edge is 0.045 ± 0.071 (0.6σ).
 
+**(*Regime note, 2026-09-24.*)** That 0.6σ was measured on a benchmark where the plastic weights were **barely
+load-bearing** — the same fire's frozen-body control cost 0.007 accuracy — and the diagonal **does resolve, at
+4.84σ**, once the penalty also covers the **800 per-neuron offsets** that carry 70% of this configuration's
+forgetting and that no penalty in the paper's formulation covers. **The basis conclusion above is unchanged**;
+what changed is that the diagonal row was never a fair test of it
+(`docs/findings/2026-09-24-the-arm-that-fixes-the-forgetting-has-more-interference.md`).
+
 ## 3. Why it probably does not transfer, and what would test that
 
 **The linear finding is about a different object.** It concerns the block structure of

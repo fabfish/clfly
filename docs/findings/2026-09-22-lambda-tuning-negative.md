@@ -93,6 +93,16 @@ standing conclusion is unchanged and can now be stated with the tuning objection
 > synapse pairs, not at any (λ, batch-count) pair tried. **Replay** drives forgetting to
 > ~0 with the best accuracy and is the only method that clearly works.
 
+**(*Measured again on 2026-09-24, and the conclusion stands while its reason changes.*)** The grid swept above is
+a grid over **λ and the Fisher's batch count**, and every point in it penalises `theta`: the **800 per-neuron
+offsets** carry **70%** of this configuration's forgetting and are outside all of them. With the same λ = 3e-3 and
+those offsets **inside** the penalty, the diagonal reaches **−0.0458 ± 0.0095 = 4.84σ** against `naive` over forty
+paired seeds, where the unanchored rule is **1.21σ**; and `e137` measures the unanchored penalty *relocating*
+adaptation into exactly those offsets, which is why squeezing harder along λ presses a channel the adaptation
+leaves. **So "no λ works" was true of the family that was swept and is a statement about coverage rather than
+about strength** (`docs/findings/2026-09-24-the-penalty-relocates-the-adaptation.md`,
+`docs/findings/2026-09-24-the-arm-that-fixes-the-forgetting-has-more-interference.md`).
+
 And the specific transfer claim is dead in a way that is now well-characterised:
 
 > Grouping the 27k synapses by `(pre cell class, post cell class)` — the exact analogue of

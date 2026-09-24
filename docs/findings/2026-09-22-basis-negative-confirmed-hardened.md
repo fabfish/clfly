@@ -16,6 +16,15 @@ accuracy gap at 32 read-out neurons against +0.007 over the whole state). It als
 that on the hardened configuration **diagonal EWC finally resolves (2.5σ)**, overturning
 three fires of "no method does anything".
 
+**(*The 2.5σ is corrected in two steps, both measured on 2026-09-24.*)** It was measured at **five** replicates, and
+at forty the identical command gives a paired **−0.0096 ± 0.0080 = 1.21σ** against `naive` — the five seeds are a
+**~1-in-55 draw** from this configuration's own distribution. **And the row does resolve, at 4.84σ**, once the same
+λ also presses the **800 per-neuron offsets** that no penalty in this paper's formulation covers: **−0.0458 ±
+0.0095**, recovering 84.8% of the gap to the free freeze. So the direction here was right, the evidence was five
+seeds, and the missing piece was a channel rather than a strength
+(`docs/findings/2026-09-24-diagonal-ewc-does-not-survive-its-own-configuration.md`,
+`docs/findings/2026-09-24-the-arm-that-fixes-the-forgetting-has-more-interference.md`).
+
 That left the *basis* negative — "the biological synapse partition shows no advantage over
 its matched random control" — established only on a benchmark that could not resolve
 anything. A benchmark that cannot show a difference cannot establish a negative, so it had
