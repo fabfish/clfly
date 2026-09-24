@@ -40,13 +40,21 @@ ARMS: dict[str, str] = {
 METHODS = ("naive", "ewc", "ewc-block", "ewc-block-rand", "replay")
 #: the three forms, and the key inside each replicate's `whole_body` block
 FORMS = {"whole_body": "cumulative", "theta_only": "theta_only_cumulative", "bias_only": "bias_only_cumulative"}
+#: and the SECOND-order forms, which live in `second_order`. `e109` could not order the forgetting by them on one
+#: configuration; ten cells is the strongest test the record can give that negative, and they are carried here so
+#: that the comparison with the first-order forms is made by one script rather than by two.
+SECOND_ORDER = {"quad_exact": ("exact", "quad"), "curvature_exact": ("exact", "curvature"),
+                "quad_fd01": ("fd_0.01", "quad")}
 
 
 def cell(reps: list[dict]) -> dict:
-    """One cell's per-replicate series: forgetting, and each form of the first-order term averaged over tasks."""
+    """One cell's per-replicate series: forgetting, each form of the first-order term, and the second-order ones."""
     out = {"forgetting": np.array([r["mean_forgetting"] for r in reps], dtype=float)}
     for name, key in FORMS.items():
         out[name] = np.array([float(np.mean([t["whole_body"][key] for t in r["interference"]])) for r in reps])
+    for name, (family, key) in SECOND_ORDER.items():
+        out[name] = np.array([float(np.mean([t["second_order"][family][key] for t in r["interference"]]))
+                              for r in reps])
     # the same forms restricted to task 0 and task 1, since `e149` found the ordering to be task-dependent
     for task in (0, 1):
         out[f"whole_body_task{task}"] = np.array([float(r["interference"][task]["whole_body"]["cumulative"])
@@ -84,6 +92,40 @@ def ordering(cells: dict[str, dict[str, dict]], form: str) -> dict:
             "pairwise_agreement": (agree / total) if total else float("nan"), "within_arm_rho": within}
 
 
+def precision(cells: dict[str, dict[str, dict]], form: str) -> dict:
+    """How well each cell's *form* is resolved from zero: the per-cell sem against its own mean.
+
+    This is the check a rank correlation over cell means cannot make for itself, and the second-order term is
+    where it bites: a rho over ten means is uninterpretable if nine of them are indistinguishable from zero.
+    """
+    per = {}
+    for arm in cells:
+        for m in cells[arm]:
+            v = cells[arm][m][form]
+            sem = float(v.std(ddof=1) / np.sqrt(len(v))) if len(v) > 1 else float("nan")
+            per[f"{arm}/{m}"] = {"mean": float(v.mean()), "sem": sem,
+                                 "sigma_from_zero": (abs(float(v.mean())) / sem) if sem else float("nan")}
+    sig = [p["sigma_from_zero"] for p in per.values() if np.isfinite(p["sigma_from_zero"])]
+    return {"cells": per, "resolved_at_2sigma": int(sum(1 for x in sig if x >= 2)),
+            "n_cells": len(sig), "median_sigma_from_zero": float(np.median(sig)) if sig else float("nan"),
+            "min_sigma": float(min(sig)) if sig else float("nan"),
+            "max_sigma": float(max(sig)) if sig else float("nan")}
+
+
+def leave_one_out(cells: dict[str, dict[str, dict]], form: str) -> dict:
+    """Rho with any one cell removed -- the range is the honest companion to the point estimate."""
+    keys = [(a, m) for a in cells for m in cells[a]]
+    fg = np.array([cells[a][m]["forgetting"].mean() for a, m in keys])
+    x = np.array([cells[a][m][form].mean() for a, m in keys])
+    full = float(spearmanr(fg, x)[0])
+    dropped = {}
+    for i, (a, m) in enumerate(keys):
+        dropped[f"{a}/{m}"] = float(spearmanr(np.delete(fg, i), np.delete(x, i))[0])
+    finite = [v for v in dropped.values() if np.isfinite(v)]
+    return {"full": full, "range": [min(finite), max(finite)] if finite else [float("nan")] * 2,
+            "by_dropped_cell": dropped}
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--json-out", type=Path, default=None)
@@ -107,7 +149,8 @@ def main() -> int:
 
     print("\n== which form orders the forgetting, over the ten cells ==")
     res = {}
-    for form in ("whole_body", "theta_only", "bias_only", "whole_body_task0", "whole_body_task1"):
+    for form in ("whole_body", "theta_only", "bias_only", "whole_body_task0", "whole_body_task1",
+                 "quad_exact", "curvature_exact", "quad_fd01"):
         r = ordering(cells, form)
         res[form] = r
         print(f"   {form:<18} rho {r['rho']:+.3f}  p {r['p']:.3g}   pairwise "
@@ -116,6 +159,18 @@ def main() -> int:
     for form in ("whole_body", "theta_only"):
         w = res[form]["within_arm_rho"]
         print(f"      {form:<14} plastic {w['plastic']:+.3f}   frozen {w['frozen']:+.3f}")
+
+    print("\n== and the check a rank correlation over MEANS cannot make for itself ==")
+    for form in ("whole_body", "quad_exact"):
+        p = precision(cells, form)
+        lo = leave_one_out(cells, form)
+        print(f"   {form:<14} resolved from zero at 2s in {p['resolved_at_2sigma']} of {p['n_cells']} cells "
+              f"(median {p['median_sigma_from_zero']:.2f}s); rho {lo['full']:+.3f} with any one cell removed "
+              f"{lo['range'][0]:+.3f} .. {lo['range'][1]:+.3f}")
+    p = precision(cells, "quad_exact")
+    worst = sorted(p["cells"].items(), key=lambda kv: -kv[1]["sigma_from_zero"])[:2]
+    for name, d in worst:
+        print(f"      best-resolved second-order cell: {name} mean {d['mean']:+.4g} at {d['sigma_from_zero']:.2f}s")
 
     print("\n== reading ==")
     print("   The channel-resolved form orders the ten cells; the bias's own share of it is a mechanism column")
