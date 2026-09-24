@@ -81,7 +81,10 @@ comparison meaningless rather than merely imprecise — thirty-nine of its forty
 by another replicate's Fisher. **What caught it was the size of the saved file on the first run of the experiment**
 (1 KB, i.e. empty arrays, four minutes in), which is the kind of tell this project keeps finding: the artifact said
 the run was not what it claimed. `--fisher-from` now **refuses** when this replicate's entry is missing, rather
-than borrowing one.
+than borrowing one — **and the requirement is scoped to the methods that read a Fisher**, because demanding an
+entry for `naive` would refuse a run for a reason that cannot affect its numbers. That scoping is a *latent*
+correction rather than an observed one: `e175`'s two commands both carry `naive`, so the entry always existed and
+the defect would have surfaced only on a pair whose methods differed.
 
 **And the flags' own `--help` found a defect that had been hiding the runner's flag list**: `argparse`
 `%`-formats help strings, so a bare `70%` in `--anchor-bias`'s help raised `TypeError` and **`uv run python

@@ -585,13 +585,20 @@ def run_method(conn_net, suite, method: str, args, seed: int,
         # term" for forty seeds. A first version wrote one file per task and was wrong for thirty-nine of the
         # forty replicates -- which is a flaw that would have made `e175`'s comparison meaningless rather than
         # merely imprecise, and it was caught by the saved file's *size* on the first run.
-        source = Path(args.fisher_from) / f"{method}_seed{seed}.npz"
-        if not source.is_file():
-            raise SystemExit(f"--fisher-from {args.fisher_from} has no entry for {method} seed {seed}: "
-                             f"{source} is missing, and replaying another replicate's inputs would silently be "
-                             f"a different penalty")
-        with np.load(source) as z:
-            stored = [(z[f"f{k}"], z[f"a{k}"]) for k in range(len(suite))]
+        # and a method with **no penalty has nothing to replay**, so the requirement is scoped to the methods
+        # that read a Fisher: demanding an entry for `naive` would refuse a run for a reason that cannot affect
+        # its numbers. (`e175`'s two commands both carry `naive`, which is why the requirement as first written
+        # never fired -- the defect was latent rather than observed.)
+        if method != "ewc":
+            stored = [(np.zeros(0), np.zeros(0))] * len(suite)
+        else:
+            source = Path(args.fisher_from) / f"{method}_seed{seed}.npz"
+            if not source.is_file():
+                raise SystemExit(f"--fisher-from {args.fisher_from} has no entry for {method} seed {seed}: "
+                                 f"{source} is missing, and replaying another replicate's inputs would silently "
+                                 f"be a different penalty")
+            with np.load(source) as z:
+                stored = [(z[f"f{k}"], z[f"a{k}"]) for k in range(len(suite))]
     fisher_trace: list = []
 
     for k, task in enumerate(suite):
