@@ -1,5 +1,16 @@
 # What the record *can* say about the penalty arms' run-to-run difference: the environment and the seeds are not it
 
+> **SUPERSEDED THE SAME EVENING — THERE IS NO DIFFERENCE TO EXPLAIN.** This note was written to rule out
+> explanations of `e153`'s C0a "failure", and that failure was an artifact of a command difference: **`e153` ran at
+> `lam = 1.0` and `e144` at `3e-3`** (`docs/findings/2026-09-24-the-penalty-arms-were-never-non-reproducible.md`).
+> **Neither candidate mechanism below is implicated by anything**, and the note's value is now only as the record
+> of two things worth keeping: the recorded environments of the runs involved are identical in every field, and
+> this runner's seeding path is nominally complete — so if a penalty-arm difference is ever found *with the config
+> controlled*, these are the first two places it will not be.
+>
+> *(The rest of this note stands as written, with "the difference" reading as "the difference that turned out not
+> to exist".)*
+
 **Date:** 2026-09-24
 **Script:** none — a read of the runner's seeding path and of the recorded environments behind `e144` and `e153`,
 prompted by `e153`'s failed C0a control. It exists because the difference is large enough to matter to the paper's

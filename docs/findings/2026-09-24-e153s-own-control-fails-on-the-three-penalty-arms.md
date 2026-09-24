@@ -1,5 +1,17 @@
 # `e153` landed: the registered claims hold, and its own C0a control fails on exactly the three penalty arms
 
+> **CORRECTED THE SAME EVENING, AND THE CORRECTION REMOVES THE FINDING.** Section 2 below treats the three penalty
+> arms' difference as evidence about reproducibility. **It is not: `e153` ran at `lam = 1.0` and `e144` at
+> `3e-3`** — one config field, omitted from the registration's paraphrase of the command, which the launch then
+> used (the runner's default is `lam = 1.0`). That explains the whole pattern exactly: the three arms that differ
+> are the three that **read** `lam`, `naive` and `replay` are bit-identical because they do not, and the magnitude
+> is a 333× stronger penalty. **So there is no evidence of penalty-arm non-reproducibility, §9's
+> `--fisher-batches 32` claim is not contradicted by anything, and C0a's failure is a defect in the claim, not in
+> the arms.** Rule 44 now requires a C0 identity claim to be checked against the two artifacts' `config` fields
+> rather than against a paraphrased command. The evidence and the two further instances of the same shape are in
+> `docs/findings/2026-09-24-the-penalty-arms-were-never-non-reproducible.md`; sections 1, 3 and 4 below stand as
+> written (the registered claims hold, the artifact's numbers stand, and the newest-task column is unaffected).
+
 **Date:** 2026-09-24
 **Artifact:** `runs/e153_r32_overlap1_methods_40reps.json` — the wiring family's five-method table in one artifact,
 and that configuration's second execution.

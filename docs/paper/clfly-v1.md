@@ -2718,16 +2718,14 @@ qualification attaches to every reproduction claim here including the ones state
 **On the trained network the qualification is not uniform across arms — it is per-arm and
 per-configuration, and measured.** At `--fisher-batches 32` the whole five-arm benchmark reproduces
 **exactly**: 280 of 280 numeric fields, including every replicate of all five methods, **13 hours and five
-commits apart**. **That sentence is a statement about the base family at five replicates, and the same day's
-first execution of the *wiring* family at forty replicates breaks it on the three penalty arms** — where `naive`
-agrees to the last digit and `ewc`, `ewc-block` and `ewc-block-rand` move by up to **0.229 per replicate** on the
-same seed stream, in the same epoch for the penalty path (the runner's last change predates both runs, and the
-one that added `partition_seed` is confined to the matched-random partition, whose default draw is unchanged).
-**What that single pair cannot say is whether `e144` was an outlier or the penalty arms are run-to-run
-non-reproducible**, so a third execution of the same command is registered and running; what it *can* say is that
-the two readings differ in consequence — the between-run movements already seen on those arms' means (**0.0068**,
-**0.0201**, **0.0112**) are the same order as the paired sems this section's method table quotes
-(`docs/findings/2026-09-24-e153s-own-control-fails-on-the-three-penalty-arms.md`). At `--fisher-batches 8` two
+commits apart**. *(An earlier version of this paragraph said the same day's first execution of the **wiring**
+family at forty replicates broke that claim on the three penalty arms. **It did not, and the correction is worth
+keeping**: that pair of runs differed in one `config` field — `lam = 1.0` against `3e-3`, omitted from the
+registration's paraphrase of the command — and the three arms that "broke" it are exactly the three that read
+`lam`, while `naive` and `replay` were bit-identical because they do not. **A bit-identical arm is evidence about
+which fields a method reads, not evidence that two configurations are the same**, and a config check would have
+caught it before the claim was written —
+`docs/findings/2026-09-24-the-penalty-arms-were-never-non-reproducible.md`.)* At `--fisher-batches 8` two
 runs of one command an hour apart agree on `naive` (+0.0729) and
 on the diagonal (`ewc`, +0.0271) and **disagree** on the biological block (+0.0167 / +0.0229), its size-matched
 random control (+0.0521 / +0.0396) and `replay` (+0.0333 / +0.0500) — which moves the one contrast §4.7 rests
@@ -2750,13 +2748,16 @@ because those figures were prose and the script is not**: `e103` counts **303** 
 (the two censuses differ in what they count and both are now stated with their definitions rather than
 reconciled) and **10 configurations executed more than once**, of which **8 have every present arm identical**
 and **2 have a differing arm** — both in the `--fisher-batches 8`/`128` family whose mechanism the paragraph above
-gives. **Today's additions are on the identical side**: `e155`'s read-out-128 and read-out-700 arms reproduce
-`e116`'s `naive` row **bit-for-bit** across two more configurations, `e140`'s frozen arm reproduces `e125`'s
-across four settings its method cannot read, and `e140`'s plastic arm reproduces `e133`'s `ewc` **and** `naive`
-rows — and the extension that finds those without being told about them (pairing artifacts by shared arm rather
-than by identical signature) is in the same script and reports **283 identical pairs across 3,294 cross-signature
-pairs**, of which the five hand-established controls of this session are five
-(`docs/findings/2026-09-24-the-reproducibility-count-is-a-scripts-output.md`).
+gives. **Today's additions are on the arm side and not the configuration side, and the distinction is the point**: the
+read-out-128 and read-out-700 arms of `e155` reproduce `e116`'s `naive` row **bit-for-bit**, and `e140`'s frozen
+arm reproduces `e125`'s — **but in both cases the two runs' `config` fields differ** (in `e155`'s case `lam` and
+`fisher_batches`, neither of which `naive` reads), so **what has been executed twice is the *arm*, not the
+configuration**, and a bit-identity across differing configs is evidence about which fields a method reads
+(rule 39's benign twin) rather than a second execution. The extension that finds those pairs without being told
+about them — pairing artifacts by shared arm rather than by identical signature — is in the same script and
+reports **283 identical pairs across 3,294 cross-signature pairs**, of which the five hand-established controls
+of this session are five (`docs/findings/2026-09-24-the-reproducibility-count-is-a-scripts-output.md`,
+`docs/findings/2026-09-24-the-penalty-arms-were-never-non-reproducible.md`).
 
 **And the same environment shapes the paper's *cost* figures, which §9 has never said.** Measured on the
 estimator this section derives: `expected_error_matrix` at d = 1307 takes **6.08 s at `OMP_NUM_THREADS=4` and
