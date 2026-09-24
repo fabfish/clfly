@@ -927,7 +927,15 @@ What the line established today, in the order it matters:
    orders **ten** cells (5 methods × 2 channels) at **ρ = +0.927, 41/45 pairs**, and the **θ-only** form orders
    them *too* at **+0.721 (36/45)** — so the θ-only defect is *"ranks worse and is blind to the bias's share"*,
    not *"cannot order"*.
-7. **In flight at this writing**: `e153` (the shared-input family's five-method table in one artifact, and that
+7. **The question that looked like a mechanism has an identity behind it.** `e148` asked whether `replay`'s
+   margin over a baseline is proportional to the *unpenalised channel's share*; it is not, and the reason is
+   arithmetic: the margin is `replay_own − baseline_own`, so `abs(margin)/baseline = 1 − replay_own/baseline`, and
+   the five measured ratios match that expression to the third digit (1.045, 0.921, 0.918, 1.17, 1.261 against
+   1.045, 0.922, 0.921, 1.17, 1.259). **So the only free quantity is `replay`'s own forgetting, and pooled over
+   the four distinct configurations where it is measured it is −0.0007 ± 0.0038** — 0.19σ from zero, a 2σ bound of
+   **±0.0076** — which is the paper's *"replay drives the forgetting to zero"* stated as a number rather than as an
+   adjective.
+8. **In flight at this writing**: `e153` (the shared-input family's five-method table in one artifact, and that
    configuration's second execution) and `e155` (the floor model — replay's margin ≈ the baseline's forgetting —
    tested across the read-out axis, where the baseline's forgetting is already measured at five levels). **And
    the one thing the line cannot buy at forty seeds**: the interaction between the two interventions needs
