@@ -70,8 +70,11 @@ like-for-like comparison available, and the first version of this read did not l
 
 ## What this cannot settle
 
-- **Two circuits are two points.** The shift (2×) is consistent with the size ratio (1.43×) but does not show the
-  optimum is a function of size: a third circuit would say whether it tracks size, the vocabulary, or neither.
+- ~~**Two circuits are two points.**~~ **The third circuit has now run and closes this**: at cs = 300 (d = 952)
+  the minimum is at **`pool2`**, giving **`pool2` / `pool4` / `pool8`** across the three circuits — monotone in
+  size, three for three, in the direction the absolute-threshold mechanism predicts. The exponent is *not*
+  established, because the rung grid is powers of two and the three optima can land nowhere else
+  (`docs/findings/2026-09-25-the-third-circuit-lands-the-ladders-ordering.md`).
 - **`e3_seeds18.json` is the d = 1307 ladder at eighteen seeds** and this read did not use it: its
   `topologies["real"]` rungs are not named `bio:pool*` like `e79`'s, so a like-for-like pull needs its own look.
   **So the first circuit's plateau at 18 seeds is not checked here.**

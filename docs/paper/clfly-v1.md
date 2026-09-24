@@ -2579,7 +2579,17 @@ why no shared rule was available and each line needed its own check.
    comparing the matched-control contrast at d = 1307 against the *distance from the analytic oracle* at d = 1874**
    — two different questions, of which only the second is monotone toward the coarsest rungs. **So the ladder's
    lesson is a statement in the matched-control quantity, and the metric decides the shape one level up from where
-   §6 already says it does** (`docs/findings/2026-09-25-the-ladders-plateau-is-circuit-specific.md`).
+   §6 already says it does.** **And a third circuit lands the ordering**: at cs = 300 (d = 952) the minimum is at
+   **`pool2`**, so the three circuits' optima are **`pool2` / `pool4` / `pool8`** — monotone in size, three for
+   three, which is the direction an **absolute** pooling threshold predicts (a fixed neuron count merges fewer
+   labels as the circuit grows) and not what a fixed vocabulary would give. **The exponent is not established and
+   cannot be from this grid**: `pool_below`'s rungs are **powers of two**, so the observed 2× steps are the grid's
+   resolution rather than the mechanism's — the ordering is a measurement and the ratio is a resolution limit. **And
+   the coarse end is degenerate on the smallest circuit**: at cs = 300 the `pool64` and `pool128` rungs have so few
+   groups that the biological partition and its capacity-matched random control are the *same object*, so the
+   ladder's usable range shrinks with the circuit
+   (`docs/findings/2026-09-25-the-ladders-plateau-is-circuit-specific.md`,
+   `docs/findings/2026-09-25-the-third-circuit-lands-the-ladders-ordering.md`).
    On the network the ladder exists but was never walked: the five annotation rungs span
    0.6947 (`side`) to 0.9992 (`cell_type`), and the published negative used only the
    second-coarsest. `side` is the rung the neuron result most implicates, and it has now
