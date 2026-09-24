@@ -1819,6 +1819,20 @@ about (`docs/findings/2026-09-23-the-last-two-unaudited-sections-were-clean.md`)
     (`docs/findings/2026-09-24-the-third-point-could-not-exist.md`,
     `docs/findings/2026-09-24-the-frozen-body-control-is-in-no-artifact.md`).
 
+40. **An ordering, frontier or dominance claim is made of point estimates until its own pairwise resolutions are
+    printed beside it — and the two must not appear in one sentence without the grade.** `e152` places nine arms in
+    a two-axis plane and asks which are dominated; **the first draft of its finding said *"`replay` dominates all
+    eight constrained arms and every one of those dominances is resolved on both axes"*, and the printed grades say
+    seven of the eight** (the eighth, over `frozen+ewc`, is resolved on one axis — newest 8.33σ, forgetting 1.28σ)
+    **while three pairs are point estimates only** (`anchored 1.0` by `anchored 33.2`, at 0.88σ and 0.79σ). **So a
+    dominance is two claims, not one**: that one arm is no worse on both axes (arithmetic, always checkable) and
+    that the difference would survive another draw of seeds (a resolution, which the plane does not have by
+    construction). The rule is the ordering-side twin of rule 37's *"a threshold needs its own uncertainty"*, and
+    it is not idle: **a partial order drawn from point estimates is a weaker object than the same order resolved,
+    and this project's whole C2b line has now had three findings whose wording was stronger than their
+    resolutions** (`docs/findings/2026-09-24-the-lambda-optimum-is-a-dominance-boundary.md`,
+    `docs/findings/2026-09-24-the-aggregate-hides-the-diagonal-and-the-last-task-pays.md`).
+
 ## Related work to differentiate against
 
 Four papers are close enough to require explicit positioning — all use fly

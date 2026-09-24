@@ -2506,6 +2506,23 @@ why no shared rule was available and each line needed its own check.
    that names a channel can move the effect while moving the named quantity weakly
    (`docs/findings/2026-09-24-the-arm-that-fixes-the-forgetting-has-more-interference.md`).
 
+7. **Report the newest task's accuracy beside every forgetting number, because the aggregate cannot show what the
+   constraints cost.** `mean_forgetting` is a mean over the first `T − 1` tasks, so the final accuracy on the task
+   **no forgetting term covers** is invisible to every method table in this paper — and the audit of all **22**
+   forty-replicate contrasts (`e151`) shows what that hides: of the **twelve** distinct constrained arms, **ten pay
+   a resolved cost there, from 2.08σ to 9.70σ** (λ = 3e-3 6.63σ, λ = 3e-2 9.45σ, anchored 1.0 9.70σ, the freeze
+   4.42σ, the frozen-plus-penalised pair 6.49σ against the freeze and 9.16σ against `naive`), **while `replay` —
+   the one arm in the record that is not a constraint — pays 0.79σ**. Placing the same nine arms in the two-axis
+   plane (`e152`) makes the consequence concrete: the λ ladder's first step above its optimum **worsens both axes
+   and both are resolved** (forgetting **+0.0258 at 3.74σ**, newest-task accuracy **−0.0229 at 2.97σ**), so
+   λ = 3e-4 is not merely the best point measured on the forgetting but **the largest λ at which the knob has not
+   begun to charge for itself**, and `replay` is the only arm not dominated on two axes or on three. **So the next
+   step is not a new substrate but a column**: every rate-network table should carry the newest task's accuracy
+   beside the forgetting — the suite's `--test 48` is already large enough to resolve what this item is about, and
+   the cost column resolves at **4.4σ to 9.7σ** on the same seeds where the aggregate resolves at **0.6σ**
+   (`docs/findings/2026-09-24-the-aggregate-hides-the-diagonal-and-the-last-task-pays.md`,
+   `docs/findings/2026-09-24-the-lambda-optimum-is-a-dominance-boundary.md`).
+
 ## 9. Reproducibility
 
 Every number above is produced by a committed script, with the seed and configuration
@@ -2529,6 +2546,8 @@ artifact as well, so the command's output can be checked rather than assumed.
 | §4.7 — **the λ axis below the swept range**, forty replicates | the same command with `--methods ewc --lam {3e-4,3e-2,3e-1}`; the **λ = 3e-3 anchor is `e133`'s `ewc` arm** | `runs/e141_r32_ewc_lam3e-4.json`, `runs/e141_r32_ewc_lam3e-2.json`, `runs/e141_r32_ewc_lam3e-1.json` |
 | §8 item 4 — **the harder family**, forty replicates | the same command with `--input-overlap 1.0 --methods naive`, adding `--frozen-body` and `--frozen-bias` for the two diagnostics | `runs/e142_r32_overlap1.json`, `runs/e142_r32_overlap1_frozen.json`, `runs/e143_r32_overlap1_frozenbias.json` |
 | §4.7 — **the harder family's four-method table**, and the three-draw control its central contrast is read against | the same command with `--input-overlap 1.0 --methods naive,ewc,ewc-block,ewc-block-rand`, and `--methods ewc-block-rand --partition-seed {1,2}` for the two extra draws | `runs/e144_r32_overlap1_methods_40reps.json`, `runs/e144_r32_overlap1_rand_draw{1,2}.json`; the analysis is `python -m experiments.e144_basis_harder_family` |
+| §4.2 — **the per-task decomposition of every forty-replicate contrast in the record**, including the newest task's accuracy that `mean_forgetting` cannot contain | `python -m experiments.e151_pertask_contrast_audit --json-out runs/e151_pertask_audit.json` — an audit: it reads artifacts and runs nothing, and its registry of 22 contrasts is the list of what it covers | `runs/e151_pertask_audit.json`, over the 22 arms it names |
+| §4.7 — **the two-axis plane and the dominance frontier over the λ ladder** | `python -m experiments.e152_stability_plasticity_trade --json-out runs/e152_trade.json` — analysis only, over the same nine arms | `runs/e152_trade.json` |
 | §6 | `python -m clfly.lgcl.repro`, `pytest -q` | — |
 
 The connectome data is not redistributed; `python -m clfly.connectome.fetch` clones it
