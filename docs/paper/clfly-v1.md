@@ -161,7 +161,16 @@ any sweep in this paper tried.** At forty paired seeds the diagonal at **λ = 3e
 the sweeps, beats `naive` by **4.27σ** on forgetting **and is not worse on accuracy** (+0.0049 ± 0.0053 = 0.91σ,
 where λ = 3e-3 costs **2.69σ** of it) **and improves both forgettable tasks**, where λ = 3e-3 at forty resolves
 at only 1.21σ and has its second task *worse*. **The λ axis is then a bracketed interior optimum** — +0.0750
-unpenalised, **+0.0396 at 3e-4**, +0.0654 at 3e-3, +0.0810 at 3e-2, +0.0846 at 3e-1 — with raising λ moving
+unpenalised, **+0.0396 at 3e-4**, +0.0654 at 3e-3, +0.0810 at 3e-2, +0.0846 at 3e-1 — **and `e152` shows the rise
+is not a trade: one step up the ladder from the optimum, 3e-4 → 3e-3, worsens *both* axes and both are resolved
+(forgetting +0.0258 at 3.74σ and the newest task's final accuracy −0.0229 at 2.97σ, the second quantity being the
+one a mean over the first `T − 1` tasks cannot contain), the next step again worsens the newest task at 2.84σ, and
+λ = 3e-2 and 3e-1 are each dominated by seven of the other eight arms in the plane. So 3e-4 is not merely the best
+point measured on the forgetting: **it is the largest λ at which the knob has not yet started to charge for
+itself**, and no constraint in this paper reaches the level `replay` reaches without a last-task price at all —
+`replay` is the only arm not dominated on either axis (2-axis and 3-axis), every other constrained arm paying
+between 2.08σ and 9.70σ on the newest task** —
+with raising λ moving
 adaptation out of `theta` and into the 800 offsets (**16.63σ** on the top contrast's bias path and **22.35σ** on
 θ's drift) while the forgetting *rises*: **the more movement the penalty displaces into the channel carrying the
 forgetting, the worse the forgetting**
