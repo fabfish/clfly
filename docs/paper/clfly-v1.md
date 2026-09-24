@@ -136,8 +136,14 @@ seeds, diagonal EWC's recurrent weights move **28% less** than naive's (`theta_d
 **25.24σ**) while its 800 offsets move **25% MORE** (`from_zero` 2.5027 against 2.0005, **9.48σ**), so
 constraining the weights by 28% buys nothing on the forgetting **because the adaptation moved to the channel
 carrying 70% of it**. A penalty that also covered the offsets would act on **100%** of the body rather than
-97.1% of it, which makes §8's bias-penalty arm a different method rather than a refinement of the λ sweep
-(`docs/findings/2026-09-24-the-penalty-relocates-the-adaptation.md`). **And it is replay's margin, not
+97.1% of it, which makes §8's bias-penalty arm a different method rather than a refinement of the λ sweep —
+**and it is one**: at forty paired seeds the same λ with the bias anchored takes the diagonal row from **1.21σ**
+to **4.84σ** against `naive` (+0.0292 against +0.0750), recovers **84.8%** of the free freeze's advantage, and
+costs *less* accuracy than the unanchored penalty does (0.9073 against 0.8856) — while carrying **more** of the
+interference term the account names, whose θ-only form is cut **9.8-fold** in the arm that works against
+**44.6-fold** in the arm that does not
+(`docs/findings/2026-09-24-the-penalty-relocates-the-adaptation.md`,
+`docs/findings/2026-09-24-the-arm-that-fixes-the-forgetting-has-more-interference.md`). **And it is replay's margin, not
 the penalties', that the channel was inflating.** Re-running the whole five-method table with the offsets frozen
 in **every** arm: the three Fisher penalties' contrasts against naive move by **0.42σ, 0.21σ and 0.48σ** —
 method-independent, exactly as the code predicts — while **replay's advantage over naive is cut by 66%, from
@@ -1508,6 +1514,21 @@ replicates 6–40, ranks 10, 6, 9, 1, 16 among the forty; 11,952 of 658,008 five
 favourable), which is a draw five replicates cannot rule out
 (`docs/findings/2026-09-24-diagonal-ewc-does-not-survive-its-own-configuration.md`).
 
+**And that row's failure is a statement about 97.1% of the parameters, which is now measured.** `train_task`
+optimises `theta` **and** the 800 offsets, and every penalty in this paper is a sum over `theta`, so the same λ on
+the same seeds leaves the offsets free. **Putting them inside the penalty resolves the row**: at forty paired
+seeds the diagonal with the bias anchored is **+0.0352** at per-parameter parity and **+0.0292** at equal total
+mass, against `naive`'s +0.0750 — **−0.0458 ± 0.0095 = 4.84σ**, where the unanchored rule is 1.21σ — and it
+recovers **84.8%** of the gap between the unanchored penalty and the free freeze's +0.0227, at an accuracy of
+**0.9073** rather than the 0.8856 the unanchored penalty costs. **So the difference between *"diagonal EWC does
+not resolve here"* and *"it resolves at 4.84σ"* is a channel this paper's formulation of the penalty does not
+cover** — and it is not a hyper-parameter, because a λ sweep presses the same 97.1% harder while `e137` measures
+the adaptation escaping into the 2.9%. **The arm that works also carries *more* of the interference term the
+account names**: its θ-only first-order term is cut **9.8-fold** where the unanchored arm's is cut **44.6-fold**,
+and across the two arms it is **2.69σ above** the unanchored one's with its cosine **4.46σ above** — on the same
+seeds, in the arm with **4.03σ less** forgetting
+(`docs/findings/2026-09-24-the-arm-that-fixes-the-forgetting-has-more-interference.md`).
+
 **And the `--frozen-body` control this section leans on is in no artifact either** — see below, and
 `docs/findings/2026-09-23-the-frozen-body-control-is-in-no-artifact.md` §1.
 
@@ -2283,7 +2304,18 @@ why no shared rule was available and each line needed its own check.
    same plastic weights" now has to mean**: 70% of this benchmark's forgetting is carried by 800 per-neuron
    offsets rather than by the 26,568 masked weights, so a *harder* benchmark is one where the **structured**
    channel is the only one available — either by freezing the offsets, or by a task family whose solution
-   genuinely requires routing through the wiring.
+   genuinely requires routing through the wiring. **The first route is now measured and it works, at a cost that
+   says what the second would be worth**: anchoring the offsets inside the penalty takes the diagonal row from
+   **1.21σ** to **4.84σ** against `naive` at forty replicates and recovers 84.8% of the free freeze's advantage,
+   at an accuracy of 0.9073 — so covering the channel is a real route, and it *changes the model* rather than the
+   task. **The second route's first measurement is in, and it is a benchmark whose tasks share their input
+   population**: the same 80 neurons driven with three class templates, at a read-out narrow enough that the
+   recurrent weights are load-bearing, raise the forgetting by **42%** (+0.0750 → +0.1068, 29/40 positive, sign
+   test p = 0.0064) **with learnability untouched** (diagonal 0.9682/0.9547/0.9724 against the disjoint family's
+   0.9682/0.9526/0.9667) at a cost of 2.7σ of final accuracy — **a harder benchmark rather than an impossible
+   one**, which is what this item asked for; and the registered 3σ bar for that claim was missed by **0.01σ**,
+   which is a statement about the bar rather than about the effect
+   (`docs/findings/2026-09-24-at-the-registration-s-resolution-limit.md`).
 5. **Report retention in loss as well as in accuracy — and note that this was measured on 2026-09-24 and the
    answer is no.** The runner records `retention_loss[k][j]`, the full-train-set loss on task *j* at checkpoint
    *k*, which is also how `e122`'s chords are validated. It is a continuous quantity where the reported metric
@@ -2307,7 +2339,13 @@ why no shared rule was available and each line needed its own check.
    run rather than an assumption, because read-out 32 is the configuration **chosen to maximise** the chance of
    seeing it, so a bias effect at 128 or 1307 would be a new claim fitted to new data while an **ordering**
    across the axis is one the load-bearing gaps already license (`e134`). Deterministic seeds and a
-   connectome-constrained mask make both cheap.
+   connectome-constrained mask make both cheap. **And (a) has now been run, and the channel was not merely
+   unconstrained but load-bearing for the penalty's verdict**: at forty paired seeds the bias-anchored penalty is
+   **+0.0292** against `naive`'s +0.0750 — **4.84σ**, where the unanchored rule on the same seeds is **1.21σ** —
+   and its manipulation check *passes by ordering while resolving only at the strong scale* (the bias's own
+   cumulative movement falls 1.19σ at per-parameter parity and **12.78σ** at equal total mass), so a penalty
+   that names a channel can move the effect while moving the named quantity weakly
+   (`docs/findings/2026-09-24-the-arm-that-fixes-the-forgetting-has-more-interference.md`).
 
 ## 9. Reproducibility
 
