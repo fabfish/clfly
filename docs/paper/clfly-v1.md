@@ -914,7 +914,14 @@ smaller and below every point any sweep in this paper tried, resolves at −0.03
 statement about a grid whose floor was the optimum it found**, and the relocation into the 800 offsets is present
 even at the weak end — the bias's cumulative path is **4.21σ** above `naive`'s there — so weakening λ reduces the
 forgetting without removing the substitution
-(`docs/findings/2026-09-24-the-lambda-sweeps-floor-is-where-the-effect-is.md`). At 128 Fisher batches the biological block
+(`docs/findings/2026-09-24-the-lambda-sweeps-floor-is-where-the-effect-is.md`). **And with λ = 3e-2 measured the
+optimum is an interior one**: the forgetting reads **+0.0750** unpenalised, **+0.0396** at 3e-4, **+0.0654** at
+3e-3 and **+0.0810** at 3e-2 — where 3e-2 is **no better than `naive`** (0.58σ, nominally worse) and its accuracy
+is **8.33σ** below it. **Along this axis the forgetting co-moves with the movement the penalty displaces into the
+offsets**: the bias's cumulative path and the forgetting rise together (3.6835 → 0.0396, 4.2819 → 0.0654,
+5.4367 → 0.0810) while θ's drift falls the other way, at **14.30σ** and **15.17σ** on the top contrast — so
+raising λ moves adaptation out of `theta` and into the 800 offsets, and **the more it moves, the worse the
+forgetting**. At 128 Fisher batches the biological block
 forgets **+0.0104 ± 0.0132 against `naive`'s +0.0729 ± 0.0151 (−3.12σ)** at **0.950 accuracy against 0.914**;
 at the *same* batch count the **size-matched random control of the same synapses** reaches **−2.60σ against
 the same baseline, at 0.9431 accuracy**. So what resolves at this λ is *partitioning the synapses coarsely at
