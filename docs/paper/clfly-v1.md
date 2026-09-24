@@ -106,7 +106,16 @@ control draws — the amendment this session's own draw-sd measurement forced �
 falsifier (within 2σ of zero) firing. **And the same family reverses the *granularity* half of the claim**: the
 plain diagonal beats `naive` at **4.73σ** there against **1.21σ** on the base family at the same forty replicates,
 and it beats both block arms, so **the coarser partition is not even the better granularity where the forgetting
-is in the channel it covers**. *It is
+is in the channel it covers**. **That null now has three independent supports**: the shared-input family's
+three-draw contrast **0.99σ**, the base family's **1.33σ** — whose single-draw 2.08σ was one sample of a control
+whose own spread is **sd 0.0096** — and **the same five-method table re-run with the unpenalised channel frozen in
+every arm**, where the contrast is **−0.0029 ± 0.0029 = 0.98σ** in a design that redraws no partition at all.
+**And the method comparison is conditional in a way that matters for practice**: with that channel removed from
+every arm the ordering **inverts** — the plain diagonal **−0.0021** first and `replay` **+0.0018** second, with
+`ewc − replay` at **1.04σ** where it is **9.40σ** with the channel free — **while `replay` is the only method
+whose last-task accuracy is untouched** (**0.79σ**, against **2.08σ to 12.06σ** for eleven of the thirteen
+constrained arms). So *"replay is the stronger method"* is a statement about a baseline that is allowed a channel
+no penalty covers, and the price a constraint pays is on the axis no forgetting table shows. *It is
 **not** the rung where the neuron-level result is largest, as this parenthetical said until 2026-09-23:
 measured on the neuron substrate, `side` carries the largest advantage (**−0.00480** expected-error excess
 against its control) and `cell_class` is **second of five** at −0.00307, with `cell_type` the only rung where

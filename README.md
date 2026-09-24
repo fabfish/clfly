@@ -48,7 +48,10 @@ that make the answer mean something.
 ## Status
 
 The scientific programme is complete. A working paper draft consolidating it is in
-**`docs/paper/clfly-v1.md`**; the dated experiment logs are in `docs/findings/`.
+**`docs/paper/clfly-v1.md`**; the dated experiment logs are in `docs/findings/`; and the
+**research plan (`docs/research_plan.md`) is the entry point for a reader who wants the current state
+of each claim** — its C2b section opens with a dated status block, and its measurement rules
+(1–42) are the methodological results in executable form.
 
 | Phase | What | State |
 |---|---|---|
@@ -62,6 +65,7 @@ The scientific programme is complete. A working paper draft consolidating it is 
 | 4c | `e5`/`e6` anisotropy axis, predictor development and out-of-sample validation | done |
 | 4d | `e7` pairwise interference prior | done |
 | 4e | `e8` rate-network benchmark, frozen-body diagnosis, all methods tuned | done |
+| 4e-i | the read-out-32 line: forty paired replicates per arm, three-draw controls, the interference instrument, the interaction 2x2s, and the metric's structure | done — see `docs/research_plan.md`'s C2b status block |
 | 4f | `e3 --ladder` granularity sweep: 7/8 rungs resolve at 4–9σ once the control is averaged; curve shape unresolved | done |
 | 5 | write-up | draft v1 |
 
@@ -108,18 +112,24 @@ The scientific programme is complete. A working paper draft consolidating it is 
   included (see above), that holds at **12 of 12** even if the fine columns' draw sd is four
   times the estimate, with the sign record perfect at any multiplier from 0.1× to 10×. A predictor that merely recovered
   *granularity* would score 0/25, since matched pairs share it exactly.
-- **On a trained rate network the question reverses.** At `cell_class` (the second-coarsest of the
-  five annotation rungs, 0.925 constrained) the biological synapse partition is **worse** than a
-  size-matched random one: −0.0648 accuracy at **2.65σ** and +0.0903 forgetting at **2.73σ**,
-  *paired on the shared seeds*, in all three replicates. At the coarsest rung `side` (0.6947) — the
-  one the neuron result most implicates — the negative holds too (0.43σ paired), though that run is
-  underpowered for effects below 0.09 accuracy and its λ was never set. On that substrate EWC helps only
-  when the read-out is narrow
-  enough to make the plastic weights load-bearing; and **replay is the stronger method
-  in every setting** (2.2–4.2σ), with forgetting driven to zero or below. That confirms
-  the theory's prediction that content memory dominates regularisation in this
-  partially-observed regime — and it required tuning replay's parameters, which had been
-  fixed at the worst reasonable value for eight consecutive experiments.
+- **On a trained rate network the question has a null answer, and getting there took three attempts.** The
+  published negative rests on `cell_class` (0.925 constrained) at **three** replicates, where the biological
+  synapse partition looked **worse** than its size-matched random control (−0.0648 accuracy at 2.65σ); **that
+  reading is withdrawn** — at the **sixteen** replicates the variance budget asks for, the same configuration
+  gives **+0.0039 ± 0.0161 (0.24σ)** with a detection floor of 0.032, because the first three seeds were the
+  three most negative of sixteen. The coarse rung `side` was re-measured at the same power (`side − cell_class`
+  = −0.0191 ± 0.0216 on accuracy, +0.0352 ± 0.0291 on forgetting): **a null on both metrics**, and *being
+  well-powered* is what makes it a stronger negative than the reversal it replaced. At forty paired replicates on
+  the read-out-32 line the null now has **three independent supports** — the base family's three-draw contrast
+  **−0.0099 = 1.33σ** (whose single-draw 2.08σ was one sample of a control with **sd 0.0096**), the shared-input
+  family's **0.99σ**, and the same five-method table re-run with the unpenalised channel frozen in **every** arm
+  (**−0.0029 ± 0.0029 = 0.98σ**, redrawing no partition). **And the method comparison is conditional**: with that
+  channel removed the ordering **inverts** (the plain diagonal **−0.0021** first, `replay` **+0.0018** second,
+  `ewc − replay` **1.04σ** where it is **9.40σ** with the channel free), while `replay` is the only method whose
+  last-task accuracy is untouched (**0.79σ**, against **2.08σ–12.06σ** for eleven of thirteen constrained arms).
+  So *"replay is the stronger method"* describes a baseline allowed a channel no penalty covers — and the price a
+  constraint pays is on an axis no forgetting table prints (`docs/findings/2026-09-24-with-the-channel-frozen-in-every-arm-the-order-inverts.md`,
+  `docs/findings/2026-09-24-the-aggregate-hides-the-diagonal-and-the-last-task-pays.md`).
 
 ### Methodological results, which may outlast the findings
 
