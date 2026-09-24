@@ -135,3 +135,30 @@ dose is exactly proportional to the iteration count in between.
 and the gain with it at 3.57σ, on a knob whose impurity is the Fisher alone. What this unit adds to that section is
 that **the alternative explanations are bounded rather than excluded, and that the design which would exclude them
 is now built** — `e175` is running, and `e176` reads it.
+
+## 5. `e175`'s reference arm, read: the new flags are numerically transparent
+
+The reference run landed first, so P0 — the free control on `--save-fisher` — can be read before the pair is
+complete:
+
+| control | required | measured |
+|---|---|---|
+| the reference's `naive` against `e133_r32_naive_ewc_40reps` | bit-identical | **BIT-IDENTICAL** |
+| the reference's `ewc` against `e141_r32_ewc_lam3e-4` | bit-identical | **BIT-IDENTICAL** |
+
+**Three things follow, and the second and third are not about the flags at all.**
+
+1. **`--save-fisher` does not touch the arithmetic.** It collects the penalty's inputs and writes them, and the
+   numbers are the same as the two artifacts that ran without it — which is the strongest available form of the
+   claim, because it is *identity* rather than equality within a tolerance.
+2. **It is the third independent instance of "arms are independent of the methods list"** — `e141` carries one arm
+   and the reference carries two, and the shared one is bit-identical (the `e133`/`e140` twin was the first, the
+   wiring family's two 40-replicate tables the second). That property is what lets a two-arm run be compared with
+   a one-arm run at all, and it now has three artifacts behind it.
+3. **The audit finds the new artifact without being told.** `e103`'s cross-signature check reports **55 pairs**
+   involving `e175_r32_ref_noise1.0`, every one `exact` with movement **0.0** — including the `naive` arms of
+   `e116`, `e125` and `e133`, i.e. the equivalence class of arms that cannot read `lam`. That check exists to find
+   hand-established controls implicitly, and this is the fourth time it has done so.
+
+**P1 and P2 wait on the shared arm**, which is running: the load path is exercised only there, so the pair's
+second half is also the only test of `--fisher-from` end to end.
