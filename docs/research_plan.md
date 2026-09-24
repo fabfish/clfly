@@ -1745,6 +1745,22 @@ about (`docs/findings/2026-09-23-the-last-two-unaudited-sections-were-clean.md`)
     the same evidential standard as the effect* — arriving on the **threshold** rather than on the cost
     (`docs/findings/2026-09-24-at-the-registration-s-resolution-limit.md`).
 
+38. **A conclusion drawn from the endpoint of a range is a statement about the range.** Three instances, and the
+    repair is the same each time. **(a)** The λ sweeps stopped at **0.003** and the project recorded *"0.003 is the
+    only useful setting"* — and λ = **3e-4**, five times below every point ever tried, **wins on both metrics**
+    (4.27σ over `naive` with accuracy *not* worse, where 3e-3 at forty is 1.21σ and costs 2.69σ of accuracy), so
+    the sentence was about a grid whose **floor was the optimum it found**. **(b)** A **cost** range put the rung
+    question at 0.9–12 h and its upper end was the one rung *still finishing*, so the range made the question look
+    roughly four times cheaper at its low end than the measurements supported. **(c)** The **read-out** axis has an
+    **interior minimum** which only appeared when the axis was extended past the sizes the first sweeps used.
+    **So a sweep's endpoints are part of its result**: when the optimum sits at or beyond one, the licensed
+    sentence is *"the best point measured"*, and the repair is either to extend the range or to say plainly that
+    the optimum is **unbracketed** — which is what today's λ result says from the other side, since an interior
+    optimum found afterwards means the first sweep's endpoints were **both** wrong
+    (`docs/findings/2026-09-24-the-lambda-sweeps-floor-is-where-the-effect-is.md`,
+    `docs/findings/2026-09-23-the-cost-range-excluded-the-expensive-rung.md`,
+    `docs/findings/2026-09-23-the-read-out-axis-has-an-interior-minimum.md`).
+
 ## Related work to differentiate against
 
 Four papers are close enough to require explicit positioning — all use fly
