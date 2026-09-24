@@ -126,10 +126,11 @@ even there** (diagonal EWC **−0.0096 ± 0.0080 = 1.21σ** against naive at for
 2.47σ, because it *redistributes* forgetting between tasks: task 0 improves at **3.79σ** while task 1
 degrades **— and `e151`'s per-task audit of every forty-replicate contrast in the record adds the half no printed
 number covers: the same arm is **6.63σ below `naive`** on the *newest* task's final accuracy, which
-`mean_forgetting` — a mean over the first `T − 1` tasks — cannot contain by construction. Ten of the twelve
-distinct constrained arms pay a resolved cost there (2.08σ to 9.70σ, and **12.06σ** for the arm §4.7's second
-freeze experiment added afterwards); the one arm in the record that is not a
-constraint, `replay`, pays **0.79σ**, so its advantage is bought with no measurable last-task cost)** — and replay
+`mean_forgetting` — a mean over the first `T − 1` tasks — cannot contain by construction. Eleven of the thirteen
+distinct constrained arms pay a resolved cost there (**2.08σ to 12.06σ**), the two exceptions being **both
+`block` partitions**; the one arm in the record that is not a
+constraint, `replay`, pays **0.79σ** on the base family and **1.12σ** on the shared-input family, so its advantage
+is bought with no measurable last-task cost on either)** — and replay
 — content memory — is the stronger
 method in every setting, with forgetting driven to **zero or below**: at its tuned configuration, a
 contrast of **−0.0854 ± 0.0129 = 6.6σ** against naive, which is a number the project had to *recreate* —
@@ -2526,12 +2527,13 @@ why no shared rule was available and each line needed its own check.
 
 7. **Report the newest task's accuracy beside every forgetting number, because the aggregate cannot show what the
    constraints cost.** `mean_forgetting` is a mean over the first `T − 1` tasks, so the final accuracy on the task
-   **no forgetting term covers** is invisible to every method table in this paper — and the audit of all **22**
-   forty-replicate contrasts (`e151`) shows what that hides: of the **twelve** distinct constrained arms, **ten pay
-   a resolved cost there, from 2.08σ to 9.70σ** (λ = 3e-3 6.63σ, λ = 3e-2 9.45σ, anchored 1.0 9.70σ, the freeze
-   4.42σ, the frozen-plus-penalised pair 6.49σ against the freeze and 9.16σ against `naive`; **and 12.06σ for the
-   same pair at λ = 3e-3, which landed afterwards**), **while `replay` —
-   the one arm in the record that is not a constraint — pays 0.79σ**. Placing the same nine arms in the two-axis
+   **no forgetting term covers** is invisible to every method table in this paper — and the audit of all **27**
+   forty-replicate contrasts (`e151`) shows what that hides: of the **thirteen** distinct constrained arms, **eleven
+   pay a resolved cost there, from 2.08σ to 12.06σ** (λ = 3e-3 6.63σ, λ = 3e-2 9.45σ, anchored 1.0 9.70σ, the
+   freeze 4.42σ, the frozen-plus-penalised pair 6.49σ against the freeze and 9.16σ against `naive` at λ = 3e-4 and
+   **12.06σ at λ = 3e-3**), the two exceptions being **both `block` partitions**, **while `replay` —
+   the one arm in the record that is not a constraint — pays 0.79σ** on the base family and **1.12σ** on the
+   shared-input family. Placing the same ten arms in the two-axis
    plane (`e152`) makes the consequence concrete: the λ ladder's first step above its optimum **worsens both axes
    and both are resolved** (forgetting **+0.0258 at 3.74σ**, newest-task accuracy **−0.0229 at 2.97σ**), so
    λ = 3e-4 is not merely the best point measured on the forgetting but **the largest λ at which the knob has not
@@ -2567,8 +2569,8 @@ artifact as well, so the command's output can be checked rather than assumed.
 | §4.7 — **the λ axis below the swept range**, forty replicates | the same command with `--methods ewc --lam {3e-4,3e-2,3e-1}`; the **λ = 3e-3 anchor is `e133`'s `ewc` arm** | `runs/e141_r32_ewc_lam3e-4.json`, `runs/e141_r32_ewc_lam3e-2.json`, `runs/e141_r32_ewc_lam3e-1.json` |
 | §8 item 4 — **the harder family**, forty replicates | the same command with `--input-overlap 1.0 --methods naive`, adding `--frozen-body` and `--frozen-bias` for the two diagnostics | `runs/e142_r32_overlap1.json`, `runs/e142_r32_overlap1_frozen.json`, `runs/e143_r32_overlap1_frozenbias.json` |
 | §4.7 — **the harder family's four-method table**, and the three-draw control its central contrast is read against | the same command with `--input-overlap 1.0 --methods naive,ewc,ewc-block,ewc-block-rand`, and `--methods ewc-block-rand --partition-seed {1,2}` for the two extra draws | `runs/e144_r32_overlap1_methods_40reps.json`, `runs/e144_r32_overlap1_rand_draw{1,2}.json`; the analysis is `python -m experiments.e144_basis_harder_family` |
-| §4.2 — **the per-task decomposition of every forty-replicate contrast in the record**, including the newest task's accuracy that `mean_forgetting` cannot contain | `python -m experiments.e151_pertask_contrast_audit --json-out runs/e151_pertask_audit.json` — an audit: it reads artifacts and runs nothing, and its registry of 22 contrasts is the list of what it covers | `runs/e151_pertask_audit.json`, over the 22 arms it names |
-| §4.7 — **the two-axis plane and the dominance frontier over the λ ladder** | `python -m experiments.e152_stability_plasticity_trade --json-out runs/e152_trade.json` — analysis only, over the same nine arms | `runs/e152_trade.json` |
+| §4.2 — **the per-task decomposition of every forty-replicate contrast in the record**, including the newest task's accuracy that `mean_forgetting` cannot contain | `python -m experiments.e151_pertask_contrast_audit --json-out runs/e151_pertask_audit.json` — an audit: it reads artifacts and runs nothing, and its registry is the list of what it covers. **Its registry was extended on 2026-09-24 from 22 contrasts to 27 when the arms that landed that evening were added**, which is why the counts in §4.2 and §8 are the extended ones | `runs/e151_pertask_audit.json`, over the 27 arms it names |
+| §4.7 — **the two-axis plane and the dominance frontier over the λ ladder**, and the same plane on the shared-input family | `python -m experiments.e152_stability_plasticity_trade --json-out runs/e152_trade.json` — analysis only. **Extended on 2026-09-24: the base plane holds ten arms and a second five-arm plane on the shared-input family was added** | `runs/e152_trade.json` |
 | §6 | `python -m clfly.lgcl.repro`, `pytest -q` | — |
 
 The connectome data is not redistributed; `python -m clfly.connectome.fetch` clones it

@@ -82,5 +82,14 @@ def test_a_step_is_its_own_paired_contrast_and_not_a_difference_of_sigmas():
 def test_the_registry_resolves_and_the_reference_is_on_disk():
     from pathlib import Path
     missing = [c[0] for c in e152.ARMS if not Path(c[1]).is_file()] + \
-              ([e152.REFERENCE[0]] if not Path(e152.REFERENCE[1]).is_file() else [])
+              [c[0] for c in e152.WIRING_ARMS if not Path(c[1]).is_file()] + \
+              [n for n in (e152.REFERENCE[0], e152.WIRING_REFERENCE[0])
+               if not Path(e152.REFERENCE[1] if n == e152.REFERENCE[0] else e152.WIRING_REFERENCE[1]).is_file()]
     assert missing == [], f"the registry names artifacts that are not on disk: {missing}"
+
+
+def test_the_two_planes_are_separate_registries_against_separate_baselines():
+    """The shared-input plane must be its own reference: contrasting it against the base `naive` would be wrong."""
+    assert e152.REFERENCE[1] != e152.WIRING_REFERENCE[1]
+    assert {a[0] for a in e152.ARMS}.isdisjoint({a[0] for a in e152.WIRING_ARMS})
+    assert e152.WIRING_REFERENCE[1] == "runs/e144_r32_overlap1_methods_40reps.json"

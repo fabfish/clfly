@@ -94,6 +94,17 @@ CONTRASTS: tuple[tuple[str, str, str, str, str], ...] = (
      "runs/e144_r32_overlap1_methods_40reps.json", "naive"),
     ("e144: block - block-rand (wiring)", "runs/e144_r32_overlap1_methods_40reps.json", "ewc-block",
      "runs/e144_r32_overlap1_methods_40reps.json", "ewc-block-rand"),
+    # added when the arms landed: `e148`'s replay row on the wiring family, and `e147`'s second lambda
+    ("e148: replay - naive (wiring)", "runs/e148_r32_overlap1_replay.json", "replay",
+     "runs/e144_r32_overlap1_methods_40reps.json", "naive"),
+    ("e148: replay - ewc (wiring)", "runs/e148_r32_overlap1_replay.json", "replay",
+     "runs/e144_r32_overlap1_methods_40reps.json", "ewc"),
+    ("e147: frozen+ewc 3e-3 - freeze", "runs/e147_r32_frozenbias_ewc_lam3e-3.json", "ewc",
+     "runs/e125_r32_frozenbias.json", "naive"),
+    ("e147: frozen+ewc 3e-3 - naive", "runs/e147_r32_frozenbias_ewc_lam3e-3.json", "ewc",
+     "runs/e133_r32_naive_ewc_40reps.json", "naive"),
+    ("e147: frozen+ewc 3e-4 - 3e-3", "runs/e147_r32_frozenbias_ewc_lam3e-4.json", "ewc",
+     "runs/e147_r32_frozenbias_ewc_lam3e-3.json", "ewc"),
 )
 
 
@@ -165,7 +176,14 @@ def audit(contrasts=CONTRASTS) -> dict:
     counts: dict[str, int] = {}
     for r in rows:
         counts[r["label_class"]] = counts.get(r["label_class"], 0) + 1
-    return {"rows": rows, "missing": missing, "counts": counts, "n_contrasts": len(rows)}
+    # The third counting dimension: a row whose FORGETTING resolves nowhere while the newest task's accuracy
+    # does. The label is a rule over the aggregate and its two terms, so it is silent about that column by
+    # construction -- and a reader who took "null" for "no effect" would be wrong about these rows.
+    newest_only = [{"label": r["label"], "newest_change": r["newest_retention"]["change"],
+                    "newest_sigma": r["newest_retention"]["sigma"]}
+                   for r in rows if r["label_class"] == "null" and r["newest_retention"]["sigma"] >= RESOLVED]
+    return {"rows": rows, "missing": missing, "counts": counts, "n_contrasts": len(rows),
+            "null_forgetting_but_resolved_newest": newest_only}
 
 
 def main() -> int:
@@ -188,6 +206,11 @@ def main() -> int:
         rows = [r for r in res["rows"] if r["label_class"] == want]
         if rows:
             print(f"   {want}: " + "; ".join(r["label"] for r in rows))
+    if res["null_forgetting_but_resolved_newest"]:
+        print(f"   neither term nor aggregate resolves, but the NEWEST task does "
+              f"({len(res['null_forgetting_but_resolved_newest'])} rows -- the third dimension):")
+        for r in res["null_forgetting_but_resolved_newest"]:
+            print(f"      {r['label']:<40} newest {r['newest_change']:+.4f} ({r['newest_sigma']:.2f}s)")
     for m in res["missing"]:
         print(f"   MISSING {m['label']}: {m['a']} present={m['a_present']} / {m['b']} present={m['b_present']}")
     if args.json_out:

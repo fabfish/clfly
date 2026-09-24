@@ -48,10 +48,24 @@ ARMS: tuple[tuple[str, str, str, str], ...] = (
     ("anchored 33.2", "runs/e138_r32_ewc_anchorbias33.json", "ewc", "the coverage route, strong scale"),
     ("frozen offsets", "runs/e125_r32_frozenbias.json", "naive", "the free constraint"),
     ("frozen+ewc 3e-4", "runs/e147_r32_frozenbias_ewc_lam3e-4.json", "ewc", "the pair"),
+    ("frozen+ewc 3e-3", "runs/e147_r32_frozenbias_ewc_lam3e-3.json", "ewc",
+     "the pair at the other lambda, added when it landed"),
     ("replay", "runs/e140_r32_methods_plastic_40reps.json", "replay", "not a constraint"),
 )
 #: the one-dimensional knob, in order -- the step test walks this
 LAMBDA_LADDER = ("ewc lam 3e-4", "ewc lam 3e-3", "ewc lam 3e-2", "ewc lam 3e-1")
+
+#: the same plane on the **harder family**, whose baseline forgets 42% more. Added when `e148` landed, so that
+#: the frontier is a cross-family statement rather than one family's. Its reference is that family's own `naive`.
+WIRING_ARMS: tuple[tuple[str, str, str, str], ...] = (
+    ("ewc (wiring)", "runs/e144_r32_overlap1_methods_40reps.json", "ewc", "the diagonal, this family's best penalty"),
+    ("block (wiring)", "runs/e144_r32_overlap1_methods_40reps.json", "ewc-block", "the coarser partition"),
+    ("block-rand (wiring)", "runs/e144_r32_overlap1_methods_40reps.json", "ewc-block-rand",
+     "its group-size-matched control, draw 0"),
+    ("frozen offsets (wiring)", "runs/e143_r32_overlap1_frozenbias.json", "naive", "the free constraint"),
+    ("replay (wiring)", "runs/e148_r32_overlap1_replay.json", "replay", "not a constraint"),
+)
+WIRING_REFERENCE = ("naive (wiring)", "runs/e144_r32_overlap1_methods_40reps.json", "naive")
 
 
 def plane(arms: dict[str, dict], ref: dict) -> dict:
@@ -178,9 +192,41 @@ def main() -> int:
               f"({s['forgetting_sigma']:.2f}s)   newest {s['newest_change']:+.4f} ({s['newest_sigma']:.2f}s)   "
               f"both worse: {s['both_worse']}   both resolved: {s['both_resolved']}")
 
+    print("\n== the same plane on the harder family, whose baseline forgets 42% more ==")
+    wiring, missing_w = {}, []
+    for label, path, method, note in WIRING_ARMS:
+        a = load_arm(Path(path), method)
+        if a is None:
+            missing_w.append(f"{label} <- {path} [{method}]")
+        wiring[label] = a
+    ref_w = load_arm(Path(WIRING_REFERENCE[1]), WIRING_REFERENCE[2])
+    wiring_summary = None
+    if missing_w or ref_w is None:
+        print("   not printed: " + "; ".join(missing_w + ([] if ref_w else [WIRING_REFERENCE[0]])))
+    else:
+        pts_w = plane(wiring, ref_w)
+        print(f"   {'arm':<24}{'d_forgetting':>13}{'sigma':>7}{'d_newest':>11}{'sigma':>7}"
+              f"{'newest':>9}{'index':>8}")
+        for label, p in sorted(pts_w.items(), key=lambda kv: kv[1]["forgetting_change"]):
+            print(f"   {label:<24}{p['forgetting_change']:>+13.4f}{p['forgetting_sigma']:>7.2f}"
+                  f"{p['newest_change']:>+11.4f}{p['newest_sigma']:>7.2f}{p['newest_level']:>9.4f}"
+                  f"{p['efficiency']:>8.2f}")
+        fr_w = frontier(pts_w, wiring)
+        for label in sorted(pts_w, key=lambda k: len(fr_w["arms"][k]["dominated_by"])):
+            dom = fr_w["arms"][label]["dominated_by"]
+            print(f"   {label:<24} dominated by {len(dom):>2} arm(s)"
+                  + (" -- ON THE FRONTIER" if not dom else ""))
+            for k in dom:
+                e = fr_w["arms"][label]["evidence"][k]
+                print(f"       by {k:<22} forgetting {e['forgetting_sigma']:>5.2f}s  "
+                      f"newest {e['newest_sigma']:>5.2f}s   -> {e['grade']}")
+        wiring_summary = {"plane": pts_w, "frontier": fr_w}
+
     if args.json_out:
         write_json(args.json_out, {"reference": REFERENCE[0], "plane": pts,
-                                   "frontier": fr, "ladder_steps": ladder_steps(arms)})
+                                   "frontier": fr, "ladder_steps": ladder_steps(arms),
+                                   "wiring_reference": WIRING_REFERENCE[0],
+                                   "wiring": wiring_summary})
         print(f"\nwrote {args.json_out}")
     return 0
 
