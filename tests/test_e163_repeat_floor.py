@@ -1,0 +1,115 @@
+"""`e163`'s two products, on synthetic inputs: the re-execution command and the run-to-run floor.
+
+The floor is a *classification*, and its three cases are the whole content: same recorded environment (the floor
+itself), two recorded environments (a named cause), and no recorded environment (movement nothing explains). A
+version that pooled them would report the corpus's worst movement as `0.0396` without saying that it sits in runs
+that cannot say why -- which is the sentence this unit exists to prevent.
+
+`command_from_config` is tested for the `e153` defect specifically: it must emit a field even when that field
+equals the runner's default, because omitting `--lam` *is* λ = 1.0. The helper is the reason `e164`'s command could
+be derived rather than paraphrased.
+"""
+
+from __future__ import annotations
+
+import pytest
+
+from experiments import e163_repeat_floor as e163
+
+
+def group(runs, names, environments, arms, differing=(), subgroups=()):
+    """One `group_repeats` record, with only the fields `floor` reads."""
+    return {"runs": runs, "names": list(names), "environments": environments,
+            "subgroups": list(subgroups),
+            "arms": {m: {"present": True, "movement_forgetting": v[0], "movement_accuracy": v[1],
+                         "exact": m not in differing} for m, v in arms.items()},
+            "arms_identical": sorted(m for m in arms if m not in differing),
+            "arms_differing": sorted(differing)}
+
+
+def subgroup(runs, environments, arms):
+    """One `group_repeats` subgroup record -- a slice of a multi-environment group."""
+    return {"environment": environments, "runs": runs, "names": [f"s{i}.json" for i in range(runs)],
+            "arms": {m: {"present": True, "movement_forgetting": v[0], "movement_accuracy": v[1]}
+                     for m, v in arms.items()}}
+
+
+RECORDED = '{"omp_num_threads": "unset", "torch_num_threads": 20}'
+OTHER = '{"omp_num_threads": "1", "torch_num_threads": 20}'
+
+
+def test_a_field_is_emitted_even_when_it_equals_the_runners_default():
+    """The `e153` defect: the runner's default λ is 1.0, so an omitted `--lam` is not "the default", it is 1.0."""
+    cfg = {"lam": 1.0, "repeats": 40, "methods": "naive,ewc"}
+    parts = e163.command_from_config(cfg)
+    assert "--lam" in parts and parts[parts.index("--lam") + 1] == "1.0"
+    assert parts[parts.index("--repeats") + 1] == "40"
+    # every non-boolean, non-json_out key appears
+    for key, flag in (("lam", "--lam"), ("repeats", "--repeats"), ("methods", "--methods")):
+        assert flag in parts
+
+
+def test_an_unmapped_config_key_is_refused_rather_than_left_to_the_default():
+    with pytest.raises(ValueError, match="maps to no runner flag"):
+        e163.command_from_config({"lam": 0.003, "mystery_knob": 7})
+
+
+def test_store_true_flags_are_read_in_the_direction_of_their_own_default():
+    # default False: omitting it is faithful, so False emits nothing
+    assert "--frozen-body" not in e163.command_from_config({"frozen_body": False})
+    assert "--frozen-body" in e163.command_from_config({"frozen_body": True})
+    # default True with no negative form: a recorded False cannot be reproduced at all
+    with pytest.raises(ValueError, match="no command-line form"):
+        e163.command_from_config({"normalise_fisher": False})
+    assert "--normalise-fisher" in e163.command_from_config({"normalise_fisher": True})
+
+
+def test_the_output_path_is_replaced_rather_than_reproduced():
+    parts = e163.command_from_config({"lam": 0.003, "json_out": "runs/old.json"}, json_out="runs/new.json")
+    assert "runs/old.json" not in parts
+    assert parts[parts.index("--json-out") + 1] == "runs/new.json"
+
+
+def test_the_floor_separates_a_named_cause_from_an_unattributable_move():
+    groups = [
+        group(7, ["a.json"] * 7, {RECORDED: 7}, {"naive": (0.0, 0.0)}),
+        group(2, ["b.json", "c.json"], {RECORDED: 1, OTHER: 1},
+              {"replay": (0.0208, 0.0139)}, differing=("replay",),
+              subgroups=(subgroup(1, RECORDED, {"replay": (0.0, 0.0)}),
+                         subgroup(1, OTHER, {"replay": (0.0, 0.0)}))),
+        group(2, ["d.json", "e.json"], {"unrecorded": 2},
+              {"ewc-block": (0.0208, 0.0194)}, differing=("ewc-block",)),
+    ]
+    out = e163.floor(groups)
+    # the floor is the one-environment groups plus the *within-subgroup* movement of the two-environment one
+    assert out["floor_within_one_recorded_environment"]["worst_forgetting"] == 0.0
+    assert out["movement_across_recorded_environments"]["worst_forgetting"] == pytest.approx(0.0208)
+    assert out["movement_without_a_recorded_environment"]["worst_forgetting"] == pytest.approx(0.0208)
+    # "runs in a group that moved" counts the two-environment group as well: one of its two runs moved
+    assert out["runs_in_a_group_that_moved"] == 4
+    assert out["runs_in_one_recorded_environment"] == 7
+    assert out["moved_arms"] == {"ewc-block": pytest.approx(0.0208), "replay": pytest.approx(0.0208)}
+
+
+def test_a_within_subgroup_move_counts_against_the_floor_and_not_against_the_cause():
+    """A multi-environment group's *subgroups* are same-environment comparisons, so they belong in the floor."""
+    groups = [group(3, ["a.json", "b.json", "c.json"], {RECORDED: 2, OTHER: 1},
+                    {"replay": (0.0208, 0.0139)}, differing=("replay",),
+                    subgroups=(subgroup(2, RECORDED, {"replay": (0.0170, 0.0100)}),
+                               subgroup(1, OTHER, {"replay": (0.0, 0.0)})))]
+    out = e163.floor(groups)
+    assert out["floor_within_one_recorded_environment"]["worst_forgetting"] == pytest.approx(0.0170)
+    assert out["floor_within_one_recorded_environment"]["groups"] == 0     # no one-environment group here
+
+
+def test_the_floor_is_zero_only_over_groups_that_record_one_environment():
+    """A pooled floor would be the worst movement anywhere; the reported one must ignore the unattributable."""
+    groups = [
+        group(2, ["a.json", "b.json"], {RECORDED: 2}, {"ewc": (0.0, 0.0)}),
+        group(2, ["c.json", "d.json"], {"unrecorded": 2}, {"ewc": (0.0396, 0.0458)}, differing=("ewc",)),
+    ]
+    out = e163.floor(groups)
+    assert out["floor_within_one_recorded_environment"]["worst_forgetting"] == 0.0
+    assert out["movement_without_a_recorded_environment"]["worst_forgetting"] == pytest.approx(0.0396)
+    assert out["arms_identical"] == 1 and out["arms_compared"] == 2
+    assert out["groups_with_no_movement"] == 1
