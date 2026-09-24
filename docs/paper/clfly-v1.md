@@ -127,7 +127,8 @@ even there** (diagonal EWC **−0.0096 ± 0.0080 = 1.21σ** against naive at for
 degrades **— and `e151`'s per-task audit of every forty-replicate contrast in the record adds the half no printed
 number covers: the same arm is **6.63σ below `naive`** on the *newest* task's final accuracy, which
 `mean_forgetting` — a mean over the first `T − 1` tasks — cannot contain by construction. Ten of the twelve
-distinct constrained arms pay a resolved cost there (2.08σ to 9.70σ); the one arm in the record that is not a
+distinct constrained arms pay a resolved cost there (2.08σ to 9.70σ, and **12.06σ** for the arm §4.7's second
+freeze experiment added afterwards); the one arm in the record that is not a
 constraint, `replay`, pays **0.79σ**, so its advantage is bought with no measurable last-task cost)** — and replay
 — content memory — is the stronger
 method in every setting, with forgetting driven to **zero or below**: at its tuned configuration, a
@@ -169,7 +170,8 @@ one a mean over the first `T − 1` tasks cannot contain), the next step again w
 point measured on the forgetting: **it is the largest λ at which the knob has not yet started to charge for
 itself**, and no constraint in this paper reaches the level `replay` reaches without a last-task price at all —
 `replay` is the only arm not dominated on either axis (2-axis and 3-axis), every other constrained arm paying
-between 2.08σ and 9.70σ on the newest task** —
+between 2.08σ and 9.70σ on the newest task** (**12.06σ** for the frozen-plus-penalised arm at λ = 3e-3, which
+landed after this measurement and is quantified below) —
 with raising λ moving
 adaptation out of `theta` and into the 800 offsets (**16.63σ** on the top contrast's bias path and **22.35σ** on
 θ's drift) while the forgetting *rises*: **the more movement the penalty displaces into the channel carrying the
@@ -2492,7 +2494,13 @@ why no shared rule was available and each line needed its own check.
    offsets *and* penalising the weights at **λ = 3e-4** reaches **+0.0026** — **8.61σ below `naive`** and
    **5.53σ below the freeze alone** — so **the freeze is not a bound on what a constraint on the channel can
    do**, and the two mechanisms are complementary rather than alternatives: the freeze removes the offsets'
-   adaptation, the penalty covers the weights, and either alone leaves most of the forgetting standing. So **(a)** a *penalty* on the bias — its own
+   adaptation, the penalty covers the weights, and either alone leaves most of the forgetting standing. **And the
+   pair's second λ settles what the penalty's *strength* is for once the channel is held still: at λ = 3e-3 the
+   same design reaches −0.0021, so the two λ are 1.46σ apart on forgetting (P1 of that registration fails and its
+   falsifier fires) while both sit 5.5σ and 5.9σ below the freeze — the penalty's presence matters enormously and
+   its strength does not — and with the channel frozen λ's only resolvable effect is on the other axis
+   (newest-task accuracy 0.9073 against 0.8750, 5.74σ). That arm also measures the record's best non-replay
+   forgetting, 0.30σ from `replay` and 12.47σ below it on the newest task** (`docs/findings/2026-09-24-under-the-freeze-lambda-does-not-matter-for-forgetting.md`). So **(a)** a *penalty* on the bias — its own
    diagonal Fisher, or simply a smaller learning rate for it — is the arm that would say whether the channel is
    harmful or merely unconstrained; and **(b)** the effect's **generality across read-outs** is a registered
    run rather than an assumption, because read-out 32 is the configuration **chosen to maximise** the chance of
@@ -2511,7 +2519,8 @@ why no shared rule was available and each line needed its own check.
    **no forgetting term covers** is invisible to every method table in this paper — and the audit of all **22**
    forty-replicate contrasts (`e151`) shows what that hides: of the **twelve** distinct constrained arms, **ten pay
    a resolved cost there, from 2.08σ to 9.70σ** (λ = 3e-3 6.63σ, λ = 3e-2 9.45σ, anchored 1.0 9.70σ, the freeze
-   4.42σ, the frozen-plus-penalised pair 6.49σ against the freeze and 9.16σ against `naive`), **while `replay` —
+   4.42σ, the frozen-plus-penalised pair 6.49σ against the freeze and 9.16σ against `naive`; **and 12.06σ for the
+   same pair at λ = 3e-3, which landed afterwards**), **while `replay` —
    the one arm in the record that is not a constraint — pays 0.79σ**. Placing the same nine arms in the two-axis
    plane (`e152`) makes the consequence concrete: the λ ladder's first step above its optimum **worsens both axes
    and both are resolved** (forgetting **+0.0258 at 3.74σ**, newest-task accuracy **−0.0229 at 2.97σ**), so

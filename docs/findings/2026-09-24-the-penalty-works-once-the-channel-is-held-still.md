@@ -69,7 +69,23 @@ the penalty.
   registration's three outcomes are therefore decided, in the same direction, by one arm; only the λ-against-λ
   clause remains.
 
-## 4. What this cannot settle
+## 4. The second arm landed, and the registered λ-against-λ contrast is decided
+
+| arm | forgetting | mean accuracy | newest-task accuracy |
+|---|---|---|---|
+| frozen + ewc, λ = 3e-4 | +0.0026 | 0.9271 | 0.9073 |
+| **frozen + ewc, λ = 3e-3** | **−0.0021** | 0.9102 | **0.8750** |
+| the freeze alone | +0.0227 | 0.9306 | 0.9401 |
+
+**P1 fails and the falsifier fires: the two λ are 1.46σ apart on forgetting** (+0.0047 ± 0.0032), five-fold apart
+in λ. **But the falsifier's *explanation* — *"with the channel frozen there is nothing left for λ to do"* — is
+refuted by the same arms**: both sit **5.5σ and 5.9σ below the freeze**, removing **88.5%** and **91%** of its
+residual. **So the penalty's presence matters enormously and its strength does not**, and with the channel held
+still λ's only resolvable effect is on the *other* axis (newest-task accuracy **5.74σ**, mean accuracy
+**6.08σ**). The full reading is in
+`docs/findings/2026-09-24-under-the-freeze-lambda-does-not-matter-for-forgetting.md`.
+
+## 5. What this cannot settle
 
 - **One read-out (32), one circuit, three tasks, and one λ for this arm**; the λ = 3e-3 arm will say whether the
   near-zero is a property of the *combination* or of this particular λ.
