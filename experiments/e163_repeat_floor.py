@@ -57,38 +57,39 @@ DEFAULT_TRUE = {"normalise_fisher"}
 
 RUNNER = "experiments/e8_rate_network.py"
 
-#: **the runners whose commands can be derived, and the flag each `config` key belongs to.** Only the training
-#: runner was mapped when this helper was written, and the analytic line's flags were therefore written out by
-#: hand -- which is rule 44's failure mode with a smaller blast radius: a hand-written command is a paraphrase, and
-#: a paraphrase is where `e153` lost `--lam`. `e3_basis_selection` computes the LGCL effect size without training
-#: and produced this project's ladder comparisons, so it is the second runner that needed one.
-RUNNERS = {
-    "e8": ("experiments/e8_rate_network.py", None),          # None = the FLAGS map below
-    "e3": ("experiments/e3_basis_selection.py", {
-        "circuit_size": "--circuit-size", "support": "--support", "seeds": "--seeds", "seed0": "--seed0",
-        "q": "--q", "topologies": "--topologies", "align_top": "--align-top", "control_draws": "--control-draws",
-        "json_out": "--json-out", "report_from": "--report-from",
-    }),
-}
-#: the `store_true` flags of each runner, and the ones whose default is already True
-BOOLEAN_BY_RUNNER = {"e8": BOOLEAN, "e3": {"ladder", "extra_bases", "no_realized"}}
-DEFAULT_TRUE_BY_RUNNER = {"e8": DEFAULT_TRUE, "e3": set()}
+#: **the runners, with their flags read from the source rather than written here.** A first version mapped two
+#: runners by hand -- the training one and then the analytic one, which had produced this project's ladder
+#: comparisons while its commands were paraphrased -- and the census that followed showed the cost of that: **149
+#: of the corpus's configs were refused** for no reason but that nobody had typed their runner's flags out. The
+#: map was redundant all along, because **a `config` key is its flag with dashes turned into underscores**
+#: (`seed0` -> `--seed0`, `align_top` -> `--align-top`), so the only thing a hand-written map added was a check
+#: that the field exists -- and `e172` already extracts that, and the two facts that decide how a flag is written,
+#: from every parser's syntax tree. This is that registry, keyed by the runner's file name.
+def _runners() -> dict[str, tuple[str, dict]]:
+    from pathlib import Path as _Path
+
+    from experiments.e172_parser_registry import parser_flags
+
+    out: dict[str, tuple[str, dict]] = {}
+    for path in sorted(_Path("experiments").glob("*.py")):
+        flags = parser_flags(path)
+        if flags:
+            out[path.name] = (str(path).replace("\\", "/"), flags)
+    return out
+
+
+RUNNERS = _runners()
 
 
 def runner_for(config: dict) -> list[str]:
-    """The runners whose flag map covers **every** key this `config` carries (ignoring unset keys).
+    """The runners whose parser defines **every** key this `config` carries (ignoring unset keys).
 
     The inference is the same shape as `e172`'s authorship test -- a `config` is `vars(args)`, so a runner can
     have written it only if it can name every field -- and it is a *list* because a small config can be covered
     by more than one runner, in which case the caller has to say which.
     """
-    keys = {k for k, v in config.items() if v is not None and k != "json_out"}
-    out = []
-    for name, (_, flags) in RUNNERS.items():
-        known = set(FLAGS if flags is None else flags) | set(BOOLEAN_BY_RUNNER[name])
-        if keys <= known:
-            out.append(name)
-    return sorted(out)
+    keys = {k for k, v in config.items() if v is not None and k != "json_out" and v is not False}
+    return sorted(name for name, (_, flags) in RUNNERS.items() if keys <= set(flags))
 
 
 def command_from_config(config: dict, json_out: str | None = None, runner: str | None = None) -> list[str]:
@@ -109,22 +110,20 @@ def command_from_config(config: dict, json_out: str | None = None, runner: str |
             raise ValueError(f"cannot tell which runner wrote this config: {found or 'none'} covers its keys; "
                              f"pass runner= explicitly")
         runner = found[0]
-    runner_path, own = RUNNERS[runner]
-    mapping = FLAGS if own is None else own
-    booleans = BOOLEAN_BY_RUNNER[runner]
-    defaults_true = DEFAULT_TRUE_BY_RUNNER[runner]
+    runner_path, parser = RUNNERS[runner]
     flags: list[str] = []
     for key in sorted(config):
         value = config[key]
         if key == "json_out" or value is None:
             continue
-        if key in booleans:
+        flag = "--" + key.replace("_", "-")
+        if key in parser and parser[key]["store_true"]:
             if value:
-                flags.append(mapping.get(key, "--" + key.replace("_", "-")))
-            elif key in defaults_true:
+                flags.append(flag)
+            elif parser[key]["default"] is True:
                 raise ValueError(f"{key} = False has no command-line form; it cannot be reproduced")
             continue
-        if key not in mapping:
+        if key not in parser:
             raise ValueError(f"config key {key!r} maps to no {runner} runner flag -- the command would use its "
                              f"default")
         # **a config value can fail to round-trip to its own flag, exactly as a config key can fail to exist in
@@ -134,9 +133,9 @@ def command_from_config(config: dict, json_out: str | None = None, runner: str |
         # *only* value transform this helper knows: a field it cannot invert is refused below rather than emitted
         # as a Python repr, which would be a command that cannot run.
         if isinstance(value, (list, tuple)):
-            flags.extend([mapping[key], ",".join(str(v) for v in value)])
+            flags.extend([flag, ",".join(str(v) for v in value)])
         else:
-            flags.extend([mapping[key], str(value)])
+            flags.extend([flag, str(value)])
     if json_out is not None:
         flags.extend(["--json-out", str(json_out)])
     return ["python", runner_path, *flags]
@@ -240,30 +239,28 @@ def main(argv=None) -> int:
 
         from experiments.e103_reproducibility_audit import load_artifacts
 
-        ok, refused, examples, mapped = 0, Counter(), {}, Counter()
+        ok, none_fit, several_fit, mapped = 0, [], [], Counter()
         for a in load_artifacts():
             cfg = a["config"]
             if not cfg:
                 continue
             found = runner_for(cfg)
-            for r in found:
-                mapped[r] += 1
+            if len(found) == 1:
+                mapped[found[0]] += 1
             try:
                 command_from_config(cfg, json_out="runs/x.json")
                 ok += 1
-            except ValueError as exc:
-                why = ("ambiguous or unmapped: no single runner covers every key"
-                       if "cannot tell which runner" in str(exc) else
-                       "a key the runner's own mapping lacks: " + str(exc).split("'")[1])
-                refused[why] += 1
-                examples.setdefault(why, a["name"])
+            except ValueError:
+                (none_fit if not found else several_fit).append(a["name"])
         print("== how much of the corpus can be re-executed by a command derived from its own artifact ==")
-        print(f"   configs the path handles: {ok}")
-        for why, n in refused.most_common():
-            print(f"   refused ({n}): {why}   e.g. {examples[why]}")
-        print(f"   runners mapped: {sorted(RUNNERS)}; artifacts per runner: {dict(mapped)}")
-        print("   -> a refusal is the safe direction: an unmapped artifact yields **no** command rather than one")
-        print("      that would run with defaults for the fields this helper cannot name (rule 44).")
+        print(f"   runners read from the source: {len(RUNNERS)}")
+        print(f"   configs the path handles:     {ok}")
+        print(f"   refused, NO runner fits:      {len(none_fit)}   e.g. {', '.join(none_fit[:3])}")
+        print(f"   refused, SEVERAL fit:         {len(several_fit)}   e.g. {', '.join(several_fit[:3])}")
+        print(f"   artifacts whose single author is unambiguous: {dict(mapped.most_common(4))}")
+        print("   -> both refusals are the safe direction: an artifact whose author cannot be named yields **no**")
+        print("      command rather than one that would run with defaults for the fields this helper cannot name")
+        print("      (rule 44), and a caller who knows the runner can pass `--runner` to lift the second one.")
         return 0
 
     groups = group_repeats(load_artifacts())

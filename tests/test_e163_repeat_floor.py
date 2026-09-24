@@ -55,24 +55,24 @@ def test_an_unmapped_config_key_is_refused_rather_than_left_to_the_default():
     The first is the `e153` defect's guard; the second is what the runner inference adds when the caller does not
     say which runner wrote the artifact -- and they are different sentences because they are different problems.
     """
-    with pytest.raises(ValueError, match="maps to no e8 runner flag"):
-        e163.command_from_config({"lam": 0.003, "mystery_knob": 7}, runner="e8")
+    with pytest.raises(ValueError, match="maps to no e8_rate_network.py runner flag"):
+        e163.command_from_config({"lam": 0.003, "mystery_knob": 7}, runner="e8_rate_network.py")
     with pytest.raises(ValueError, match="cannot tell which runner"):
         e163.command_from_config({"lam": 0.003, "mystery_knob": 7})
 
 
 def test_store_true_flags_are_read_in_the_direction_of_their_own_default():
     # default False: omitting it is faithful, so False emits nothing
-    assert "--frozen-body" not in e163.command_from_config({"frozen_body": False})
-    assert "--frozen-body" in e163.command_from_config({"frozen_body": True})
+    assert "--frozen-body" not in e163.command_from_config({"frozen_body": False}, runner="e8_rate_network.py")
+    assert "--frozen-body" in e163.command_from_config({"frozen_body": True}, runner="e8_rate_network.py")
     # default True with no negative form: a recorded False cannot be reproduced at all
     with pytest.raises(ValueError, match="no command-line form"):
-        e163.command_from_config({"normalise_fisher": False})
-    assert "--normalise-fisher" in e163.command_from_config({"normalise_fisher": True})
+        e163.command_from_config({"normalise_fisher": False}, runner="e8_rate_network.py")
+    assert "--normalise-fisher" in e163.command_from_config({"normalise_fisher": True}, runner="e8_rate_network.py")
 
 
 def test_the_output_path_is_replaced_rather_than_reproduced():
-    parts = e163.command_from_config({"lam": 0.003, "json_out": "runs/old.json"}, json_out="runs/new.json")
+    parts = e163.command_from_config({"lam": 0.003, "json_out": "runs/old.json"}, json_out="runs/new.json", runner="e8_rate_network.py")
     assert "runs/old.json" not in parts
     assert parts[parts.index("--json-out") + 1] == "runs/new.json"
 
@@ -132,13 +132,14 @@ def test_the_helper_knows_the_analytic_runner_and_infers_it_from_the_config_keys
     written it only if it can name every field -- and it is why the helper needs no `--runner` in the common case.
     """
     cfg = {"circuit_size": 300, "support": 30, "seeds": 12, "q": 0.02, "ladder": True, "topologies": ("real",)}
-    assert e163.runner_for(cfg) == ["e3"]
+    assert e163.runner_for(cfg) == ["e3_basis_selection.py"]
     parts = e163.command_from_config(cfg, json_out="runs/x.json")
     assert parts[1].endswith("e3_basis_selection.py")
     # a `store_true` flag is emitted, a string-valued field is passed through, and `None` is omitted
     assert "--ladder" in parts and parts[parts.index("--support") + 1] == "30"
     # a training-runner config infers to the other runner, so the two maps do not collide
-    assert e163.runner_for({"lam": 0.003, "methods": "ewc", "repeats": 40}) == ["e8"]
+    assert e163.runner_for({"lam": 0.003, "methods": "ewc", "repeats": 40, "seed0": 0, "train": 96, "test": 48,
+                            "batch": 32, "iters": 500, "lr": 0.003}) == ["e8_rate_network.py"]
 
 
 def test_a_tuple_valued_field_is_joined_because_the_runner_itself_splits_on_commas():
@@ -148,23 +149,26 @@ def test_a_tuple_valued_field_is_joined_because_the_runner_itself_splits_on_comm
     that transform's inverse -- and a field the helper cannot invert is refused rather than emitted as a Python
     repr, which would be a command that cannot run.
     """
-    parts = e163.command_from_config({"topologies": ("real", "swap0.5")}, runner="e3")
+    parts = e163.command_from_config({"topologies": ("real", "swap0.5")}, runner="e3_basis_selection.py")
     assert parts[parts.index("--topologies") + 1] == "real,swap0.5"
     assert not any("(" in p for p in parts), "no Python repr may reach the command line"
-    with pytest.raises(ValueError, match="maps to no e3 runner flag"):
-        e163.command_from_config({"not_a_flag": 1}, runner="e3")
+    with pytest.raises(ValueError, match="maps to no e3_basis_selection.py runner flag"):
+        e163.command_from_config({"not_a_flag": 1}, runner="e3_basis_selection.py")
 
 
-def test_the_census_reports_coverage_and_the_corpus_is_half_derivable(capsys):
-    """Roughly half the corpus's configs derive a command, and the other half are refused on purpose.
+def test_the_census_reports_coverage_and_the_refusals_by_reason(capsys):
+    """Most of the corpus derives a command, and the refusals are two kinds with two different remedies.
 
-    The census is what keeps the coverage number from being prose (this project's recurring defect), and the
-    number is a *design* statement rather than a gap: two runners are mapped, and an artifact of any other one gets
-    no command instead of a command that would run with this helper's defaults for the fields it cannot name.
+    The maps come from `e172`'s registry now, which is what took coverage from two hand-mapped runners to every
+    parser in the tree: **295 configs derive a command and 21 are refused**, and the four that no runner fits are
+    **exactly the artifacts `e172` found carrying a key no parser defines** (`save_theta`, which two runners assign
+    at runtime). The other seventeen are small configs several parsers could have written, which a caller lifts by
+    naming the runner -- so the two refusals are different problems and the census keeps them apart.
     """
     assert e163.main(["--census"]) == 0
     out = capsys.readouterr().out
-    assert "configs the path handles:" in out and "refused (" in out
     handled = int(out.split("configs the path handles:")[1].split()[0])
-    refused = int(out.split("refused (")[1].split(")")[0])
-    assert handled >= 100 and refused >= 100
+    none_fit = int(out.split("NO runner fits:")[1].split()[0])
+    several = int(out.split("SEVERAL fit:")[1].split()[0])
+    assert handled >= 250 and none_fit == 4 and several >= 10
+    assert len(e163.RUNNERS) > 50, "the maps are read from every parser, not from two hand-written ones"

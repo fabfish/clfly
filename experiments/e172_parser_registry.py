@@ -60,6 +60,38 @@ def parser_keys(path: Path) -> set[str]:
     return keys
 
 
+def parser_flags(path: Path) -> dict[str, dict]:
+    """Per flag: whether it is a `store_true`, and its default when the default is a literal.
+
+    `e163` needs more than the names -- a `store_true` flag is emitted without a value, and one whose default is
+    already `True` cannot be reproduced from a stored `False` -- so the registry carries the two facts that decide
+    how a command is written. Everything else about a flag is its name, because the config key is the flag with
+    dashes turned into underscores.
+    """
+    try:
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+    except (SyntaxError, UnicodeDecodeError):
+        return {}
+    out: dict[str, dict] = {}
+    for node in ast.walk(tree):
+        if not (isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute)
+                and node.func.attr == "add_argument"):
+            continue
+        name = next((a.value for a in node.args
+                     if isinstance(a, ast.Constant) and isinstance(a.value, str)
+                     and a.value.startswith(FLAG_PREFIX)), None)
+        if name is None:
+            continue
+        meta = {"store_true": False, "default": None}
+        for kw in node.keywords:
+            if kw.arg == "action" and isinstance(kw.value, ast.Constant) and kw.value.value == "store_true":
+                meta["store_true"] = True
+            if kw.arg == "default" and isinstance(kw.value, ast.Constant):
+                meta["default"] = kw.value.value
+        out[name[len(FLAG_PREFIX):].replace("-", "_")] = meta
+    return out
+
+
 def registry(directory: Path = EXPERIMENTS) -> dict[str, set[str]]:
     """Every experiment file that defines at least one flag, by name."""
     return {p.name: keys for p in sorted(directory.glob("*.py"))
