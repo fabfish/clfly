@@ -1834,6 +1834,27 @@ about (`docs/findings/2026-09-23-the-last-two-unaudited-sections-were-clean.md`)
     resolutions** (`docs/findings/2026-09-24-the-lambda-optimum-is-a-dominance-boundary.md`,
     `docs/findings/2026-09-24-the-aggregate-hides-the-diagonal-and-the-last-task-pays.md`).
 
+41. **A bar must be placed between the competing predictions, not at a round number — and when two readings
+    predict values inside each other's 2σ windows, the registration must say so *before* the run.** Four
+    registrations today ended in their own middle rather than at a bar, and in each case the bar was a round
+    number chosen without asking what the alternatives predicted: `e141`'s P2 measured **+0.0156 ± 0.0098 =
+    1.60σ** against a 2σ bar; `e142`'s P1 measured **+0.03177** against a 3σ bar needing **+0.03190**, a miss of
+    **0.012σ**; `e148`'s P2 measured **−0.0201 ± 0.0124 = 1.62σ** *in the falsifier's direction* against a 2σ
+    bar; and `e150`'s P1 landed at **+0.0190** between its own P1 bar (**+0.0149**) and its falsifier bar
+    (**+0.0318**). **A bar at the noise scale does not test a hypothesis, it tests the seeds.** The repair has
+    two halves, and `e150`'s registration is the worked example of the good one: **write down what each competing
+    reading predicts** — *the pair is the unit → +0.0069, the family scales it → +0.0314, the penalty is
+    saturated → +0.0398* — then place the bars at the edges of the interval those predictions span, **naming the
+    middle as an outcome rather than as a failure**. And when two readings' predictions fall inside each other's
+    2σ windows, **the registration should say the design cannot separate them** and either change the design or
+    record what the run *can* decide. The measurable form of the same defect is the **relative** uncertainty of a
+    sem at n = 40, which `e142` put at about **11%**: any bar within ~10% of the predicted effect is not decidable
+    at that n, and the number belongs in the finding as a bound
+    (`docs/findings/2026-09-24-at-the-registration-s-resolution-limit.md`,
+    `docs/findings/2026-09-24-the-metric-decides-the-threshold.md`,
+    `docs/findings/2026-09-24-replays-margin-tracks-the-baselines-forgetting.md`,
+    `docs/findings/2026-09-24-the-penalty-is-family-dependent-in-stability-and-blind-in-cost.md`).
+
 ## Related work to differentiate against
 
 Four papers are close enough to require explicit positioning — all use fly

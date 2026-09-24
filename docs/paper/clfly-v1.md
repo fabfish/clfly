@@ -2290,6 +2290,15 @@ trap.)*
   **2.11σ**, and the mean cannot show it because it is over the first `T − 1` tasks: an aggregate that improves
   is silent about the term it does not contain, exactly as one that fails to resolve is silent about the terms
   that cancelled inside it (`docs/findings/2026-09-24-the-arm-that-fixes-the-forgetting-has-more-interference.md`).
+  **And the form this trap takes when it is counted rather than illustrated is worse than silence: the metric is
+  systematically one-sided.** Of the **thirteen** distinct constrained arms in the record, **eleven pay a resolved
+  cost on the newest task's accuracy — from 2.08σ to 12.06σ** — the two exceptions being both `block`
+  partitions, **while `replay`, the one arm that is not a constraint, pays 0.79σ on the base family and 1.12σ on
+  the shared-input family**. So no table in this paper can show that the constrained methods are being charged,
+  and the method they are all charged against is the one the paper calls strongest — which means the comparison
+  the tables print is not merely incomplete but **biased in one direction, against the methods the paper is
+  about** (`docs/findings/2026-09-24-the-aggregate-hides-the-diagonal-and-the-last-task-pays.md`,
+  `docs/findings/2026-09-24-the-censuses-now-cover-todays-arms.md`).
 - **An instrument assembled from part of the object reports a null about the part it read.** The first-order
   interference term is built from `theta` alone, and the body is two parameter sets — so when §4.2 measures that
   the offsets carry 70% of the forgetting, the term's five-fire inability to order the forgetting becomes a
