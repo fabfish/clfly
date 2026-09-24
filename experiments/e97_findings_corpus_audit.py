@@ -37,6 +37,27 @@ SEEDS_CLAIM = re.compile(r"(\d+)\s*(?:seed|seeds|replicate|replicates|repeat|rep
 #: the case this check would be expected to catch, and the reason it cannot
 KNOWN_CASE = Path("docs/findings/2026-09-22-fisher-batches-negative.md")
 
+#: the paper cites artifact paths and finding paths in the same form, and until 2026-09-24 no audit read them
+PAPER = Path("docs/paper/clfly-v1.md")
+FINDING_REF = re.compile(r"`?(docs/findings/[A-Za-z0-9_.\-]+\.md)`?")
+
+
+def check_paper(path: Path = PAPER) -> dict:
+    """Does every path the *paper* names exist?
+
+    `e97` asks this of the findings corpus, and **nothing asked it of the paper** — which is the document a
+    reader arrives at first and the one whose citations a reader is most likely to follow. Both kinds of
+    citation are counted, and **the denominators are printed**, because a count of zero is otherwise
+    indistinguishable from a check that never fired.
+    """
+    text = path.read_text(encoding="utf-8", errors="replace")
+    runs = sorted(set(RUN_REF.findall(text)))
+    findings = sorted(set(FINDING_REF.findall(text)))
+    return {"paper": str(path), "exists": path.exists(),
+            "n_runs_cited": len(runs), "n_findings_cited": len(findings),
+            "missing_runs": [r for r in runs if not Path(r).exists()],
+            "missing_findings": [f for f in findings if not Path(f).exists()]}
+
 
 def check_document(path: Path) -> dict:
     text = path.read_text(encoding="utf-8", errors="replace")
@@ -147,7 +168,26 @@ def main() -> int:
 
     print()
     print("=" * 108)
-    print("3. HOW MUCH OF THE CORPUS IS MACHINE-CHECKABLE AT ALL")
+    print("4. THE PAPER'S OWN CITATIONS, WHICH NO AUDIT HAD READ")
+    print("=" * 108)
+    paper = check_paper()
+    print(f"   {paper['paper']}: {paper['n_runs_cited']} distinct `runs/` paths cited, "
+          f"{paper['n_findings_cited']} distinct `docs/findings/` paths")
+    if not paper["exists"]:
+        print("   the paper itself is not on disk")
+    else:
+        print(f"   of those, missing: {len(paper['missing_runs'])} artifact path(s), "
+              f"{len(paper['missing_findings'])} finding path(s)")
+        for p in paper["missing_runs"]:
+            print(f"       missing artifact: {p}")
+        for p in paper["missing_findings"]:
+            print(f"       missing finding : {p}")
+        print("   the denominators are printed because a count of zero is otherwise indistinguishable from a")
+        print("   check that never fired, and because the paper is the document a reader arrives at first.")
+
+    print()
+    print("=" * 108)
+    print("5. HOW MUCH OF THE CORPUS IS MACHINE-CHECKABLE AT ALL")
     print("=" * 108)
     no_art = [r for r in results if not r["has_artifacts_line"]]
     print(f"   findings with no Artifacts line: {len(no_art)} of {n} ({100 * len(no_art) / n:.0f}%)")
@@ -168,7 +208,8 @@ def main() -> int:
                                    mismatches=[dict(name=r["name"], rows=r["config_mismatch"]) for r in mism],
                                    no_artifacts_line=[r["name"] for r in no_art],
                                    dates_without_artifacts_line=dict(dates),
-                                   known_case_control=kc))
+                                   known_case_control=kc,
+                                   paper_citations=paper))
     print(f"\nwrote {args.json_out}")
     return 0
 
