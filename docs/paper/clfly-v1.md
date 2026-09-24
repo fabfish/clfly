@@ -955,12 +955,20 @@ not reproducible**: the same command run twice moves it by up to **0.021**, whil
 `ewc-block-rand` **+0.0779** gives **−0.0206 ± 0.0099 = 2.08σ, 28/40 negative** in the *opposite* sign to the
 five-replicate value at the same batch count, where the biological row moved by −0.0031 and **the control's row by
 +0.0341** — so the earlier "no advantage" was largely a favourable draw of the matched-random control, one draw
-being one sample from a population this session measured at a **0.0138** draw term. **The honest form is that the
-biology's own contrast is the strongest it has ever been measured, at 2.08σ, that it is not resolved, and that it
-is still a single-draw measurement of a control whose spread is about the size of the effect**
+being one sample from a population this session measured at a **0.0138** draw term. **(*And the second draw settles
+it, on the opposite side: with draw 1 the same contrast is −0.00182 ± 0.00690 = 0.26σ and the mean of the two
+draws gives −0.01120 ± 0.00752 = 1.49σ, while two draws of the control differ by 2.33σ on this family. So the
+2.08σ is one sample of the control and the registered falsifier has already fired — the paper's central claim is
+strengthened, not threatened, by the measurement that was expected to break it, and the reason no mechanism
+quantity tracked the two partitions is the simplest one: there is no resolved difference to track
+(`docs/findings/2026-09-24-the-base-familys-advantage-does-not-survive-a-second-draw.md`).*)** **The honest form,
+until the third draw lands, is that the largest single-draw value ever measured here is 2.08σ, that the contrast is
+0.26σ against another draw of the same control, and that with a draw term of this size a contrast needs about
+0.024 to resolve.**
 (`docs/findings/2026-09-24-at-forty-the-biologys-own-contrast-flips-sign.md`). Two more control draws for this
 family are registered, so that the contrast can be quoted against the mean of three rather than against one)
-**And the claim has now been tested on the one family that stresses the opposite channel.** The sentence above
+**And the claim has now been tested on the one family that stresses the opposite channel — and the base family's
+own single-draw advantage does not survive a second draw of its control.** The sentence above
 rests on a benchmark where **70%** of the forgetting is carried by 800 offsets no partition can act on; `e143`
 measured a shared-input family whose extra forgetting **survives freezing those offsets at 5.04σ**, so its
 difficulty is in the **26,568 connectome-masked weights** — the channel a synapse partition acts on. **On that
