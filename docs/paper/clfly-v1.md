@@ -2839,10 +2839,11 @@ script dates each artifact's code epoch from its `config` keyset, because a runn
 cannot omit a flag its parser defines
 (`docs/findings/2026-09-23-the-config-keyset-dates-five-artifacts.md`).
 **And running that script against the corpus as it stands now, one day later, gives the updated sentence —
-because those figures were prose and the script is not**: `e103` counts **305** artifacts carrying a `config`
-— **303 when this sentence was written two experiments earlier, which is the paragraph's own point** (the two
+because those figures were prose and the script is not**: `e103` counts **313** artifacts carrying a `config`
+— **303 when this sentence was written, and 305 a few hours later, which is the paragraph's own point** (the two
 censuses differ in what they count and both are now stated with their definitions rather than
-reconciled) and **10 configurations executed more than once**, of which **8 have every present arm identical**
+reconciled) and **12 configurations executed more than once, 28 arm-comparisons of which 20 are bit-identical**,
+of which **10 have every present arm identical**
 and **2 have a differing arm** — both in the `--fisher-batches 8`/`128` family whose mechanism the paragraph above
 gives. **Today's additions are on the arm side and not the configuration side, and the distinction is the point**: the
 read-out-128 and read-out-700 arms of `e155` reproduce `e116`'s `naive` row **bit-for-bit**, and `e140`'s frozen
@@ -2858,6 +2859,21 @@ script's output rather than as a fact: the same check reads 286 of 3,351 one uni
 without either being wrong)
 (`docs/findings/2026-09-24-the-reproducibility-count-is-a-scripts-output.md`,
 `docs/findings/2026-09-24-the-penalty-arms-were-never-non-reproducible.md`).
+
+**What an artifact's provenance is, and why the list has four members rather than one.** A run's identity is not
+its command: it is a `config`, an `environment`, a **code revision**, and — where a matched-random control is used —
+the **draw** it drew, and this project **added three of those four after the runs that needed them**. That is not a
+coincidence of timing but the shape of the problem: **a provenance field can only be exercised by a pair that
+*straddles* its introduction, and the pairs that straddle it are exactly the ones it is missing from.** Measured:
+`environment` is absent from precisely the **seven** repeated runs that move and from none of the 33 that do not;
+`code_revision` is on **one** side of `e164`'s pair and on both sides only of `e167`'s; the calibration is on one
+side of the pair that shows a **1.78×** wall-clock gap; and the matched-random fingerprint — a top-level field
+outside `config`, so the identity check cannot see it — is recorded by **9 of the 40** artifacts that carry a
+`-rand` arm, with the other 31 identified by **reconstruction** from the config fields that determine the draw
+(seven inputs, and the seventh is `partition_seed`, whose omission is what a first attempt got wrong). **And no
+field dates an artifact absolutely**: `mtime − timing_s` is a second, independent clock, validated by a
+nested-keyset invariant over **5,263 pairs** that write time orders wrongly **three** times and start time
+**zero**.
 
 **And the same environment shapes the paper's *cost* figures, which §9 has never said.** Measured on the
 estimator this section derives: `expected_error_matrix` at d = 1307 takes **6.08 s at `OMP_NUM_THREADS=4` and
