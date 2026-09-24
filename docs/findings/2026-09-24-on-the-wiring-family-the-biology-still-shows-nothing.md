@@ -113,3 +113,30 @@ escapes into something it does not press.**
 directions, so the three-draw mean of −0.0078 is not two resolved terms cancelling but two unresolved terms
 sitting near zero. **Which is the same shape its falsifier's firing implies, and the opposite of the base
 family's, where the same contrast was uniform in sign on both tasks.**
+
+## 6. Registered follow-up: the family's method table is missing the method the paper says is strongest
+
+**The four-method table above omits `replay`**, and `replay` is the plastic arm's dominant method (`−0.0784 ±
+0.0084 = 9.35σ` against `naive` at the same forty replicates). **So the wiring family's method comparison is
+incomplete in the one place the paper's headline lives**, and the arm is cheap: `--methods replay --repeats 40` at
+`--input-overlap 1.0`, writing `runs/e148_r32_overlap1_replay.json`, launched when a slot frees.
+
+**P1.** `replay` beats `naive` on the wiring family too, at **≥3σ** (the base family gives 9.35σ, and nothing in
+this family's structure suggests replay stops working).
+
+**P2, and it is the fire.** **Replay's margin over `naive` is *smaller* on the wiring family than the base
+family's −0.0784**, resolved at **≥2σ**. The mechanism is the arithmetic `e135` established: replay's advantage
+was **cut by 66%** when the unpenalised channel was frozen in every arm, because *a method that drives the
+forgetting to zero cannot be credited with the forgetting a baseline does not have to suffer*. **On the wiring
+family that channel carries less of the baseline's forgetting — 44% against 70%** — so by the same arithmetic
+replay's margin should shrink. **This is the first cross-family test of that mechanism**, and it uses a
+measurement (`e143`'s 44%) that was made for a different purpose.
+
+**Falsifier.** The margin is **larger than the base family's by ≥2σ**. Then replay's advantage is not
+proportional to the baseline's unpenalised-channel share, `e135`'s arithmetic is specific to the base family, and
+the explanation of replay's margin would need to be about replay rather than about the baseline.
+
+**And a second, descriptive check is registered with it**: replay's margin against the *diagonal* on this family
+(the base family has replay 0.0618 better than the diagonal — 9.35σ against 1.21σ). If the diagonal's 4.73σ here
+is real, the two methods may be much closer on this family, which would make the family the first configuration
+where the paper's headline *"replay is the stronger method"* is contested by a penalty.
