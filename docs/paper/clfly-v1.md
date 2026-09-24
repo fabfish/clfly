@@ -2782,8 +2782,9 @@ script dates each artifact's code epoch from its `config` keyset, because a runn
 cannot omit a flag its parser defines
 (`docs/findings/2026-09-23-the-config-keyset-dates-five-artifacts.md`).
 **And running that script against the corpus as it stands now, one day later, gives the updated sentence —
-because those figures were prose and the script is not**: `e103` counts **303** artifacts carrying a `config`
-(the two censuses differ in what they count and both are now stated with their definitions rather than
+because those figures were prose and the script is not**: `e103` counts **305** artifacts carrying a `config`
+— **303 when this sentence was written two experiments earlier, which is the paragraph's own point** (the two
+censuses differ in what they count and both are now stated with their definitions rather than
 reconciled) and **10 configurations executed more than once**, of which **8 have every present arm identical**
 and **2 have a differing arm** — both in the `--fisher-batches 8`/`128` family whose mechanism the paragraph above
 gives. **Today's additions are on the arm side and not the configuration side, and the distinction is the point**: the

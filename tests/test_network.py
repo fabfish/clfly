@@ -173,6 +173,38 @@ def test_the_artifact_payload_includes_the_environment():
     assert '"environment": environment()' in src
 
 
+def test_code_revision_records_the_revision_and_whether_the_tree_was_dirty():
+    """Rule 45's third ingredient: `config` and `environment` are two of the three, and the code is the
+    one the corpus this session read could not name.
+
+    A run launched from an uncommitted tree records the commit it was *based* on, which is not the code that
+    ran -- so `dirty` carries the force and both are reported. The assertion is deliberately tolerant of a
+    checkout without `git`: what is pinned is that the field exists and is honest (a non-empty revision, or
+    `unknown` **with** the exception's name), never that it invents a hash.
+    """
+    from experiments.e8_rate_network import code_revision
+
+    rev = code_revision()
+    assert isinstance(rev, dict) and isinstance(rev.get("commit"), str) and rev["commit"]
+    assert rev["dirty"] in (True, False, None)
+    if rev["commit"] == "unknown":
+        assert rev.get("error"), "an unreadable revision must name the exception rather than guess"
+    else:
+        assert len(rev["commit"]) == 40
+    if rev["dirty"]:
+        assert isinstance(rev.get("dirty_paths"), list) and rev["dirty_paths"]
+
+
+def test_the_artifact_payload_includes_the_code_revision():
+    """The wiring, not just the function: a `code_revision()` nobody calls records nothing."""
+    import inspect
+
+    from experiments import e8_rate_network
+
+    src = inspect.getsource(e8_rate_network.main)
+    assert '"code_revision": code_revision()' in src
+
+
 def test_relative_drift_is_scale_free_and_zero_for_a_body_that_does_not_move():
     """The quantity the network line has never recorded: how far the recurrent body moved.
 

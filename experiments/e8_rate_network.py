@@ -188,6 +188,43 @@ def environment() -> dict:
     }
 
 
+def code_revision() -> dict:
+    """Which revision of the code produced the artifact, recorded beside the environment.
+
+    Rule 45: `config` and `environment` are two of the three things two runs of one command can differ in, and the
+    third is the code itself -- so a difference between two executions is only attributable if the artifact says
+    which revision it ran. The corpus this session read had no such field, and the price is on disk: seven
+    repeated runs of two configurations from 09-23 afternoon differ on `replay` and the two block arms, the two
+    *later* executions among them agree with each other to the last digit, no commit touching `experiments/` or
+    `clfly/` falls in the window, the thread knob is excluded because `naive` did not move (and a thread
+    difference does move it) -- and **nothing can say which code produced the earlier ones**, so an afternoon's
+    worth of working tree is unrecoverable while being the most likely cause.
+
+    `dirty` is the field that carries the force: a run launched from an uncommitted tree records the commit it was
+    *based* on, which is not the code that ran. Both are reported, and neither is guessed -- a checkout without
+    `git` gets `"unknown"` with the exception's name rather than a fabricated hash, because a provenance field
+    that invents a value is worse than one that is absent.
+    """
+    import subprocess
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+
+    def git(*argv: str) -> str:
+        return subprocess.run(["git", "-C", str(root), *argv], capture_output=True, text=True,
+                              timeout=20, check=True).stdout
+
+    try:
+        porcelain = git("status", "--porcelain")
+        revision = {"commit": git("rev-parse", "HEAD").strip(), "dirty": bool(porcelain.strip())}
+        if revision["dirty"]:
+            # the paths that differ, not their contents: enough to see whether a runner was edited mid-run
+            revision["dirty_paths"] = sorted(p for p in porcelain.split("\n") if p)[:20]
+        return revision
+    except Exception as exc:                                   # noqa: BLE001  (any failure is "unknown")
+        return {"commit": "unknown", "dirty": None, "error": type(exc).__name__}
+
+
 def calibration(side: int = 512, reps: int = 50) -> float:
     """Time a fixed matmul, and report the **minimum** of the repetitions.
 
@@ -879,7 +916,8 @@ def main(argv=None) -> int:
            "readout": ({"size": int(len(rs)), "draw_seed": int(draw_seed), "subset_sha1": draw_hash}
                        if rs is not None else
                        {"size": int(circ.n_neurons), "draw_seed": None, "subset_sha1": None}),
-           "environment": environment(), "tasks": [t.summary() for t in suite], "methods": {},
+           "environment": environment(), "code_revision": code_revision(),
+           "tasks": [t.summary() for t in suite], "methods": {},
            # Which matched-random partition this run used, when it used one: the control is a population and
            # this is the sample, so two artifacts whose block-rand rows differ are not comparable unless their
            # fingerprints agree (or unless the draws are averaged, which is what rule 10 asks for).

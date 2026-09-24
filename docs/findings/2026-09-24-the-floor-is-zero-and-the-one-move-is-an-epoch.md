@@ -130,7 +130,12 @@ measured rather than assumed:
   schema-identical to the ones that reproduce.
 - **`command_from_config` closes the launch half of the gap and nothing else.** A command derived from an
   artifact's own config cannot omit a field that the config carries — but it cannot recover a field that was never
-  recorded, and no artifact in this corpus records its code revision. **Named improvement, not implemented here:**
-  a top-level `code_revision` field written beside `environment`, which is a `git rev-parse HEAD` plus a
-  dirty-tree flag at launch. Its cost is *not* the epoch audit: `e103` compares `config` keysets, and `environment`
-  is top-level, so a sibling field adds no rows to that report.
+  recorded, and no artifact in this corpus records its code revision. **The remedy was named here and then
+  implemented in the same unit**: `experiments/e8_rate_network.py` now writes a top-level `code_revision` beside
+  `environment` — `git rev-parse HEAD`, a `dirty` flag, and when dirty the paths that differ — and a real run made
+  with the change in place recorded
+  `{"commit": "440be3e…", "dirty": true, "dirty_paths": [" M experiments/e8_rate_network.py", " M tests/test_network.py"]}`,
+  which is exactly the sentence §3 could not write about 09-23. It costs the audits nothing: `e103` compares
+  `config` keysets and `environment` is top-level, so a sibling field adds no rows to the epoch report. Two unit
+  tests pin it, one of which requires that an unreadable revision say `unknown` **with the exception's name**
+  rather than invent a hash.
