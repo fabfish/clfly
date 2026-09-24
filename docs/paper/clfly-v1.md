@@ -2568,7 +2568,14 @@ why no shared rule was available and each line needed its own check.
 
 1. **Replicate the granularity curve elsewhere, and finish it on synapses.** The neuron
    ladder is measured on one circuit at d = 1307; the lesson — pool the rarest groups — should
-   transfer and its plateau should be re-measured on a second circuit and a second connectome.
+   transfer and its plateau should be re-measured on a second circuit and a second connectome. **It has been
+   re-measured, and the plateau moved**: the same eight rungs at twelve seeds each put the minimum at **`pool4`**
+   on d = 1307 and at **`pool64`** on d = 1874 — **sixteen times coarser against a circuit 1.43× larger** — and on
+   the second circuit there is **no interior optimum at all** (the two coarsest rungs are tied within 2 sem and are
+   the best), while **both circuits agree that pooling helps and that no pooling is the worst rung**. **The reason
+   is a scale one**: `pool_below` is an **absolute neuron count**, so the same rung does *less* on a larger circuit
+   — the ladder is not scale-free and its optimum can move with the circuit for reasons that have nothing to do
+   with biology (`docs/findings/2026-09-25-the-ladders-plateau-is-circuit-specific.md`).
    On the network the ladder exists but was never walked: the five annotation rungs span
    0.6947 (`side`) to 0.9992 (`cell_type`), and the published negative used only the
    second-coarsest. `side` is the rung the neuron result most implicates, and it has now
