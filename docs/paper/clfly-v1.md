@@ -2396,7 +2396,14 @@ why no shared rule was available and each line needed its own check.
    (`full_split_loss(..., "train")`), so it measures fit where the accuracy metric measures generalisation: a
    reason to read it as a second reading rather than as a replacement, and the reason the sentence above is
    *"the same question answers differently on the other recorded metric"* and not *"the loss metric is right"*
-   (`docs/findings/2026-09-24-the-metric-decides-the-threshold.md`).
+   (`docs/findings/2026-09-24-the-metric-decides-the-threshold.md`). **And it is a pattern rather than one
+   instance**: reading the session's four other principal contrasts both ways, the loss-valued forgetting
+   resolves **at least as strongly every time** — frozen bias against `naive` **5.90σ → 8.69σ**, the anchored arm
+   against `naive` **4.84σ → 4.98σ** and against the unanchored rule **4.03σ → 4.93σ**, λ = 3e-4 against 3e-3
+   **3.74σ → 4.85σ** — **every direction agrees, three of the four are stronger on loss and the fourth is equal,
+   and the one contrast the accuracy metric failed is the one the loss metric carries**. Those five rows are not
+   five replications (one configuration, one read-out, three tasks, the same forty seeds), so what replicates is
+   the *metric's* behaviour across contrasts rather than the contrasts themselves.
 6. **Ask the bias channel the two questions freezing it does not answer.** Holding 800 offsets at their
    initialisation removes **70%** of this benchmark's forgetting at read-out 32 *and raises accuracy*, which
    makes it a bound and not a recipe: **freezing is not penalising**, and a frozen parameter cannot report what

@@ -90,3 +90,30 @@ metric is the right one"*.
 - **And it does not touch the mechanism results**: P1 and P2b were measured on the bias's displacement and θ's
   drift, where both metrics' arms move together, so the λ ordering that the loss metric resolves is the same
   ordering the mechanism predicts.
+
+## 6. And it is a pattern rather than an instance: four contrasts, the same direction each time
+
+P2 is one contrast. The same two quantities are in every artifact this session wrote, so the session's principal
+contrasts can all be read both ways — and the loss-valued forgetting resolves **at least as strongly** in every
+one:
+
+| contrast | accuracy-valued | loss-valued |
+|---|---|---|
+| `e125`'s frozen bias − `naive` | −0.0523 ± 0.0089 = **5.90σ** | −0.1200 ± 0.0138 = **8.69σ** |
+| `e138`'s anchored 33.2 − `naive` | −0.0458 ± 0.0095 = **4.84σ** | −0.0810 ± 0.0163 = **4.98σ** |
+| `e138`'s anchored 33.2 − unanchored | −0.0362 ± 0.0090 = **4.03σ** | −0.0826 ± 0.0167 = **4.93σ** |
+| `e141`'s λ = 3e-4 − the 3e-3 rule | −0.0258 ± 0.0069 = **3.74σ** | −0.0606 ± 0.0125 = **4.85σ** |
+| **`e141`'s P2, λ = 3e-2 − 3e-3** | **+0.0156 ± 0.0098 = 1.60σ — the only failure** | **+0.0651 ± 0.0154 = 4.24σ** |
+
+**Every direction agrees; three of the four resolved contrasts are stronger on loss and the fourth is equal; and
+the contrast the accuracy metric failed is the one the loss metric carries.** So on this configuration the
+loss-valued forgetting is not merely a second reading — it is **the more resolving of the two**, which is what
+makes §3's qualification of `§8` item 5's *"it buys nothing"* a pattern rather than a single measurement.
+
+**And the honest limits of "pattern" here.** These five rows are **not five replications**: they share one
+configuration, one read-out (32), one circuit, three tasks and the same forty seeds, and two of them are the same
+arm compared against two different references. **What is replicated is the *metric's* behaviour across contrasts,
+not the contrasts themselves** — and §4's caveat stands unchanged, since a training-split loss measures fit where
+the accuracy metric measures generalisation. The form of the claim is therefore: *on the configuration this
+session has swept, the loss-valued retention resolves the same effects at least as well, and the one registered
+threshold the accuracy metric missed is one it would have met.*
