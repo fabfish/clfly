@@ -2519,7 +2519,9 @@ why no shared rule was available and each line needed its own check.
    begun to charge for itself**, and `replay` is the only arm not dominated on two axes or on three. **So the next
    step is not a new substrate but a column**: every rate-network table should carry the newest task's accuracy
    beside the forgetting — the suite's `--test 48` is already large enough to resolve what this item is about, and
-   the cost column resolves at **4.4σ to 9.7σ** on the same seeds where the aggregate resolves at **0.6σ**
+   the same forty seeds show it: **on the three arms whose aggregate is unresolved — `λ = 3e-2` at 0.58σ,
+   `λ = 3e-1` at 0.85σ and the base `block-rand` at 0.28σ — the newest-task cost resolves at 9.45σ, 9.00σ and
+   2.08σ respectively**
    (`docs/findings/2026-09-24-the-aggregate-hides-the-diagonal-and-the-last-task-pays.md`,
    `docs/findings/2026-09-24-the-lambda-optimum-is-a-dominance-boundary.md`).
 
