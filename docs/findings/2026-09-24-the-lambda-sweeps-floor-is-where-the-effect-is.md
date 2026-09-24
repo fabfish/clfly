@@ -52,13 +52,33 @@ was right about the setting and wrong about the resolution**, in the same way §
 times weaker than the one `e137` examined **still pushes adaptation into the 800 offsets**, and the path rises
 monotonically across the three penalty arms (3.4452 anchored, 3.6835 at 3e-4, 4.2819 at 3e-3).
 
-**Which produces a lead worth writing down and not banking.** Ordered by the bias's cumulative path the three
-penalty arms read **3.4452 → 0.0292**, **3.6835 → 0.0396**, **4.2819 → 0.0654**: the quantity that `e125` credits
-with **70%** of the *level* of this configuration's forgetting and that `e137` found uninformative *across seeds*
-(r = +0.340) **orders the three penalty arms perfectly**. That is a different axis from the one `e137` tested —
-across *interventions* rather than across *seeds* — and it is **three points**, so it is a lead rather than a
-result; but it is the first quantity in this session that has ordered the forgetting along any axis, and the
-`λ = 3e-2` and `3e-1` arms will test it at five points when they land.
+**Which produces a lead worth writing down and not banking — and the lead died within the hour, which is why it
+is reported with its own correction.** Ordered by the bias's cumulative path the three penalty arms read
+**3.4452 → 0.0292**, **3.6835 → 0.0396**, **4.2819 → 0.0654**: the quantity that `e125` credits with **70%** of
+the *level* of this configuration's forgetting and that `e137` found uninformative *across seeds* (r = +0.340)
+**ordered them perfectly** — a different axis from the one `e137` tested, *interventions* rather than *seeds*.
+
+**(*And a fourth arm breaks it.*)** `e138` gives two more penalty arms at the same seeds, and with them in the
+table the ordering is not monotone:
+
+| penalty arm | forgetting | bias cumulative path | accuracy |
+|---|---|---|---|
+| λ = 3e-3, offsets anchored at **33.2** | **+0.0292** | **3.4452** | 0.9073 |
+| λ = 3e-3, offsets anchored at **1.0** | +0.0352 | **4.2190** | 0.9000 |
+| **λ = 3e-4**, unanchored | +0.0396 | **3.6835** | **0.9174** |
+| λ = 3e-3, unanchored | +0.0654 | **4.2819** | 0.8856 |
+
+Sorted by forgetting, the paths run **3.4452, 4.2190, 3.6835, 4.2819** — **up, down, up**. **So the bias path
+orders the arms along each *knob* separately and not across the two of them**: within the anchoring axis
+(4.2819 → 0.0654 against 3.4452 → 0.0292) and within the λ axis (4.2819 → 0.0654 against 3.6835 → 0.0396) the
+relation is monotone, and the two families are **offset** from one another. **Which is the honest reading of a
+three-point ordering: it was an ordering along one axis, and introducing a second axis is what tests whether a
+quantity is a *carrier* or a *co-mover of one knob*.** No other recorded quantity orders the four either —
+accuracy (0.9073, 0.9000, 0.9174, 0.8856), mean θ drift (0.0455, 0.0448, 0.0471, 0.0443) and the bias's final
+distance from zero (1.9437, 2.4691, 2.0743, 2.5027) are all non-monotone in the same order — **so the four
+penalty arms are not a one-parameter family and nothing in the artifacts ranks them.** The λ = 3e-2 and 3e-1
+arms, when they land, will add two more points **on the λ axis** — which is the axis along which the ordering
+above does hold — so they test the co-movement within one knob and say nothing about the cross-knob question.
 
 ## 4. What this cannot settle
 
