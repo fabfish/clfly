@@ -986,10 +986,25 @@ def main(argv=None) -> int:
            # this is the sample, so two artifacts whose block-rand rows differ are not comparable unless their
            # fingerprints agree (or unless the draws are averaged, which is what rule 10 asks for).
            **({"partition_draw": partition_draw} if partition_draw is not None else {})}
+    # A heartbeat, because a replicate here is minutes to hours and until this fire a long run was COMPLETELY
+    # unobservable: `--json-out` is written once at the end (rule 47 -- the timestamp is the run's end, so a
+    # partial artifact would be a lie), which left a six-hour command with no output at all. `e178` was 5.4 h into
+    # an estimated 6.5 h with nothing to read but the process's own CPU time. One line per replicate costs nothing
+    # and makes the estimate checkable while it is still an estimate.
+    t_start = time.time()
+    done = 0
+    total = len(args.methods.split(",")) * args.repeats
     for method in args.methods.split(","):
-        reps = [run_method(net, suite, method, args, seed=args.seed0 + 100 * r,
-                           partitions=partitions)
-                for r in range(args.repeats)]
+        reps = []
+        for r in range(args.repeats):
+            r0 = time.time()
+            reps.append(run_method(net, suite, method, args, seed=args.seed0 + 100 * r,
+                                   partitions=partitions))
+            done += 1
+            elapsed = time.time() - t_start
+            print(f"  [{done}/{total}] {method} replicate {r + 1}/{args.repeats} "
+                  f"in {time.time() - r0:.0f} s; elapsed {elapsed / 60:.1f} min, "
+                  f"projected {elapsed / done * total / 60:.1f} min", flush=True)
         agg = {
             "mean_forgetting": float(np.mean([x["mean_forgetting"] for x in reps])),
             "forgetting_sem": float(np.std([x["mean_forgetting"] for x in reps],
