@@ -237,8 +237,10 @@ def main(argv=None) -> int:
     if args.census:
         from collections import Counter
 
-        from experiments.e103_reproducibility_audit import load_artifacts
-
+        # `load_artifacts` is imported at module level and must NOT be re-imported here: a local import inside a
+        # branch makes the name local to the whole function, so the `group_repeats(load_artifacts())` call below
+        # raised `UnboundLocalError` whenever `--census` was not passed -- i.e. this audit crashed on every plain
+        # run while its own census path worked. Found on 2026-09-25 by running it as a gate.
         ok, none_fit, several_fit, mapped = 0, [], [], Counter()
         for a in load_artifacts():
             cfg = a["config"]

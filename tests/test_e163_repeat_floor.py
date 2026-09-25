@@ -172,3 +172,14 @@ def test_the_census_reports_coverage_and_the_refusals_by_reason(capsys):
     several = int(out.split("SEVERAL fit:")[1].split()[0])
     assert handled >= 250 and none_fit == 4 and several >= 10
     assert len(e163.RUNNERS) > 50, "the maps are read from every parser, not from two hand-written ones"
+
+
+def test_the_plain_run_does_not_crash(capsys):
+    """`e163` crashed on every plain run until 2026-09-25 and its `--census` path worked, which is how it went
+    unnoticed: a local `import load_artifacts` inside the census branch made the name local to the whole function,
+    so the `group_repeats(load_artifacts())` call below it raised `UnboundLocalError` whenever `--census` was not
+    passed. The regression guard is that the default entry point returns 0 at all.
+    """
+    assert e163.main([]) == 0
+    out = capsys.readouterr().out
+    assert "executed more than once" in out

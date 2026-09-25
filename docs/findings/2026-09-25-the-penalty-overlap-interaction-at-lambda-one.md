@@ -49,6 +49,13 @@ effect.
   the block penalty* — `naive` better by 1.71σ, `ewc-block` worse by 4.10σ, on the same manipulation and the same
   pair of runs. This is the first interaction between the penalty and the overlap axis in the corpus; the λ = 3e-3
   rows of `e188` had only `naive` and no comparator at the same λ.
+- **and the corpus has no independent replication of the baseline, which this fire checked before writing
+  anything.** The only other λ = 1.0 artifact is `e159_r32_overlap1_methods_rerun.json`, and it is **bit-identical**
+  to `e153` — every one of its five arms × forty seeds, 200 values, identical, with the same `partition_draw` and
+  `readout` blocks — which the corpus already records as its **largest exact reproduction** (`e159`'s plan row) and
+  counts in `e163`'s repeat floor (**12 groups / 44 runs / 0.0000**). So a same-configuration second run is a
+  *determinism* check and not a replication: **the interaction above rests on one draw per side**, and replicating it
+  would need the partition and read-out draws **varied**, which no artifact in this corpus does.
 - **not licensed**: any magnitude against the λ = 3e-3 family. `e153` and the level share λ = 1.0 and one partition
   draw; λ = 1.0 is not a neutral setting (`e153`'s own finding records that at λ one the wiring family's arms are the
   λ = 1.0 arms), so the claim is *an interaction within the family*, not a penalty-vs-overlap response surface.
