@@ -64,7 +64,31 @@ def draw_keys(d: dict) -> tuple:
         out.append(("support", seed if seed is not None else c.get("seed0", 0), n, c.get("support")))
     else:
         out.append(("support", None))
+    # **The linear line has none of the network line's draw flags and encodes its draws in `seed0`.** `e3` builds
+    # its tasks with `build_tasks(..., seed=seed)` for `seed in range(seed0, seed0 + seeds)` -- verified by three
+    # distinct `Sigma` matrices at seeds 0, 1 and 2 -- and draws its matched-random partitions from
+    # `default_rng(seed0)` with `--control-draws` averaging. So a linear family's cells each AVERAGE `seeds` task
+    # draws, and a census that looked only for `readout_seed`/`support_seed`/`partition_seed` called 3- and 18-seed
+    # rung tables "single-draw".
+    if c.get("seeds") is not None:
+        out.append(("tasks", c.get("seed0", 0), c.get("seeds")))
+    if c.get("control_draws") is not None:
+        out.append(("control", c.get("seed0", 0), c.get("control_draws")))
     return tuple(out)
+
+
+def averaging(d: dict) -> str:
+    """How many draws each CELL of this artifact averages inside itself, from the fields that say so."""
+    c = d.get("config") or {}
+    bits = []
+    # NOT `repeats`: the network line builds its suite ONCE per artifact and runs `--repeats` training replicas at
+    # that one draw, so replicates are samples of the training noise and not of a draw. Counting them would make
+    # every network family look like a draw average, which is the opposite of what today measured.
+    for field in ("seeds", "control_draws", "draws"):
+        v = c.get(field)
+        if isinstance(v, int) and v > 1:
+            bits.append(f"{field}={v}")
+    return ", ".join(bits)
 
 
 def family_of(path: Path) -> str:
@@ -99,7 +123,9 @@ def census(runs_dir: Path = RUNS) -> dict:
                           and len({str(c.get(k)) for c in cfg}) > 1})
         draws = {draw_keys(m[1]) for m in members}
         manipulations = [k for k in varying if k not in DRAW_FIELDS]
+        avg = sorted({averaging(m[1]) for m in members} - {""})
         rows.append({
+            "averaging": avg,
             "family": key,
             "n_artifacts": len(members),
             "examples": [m[0] for m in members[:3]],
@@ -127,6 +153,14 @@ def report(res: dict) -> int:
     for k, v in sorted(tally.items(), key=lambda kv: -kv[1]):
         arts = sum(r["n_artifacts"] for r in rows if r["verdict"] == k)
         print(f"   {k:22} {v:3} families, {arts:4} artifacts")
+    print()
+    avg_fams = [r for r in rows if r["averaging"]]
+    n_arts = sum(r["n_artifacts"] for r in avg_fams)
+    print(f"   {len(avg_fams)} of those families ({n_arts} artifacts) AVERAGE more than one DRAW inside each cell -- "
+          f"the verdicts count only draws varied BETWEEN artifacts, and `--repeats` is NOT counted here because the "
+          f"network line runs its replicas at ONE draw (a sample of the training noise, not of a draw):")
+    for r in avg_fams[:6]:
+        print(f"     {r['family']:8} n={r['n_artifacts']:3} averages {', '.join(r['averaging'])[:50]:50} {r['verdict']}")
     print()
     singles = [r for r in rows if r["verdict"] == "SINGLE-DRAW"]
     print(f"   the SINGLE-DRAW families that vary a manipulation ({len(singles)}), largest first:")

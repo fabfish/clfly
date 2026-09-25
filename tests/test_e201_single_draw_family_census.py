@@ -64,3 +64,30 @@ def test_the_live_census_finds_e113_varying_the_read_out_draw():
     # and the corpus's headline exposure is reported rather than left implicit
     singles = [r for r in res["families"] if r["verdict"] == "SINGLE-DRAW"]
     assert len(singles) > 0 and sum(r["n_artifacts"] for r in singles) > 0
+
+
+def test_the_linear_lines_draws_are_seed0_seeds_and_control_draws(tmp_path):
+    """The correction this census needed. The LINEAR line has none of the network line's draw flags: `e3` builds its
+    tasks with `build_tasks(..., seed=seed)` for `seed in range(seed0, seed0 + seeds)` -- verified on the real line by
+    three distinct `Sigma` matrices at seeds 0, 1 and 2 -- and draws its controls from `default_rng(seed0)` averaging
+    `control_draws` of them. Reading only `readout_seed`/`support_seed`/`partition_seed` called a 12-seed ladder
+    "single-draw"."""
+    d = tmp_path / "runs"
+    # a linear family varying the TASK DRAW (seeds) is a draw-replicated family
+    art(d / "e903_a.json", circuit_size=1500, support=150, q=0.02, seed0=0, seeds=3, k=13, shape="flat", draws=5)
+    art(d / "e903_b.json", circuit_size=1500, support=150, q=0.02, seed0=0, seeds=12, k=13, shape="flat", draws=5)
+    rows = {r["family"]: r for r in e201.census(d)["families"]}
+    assert rows["e903"]["verdict"] == "REPLICATED ACROSS DRAWS", rows["e903"]
+    # and a linear family holding the task draw fixed but AVERAGING five of them reports the averaging
+    d2 = tmp_path / "runs2"
+    art(d2 / "e904_a.json", circuit_size=1500, support=150, q=0.02, seed0=0, seeds=3, k=13, shape="flat", draws=5)
+    art(d2 / "e904_b.json", circuit_size=1500, support=150, q=0.02, seed0=0, seeds=3, k=8, shape="flat", draws=5)
+    rows2 = {r["family"]: r for r in e201.census(d2)["families"]}
+    assert rows2["e904"]["verdict"] == "SINGLE-DRAW", rows2["e904"]
+    assert rows2["e904"]["averaging"] == ["seeds=3, draws=5"], rows2["e904"]["averaging"]
+    # `--repeats` is NOT a draw average: the network line runs its replicas at ONE draw
+    d3 = tmp_path / "runs3"
+    art(d3 / "e905_a.json", circuit_size=800, readout_size=32, seed0=0, repeats=5, methods="naive")
+    art(d3 / "e905_b.json", circuit_size=800, readout_size=32, seed0=0, repeats=40, methods="naive")
+    rows3 = {r["family"]: r for r in e201.census(d3)["families"]}
+    assert rows3["e905"]["averaging"] == [], rows3["e905"]["averaging"]

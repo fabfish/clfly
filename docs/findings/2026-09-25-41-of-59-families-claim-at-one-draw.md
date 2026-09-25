@@ -80,3 +80,7 @@ because `e199`'s finding generalized from the size the axis uses without saying 
   is a reading of the configs and not a designed axis.
 - **That the census is complete.** Families with one artifact are skipped, and 35 of the 299 live (artifact, draw)
   pairs remain unidentified (`e198`).
+
+---
+
+**AMENDMENT, the same evening: the census was reading flag NAMES.** The linear line has none of the network line's draw flags — `e3` encodes its draws in `seed0`, `seeds` and `control_draws`, with `build_tasks(..., seed=seed)` for `seed in range(seed0, seed0 + seeds)` (verified: three distinct `Sigma` matrices at seeds 0, 1 and 2) — so the counts become **38 SINGLE-DRAW families holding 205 artifacts and 18 REPLICATED holding 73**, and **17 families (146 artifacts) AVERAGE more than one draw inside each cell** (the ladder: `seeds=3, draws=5`; `e3` up to `seeds=18`). `--repeats` is NOT a draw average — the network line runs its replicas at one draw — and the distinction is the point: an averaged draw is not a varied one. So the sentence "215 of 285 artifacts live in families that make manipulation claims at a single draw" should read **"205 of 285 do not VARY a draw between their artifacts, and 146 of those average draws within their cells"**. `docs/findings/2026-09-25-the-census-was-reading-flag-names.md`
