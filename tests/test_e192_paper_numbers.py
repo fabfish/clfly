@@ -67,3 +67,28 @@ def test_the_live_paper_has_no_number_its_corpus_cannot_support():
     assert res["in_no_finding"] == 0, res["unsupported"]
     assert res["in_the_cited_finding"] >= 250
     assert res["in_another_finding"] >= 10, "the middle class is the audit's substance; it must not be empty"
+
+
+def test_the_audit_reports_which_document_it_read(capsys):
+    """It is run on two documents now, and the header has to say which one -- the first version printed the counts
+    with no document named, so two interleaved runs were indistinguishable."""
+    paper, d = build(tmp_path := __import__("pathlib").Path.cwd() / "tmp_test_doc", "**-0.0116** (`docs/findings/a.md`).",
+                     {"a": "-0.0116"})
+    res = e192.audit(paper, d)
+    e192.report(res)
+    out = capsys.readouterr().out
+    assert str(paper) in out
+    paper.unlink(); (d / "a.md").unlink(); d.rmdir(); paper.parent.rmdir()
+
+
+def test_the_two_documents_have_measurably_different_localisation_and_only_the_paper_is_a_gate():
+    """The result: the plan's citations localise their rows rather than their numbers, three times as often as the
+    paper's, and the plan's two exceptions are its own arithmetic -- so the paper's exit code is the gate."""
+    paper = e192.audit(Path("docs/paper/clfly-v1.md"), Path("docs/findings"))
+    plan = e192.audit(Path("docs/research_plan.md"), Path("docs/findings"))
+    assert paper["numbers_checked"] >= 250 and plan["numbers_checked"] >= 600
+    paper_rate = paper["in_another_finding"] / paper["numbers_checked"]
+    plan_rate = plan["in_another_finding"] / plan["numbers_checked"]
+    assert plan_rate > 2 * paper_rate, (paper_rate, plan_rate)
+    assert paper["in_no_finding"] == 0, "the paper's gate"
+    assert plan["in_no_finding"] <= 5, "the plan's class holds its own arithmetic; it is informational"

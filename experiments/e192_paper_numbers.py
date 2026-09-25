@@ -109,6 +109,7 @@ def audit(paper: Path = PAPER, findings_dir: Path = FINDINGS) -> dict:
 
 
 def report(res: dict) -> int:
+    print(f"   == {res['paper']} ==")
     print(f"   sentences carrying a number AND a findings citation : {res['sentences_checked']}")
     print(f"   numbers in them                                     : {res['numbers_checked']}")
     print(f"        present in the finding the sentence cites       : {res['in_the_cited_finding']}")
@@ -120,6 +121,15 @@ def report(res: dict) -> int:
         print(f"        {row['number']:>10}  cited {row['cited'][0][:40]:42} found in {row['found_in'][:40]}")
     for row in res["unsupported"]:
         print(f"   UNSUPPORTED {row['number']!r} cited {row['cited']}: {row['sentence'][:120]}")
+    if res["in_no_finding"]:
+        # Measured on the PLAN, which is the second document this audit has been run against: both members of the
+        # class there are numbers computed IN PLACE rather than claims -- a heartbeat's projection
+        # ("projected 40.5 min") and an agreement stated to 1.5e-9 -- so on a working document this class contains
+        # the document's own arithmetic, and each member has to be read before it is treated as a claim. The paper
+        # had no members, and its rate of numbers not localised by their citation is 10% against the plan's 34%
+        # because a row here summarises several findings at once.
+        print("   NOTE: on a working document this class also holds numbers computed in place (a run's projection,")
+        print("         an agreement stated between two artifacts). Read each member before calling it a claim.")
     if res["in_no_finding"] == 0:
         print("   (a zero here is the claim: no number the paper states with a citation is absent from the findings")
         print("    corpus. The middle class is not a failure -- the citation localises the claim, not every number.")
