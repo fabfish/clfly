@@ -35,9 +35,12 @@ def test_a_claim_whose_level_has_not_landed_is_refused_and_counted():
     """The reader exists before the artifact, so the failure mode that matters is a refusal with a reason rather
     than a number computed from levels that do not exist."""
     assert e194.report({}) == len(e194.CLAIMS), "every claim is refused when nothing is measured"
-    # a level present but with only some of the quantities refuses only the claims that need the missing ones
+    # a level present but carrying only some of the quantities refuses exactly the claims that need the missing
+    # ones -- computed from the table rather than hardcoded, which broke twice as claims were added to it
     partial = {0.6000: {"near": 20.0, "far": 82.0, "far_minus_near": 62.0}}
-    assert e194.report(partial) == 3, "S3 needs the analytic far; S4 the accuracy account; S5 the cost decomposition"
+    expect = sum(1 for c in e194.CLAIMS if c[2] not in partial[0.6000])
+    assert expect > 0
+    assert e194.report(partial) == expect
 
 
 def test_the_claims_name_quantities_the_measure_function_actually_produces():
@@ -88,3 +91,28 @@ def test_the_cost_decomposition_closes_and_s5_fires_where_the_cost_came_from():
     assert e194.judge(early, s5[2], s5[3], s5[4], s5[5], s5[6], s5[7]) == "MET"
     assert e194.judge(dict(mid, learned_older=-0.015), s5[2], s5[3], s5[4], s5[5], s5[6], s5[7]) == \
         "between the bar and the falsifier"
+
+
+def test_the_fitting_deficit_is_arm_independent_including_the_matched_random_control():
+    """The 0.3333 excursion is the same size in all three arms -- `naive` -0.03255 (8.10σ), the connectome-masked
+    penalty arm -0.04010 (9.92σ), and the SIZE-MATCHED RANDOM CONTROL -0.03516 (7.55σ). So it is a property of the
+    task set at that achieved overlap and not of the method, and not of WHICH neurons the tasks share either, since
+    the control draws its sharing at random. The per-arm baselines come from the same inert-fields admission the dose
+    reads use, and the keys are dotted for the arms S5 does not read."""
+    levels = [Path(f"runs/e193_r32_overlap{n:03d}_methods_40reps.json") for n in (25, 50)]
+    if not all(p.is_file() for p in levels):
+        pytest.skip("the interior level artifacts are not in this checkout")
+    values = e194.measure(levels)
+    mid, early = values[0.3333], values[0.1429]
+    for arm, sigma in (("ewc-block", 9.92), ("ewc-block-rand", 7.55)):
+        assert mid[f"{arm}.learned_older"] < -0.030, (arm, mid[f"{arm}.learned_older"])
+        assert mid[f"{arm}.learned_older_sigma"] == pytest.approx(sigma, abs=0.1)
+        # and at the earlier level the same arms show NO fitting deficit
+        assert abs(early[f"{arm}.learned_older"]) < 0.006, (arm, early[f"{arm}.learned_older"])
+    # the penalty arm's cost at the earlier level is forgetting instead -- the split the finding is about
+    assert early["ewc-block.forgetting_cost_sigma"] == pytest.approx(4.10, abs=0.1)
+    assert mid["ewc-block.forgetting_cost_sigma"] == pytest.approx(1.60, abs=0.1)
+    # S6 reads the control's dip, and it is MET where S5 fires
+    s6 = next(c for c in e194.CLAIMS if c[0] == "S6")
+    assert s6[2] == "ewc-block-rand.learned_older"
+    assert e194.judge(mid, s6[2], s6[3], s6[4], s6[5], s6[6], s6[7]) == "MET"

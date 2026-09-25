@@ -33,7 +33,8 @@ from pathlib import Path
 import numpy as np
 
 from experiments.e151_pertask_contrast_audit import paired
-from experiments.e188_overlap_contrast import ACHIEVED_OVERLAP, dose_read as accuracy_read, load
+from experiments.e188_overlap_contrast import (ACHIEVED_OVERLAP, admitting_baseline, dose_read as accuracy_read,
+                                              load)
 from experiments.e191_interference_across_lines import dose_read as interference_read
 
 #: The three registered levels, named the way the LAUNCH wrote them: `n=$(echo $ov | tr -d '.')` turns 0.25 into
@@ -46,6 +47,13 @@ LEVELS = [Path(f"runs/e193_r32_overlap{n:03d}_methods_40reps.json") for n in (25
 #: The disjoint baseline the cost decomposition is against. The registered P1's bar is half of this artifact's 0 -> 1
 #: forgetting change, so the decomposition and the bar are read off the same pair of artifacts.
 DECOMPOSITION_BASELINE = Path("runs/e116_r32_40reps.json")
+
+#: The arms the decomposition is taken for, and the candidate baselines admitted per arm by the same inert-fields
+#: rule the dose reads use. `naive` gets the SHORT keys (`learned_older`, ...) and the others get dotted ones
+#: (`ewc-block.learned_older`), because S5 was registered against the short name before this existed.
+DECOMPOSITION_ARMS = ("naive", "ewc-block", "ewc-block-rand")
+DECOMPOSITION_CANDIDATES = [Path("runs/e116_r32_40reps.json"), Path("runs/e140_r32_methods_plastic_40reps.json"),
+                            Path("runs/e153_r32_overlap1_methods_40reps.json")]
 
 #: Where the claims are registered, so a verdict names its source and a reader can check the bar's sentence.
 REGISTRATION = "docs/findings/2026-09-25-at-the-midpoint-p1-and-p2-fail-and-the-far-term-is-82-percent-done.md"
@@ -66,6 +74,9 @@ CLAIMS = (
     ("S5", 0.6000, "learned_older", ">", -0.0100, "<=", -0.0200, None,
      "how well the OLDER tasks were learned, against the disjoint baseline -- the component the midpoint's cost "
      "came from, so a value here says whether that mechanism persists"),
+    ("S6", 0.6000, "ewc-block-rand.learned_older", "<", -0.0100, ">=", -0.0020, None,
+     "the same deficit in the SIZE-MATCHED RANDOM CONTROL, which is the arm that makes the 0.3333 excursion a "
+     "property of the task set rather than of the method or of which neurons the tasks share"),
 )
 
 #: The extrapolations each registration wrote down before the run, printed beside the measurement rather than
@@ -134,26 +145,30 @@ def measure(levels: list[Path]) -> dict:
         out.setdefault(ach, {})["accuracy_progress"] = 100 * prog["accuracy"]
     if not Path(DECOMPOSITION_BASELINE).is_file():
         return out
-    base = load(DECOMPOSITION_BASELINE)["methods"]["naive"]["replicates"]
-    b_learned = np.array([float(np.mean(r["learned"][:-1])) for r in base])
-    b_forget = np.array([r["mean_forgetting"] for r in base])
     for path in levels:
         if not Path(path).is_file():
             continue
         d = load(path)
-        if "naive" not in (d.get("methods") or {}):
-            continue
         ach = ACHIEVED_OVERLAP.get((d.get("config") or {}).get("input_overlap"))
         if ach is None:
             continue
-        reps = d["methods"]["naive"]["replicates"]
-        for key, series, b in (("learned_older", [float(np.mean(r["learned"][:-1])) for r in reps], b_learned),
-                               ("forgetting_cost", [r["mean_forgetting"] for r in reps], b_forget)):
-            p = paired(np.array(series), b)
-            vals = out.setdefault(ach, {})
-            vals[key] = p["change"]
-            vals[key + "_sem"] = p["sem"]
-            vals[key + "_sigma"] = abs(p["change"]) / p["sem"] if p["sem"] else 0.0
+        for arm in DECOMPOSITION_ARMS:
+            if arm not in (d.get("methods") or {}):
+                continue
+            use, _ = admitting_baseline(d.get("config") or {}, arm, DECOMPOSITION_CANDIDATES)
+            if use is None:
+                continue
+            b_reps, l_reps = load(use)["methods"][arm]["replicates"], d["methods"][arm]["replicates"]
+            if len(b_reps) != len(l_reps):
+                continue
+            for key, series in (("learned_older", lambda reps: [float(np.mean(r["learned"][:-1])) for r in reps]),
+                                ("forgetting_cost", lambda reps: [r["mean_forgetting"] for r in reps])):
+                p = paired(np.array(series(l_reps)), np.array(series(b_reps)))
+                name = key if arm == "naive" else f"{arm}.{key}"
+                vals = out.setdefault(ach, {})
+                vals[name] = p["change"]
+                vals[name + "_sem"] = p["sem"]
+                vals[name + "_sigma"] = abs(p["change"]) / p["sem"] if p["sem"] else 0.0
     return out
 
 
@@ -180,7 +195,7 @@ def report(values: dict) -> int:
             continue
         value = vals[key]
         verdict = judge(vals, key, op, bar, fals_op, fals, null_spec)
-        side = {k: f"{v:.4f}" if k.startswith("learned") or "forgetting" in k else f"{v:.1f}"
+        side = {k: f"{v:.4f}" if ("learned" in k or "forgetting" in k) else f"{v:.1f}"
                 for k, v in sorted(vals.items()) if not k.endswith(("_sem", "_sigma"))}
         print(f"        {cid}: {value:8.4f}  {op} {bar:g} -> {verdict}")
         print(f"             {meaning}; falsifier {fals_op} {fals:g}")
