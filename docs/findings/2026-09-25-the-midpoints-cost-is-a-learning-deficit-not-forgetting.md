@@ -112,3 +112,12 @@ same achieved overlap as S1-S4.
   (82.1% against 20.0% at the same achieved overlap) is a different decomposition and nothing here measures whether
   the two coincide.
 - **A σ on the newest task's 2.25σ.** It is one number at one level, and the newest task is a single task.
+
+---
+
+**CORRECTION, later the same day: the deficit this finding is about did not replicate at a second support
+draw.** On `e195`'s draw-1 family the interior deficit is **+0.00417 ± 0.00361 = 1.15σ** against draw 0's
+−0.03255 = 8.10σ, so the registered R1's **falsifier fired**: the 8.10σ is a property of **draw 0's supports** and
+not of the overlap, and the draw's own effect on `learned (older)` is **−0.01484 (3.34σ) at overlap 0.0 and
++0.02187 (4.40σ) at achieved 0.3333** — it reverses sign across the axis. The decomposition and the identity in §1
+stand (they are exact arithmetic); what is withdrawn is the reading of the deficit as the axis's mechanism. `docs/findings/2026-09-25-the-interior-fitting-deficit-did-not-replicate.md`

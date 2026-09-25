@@ -109,3 +109,11 @@ Its registration put P1 and P2 on the block arms against `e153`. Complete:
 - **Any cross-family magnitude.** The λ = 1.0 rows are one draw per family at a penalty that is not neutral.
 - **That the axis is about the connectome.** §2's supports are random draws at each target overlap, so what varies is
   how many neurons the tasks share and not which ones.
+
+---
+
+**CORRECTION, later the same day: §3's `learned (older)` profile is draw 0's, and its interior value did
+not replicate.** On support draw 1 the midpoint's value is **+0.00417 ± 0.00361 = 1.15σ** against draw 0's
+−0.0326 = 8.10σ, and the draw's own effect on that quantity is −0.0148 (overlap 0.0) and +0.0219 (achieved 0.3333)
+— a sign reversal across the axis. §2's two-term profile and §1's six verdicts stand as draw-0 measurements, and
+of the claims in §5 only the interference account's rise is resolved on **both** draws. `docs/findings/2026-09-25-the-interior-fitting-deficit-did-not-replicate.md`

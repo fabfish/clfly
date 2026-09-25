@@ -167,3 +167,11 @@ substituted by hand, and the §3 numbers were reproduced by the changed reader b
 - **That the two accounts' splits share a cause.** The adjacent/distant split (interference) and the
   forgetting/accuracy split (cost) are two different decompositions of the same run, and nothing here measures
   whether they are the same phenomenon.
+
+---
+
+**CORRECTION, later the same day: §3's accuracy split is a DRAW-0 result.** On support draw 1 the
+midpoint's accuracy cost is **−0.00417 ± 0.00653 = 0.64σ** while its forgetting is **+0.03255 ± 0.00922 = 3.53σ**
+— the opposite of draw 0's split, so the interior/endpoint mechanism difference is not visible on a second draw.
+The registered P1 and P2 verdicts of §1 and the far term's 82.1% of §3 are draw-0 measurements; the far term's
+rise does survive (3.31σ on draw 0, 5.42σ on draw 1). `docs/findings/2026-09-25-the-interior-fitting-deficit-did-not-replicate.md`

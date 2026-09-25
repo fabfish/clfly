@@ -119,3 +119,11 @@ between −0.0100 and −0.0020, a partial deficit that neither resolves nor van
 
 It is read by `e194` at the same achieved overlap as S1-S5, from the same admission rule, and its verdict prints the
 arm, the value, the σ and the sem.
+
+---
+
+**CORRECTION, later the same day: this is a DRAW-0 result.** The arm-independence of the deficit was
+measured entirely within support draw 0, and on draw 1 the deficit is **+0.00417 ± 0.00361 = 1.15σ** — absent, so
+there is nothing for the arms to agree about. The draw's own effect at the midpoint is 4.40σ on `learned (older)`
+and 6.59σ on the newest task, i.e. **larger than the effects this finding compares across arms**. The method of
+the comparison (per-arm admission, the exact identity, paired cross-arm contrasts) is unaffected. `docs/findings/2026-09-25-the-interior-fitting-deficit-did-not-replicate.md`
