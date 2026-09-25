@@ -171,3 +171,35 @@ def test_the_seed_price_reproduces_rule_42s_own_published_values():
 def e191_price(sigma: float) -> float:
     """The same identity, written out, so the duplication above is checked rather than asserted."""
     return 40 * (3 / sigma) ** 2
+
+
+def test_the_progress_fraction_is_per_quantity_and_an_overshoot_uses_the_anchors_own_sem(tmp_path):
+    """A fraction above 100% is a reading and not an error: the cost at an intermediate overlap can exceed its own
+    0 -> 1 endpoint change. Its sem has to come from the level-against-anchor pairing, because the two deltas share
+    the admitted baseline -- subtracting their sems in quadrature would overstate how well the overshoot is pinned."""
+    d = tmp_path / "runs"
+    base = dose_payload(d / "base.json", "naive", [0.07, 0.08, 0.075, 0.075], [0.90, 0.86, 0.88, 0.88], 0.0)
+    level = dose_payload(d / "half.json", "naive", [0.10, 0.11, 0.105, 0.105], [0.84, 0.80, 0.82, 0.82], 0.5)
+    anchor = dose_payload(d / "one.json", "naive", [0.09, 0.10, 0.095, 0.095], [0.88, 0.84, 0.86, 0.86], 1.0)
+    arm = e188.dose_read([level], base, overlap1=anchor)["levels"][0]["arms"]["naive"]
+    assert arm["full_change"]["forgetting"]["change"] == pytest.approx(0.02, abs=1e-9)
+    assert arm["progress_fraction"]["forgetting"] == pytest.approx(1.5, abs=1e-9)
+    assert arm["progress_fraction"]["accuracy"] == pytest.approx(3.0, abs=1e-9)
+    assert arm["overshoot_vs_anchor"]["forgetting"]["change"] == pytest.approx(0.01, abs=1e-9)
+    assert arm["overshoot_vs_anchor"]["accuracy"]["change"] == pytest.approx(-0.04, abs=1e-9)
+    # an anchor that is not at overlap 1.0 is refused, with the reason, rather than divided by
+    refused = e188.dose_read([level], base, overlap1=base)["levels"][0]["arms"]["naive"]
+    assert "progress_fraction" not in refused
+    assert "not a 0 -> 1 change" in refused["progress_refused"], refused["progress_refused"]
+
+
+def test_the_live_level_050_accuracy_cost_overshoots_its_own_endpoint_change():
+    """The shape the interference account could not show: on the account `e188` reads, the registered midpoint's
+    accuracy cost is 1.77x its own 0 -> 1 endpoint change while its forgetting is at 26% of one -- and the overshoot
+    is 1.56 sigma against `e144`, where quadrature would have said 1.41."""
+    arm = e188.dose_read([Path("runs/e193_r32_overlap050_methods_40reps.json")])["levels"][0]["arms"]["naive"]
+    assert arm["progress_fraction"]["accuracy"] == pytest.approx(1.77, abs=0.02), arm["progress_fraction"]
+    assert arm["progress_fraction"]["forgetting"] == pytest.approx(0.26, abs=0.02), arm["progress_fraction"]
+    o = arm["overshoot_vs_anchor"]["accuracy"]
+    assert o["change"] == pytest.approx(-0.01424, abs=1e-4)
+    assert abs(o["change"]) / o["sem"] == pytest.approx(1.56, abs=0.05), "the anchor pairing's own sem"

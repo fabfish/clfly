@@ -138,12 +138,19 @@ def admitting_baseline(level_config: dict, method: str, candidates: list[Path]) 
 
 
 def dose_read(levels: list[Path], baseline: Path = Path("runs/e140_r32_methods_plastic_40reps.json"),
-              candidates: list[Path] | None = None) -> dict:
+              candidates: list[Path] | None = None,
+              overlap1: Path = Path("runs/e144_r32_overlap1_methods_40reps.json")) -> dict:
     """Each intermediate level against the disjoint baseline, arm by arm, on the accuracy drop AND the accuracy.
 
     The same design `e191` reads on the interference account, on the two quantities `e188`'s two-point contrast was
     measured with -- so the dose-response can be read on whichever account the question is asked in, and the two can
     disagree without either being a mistake (they are different quantities with different sems).
+
+    Each quantity also gets a **progress fraction** -- its change at this level over its own 0 -> 1 change -- and an
+    **overshoot** against the overlap-1.0 anchor, because the fraction is not bounded by 100% and the account where it
+    exceeds it is the one where the sentence needs a sem: `naive`'s accuracy cost at the registered midpoint is
+    1.77x its own 0 -> 1 endpoint change, and the overshoot's sem is the *paired* level-against-anchor contrast and
+    not two sems in quadrature (the two deltas share `e116`, so they are correlated).
     """
     base = load(baseline) if Path(baseline).is_file() else None
     rows = []
@@ -187,6 +194,38 @@ def dose_read(levels: list[Path], baseline: Path = Path("runs/e140_r32_methods_p
                                  "sigma": abs(pa["change"]) / pa["sem"] if pa["sem"] else None}
             entry["half_done"] = (entry["forgetting"]["change"] > DOSE_HALF_DONE
                                   if method == "naive" else None)
+            # The progress fractions and the overshoots. The denominator is each quantity's own 0 -> 1 change, so it
+            # exists only when this arm's admitted baseline sits at overlap 0.0 AND the anchor is at 1.0 -- the same
+            # condition `e191` applies, and for the same reason: for the block arms the admitted baseline is `e153`,
+            # which is itself at overlap 1.0, and the "rise" would be a `lam` difference between two runs at the same
+            # overlap. The anchor pairing is admitted by the same inert-fields rule rather than assumed.
+            anchor = load(overlap1) if Path(overlap1).is_file() else None
+            anchor_overlap = (anchor.get("config") or {}).get("input_overlap") if anchor else None
+            if anchor is not None and method in (anchor.get("methods") or {}):
+                bad = [k for k in differing_fields(d["config"], anchor["config"]) if k not in INERT_FOR[method]]
+                if entry["baseline_overlap"] != 0.0 or anchor_overlap != 1.0:
+                    entry["progress_refused"] = (
+                        f"not a 0 -> 1 change: this arm's admitted baseline is at overlap "
+                        f"{entry['baseline_overlap']} and the anchor at {anchor_overlap}")
+                elif bad:
+                    entry["progress_refused"] = f"anchor not admitted for {method}: differs in {bad}"
+                else:
+                    anchor_reps = anchor["methods"][method]["replicates"]
+                    entry["full_change"] = {
+                        "forgetting": paired([r["mean_forgetting"] for r in anchor_reps], a["forgetting"]),
+                        "accuracy": paired([r[acc_key] for r in anchor_reps], af)}
+                    entry["progress_fraction"] = {
+                        q: entry[q]["change"] / entry["full_change"][q]["change"]
+                        for q in ("forgetting", "accuracy") if entry["full_change"][q]["change"]}
+                    # the level against the anchor itself, which is what an overshoot beyond 100% has to be tested
+                    # with: the two deltas share the baseline, so subtracting their sems in quadrature overstates
+                    # it. BOTH quantities are oriented level-minus-anchor so a positive value means the level's
+                    # quantity is larger -- the accuracy one is a COST, so its overshoot is negative when the cost is
+                    # worse, and the first version had the forgetting one the other way round.
+                    entry["overshoot_vs_anchor"] = {
+                        "forgetting": paired(b["forgetting"], [r["mean_forgetting"] for r in anchor_reps]),
+                        "accuracy": paired(bf, [r[acc_key] for r in anchor_reps])}
+                    entry["anchor"] = Path(overlap1).name
             out["arms"][method] = entry
         rows.append(out)
     return {"baseline": Path(baseline).name, "levels": rows}
@@ -229,6 +268,18 @@ def report_dose(res: dict) -> int:
                 sig = val / sem
                 parts.append(f"{label} {val:.5f} = {sig:.2f}s ({seeds_for_three_sigma(sig):.0f} seeds at 3s)")
             print(f"             rule 42, at this level's naive forgetting sem {sem:.5f}: " + "; ".join(parts))
+            # the shape of both quantities on one account, and the overshoot where the fraction passes 100%
+            if na.get("progress_refused"):
+                print(f"             progress: refused for this arm -- {na['progress_refused']}")
+            elif na.get("progress_fraction"):
+                bits = [f"{q} at {100 * v:.0f}% of its own 0->1 change" for q, v in na["progress_fraction"].items()]
+                print(f"             progress ({na.get('anchor')} as the overlap-1.0 anchor): " + "; ".join(bits))
+                for q, o in (na.get("overshoot_vs_anchor") or {}).items():
+                    sig = abs(o["change"]) / o["sem"] if o["sem"] else 0.0
+                    print(f"                  this level against that anchor, {q:11}: {o['change']:+.5f} "
+                          f"+/-{o['sem']:.5f} = {sig:.2f}s"
+                          + ("   <- the overshoot's own sem, which a fraction above 100% needs"
+                             if na["progress_fraction"][q] > 1 else ""))
     print("        (the achieved overlaps are a property of mb+cx+al@n1307, 3 tasks of 80, seed 0: recompute them "
           "for any other circuit.)")
     return missing
