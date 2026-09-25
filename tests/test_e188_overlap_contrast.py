@@ -136,3 +136,23 @@ def test_the_live_registration_names_three_levels_and_none_exists_yet():
     res = e188.dose_read(levels)
     assert all(lv.get("status") == "not written yet" for lv in res["levels"])
     assert e188.ACHIEVED_OVERLAP[0.5] == 0.3333
+
+
+def test_the_launched_dose_response_is_a_near_pair_with_its_baseline_on_inert_fields_only():
+    """The pairing is certified BEFORE the artifacts exist, which is the point of declaring the inert fields.
+
+    The three `e193` commands were launched with `--methods naive,ewc-block,ewc-block-rand` and one `--input-overlap`
+    each, everything else copied from `e140` (the disjoint baseline the dose read pairs against). So the config diff
+    must be exactly `{input_overlap, methods}` and both must be inert for the three compared arms -- if anyone edits
+    the design (a different basis, a different read-out) the read would otherwise refuse the pair only after a
+    multi-hour run.
+    """
+    base = json.loads(Path("runs/e140_r32_methods_plastic_40reps.json").read_text(encoding="utf-8"))["config"]
+    launched = dict(base, methods="naive,ewc-block,ewc-block-rand", input_overlap=0.25)
+    diff = e188.differing_fields(base, launched)
+    # `input_overlap` is not in the diff by construction: it IS the manipulation, and `differing_fields` excludes it
+    assert set(diff) == {"methods"}, diff
+    for method in ("naive", "ewc-block", "ewc-block-rand"):
+        assert set(diff) <= e188.INERT_FOR[method], (method, e188.INERT_FOR[method])
+    # and the target the row registers is one of the levels whose ACHIEVED overlap is tabulated
+    assert launched["input_overlap"] in e188.ACHIEVED_OVERLAP
