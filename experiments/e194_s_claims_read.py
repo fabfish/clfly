@@ -1,9 +1,10 @@
-"""S1-S4 -- the four SHAPE claims registered for `e193`'s last level, judged in one command.
+"""The S claims -- the shape AND COST claims registered on `e193`'s overlap axis, judged in one command.
 
 Registered 2026-09-25 in the plan's row for `e193`, **before level 0.75 landed**: S1 and S2 off the near/far split the
-midpoint revealed, S3 off the two lines' distant-pair components, S4 off the accuracy account's interior. Written
-before the artifact for the reason `e190` was written before `e178`'s: so that the verdict is one command rather than
-a fresh argument, and so that a claim whose level has not landed is **refused** rather than given a number.
+midpoint revealed, S3 off the two lines' distant-pair components, S4 off the accuracy account's interior, and S5 off
+the decomposition of the accuracy cost into *learned worse* and *forgot more*. Written before the artifact for the
+reason `e190` was written before `e178`'s: so that the verdict is one command rather than a fresh argument, and so
+that a claim whose level has not landed is **refused** rather than given a number.
 
     python -m experiments.e194_s_claims_read                       # the registered three levels
     python -m experiments.e194_s_claims_read --dose runs/e193_r32_overlap075_methods_40reps.json
@@ -16,7 +17,12 @@ A claim whose levels are absent, or whose arm was refused a `progress_fraction` 
 penalised arms have no 0 -> 1 change to divide by), prints `REFUSED` with the reason and is counted in the exit code.
 
 The three-valued verdict is the registrations' own: each names a bar and a falsifier, and a measurement that clears
-neither is reported as **between them** rather than forced into one. S1 also names a null band, which is checked.
+neither is reported as **between them** rather than forced into one. S1 also names a null.
+
+`measure()` additionally carries the **cost decomposition** (`learned_older`, `forgetting` and their sems) that S5
+reads. It is taken against `e116`, the disjoint baseline the registered P1's bar is half of, and the pairing is
+checkable: `readout` and `seed0` are identical across the four artifacts, and the task supports are not recorded at
+all -- they are reconstructed from the target overlap, which is the limitation the registration itself names.
 """
 from __future__ import annotations
 
@@ -24,12 +30,24 @@ import argparse
 import sys
 from pathlib import Path
 
-from experiments.e188_overlap_contrast import dose_read as accuracy_read
+import numpy as np
+
+from experiments.e151_pertask_contrast_audit import paired
+from experiments.e188_overlap_contrast import ACHIEVED_OVERLAP, dose_read as accuracy_read, load
 from experiments.e191_interference_across_lines import dose_read as interference_read
 
-LEVELS = [Path(f"runs/e193_r32_overlap{n}_methods_40reps.json") for n in (25, 50, 75)]
+#: The three registered levels, named the way the LAUNCH wrote them: `n=$(echo $ov | tr -d '.')` turns 0.25 into
+#: `025`, 0.50 into `050` and 0.75 into `075`. The registration's prose writes them `overlap{25,50,75}`, which reads
+#: as the unpadded names, and four files copied that spelling -- so the reads pointed at paths that do not exist and
+#: reported "not written yet", which is exactly the state they were written to describe. A path that does not resolve
+#: makes a reader refuse, and a refusal looks like an answer.
+LEVELS = [Path(f"runs/e193_r32_overlap{n:03d}_methods_40reps.json") for n in (25, 50, 75)]
 
-#: Where the four claims are registered, so a verdict names its source and a reader can check the bar's sentence.
+#: The disjoint baseline the cost decomposition is against. The registered P1's bar is half of this artifact's 0 -> 1
+#: forgetting change, so the decomposition and the bar are read off the same pair of artifacts.
+DECOMPOSITION_BASELINE = Path("runs/e116_r32_40reps.json")
+
+#: Where the claims are registered, so a verdict names its source and a reader can check the bar's sentence.
 REGISTRATION = "docs/findings/2026-09-25-at-the-midpoint-p1-and-p2-fail-and-the-far-term-is-82-percent-done.md"
 
 #: (id, achieved overlap, quantity key, comparison, bar, falsifier comparison, falsifier, null spec, what it means)
@@ -45,6 +63,9 @@ CLAIMS = (
      "the network's distant-pair progress exceeds `e7`'s far progress there, in points"),
     ("S4", 0.6000, "accuracy_progress", "<", 176.6, ">=", 176.6, None,
      "the accuracy cost comes back down from the midpoint's peak, in % of its own 0 -> 1 change"),
+    ("S5", 0.6000, "learned_older", ">", -0.0100, "<=", -0.0200, None,
+     "how well the OLDER tasks were learned, against the disjoint baseline -- the component the midpoint's cost "
+     "came from, so a value here says whether that mechanism persists"),
 )
 
 #: The extrapolations each registration wrote down before the run, printed beside the measurement rather than
@@ -74,10 +95,15 @@ def judge(values: dict[str, float], key: str, op: str, bar: float, fals_op: str,
 
 
 def measure(levels: list[Path]) -> dict:
-    """Every quantity the four claims name, per achieved overlap, from the two readers that own them.
+    """Every quantity the claims name, per achieved overlap, from the readers that own them.
 
     A value is present only when the reader that owns it produced a `progress_fraction` for the `naive` arm at that
     exact achieved overlap; anything else is absent and the claim that needs it is refused.
+
+    The cost decomposition is the exception: it needs no fraction, only the two per-task series the runner records,
+    so it is present whenever the level and the disjoint baseline both carry a `naive` arm. The identity it rests on
+    is exact and is checked in the tests: `mean(final_per_task[:-1]) == mean(learned[:-1]) - mean_forgetting`, so the
+    accuracy cost *is* the sum of a learning term and a retention term and the two can be read off separately.
     """
     ints = interference_read(levels)
     accs = accuracy_read(levels)
@@ -106,12 +132,40 @@ def measure(levels: list[Path]) -> dict:
         if ach is None or not prog:
             continue
         out.setdefault(ach, {})["accuracy_progress"] = 100 * prog["accuracy"]
+    if not Path(DECOMPOSITION_BASELINE).is_file():
+        return out
+    base = load(DECOMPOSITION_BASELINE)["methods"]["naive"]["replicates"]
+    b_learned = np.array([float(np.mean(r["learned"][:-1])) for r in base])
+    b_forget = np.array([r["mean_forgetting"] for r in base])
+    for path in levels:
+        if not Path(path).is_file():
+            continue
+        d = load(path)
+        if "naive" not in (d.get("methods") or {}):
+            continue
+        ach = ACHIEVED_OVERLAP.get((d.get("config") or {}).get("input_overlap"))
+        if ach is None:
+            continue
+        reps = d["methods"]["naive"]["replicates"]
+        for key, series, b in (("learned_older", [float(np.mean(r["learned"][:-1])) for r in reps], b_learned),
+                               ("forgetting_cost", [r["mean_forgetting"] for r in reps], b_forget)):
+            p = paired(np.array(series), b)
+            vals = out.setdefault(ach, {})
+            vals[key] = p["change"]
+            vals[key + "_sem"] = p["sem"]
+            vals[key + "_sigma"] = abs(p["change"]) / p["sem"] if p["sem"] else 0.0
     return out
 
 
 def report(values: dict) -> int:
-    print(f"   == S1-S4: the registered shape claims, judged at the achieved overlap each one names ==")
+    print(f"   == the S claims: the registered shape and cost claims, judged at the achieved overlap each one names ==")
     print(f"   (registered in {REGISTRATION})")
+    # Which levels RESOLVED is printed before any verdict, because a claim's refusal has two causes -- the artifact is
+    # not written yet, or the path does not name it -- and the first version's output was identical for both. An
+    # empty list here is a statement about the paths rather than about the claims.
+    found = sorted(values)
+    print("   levels found: " + (", ".join(f"achieved {a}" for a in found) if found
+                                 else "NONE -- check the artifact names before reading any refusal below"))
     refused = 0
     for cid, ach, key, op, bar, fals_op, fals, null_spec, meaning in CLAIMS:
         vals = values.get(ach)
@@ -126,11 +180,15 @@ def report(values: dict) -> int:
             continue
         value = vals[key]
         verdict = judge(vals, key, op, bar, fals_op, fals, null_spec)
-        side = {k: f"{v:.1f}" for k, v in sorted(vals.items())}
-        print(f"        {cid}: {value:8.2f}  {op} {bar:g} -> {verdict}")
+        side = {k: f"{v:.4f}" if k.startswith("learned") or "forgetting" in k else f"{v:.1f}"
+                for k, v in sorted(vals.items()) if not k.endswith(("_sem", "_sigma"))}
+        print(f"        {cid}: {value:8.4f}  {op} {bar:g} -> {verdict}")
         print(f"             {meaning}; falsifier {fals_op} {fals:g}")
         if cid in REGISTERED_EXTRAPOLATION:
             print(f"             registered before the run: {REGISTERED_EXTRAPOLATION[cid]}")
+        if key + "_sigma" in vals:
+            print(f"             resolution: {value:+.4f} +/- {vals[key + '_sem']:.4f} = "
+                  f"{vals[key + '_sigma']:.2f}s against the disjoint baseline")
         print(f"             at achieved {ach}: {side}")
     return refused
 

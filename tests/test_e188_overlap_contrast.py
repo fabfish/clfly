@@ -131,11 +131,20 @@ def test_the_dose_read_refuses_a_level_that_is_not_written_yet(tmp_path):
     assert e188.report_dose(res) == 1
 
 
-def test_the_live_registration_names_three_levels_and_none_exists_yet():
-    levels = [Path(f"runs/e193_r32_overlap{n}_methods_40reps.json") for n in (25, 50, 75)]
-    res = e188.dose_read(levels)
-    assert all(lv.get("status") == "not written yet" for lv in res["levels"])
+def test_the_live_registration_names_three_levels_the_way_the_launch_wrote_them():
+    """The registration's prose says `overlap{25,50,75}` and the launch wrote `025`, `050`, `075`; this file carried
+    the prose spelling and so refused two levels that exist while asserting they did not."""
+    levels = [Path(f"runs/e193_r32_overlap{n:03d}_methods_40reps.json") for n in (25, 50, 75)]
+    assert [p.name for p in levels] == ["e193_r32_overlap025_methods_40reps.json",
+                                        "e193_r32_overlap050_methods_40reps.json",
+                                        "e193_r32_overlap075_methods_40reps.json"]
     assert e188.ACHIEVED_OVERLAP[0.5] == 0.3333
+    if levels[1].is_file():
+        res = e188.dose_read(levels[1:2])
+        assert res["levels"][0].get("status") is None, res["levels"]
+        assert res["levels"][0]["achieved_overlap"] == 0.3333
+    assert e188.dose_read([Path("runs/e193_r32_overlap999_methods_40reps.json")])["levels"][0]["status"] \
+        == "not written yet"
 
 
 def test_the_launched_dose_response_is_a_near_pair_with_its_baseline_on_inert_fields_only():

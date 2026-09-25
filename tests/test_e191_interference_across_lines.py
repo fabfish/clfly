@@ -139,13 +139,25 @@ def test_the_dose_read_refuses_an_artifact_that_is_not_written_yet(tmp_path):
     assert e191.report_dose(res) == 1, "the count of missing levels is the exit signal"
 
 
-def test_the_dose_read_on_the_live_registration_says_which_levels_are_missing():
-    """The gate, in the form it will have until the runs land: the registration names three levels and none exists."""
-    levels = [Path(f"runs/e193_r32_overlap{n}_methods_40reps.json") for n in (25, 50, 75)]
-    res = e191.dose_read(levels)
-    assert len(res["levels"]) == 3
-    assert all(lv.get("status") == "not written yet" for lv in res["levels"]), res["levels"]
+def test_the_registered_levels_are_named_the_way_the_launch_wrote_them():
+    """The registration writes the levels as `e193_r32_overlap{25,50,75}_methods_40reps.json`, which reads as the
+    UNPADDED names; the launch's `n=$(echo $ov | tr -d '.')` writes `025`, `050`, `075`. Four files copied the prose,
+    so the reads pointed at paths that do not exist and reported "not written yet" -- a refusal that looks exactly
+    like the state the test was written to describe. This asserts the names, and that a level which really is absent
+    is still reported absent."""
+    levels = [Path(f"runs/e193_r32_overlap{n:03d}_methods_40reps.json") for n in (25, 50, 75)]
+    assert [p.name for p in levels] == ["e193_r32_overlap025_methods_40reps.json",
+                                        "e193_r32_overlap050_methods_40reps.json",
+                                        "e193_r32_overlap075_methods_40reps.json"]
     assert e191.ACHIEVED_OVERLAP[0.5] == 0.3333 and e191.ACHIEVED_OVERLAP[0.75] == 0.6
+    # the two that exist are READ rather than refused, which is what the misspelling prevented
+    if levels[0].is_file() and levels[1].is_file():
+        res = e191.dose_read(levels[:2])
+        assert [lv.get("status") for lv in res["levels"]] == [None, None], res["levels"]
+        assert res["levels"][1]["achieved_overlap"] == 0.3333
+    # and a path that does not resolve is reported as missing rather than silently dropped
+    assert e191.dose_read([Path("runs/e193_r32_overlap999_methods_40reps.json")])["levels"][0]["status"] \
+        == "not written yet"
 
 
 def test_the_analytic_progress_fractions_come_from_the_artifact():

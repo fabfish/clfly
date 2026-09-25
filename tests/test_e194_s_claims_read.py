@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import numpy as np
 import pytest
 
 from experiments import e194_s_claims_read as e194
@@ -36,7 +37,7 @@ def test_a_claim_whose_level_has_not_landed_is_refused_and_counted():
     assert e194.report({}) == len(e194.CLAIMS), "every claim is refused when nothing is measured"
     # a level present but with only some of the quantities refuses only the claims that need the missing ones
     partial = {0.6000: {"near": 20.0, "far": 82.0, "far_minus_near": 62.0}}
-    assert e194.report(partial) == 2, "S3 needs the analytic far and S4 needs the accuracy account"
+    assert e194.report(partial) == 3, "S3 needs the analytic far; S4 the accuracy account; S5 the cost decomposition"
 
 
 def test_the_claims_name_quantities_the_measure_function_actually_produces():
@@ -56,3 +57,34 @@ def test_the_claims_name_quantities_the_measure_function_actually_produces():
     assert vals["far"] == pytest.approx(82.1, abs=0.1)
     assert vals["near"] == pytest.approx(20.0, abs=0.1)
     assert vals["far_minus_analytic"] == pytest.approx(65.6, abs=0.1)
+
+
+def test_the_cost_decomposition_closes_and_s5_fires_where_the_cost_came_from():
+    """The accuracy cost IS a learning term plus a retention term. The runner records `learned[j]` -- task j's
+    accuracy right after learning it -- and `final_per_task[j]`, with `mean_forgetting` the mean drop over the first
+    T-1 tasks, so `mean(final_per_task[:-1]) == mean(learned[:-1]) - mean_forgetting` **exactly**. A reader whose two
+    components do not add up to the measured cost is reading different tasks on each side, and the identity is
+    checked per replicate rather than on the means."""
+    levels = [Path(f"runs/e193_r32_overlap{n:03d}_methods_40reps.json") for n in (25, 50)]
+    if not all(p.is_file() for p in levels):
+        pytest.skip("the interior level artifacts are not in this checkout")
+    for path in levels + [e194.DECOMPOSITION_BASELINE]:
+        for r in e194.load(path)["methods"]["naive"]["replicates"]:
+            assert np.mean(r["final_per_task"][:-1]) == pytest.approx(
+                np.mean(r["learned"][:-1]) - r["mean_forgetting"], abs=1e-12), path
+    values = e194.measure(levels)
+    mid = values[0.3333]
+    assert mid["learned_older"] == pytest.approx(-0.03255, abs=1e-4)
+    assert mid["learned_older_sigma"] == pytest.approx(8.10, abs=0.05)
+    assert mid["forgetting_cost"] == pytest.approx(0.00833, abs=1e-4)
+    assert mid["forgetting_cost_sigma"] == pytest.approx(0.79, abs=0.05)
+    # the earlier level is the other way round: learning BETTER, forgetting unresolved
+    early = values[0.1429]
+    assert early["learned_older"] == pytest.approx(0.00651, abs=1e-4)
+    assert early["learned_older_sigma"] == pytest.approx(2.03, abs=0.05)
+    # S5's own verdicts, on the two values that exist
+    s5 = next(c for c in e194.CLAIMS if c[0] == "S5")
+    assert e194.judge(mid, s5[2], s5[3], s5[4], s5[5], s5[6], s5[7]) == "FALSIFIER FIRED"
+    assert e194.judge(early, s5[2], s5[3], s5[4], s5[5], s5[6], s5[7]) == "MET"
+    assert e194.judge(dict(mid, learned_older=-0.015), s5[2], s5[3], s5[4], s5[5], s5[6], s5[7]) == \
+        "between the bar and the falsifier"
