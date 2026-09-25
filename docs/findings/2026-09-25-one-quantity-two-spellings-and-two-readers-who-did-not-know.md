@@ -4,6 +4,11 @@
 helper: `duration_seconds` in `clfly/bench/artifacts.py`, tests: `tests/test_e205_duration_field_census.py`.
 Artifacts read: the 329 under `runs/` that carry a `config` dict, as of 22:38.*
 
+> **CORRECTED AND EXTENDED 2026-09-25, later the same evening**: the vocabulary is **three** spellings, not two —
+> the third is `summary = {"time_s": ...}`, one level down, written by the predictor analyses, and this finding's
+> own check had printed it as an uncounted near-miss. See
+> `docs/findings/2026-09-25-the-vocabulary-was-three-spellings-and-the-third-was-one-level-down.md`.
+
 This is not a registered hypothesis with a draw in it: nothing here varies, so nothing here needs a null. It
 is a census of the record's own vocabulary taken because **the last two evenings' defects were all of this
 shape** — `e201`'s draw-field list was hand-written and had missed `rewire_seed`, `e160`'s environment

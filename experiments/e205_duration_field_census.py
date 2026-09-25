@@ -1,17 +1,25 @@
-"""E205 -- the corpus records one quantity under two spellings, and the split is by instrument rather than chance.
+"""E205 -- the corpus records one quantity under THREE spellings, and every reader of it knew about one.
 
-Every artifact in this record that says how long it took says it in one of two ways: a top-level
-``timing_s``, written by the trained runners, or ``timing = {"total_s": ...}``, written by the analytic
-line (`e3_basis_selection` and the things built on it). Both are the same measurement -- ``time.time() - t0``
-taken at the end of ``main`` -- and **nothing in the corpus was reading both**: `e169`'s scope gate read
-``payload["timing_s"]``, `e190`'s cost line and `e38`'s cost table read ``d.get("timing_s")``, so an
+Every artifact in this record that says how long it took says it in one of three ways: a top-level
+``timing_s``, written by the trained runners; ``timing = {"total_s": ...}``, written by the analytic line
+(`e3_basis_selection` and the things built on it); or ``summary = {"time_s": ...}``, one level down,
+written by the predictor analyses (`e6`, `e64`). All three are the same measurement -- ``time.time() - t0``
+taken at the end of ``main`` -- and **nothing in the corpus was reading more than one**: `e169`'s scope gate
+read ``payload["timing_s"]``, `e190`'s cost line and `e38`'s cost table read ``d.get("timing_s")``, so an
 analytic artifact's duration was invisible to every reader in the record that prices a run.
 
 That is the defect class this project keeps finding one level below where it last looked: `e201`'s
 draw-field list was hand-written and missed ``rewire_seed``; `e160`'s environment identity included the
-machine's own speed; and here **two readers of one quantity do not know about each other**, with the
-split falling exactly along the line boundary -- so a reader keying on either spelling is blind to a whole
-line of the project, and the blind half is the *expensive* half.
+machine's own speed; and here **the readers of one quantity do not know about each other**, with the split
+falling along the line boundary -- so a reader keying on one spelling is blind to whole instruments of the
+project, and for two of the three the blind part is the *expensive* part.
+
+**And this module committed the same defect it was written to catch, which is the sharpest thing in it.** Its
+first version declared ``summary.time_s`` a *"near-miss to inspect rather than to count"* -- the phrase is
+still visible in `e194`'s idiom, where it is right -- and scanned only the top level of each file, so the third
+spelling was invisible to its own vocabulary check by construction. Three artifacts carrying **2.6 h** of
+compute sat behind it, and they were found by taking the module's own declared near-miss seriously: a
+near-miss declared by the check that exists to find unknown spellings is a spelling.
 
 Three questions, all answered from disk, none of them requiring a run:
 
@@ -70,11 +78,14 @@ RUNS = Path("runs")
 EXPERIMENTS = Path("experiments")
 
 #: the spellings a duration is allowed to be recorded under. Anything else holding a number in a
-#: ``tim*``/``dur*`` top-level key is a violation, which is what keeps a third spelling from appearing
-#: silently -- the failure `e201`'s hand-written field list suffered.
-SPELLINGS = ("timing_s", "timing.total_s")
-#: a top-level numeric key that names a duration-shape but is not a run's duration
-SHAPED_BUT_OTHER = ("summary.time_s",)
+#: ``tim*``/``dur*`` key is a violation, which is what keeps a further spelling from appearing silently -- the
+#: failure `e201`'s hand-written field list suffered. A spelling is a **dotted path**, because the third one lives
+#: one level down inside a block: the first version of this module scanned only the top level of the file, declared
+#: `summary.time_s` a "near-miss to inspect" and printed it without counting it -- and it was a third spelling
+#: holding an hour of compute, which is the same defect as the one this check exists to prevent.
+SPELLINGS = ("timing_s", "timing.total_s", "summary.time_s")
+#: the block keys whose contents are scanned for a duration-shaped numeric key, at one level down
+BLOCKS = ("timing", "summary", "environment")
 
 #: run-like artifacts that record no duration at all, declared with the runner that wrote each. The declared
 #: runner is **checked against the registry-derived one** (see `derive_writer`), because the first version of
@@ -106,19 +117,27 @@ def is_run_like(artifact: dict) -> bool:
 
 
 def strange_spellings(payload: dict) -> list[str]:
-    """Top-level numeric keys that name a duration and are not in the declared vocabulary.
+    """Numeric keys that name a duration and are not in the declared vocabulary, as dotted paths.
 
     The test is on the key's **name** -- a leading ``tim`` or ``dur`` -- and not on its meaning, which is the
-    only thing a reader of an unknown artifact can do. Two consequences, both declared: a key like ``time_used``
-    is flagged (correctly, since nothing else tells the reader what it is), and a duration recorded under a name
-    that names no time at all (``total_seconds``) is missed, which is why the vocabulary is printed on every run.
+    only thing a reader of an unknown artifact can do. Three consequences, all declared: a key like ``time_used``
+    is flagged (correctly, since nothing else tells the reader what it is); a duration recorded under a name that
+    names no time at all (``total_seconds``) is missed, which is why the vocabulary is printed on every run; and
+    the scan descends into the blocks named in ``BLOCKS`` and no further, because that is where the third spelling
+    was hiding and a nested scan is what a top-level scan cannot do.
     """
     out = []
-    for key, value in payload.items():
-        if not isinstance(value, (int, float)) or isinstance(value, bool):
-            continue
-        if re.match(r"^(tim|dur)", key) and key not in SPELLINGS:
-            out.append(key)
+
+    def visit(prefix: str, obj: dict) -> None:
+        for key, value in obj.items():
+            path = f"{prefix}{key}"
+            if isinstance(value, (int, float)) and not isinstance(value, bool):
+                if re.match(r"^(tim|dur)", key) and path not in SPELLINGS:
+                    out.append(path)
+            elif prefix == "" and key in BLOCKS and isinstance(value, dict):
+                visit(f"{key}.", value)
+
+    visit("", payload)
     return out
 
 
@@ -164,7 +183,7 @@ def census(runs: Path = RUNS) -> dict:
     """The two spellings' population, the compute each holds, and the artifacts that hold none."""
     arts = load_artifacts(runs)
     parsers = parser_registry()
-    rows, unknown, run_like, no_duration = [], [], 0, []
+    rows, unknown, run_like, no_duration, plumbing = [], [], 0, [], []
     for a in arts:
         seconds = duration_seconds(a["payload"])
         run_like_here = is_run_like(a)
@@ -172,6 +191,10 @@ def census(runs: Path = RUNS) -> dict:
                      "config_keys": len(a["config"]), "run_like": run_like_here,
                      "has_methods": isinstance(a["payload"].get("methods"), dict)})
         unknown += [{"artifact": a["name"], "key": k} for k in strange_spellings(a["payload"])]
+        writer = derive_writer(a["config"], parsers)
+        if writer["missing_from_best"]:
+            plumbing.append({"artifact": a["name"], "module": writer["module"],
+                             "missing": writer["missing_from_best"]})
         if run_like_here:
             run_like += 1
             if seconds is None:
@@ -197,7 +220,7 @@ def census(runs: Path = RUNS) -> dict:
         "total_seconds": sum(s["seconds"] for s in by_field.values()),
         "no_duration": sorted(no_duration, key=lambda w: w["artifact"]),
         "unknown_spellings": unknown,
-        "shaped_but_other": list(SHAPED_BUT_OTHER),
+        "plumbing": sorted(plumbing, key=lambda w: w["artifact"]),
         "read_sites": reads,
         "outside_helper": [s for s in reads if not s["uses_helper"]],
         "write_sites": [s for s in sites if s["kind"] == "write"],
@@ -216,24 +239,32 @@ def report(res: dict) -> int:
     print(f"\n   {'spelling':<17}{'artifacts':>10}{'hours':>9}{'share':>8}  who writes it")
     for field in SPELLINGS:
         slot = by.get(field)
+        who = {"timing_s": "the trained runners (all carry `methods`)",
+               "timing.total_s": "the analytic line (none carries `methods`)",
+               "summary.time_s": "the predictor analyses (`e6`, `e64`), one level down"}[field]
         if slot is None:
-            print(f"   {field:<17}{0:>10}")
+            print(f"   {field:<17}{0:>10}{'-':>9}{'-':>8}  {who}")
             continue
-        who = "the trained runners (all carry `methods`)" if field == "timing_s" else "the analytic line"
         print(f"   {field:<17}{slot['artifacts']:>10}{slot['seconds'] / 3600:>9.1f}"
               f"{slot['seconds'] / total:>8.1%}  {who}")
 
     nested_slot = by.get("timing.total_s", {"names": [], "seconds_of": {}})
     nested = nested_slot["names"]
+    summary_slot = by.get("summary.time_s", {"names": [], "seconds_of": {}, "seconds": 0.0})
     top_level = by.get("timing_s", {}).get("artifacts", 0)
-    print("\n== the blindness, which is not symmetric ==")
-    if nested:
-        print(f"   a reader keying on `timing_s` cannot see {len(nested)} artifacts -- the analytic line, whose "
-              f"{nested_slot['seconds'] / 3600:.1f} h is {nested_slot['seconds'] / total:.1%} of the record's "
-              f"compute -- and one keying on `timing.total_s` cannot see {top_level}.")
+    print("\n== the blindness, which is not symmetric: a reader keying on one spelling ==")
+    for field in SPELLINGS:
+        blind = sum(s["artifacts"] for f, s in by.items() if f != field)
+        hidden_h = sum(s["seconds"] for f, s in by.items() if f != field)
+        print(f"   {field:<17} cannot see {blind:>3} artifacts, {hidden_h / 3600:>5.1f} h = "
+              f"{hidden_h / total:>5.1%} of the record's compute")
     print("   the analytic artifacts, largest first (rule 49's price for the ladder line is read from here):")
     for name in sorted(nested, key=lambda n: -nested_slot["seconds_of"][n]):
         print(f"      {name:<48}{nested_slot['seconds_of'][name] / 3600:>8.2f} h")
+    if summary_slot["names"]:
+        print("   and the three under `summary.time_s`, which no reader could see until this run:")
+        for name in sorted(summary_slot["names"], key=lambda n: -summary_slot["seconds_of"][n]):
+            print(f"      {name:<48}{summary_slot['seconds_of'][name] / 3600:>8.2f} h")
     flat = sorted(((r["name"], r["seconds"]) for r in res["rows"] if r["seconds"] is not None),
                   key=lambda p: -p[1])
     if flat:
@@ -261,13 +292,20 @@ def report(res: dict) -> int:
           f"{sum(1 for w in res['no_duration'] if not w['declared_agrees'])} declared wrongly); the two runners "
           f"behind them now write `timing_s`, so the next run of either records its own cost.")
 
+    print("\n== a config is `vars(args)` plus the runner's own plumbing ==")
+    keys = sorted({k for w in res["plumbing"] for k in w["missing"]})
+    mods = sorted({w["module"] for w in res["plumbing"]})
+    print(f"   artifacts carrying a key their own best parser does not define: "
+          f"{len(res['plumbing'])} of {res['artifacts']}, over {len(keys)} key(s) {keys}")
+    print(f"   the runners that inject one: {mods} -- which is why `e172`'s containment test names nobody")
+    for w in res["plumbing"][:6]:
+        print(f"      {w['artifact']:<40}{w['module']:<34}{w['missing']}")
+
     print("\n== the standing check ==")
-    print(f"   artifacts holding a duration-shaped numeric key outside {SPELLINGS}: "
+    print(f"   artifacts holding a duration-shaped numeric key outside the vocabulary {SPELLINGS}: "
           f"{len(res['unknown_spellings'])}")
     for row in res["unknown_spellings"][:5]:
         print(f"      {row['artifact']:<40}{row['key']}")
-    print(f"   declared near-miss to inspect rather than to count: {', '.join(res['shaped_but_other']) or 'none'}"
-          f" (a hand-built summary's own timing, not a run's)")
     print(f"\n   source lines that READ a duration key: {len(res['read_sites'])}, of which "
           f"{len(res['outside_helper'])} sit in a module that does not import `duration_seconds`")
     for s in res["outside_helper"]:

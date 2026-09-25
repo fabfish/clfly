@@ -50,25 +50,30 @@ def nonfinite_to_null(obj):
 def duration_field(payload: dict) -> str | None:
     """Which spelling this artifact recorded its duration under, or ``None`` if it recorded none.
 
-    The corpus uses two, and `e205` measured that the split is not random: the analytic line
+    The corpus uses **three**, and `e205` measured that the split is not random: the analytic line
     (`e3_basis_selection`, `e9`, `e13`, `e58`, `e79`) writes ``timing = {"total_s": ...}`` and carries no
-    ``methods`` dict, and every trained runner writes a top-level ``timing_s``.
+    ``methods`` dict, every trained runner writes a top-level ``timing_s``, and the predictor analyses
+    (`e6`, `e64`) write ``summary = {"time_s": ...}`` one level down -- which the first version of that
+    census could not see, because it scanned only the top level of the file.
     """
     if isinstance(payload.get("timing_s"), (int, float)):
         return "timing_s"
     timing = payload.get("timing")
     if isinstance(timing, dict) and isinstance(timing.get("total_s"), (int, float)):
         return "timing.total_s"
+    summary = payload.get("summary")
+    if isinstance(summary, dict) and isinstance(summary.get("time_s"), (int, float)):
+        return "summary.time_s"
     return None
 
 
 def duration_seconds(payload: dict) -> float | None:
-    """A run's wall-clock duration in seconds, under **either** spelling the corpus uses.
+    """A run's wall-clock duration in seconds, under **any** spelling the corpus uses.
 
     Every reader of a duration goes through this function rather than through a key, because the key is
     a property of which instrument wrote the artifact and not of the quantity: a reader keying on
     ``timing_s`` cannot see the thirteen analytic artifacts, and one keying on ``timing.total_s`` cannot
-    see the other 298 (`e205`). The two spellings are the same measurement -- both are ``time.time() - t0``
+    see the other 298 (`e205`). The spellings are the same measurement -- each is ``time.time() - t0``
     taken at the end of ``main`` -- so they are interchangeable and the caller needs no branch.
     """
     field = duration_field(payload)
@@ -76,6 +81,8 @@ def duration_seconds(payload: dict) -> float | None:
         return float(payload["timing_s"])
     if field == "timing.total_s":
         return float(payload["timing"]["total_s"])
+    if field == "summary.time_s":
+        return float(payload["summary"]["time_s"])
     return None
 
 

@@ -105,3 +105,28 @@ def test_a_declared_runner_that_does_not_derive_is_counted_as_a_violation(tmp_pa
     w = res["no_duration"][0]
     assert w["declared"] == "e136_geometry_persistence.py" and not w["declared_agrees"]
     assert e205.report(res) == 1, "a gap declared to the wrong writer is one violation and nothing else"
+
+def test_the_third_spelling_lives_one_level_down_and_the_scan_descends_into_blocks():
+    """The defect this module committed on its own first run: it declared `summary.time_s` a near-miss to inspect
+    and scanned only the top level, so its vocabulary check could not see a spelling one level down. The scan now
+    descends into the declared blocks -- and no further, which is stated rather than implied."""
+    assert duration_seconds({"summary": {"time_s": 3600.0}}) == 3600.0
+    assert duration_field({"summary": {"time_s": 3600.0}}) == "summary.time_s"
+    # a declared spelling is not flagged; a nested one that is not declared is
+    assert e205.strange_spellings({"summary": {"time_s": 1.0}}) == []
+    assert e205.strange_spellings({"summary": {"time_taken_s": 1.0}}) == ["summary.time_taken_s"]
+    # and the class this scan MISSES, asserted so it is a declared limit and not a surprise: `cpu_time_s`
+    # starts with `cpu`, so the name rule does not see it -- and it names a different quantity anyway
+    assert e205.strange_spellings({"environment": {"cpu_time_s": 1.0}}) == []
+
+
+def test_an_artifact_carrying_a_key_its_own_parser_does_not_define_is_reported_as_plumbing(tmp_path):
+    """`save_theta` generalised: `config` is `vars(args)` plus whatever the runner assigns into its own
+    namespace. The census counts the artifacts, not the pattern, and prints the key and the injector so the next
+    one is visible rather than inferred."""
+    flags = sorted(e205.parser_registry()["e122_path_geometry.py"])
+    (tmp_path / "e900_run.json").write_text(
+        json.dumps({"config": {k: 0 for k in flags + ["save_theta"]}, "check": {}}), encoding="utf-8")
+    res = e205.census(tmp_path)
+    assert res["plumbing"] == [{"artifact": "e900_run.json", "module": "e122_path_geometry.py",
+                               "missing": ["save_theta"]}], res["plumbing"]
