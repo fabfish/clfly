@@ -187,19 +187,27 @@ def report(res: dict) -> int:
     return res["n_mismatches"]
 
 
-def analytic_progress(levels: list[float], path: Path = RUNS / ANALYTIC) -> dict:
-    """How far the analytic near component has fallen, as a FRACTION of its own 0 -> 1 fall, per achieved overlap.
+def analytic_progress(levels: list[float], path: Path = RUNS / ANALYTIC, comp: str = "near") -> dict:
+    """How far one analytic component has moved, as a FRACTION of its own 0 -> 1 change, per achieved overlap.
 
     P2 is a claim about the network's *shape* matching the analytic line's timing, and a shape claim needs both
     lines expressed the same way: the fraction of the total response completed at a given achieved overlap. The
     analytic fraction is fixed by `e7`'s six levels and is computed here from the artifact rather than quoted, so it
     cannot drift from the table it comes from.
+
+    `comp` exists because the two components move in OPPOSITE directions -- `e7`'s near FALLS over the six levels and
+    its far RISES -- so a formula that divides by "the fall" is only defined for one of them. The fraction is written
+    as `(value - first) / (last - first)`, which is `(first - value) / (first - last)` for a falling component (so
+    the near fractions are unchanged to the last digit) and the same arithmetic for a rising one. The result may be
+    NEGATIVE: `e7`'s far dips BELOW its overlap-0 value at its two lowest levels, which the sign-robust form reports
+    as -50% and -20% rather than as a fraction of a fall that is not happening.
     """
     block = analytic_split(path)
-    total = block[0]["near"] - block[-1]["near"]
+    vals = [b[comp] for b in block]
+    total = vals[-1] - vals[0]
     if not total:
         return {}
-    return {ach: (block[0]["near"] - next(b["near"] for b in block if abs(b["level"] - lv) < 1e-9)) / total
+    return {ach: (next(b[comp] for b in block if abs(b["level"] - lv) < 1e-9) - vals[0]) / total
             for ach, lv in ((0.0526, 0.1), (0.1429, 0.25), (0.3333, 0.5), (0.6000, 0.75), (1.0, 1.0))
             if any(abs(b["level"] - lv) < 1e-9 for b in block)}
 
@@ -322,7 +330,8 @@ def dose_read(levels: list[Path], baseline: Path = Path("runs/e140_r32_methods_p
             out["arms"][method] = entry
         rows.append(out)
     return {"baseline": Path(baseline).name, "overlap1": Path(overlap1).name, "levels": rows,
-            "analytic_progress": analytic_progress([0.0526, 0.1429, 0.3333, 0.6000, 1.0])}
+            "analytic_progress": analytic_progress([0.0526, 0.1429, 0.3333, 0.6000, 1.0]),
+            "analytic_progress_far": analytic_progress([0.0526, 0.1429, 0.3333, 0.6000, 1.0], comp="far")}
 
 
 def report_dose(res: dict) -> int:
@@ -367,6 +376,9 @@ def report_dose(res: dict) -> int:
                 # claim whose read is a hand computation is what rule 42's footer removed from this function
                 far_txt = (f"; the distant-pair term is at {100 * prog_far:.0f}% of its own"
                            if prog_far is not None else "")
+                an_far = res.get("analytic_progress_far", {}).get(row["achieved_overlap"])
+                if an_far is not None:
+                    far_txt += f" (the analytic line's far is at {100 * an_far:.0f}% there)"
                 ptxt = (f"   P2: {100 * prog:.0f}% of its own 0->1 rise (bar {100 * P2_BAR:.0f}%){verdict}"
                         f"   [the analytic line is {100 * analytic:.0f}% there, i.e. this line is at "
                         f"{100 * prog / analytic:.0f}% of the analytic's progress{far_txt}]")

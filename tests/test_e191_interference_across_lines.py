@@ -269,3 +269,29 @@ def test_the_seed_price_reproduces_rule_42s_own_published_values(tmp_path, capsy
     e191.report_dose(e191.dose_read([half], base))
     out = capsys.readouterr().out
     assert "rule 42" in out and "P1's bar 0.06170" in out and "seeds at 3s" in out
+
+
+def test_the_analytic_far_profile_is_computed_and_may_be_negative():
+    """`e7`'s two components move in OPPOSITE directions -- near falls, far rises -- so a formula that divides by
+    "the fall" is defined for only one of them. The sign-robust form leaves the near fractions unchanged to the last
+    digit and reports the far's own shape, which is not merely different from the network's but not even monotone:
+    the analytic far DIPS below its overlap-0 value at both low levels."""
+    near = e191.analytic_progress([0.1429, 0.3333])
+    assert near[0.1429] == pytest.approx(0.4014, abs=1e-3), "the generalisation leaves the near fractions unchanged"
+    far = e191.analytic_progress([0.0526, 0.1429, 0.3333, 0.6000, 1.0], comp="far")
+    assert far[0.0526] == pytest.approx(-0.5036, abs=1e-3), "below its own start"
+    assert far[0.1429] == pytest.approx(-0.2002, abs=1e-3)
+    assert far[0.3333] == pytest.approx(0.1650, abs=1e-3), "16.5% where the network's far is at 82.1%"
+    assert far[0.6000] == pytest.approx(0.5216, abs=1e-3)
+    assert far[1.0] == pytest.approx(1.0, abs=1e-9)
+    # and the read prints both, so the comparison between the two lines' far components is a read
+    d = __import__("pathlib").Path("tmp_far_progress_test") / "runs"
+    base = dose_artifact(d / "base.json", "naive", [0.09, 0.11, 0.10, 0.10], [0.04, 0.06, 0.05, 0.05], 0.0)
+    full = dose_artifact(d / "full.json", "naive", [0.21, 0.23, 0.22, 0.22], [0.09, 0.11, 0.10, 0.10], 1.0)
+    half = dose_artifact(d / "half.json", "naive", [0.15, 0.17, 0.16, 0.16], [0.07, 0.09, 0.08, 0.08], 0.5)
+    res = e191.dose_read([half], base, overlap1=full)
+    assert res["analytic_progress_far"][0.3333] == pytest.approx(0.1650, abs=1e-3)
+    for f in d.rglob("*.json"):
+        f.unlink()
+    d.rmdir()
+    d.parent.rmdir()
