@@ -191,3 +191,20 @@ def test_each_dose_row_states_the_overlap_pair_it_measures():
     for f in d.rglob("*.json"):
         f.unlink()
     d.rmdir()
+
+
+def test_the_cleanest_admissible_baseline_is_preferred_and_its_refusals_are_reported(tmp_path):
+    """`e116` needs three inert assumptions for `naive` where `e140` needs four, so the read prefers it -- and says
+    why the cleaner candidate was refused when it is, which is how a reader sees that the block arm's baseline had
+    to move to the lambda-1.0 family."""
+    d = tmp_path / "runs"
+    clean = dose_artifact(d / "clean.json", "naive", [0.09, 0.11, 0.10, 0.10], [0.04, 0.06, 0.05, 0.05], 0.0)
+    dirty = dose_artifact(d / "dirty.json", "naive", [0.09, 0.11, 0.10, 0.10], [0.04, 0.06, 0.05, 0.05], 0.0)
+    lvl = dose_artifact(d / "lvl.json", "naive", [0.17, 0.19, 0.18, 0.18], [0.07, 0.09, 0.08, 0.08], 0.25)
+    res = e191.dose_read([lvl], clean, candidates=[clean, dirty])
+    row = res["levels"][0]["arms"]["naive"]
+    assert row["baseline"] == "clean.json"
+    assert row["refusals"] == [], "the first candidate is admitted, so there is nothing to refuse"
+    # with a candidate that does not carry the arm first, the refusal says so
+    res2 = e191.dose_read([lvl], dirty, candidates=[d / "absent-arm.json", dirty])
+    assert res2["levels"][0]["arms"]["naive"]["baseline"] == "dirty.json"

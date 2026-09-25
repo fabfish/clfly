@@ -158,7 +158,8 @@ def dose_read(levels: list[Path], baseline: Path = Path("runs/e140_r32_methods_p
                 pool |= set((load(cand).get("methods") or {}))
         for method in sorted(pool & set(d.get("methods", {}))):
             use, refusals = admitting_baseline(d.get("config") or {}, method,
-                                              candidates or [baseline, Path("runs/e153_r32_overlap1_methods_40reps.json")])
+                                              candidates or [Path("runs/e116_r32_40reps.json"), baseline,
+                                              Path("runs/e153_r32_overlap1_methods_40reps.json")])
             if use is None:
                 out.setdefault("refused_arms", {})[method] = refusals
                 continue
@@ -166,7 +167,7 @@ def dose_read(levels: list[Path], baseline: Path = Path("runs/e140_r32_methods_p
             if a is None or b is None or a["n"] != b["n"]:
                 continue
             entry = {"n": a["n"], "baseline": Path(use).name,
-                     "baseline_overlap": (load(use)["config"] or {}).get("input_overlap"),
+                     "baseline_overlap": (load(use)["config"] or {}).get("input_overlap"), "refusals": refusals,
                      "differs_in": sorted(differing_fields(load(use)["config"], d["config"]))}
             pf = paired(b["forgetting"], a["forgetting"])
             entry["forgetting"] = {"change": pf["change"], "sem": pf["sem"],
@@ -196,12 +197,21 @@ def report_dose(res: dict) -> int:
               f"{row['achieved_overlap']}")
         for method, e in row["arms"].items():
             f, a = e["forgetting"], e["accuracy"]
-            tag = "" if e.get("half_done") is None else (
-                "   P1's bar (> +0.0159, half the 0->1 rise) " + ("MET" if e["half_done"] else "NOT met"))
+            # the registered bar is a statement about achieved 0.3333, so it is checked only there (the first
+            # version tagged every level, claiming something the registration does not say)
+            at_midpoint = abs((row["achieved_overlap"] or 0) - 0.3333) < 1e-9
+            tag = ""
+            if method == "naive" and at_midpoint:
+                tag = ("   P1's bar (> +0.0159, half the 0->1 rise) " +
+                       ("MET" if f["change"] > DOSE_HALF_DONE else "NOT met"))
+            elif method == "naive":
+                tag = "   (P1's bar applies at achieved 0.3333, not here)"
             pair = f"{e.get('baseline_overlap')} -> {row['target_overlap']}"
             print(f"             {method:16} {pair:14} vs {e.get('baseline', '?')[:22]:24} forgetting {f['change']:+.4f}+/-{f['sem']:.4f}"
                   f"({f['sigma']:.1f}s)  accuracy {a['change']:+.4f}+/-{a['sem']:.4f}({a['sigma']:.1f}s)"
                   f"  n {e['n']}{tag}")
+            if e.get("refusals"):
+                print(f"                  (cleaner candidates refused: {'; '.join(e['refusals'])})")
             if e["differs_in"]:
                 print(f"                  (admitted with inert differences in: {', '.join(e['differs_in'])})")
     print("        (the achieved overlaps are a property of mb+cx+al@n1307, 3 tasks of 80, seed 0: recompute them "
@@ -295,7 +305,8 @@ def main(argv=None) -> int:
     args = p.parse_args(argv)
 
     if args.dose:
-        cands = args.baseline or [Path("runs/e140_r32_methods_plastic_40reps.json"),
+        cands = args.baseline or [Path("runs/e116_r32_40reps.json"),
+                                  Path("runs/e140_r32_methods_plastic_40reps.json"),
                                   Path("runs/e153_r32_overlap1_methods_40reps.json")]
         dose = dose_read(args.dose, cands[0], candidates=cands)
         n = report_dose(dose)

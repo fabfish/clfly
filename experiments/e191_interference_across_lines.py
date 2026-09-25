@@ -243,7 +243,8 @@ def dose_read(levels: list[Path], baseline: Path = Path("runs/e140_r32_methods_p
                 pool |= set((load(cand).get("methods") or {}))
         for method in sorted(pool & set(d.get("methods", {}))):
             use, refusals = admitting_baseline(d.get("config") or {}, method,
-                                              candidates or [baseline, Path("runs/e153_r32_overlap1_methods_40reps.json")])
+                                              candidates or [Path("runs/e116_r32_40reps.json"), baseline,
+                                              Path("runs/e153_r32_overlap1_methods_40reps.json")])
             if use is None:
                 out.setdefault("refused_arms", {})[method] = refusals
                 continue
@@ -252,7 +253,8 @@ def dose_read(levels: list[Path], baseline: Path = Path("runs/e140_r32_methods_p
                                              b["n_pairs_far"]) == 0:
                 continue
             base_overlap = (load(use)["config"] or {}).get("input_overlap")
-            entry = {"n": len(a["near"]), "baseline": Path(use).name, "baseline_overlap": base_overlap}
+            entry = {"n": len(a["near"]), "baseline": Path(use).name, "baseline_overlap": base_overlap,
+                     "refusals": refusals}
             for comp in ("near", "far"):
                 pn = paired(b[comp], a[comp])
                 r = abs(pn["change"]) / pn["sem"] if pn["sem"] else 0.0
@@ -330,7 +332,8 @@ def main(argv=None) -> int:
     args = p.parse_args(argv)
 
     if args.dose:
-        cands = args.baseline or [Path("runs/e140_r32_methods_plastic_40reps.json"),
+        cands = args.baseline or [Path("runs/e116_r32_40reps.json"),
+                                  Path("runs/e140_r32_methods_plastic_40reps.json"),
                                   Path("runs/e153_r32_overlap1_methods_40reps.json")]
         dose = dose_read(args.dose, cands[0], args.runs, candidates=cands)
         n = report_dose(dose)
