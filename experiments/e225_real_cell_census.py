@@ -25,6 +25,13 @@ Three tolerance classes, all declared: **EXACT** (relative difference ≤ 1e-12)
 not counted — a code epoch's arithmetic is not a reproducibility failure), and **MATERIAL** (> 1e-6, counted unless it
 is a declared cross-family group). The exit code is the number of MATERIAL disagreements inside a family.
 
+**`e227` corrects what this census's FLOATING class can mean.** The excess is a *difference* of two larger numbers
+(`ewc_mean - oracle_mean`), so its spread is ~5x the spread of the quantities it is made of and a difference cannot
+say which side moved: read from `e227`'s basis-independent input fingerprint, the class's one member is the older
+run's tasks being reproducible to the last bit while the newer run's arithmetic moved by an amount the process's
+thread count alone produces. So *"the same runner at two epochs"* was an explanation this census could not support,
+and an exact-reproduction claim should be stated on the fingerprint rather than on the excess.
+
 **What it cannot do**: it sees only the 26 artifacts that carry a `real` cell with an analytic excess — the realized
 arm, the network line and every aggregate summary are outside its scope; it compares one number per artifact rather
 than the whole cell; and it cannot say *which* code changed where a FLOATING difference appears, only that the value
