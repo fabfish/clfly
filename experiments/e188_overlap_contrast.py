@@ -104,7 +104,30 @@ DOSE_HALF_DONE = 0.0159
 ACHIEVED_OVERLAP = {0.0: 0.0000, 0.25: 0.1429, 0.5: 0.3333, 0.75: 0.6000, 1.0: 1.0000}
 
 
-def dose_read(levels: list[Path], baseline: Path = Path("runs/e140_r32_methods_plastic_40reps.json")) -> dict:
+def admitting_baseline(level_config: dict, method: str, candidates: list[Path]) -> tuple[Path | None, list[str]]:
+    """The first candidate baseline whose config diff from the level is INERT for this ARM, with the refusals.
+
+    The dose read was written without this and the omission cost a real catch: the three launched level commands
+    inherited the runner's default `--lam 1.0` while `e140` runs `--lam 3e-3`, and `lam` is inert for `naive` and is
+    the penalty strength for the block arms. Without the rule the read pairs them all against `e140` and reports a
+    333x penalty step as an overlap effect.
+    """
+    refusals = []
+    for cand in candidates:
+        if not Path(cand).is_file():
+            refusals.append(f"{Path(cand).name}: absent")
+            continue
+        diff = sorted(differing_fields(load(cand)["config"], level_config))
+        bad = [k for k in diff if k not in INERT_FOR.get(method, set())]
+        if bad:
+            refusals.append(f"{Path(cand).name}: differs in {bad}, which {method} reads")
+            continue
+        return cand, refusals
+    return None, refusals
+
+
+def dose_read(levels: list[Path], baseline: Path = Path("runs/e140_r32_methods_plastic_40reps.json"),
+              candidates: list[Path] | None = None) -> dict:
     """Each intermediate level against the disjoint baseline, arm by arm, on the accuracy drop AND the accuracy.
 
     The same design `e191` reads on the interference account, on the two quantities `e188`'s two-point contrast was
@@ -126,15 +149,21 @@ def dose_read(levels: list[Path], baseline: Path = Path("runs/e140_r32_methods_p
             rows.append(out)
             continue
         for method in sorted(set(base.get("methods", {})) & set(d.get("methods", {}))):
-            a, b = load_arm(baseline, method), load_arm(level, method)
+            use, refusals = admitting_baseline(d.get("config") or {}, method,
+                                              candidates or [baseline, Path("runs/e153_r32_overlap1_methods_40reps.json")])
+            if use is None:
+                out.setdefault("refused_arms", {})[method] = refusals
+                continue
+            a, b = load_arm(use, method), load_arm(level, method)
             if a is None or b is None or a["n"] != b["n"]:
                 continue
-            entry = {"n": a["n"], "differs_in": sorted(differing_fields(base["config"], d["config"]))}
+            entry = {"n": a["n"], "baseline": Path(use).name,
+                     "differs_in": sorted(differing_fields(load(use)["config"], d["config"]))}
             pf = paired(b["forgetting"], a["forgetting"])
             entry["forgetting"] = {"change": pf["change"], "sem": pf["sem"],
                                    "sigma": abs(pf["change"]) / pf["sem"] if pf["sem"] else None}
             acc_key = "final_accuracy"
-            af = np.array([r[acc_key] for r in base["methods"][method]["replicates"]], dtype=float)
+            af = np.array([r[acc_key] for r in load(use)["methods"][method]["replicates"]], dtype=float)
             bf = np.array([r[acc_key] for r in d["methods"][method]["replicates"]], dtype=float)
             pa = paired(bf, af)
             entry["accuracy"] = {"change": pa["change"], "sem": pa["sem"],
@@ -147,7 +176,7 @@ def dose_read(levels: list[Path], baseline: Path = Path("runs/e140_r32_methods_p
 
 
 def report_dose(res: dict) -> int:
-    print(f"   == the accuracy dose-response, each level against {res['baseline']} ==")
+    print("   == the accuracy dose-response: each level against the baseline each ARM admits ==")
     missing = 0
     for row in res["levels"]:
         if row.get("status"):
@@ -160,7 +189,7 @@ def report_dose(res: dict) -> int:
             f, a = e["forgetting"], e["accuracy"]
             tag = "" if e.get("half_done") is None else (
                 "   P1's bar (> +0.0159, half the 0->1 rise) " + ("MET" if e["half_done"] else "NOT met"))
-            print(f"             {method:16} forgetting {f['change']:+.4f}+/-{f['sem']:.4f}"
+            print(f"             {method:16} vs {e.get('baseline', '?')[:30]:32} forgetting {f['change']:+.4f}+/-{f['sem']:.4f}"
                   f"({f['sigma']:.1f}s)  accuracy {a['change']:+.4f}+/-{a['sem']:.4f}({a['sigma']:.1f}s)"
                   f"  n {e['n']}{tag}")
             if e["differs_in"]:
@@ -250,12 +279,15 @@ def main(argv=None) -> int:
     p.add_argument("--runs", type=Path, default=RUNS)
     p.add_argument("--dose", type=Path, action="append", default=None,
                    help="an artifact at an intermediate overlap level, paired against --baseline; repeatable")
-    p.add_argument("--baseline", type=Path, default=Path("runs/e140_r32_methods_plastic_40reps.json"))
+    p.add_argument("--baseline", type=Path, action="append", default=None,
+                   help="candidate disjoint baselines, admitted per ARM (repeatable; default e140 then e153)")
     p.add_argument("--json-out", type=Path, default=None)
     args = p.parse_args(argv)
 
     if args.dose:
-        dose = dose_read(args.dose, args.baseline)
+        cands = args.baseline or [Path("runs/e140_r32_methods_plastic_40reps.json"),
+                                  Path("runs/e153_r32_overlap1_methods_40reps.json")]
+        dose = dose_read(args.dose, cands[0], candidates=cands)
         n = report_dose(dose)
         if args.json_out:
             write_json(args.json_out, {"dose": dose})
