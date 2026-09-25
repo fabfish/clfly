@@ -106,3 +106,7 @@ draw-1 deficit = draw-0 deficit + δ(0.3333) − δ(0.0),   with δ(0.0) = −0.
 - **That the interference split is draw-robust because its two terms measured 1.4σ and 1.7σ.** Both are unresolved
   here, which bounds them from above at ~0.03 on the far term — the far term's own axis change is 0.072, so the ratio
   in §3 is a lower bound on the margin.
+
+---
+
+**CORRECTION, later the same day, on a THIRD support draw: both halves of §2 are wrong.** Draw 2 sits **0.92σ** from draw 0 on `learned (older)` while draw 1 sits 3.34σ away, so the "3.3σ effect" is the distance to one particular other draw and not a magnitude; and draw 2 moves the **adjacent-pair interference by 3.90σ** (0.13302 → 0.18711, the largest span of any quantity here), where the draw 0/1 pair put it at 1.38σ — so "the draw moves learning and nothing else" was a property of that pair. The sharper lesson: **a claim measured across two draws can be an outlier's distance rather than a spread.** `docs/findings/2026-09-25-the-third-draw-refutes-the-two-draw-conclusion.md`
