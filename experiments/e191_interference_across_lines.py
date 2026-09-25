@@ -54,6 +54,18 @@ ACHIEVED_OVERLAP = {0.0: 0.0000, 0.25: 0.1429, 0.5: 0.3333, 0.75: 0.6000, 1.0: 1
 #: The change from the disjoint arm that the registered P1 calls "more than half done", on `naive`: half of the
 #: measured 0 -> 1 rise of +0.1234.
 P1_HALF_DONE = 0.0617
+#: P2's bar as registered: "the network's near rise should be >= 60% complete by achieved 0.3333", where "complete"
+#: is of the NETWORK's OWN 0 -> 1 rise. Both texts carrying P2 -- the registration finding and the plan's cell --
+#: state it that way, and neither says "60% of the analytic line", so the bar is absolute. The first version of this
+#: read applied `prog >= 0.6 * analytic` instead, which at the midpoint is 45.9% against the registered 60% and so
+#: would have decided the verdict on a bar the registration does not state.
+P2_BAR = 0.60
+#: What the registration QUOTES for the analytic line's own completion at the midpoint, and what the artifact
+#: actually gives. The registered sentence says **80%**; the parenthetical it offers to support that number
+#: (+0.0258 -> +0.0051 of a total fall to -0.0013) works out to **76%**, and `analytic_progress` computes **0.7645**
+#: from `e7`'s six levels. So the sentence disagrees with its own arithmetic, and the read prints the artifact's
+#: value beside the registration's rather than letting either stand unlabelled.
+P2_REGISTERED_ANALYTIC_AT_MIDPOINT = 0.80
 
 #: The directions each line states today, on the quantity this file reads. The network ones are tallies because
 #: seven admitted comparisons will not be unanimous; the analytic ones are exact, being one artifact's six levels.
@@ -262,8 +274,15 @@ def dose_read(levels: list[Path], baseline: Path = Path("runs/e140_r32_methods_p
                                "level0": float(np.nanmean(a[comp])), "level1": float(np.nanmean(b[comp]))}
             entry["P1_half_done"] = (entry.get("near", {}).get("change", 0.0) > P1_HALF_DONE
                                      if method == "naive" else None)
-            # P2: the network's progress is its rise at this level over its OWN 0 -> 1 rise, and the bar is the
-            # analytic fraction at the same achieved overlap -- 60% of it, as registered.
+            # P2: the network's progress is its rise at this level over its OWN 0 -> 1 rise, and the bar is 60% of
+            # it (see P2_BAR for why the sentence's "complete" is of the network's own rise).
+            # The denominator is a 0 -> 1 rise ONLY when the arm's own admitted baseline sits at overlap 0.0. For
+            # the block arms the admitted baseline is `e153`, which is ITSELF at overlap 1.0 (`e144` is the other
+            # overlap-1 artifact the anchor names), so this pairing is a difference between two runs at the same
+            # input overlap: it moves with `lam` and with `replay`, not with the x-axis. The first version printed
+            # it as "N% of the line's own 0->1 rise" and gave the two block arms a P2 verdict off it (1% and 2%
+            # against the analytic 40%), which is a statement about a quantity that was never measured. The
+            # pairing is still recorded, under a name that says what it is, and no fraction is taken from it.
             # the replicate count has to agree before the pairing exists: without this a synthetic level paired
             # against the live overlap-1 artifact raised a broadcast error inside `paired` rather than being
             # refused, which is the same class of defect as an arm with the wrong count in `e188`'s audit
@@ -272,9 +291,17 @@ def dose_read(levels: list[Path], baseline: Path = Path("runs/e140_r32_methods_p
                 full = None
             if full is not None:
                 pf = paired(full["near"], a["near"])
-                entry["full_rise"] = {"change": pf["change"], "sem": pf["sem"]}
-                if pf["change"]:
-                    entry["progress_fraction"] = entry["near"]["change"] / pf["change"]
+                anchor_overlap = (load(overlap1)["config"] or {}).get("input_overlap")
+                if base_overlap == 0.0 and anchor_overlap == 1.0:
+                    entry["full_rise"] = {"change": pf["change"], "sem": pf["sem"]}
+                    if pf["change"]:
+                        entry["progress_fraction"] = entry["near"]["change"] / pf["change"]
+                else:
+                    entry["anchor_minus_baseline"] = {
+                        "change": pf["change"], "sem": pf["sem"], "baseline_overlap": base_overlap,
+                        "anchor_overlap": anchor_overlap,
+                        "why": "not a 0 -> 1 rise: this arm's own admitted baseline is not at overlap 0.0, so the "
+                               "anchor pairing is a difference between two runs at the same input overlap"}
             out["arms"][method] = entry
         rows.append(out)
     return {"baseline": Path(baseline).name, "overlap1": Path(overlap1).name, "levels": rows,
@@ -284,6 +311,7 @@ def dose_read(levels: list[Path], baseline: Path = Path("runs/e140_r32_methods_p
 def report_dose(res: dict) -> int:
     print(f"   == the dose-response: each level against the baseline each ARM admits (declared inert fields decide) ==")
     missing = 0
+    analytic_mid = res["analytic_progress"].get(0.3333)
     for row in res["levels"]:
         if row.get("status"):
             print(f"        {row['level']}: {row['status']}")
@@ -309,12 +337,27 @@ def report_dose(res: dict) -> int:
             analytic = res["analytic_progress"].get(row["achieved_overlap"])
             ptxt = ""
             if prog is not None and analytic is not None:
-                ptxt = (f"   P2: {100 * prog:.0f}% of the line's own 0->1 rise here against the analytic line's "
-                        f"{100 * analytic:.0f}% at the same achieved overlap"
-                        + (" -- MET" if prog >= 0.6 * analytic else " -- NOT met"))
+                # The verdict uses the REGISTERED bar -- 60% of the network's own 0 -> 1 rise -- and the analytic
+                # line's progress is printed as context, explicitly as the ratio it is rather than as a second
+                # bar. The first version applied `prog >= 0.6 * analytic`, which is a 14-point looser threshold at
+                # the midpoint and is nowhere in the registration. The verdict is withheld away from the midpoint,
+                # for the reason P1's bar is: the sentence is written for achieved 0.3333.
+                verdict = (" -- MET" if prog >= P2_BAR else " -- NOT met") if at_midpoint else \
+                    "   (P2's bar is written for achieved 0.3333, not here)"
+                ptxt = (f"   P2: {100 * prog:.0f}% of its own 0->1 rise (bar {100 * P2_BAR:.0f}%){verdict}"
+                        f"   [the analytic line is {100 * analytic:.0f}% there, i.e. this line is at "
+                        f"{100 * prog / analytic:.0f}% of the analytic's progress]")
+            elif e.get("anchor_minus_baseline"):
+                ptxt = ("   P2: withheld -- this arm's admitted baseline is itself at overlap "
+                        f"{e['anchor_minus_baseline']['baseline_overlap']}, so the anchor pairing is not a 0->1 rise")
             pair = f"{e.get('baseline_overlap')} -> {row['target_overlap']}"
             print(f"             {method:16} {pair:14} vs {e.get('baseline', '?')[:24]:26} near {fmt(near):24} "
                   f"far {fmt(far):24} n {e['n']}{tag}{ptxt}")
+    if analytic_mid is not None:
+        print(f"        (P2's registration quotes the analytic line at "
+              f"{100 * P2_REGISTERED_ANALYTIC_AT_MIDPOINT:.0f}% of its fall at achieved 0.3333, while `e7` gives "
+              f"{100 * analytic_mid:.1f}% -- and the registration's own parenthetical arithmetic gives 76%. The bar "
+              f"is on the NETWORK's own rise, so this discrepancy moves the context and not the bar.)")
     print("        (the achieved overlaps are a property of mb+cx+al@n1307, 3 tasks of 80, seed 0: recompute them "
           "for any other circuit.)")
     return missing

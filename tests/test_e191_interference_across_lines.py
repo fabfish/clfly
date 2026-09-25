@@ -208,3 +208,44 @@ def test_the_cleanest_admissible_baseline_is_preferred_and_its_refusals_are_repo
     # with a candidate that does not carry the arm first, the refusal says so
     res2 = e191.dose_read([lvl], dirty, candidates=[d / "absent-arm.json", dirty])
     assert res2["levels"][0]["arms"]["naive"]["baseline"] == "dirty.json"
+
+
+def test_a_block_arms_anchor_pairing_is_not_taken_as_a_zero_to_one_rise(tmp_path):
+    """The block arms' admitted baseline is `e153`, which is ITSELF at overlap 1.0, so pairing the anchor (`e144`,
+    also at 1.0) against it measures a difference between two runs at the SAME input overlap -- it moves with `lam`
+    and `replay`, not with the x-axis. The first version divided by it anyway and printed the ratio as "N% of the
+    line's own 0->1 rise", giving the two live block arms a P2 verdict off a quantity that was never measured."""
+    d = tmp_path / "runs"
+    base1 = dose_artifact(d / "base1.json", "ewc-block", [0.09, 0.11, 0.10, 0.10], [0.04, 0.06, 0.05, 0.05], 1.0)
+    anchor = dose_artifact(d / "anchor.json", "ewc-block", [0.21, 0.23, 0.22, 0.22], [0.09, 0.11, 0.10, 0.10], 1.0)
+    lvl = dose_artifact(d / "lvl.json", "ewc-block", [0.17, 0.19, 0.18, 0.18], [0.07, 0.09, 0.08, 0.08], 0.5)
+    arm = e191.dose_read([lvl], base1, overlap1=anchor)["levels"][0]["arms"]["ewc-block"]
+    assert "progress_fraction" not in arm and "full_rise" not in arm
+    assert arm["anchor_minus_baseline"]["baseline_overlap"] == 1.0
+    assert arm["anchor_minus_baseline"]["change"] == pytest.approx(0.12, abs=1e-9), "the pairing is still recorded"
+
+
+def test_the_midpoint_verdict_uses_the_registered_bar_and_not_sixty_percent_of_the_analytic(tmp_path, capsys):
+    """P2's registered sentence is that *the network's near rise* should be ">= 60% complete" at the midpoint, which
+    is 60% of the NETWORK's own 0 -> 1 rise. The first version applied `prog >= 0.6 * analytic` instead, a 14-point
+    looser threshold at the midpoint (45.9% against 60%), and this case sits between the two -- so it is the case
+    that would have been decided by a bar the registration does not state."""
+    d = tmp_path / "runs"
+    base = dose_artifact(d / "base.json", "naive", [0.09, 0.11, 0.10, 0.10], [0.04, 0.06, 0.05, 0.05], 0.0)
+    full = dose_artifact(d / "full.json", "naive", [0.21, 0.23, 0.22, 0.22], [0.09, 0.11, 0.10, 0.10], 1.0)
+    half = dose_artifact(d / "half.json", "naive", [0.15, 0.17, 0.16, 0.16], [0.07, 0.09, 0.08, 0.08], 0.5)
+    res = e191.dose_read([half], base, overlap1=full)
+    assert res["levels"][0]["arms"]["naive"]["progress_fraction"] == pytest.approx(0.5, abs=1e-6)
+    assert 0.6 * res["analytic_progress"][0.3333] < 0.5 < e191.P2_BAR, "the case separates the two thresholds"
+    e191.report_dose(res)
+    out = capsys.readouterr().out
+    assert "50% of its own 0->1 rise (bar 60%) -- NOT met" in out
+    # the analytic line's own progress is still printed, as the ratio it is and not as a second bar
+    assert "of the analytic's progress" in out
+    # and away from the midpoint the numbers are printed with no verdict at all, which is the defect the first
+    # version had: it applied P2's bar -- and P1's -- to every level, where the registration says nothing
+    low = dose_artifact(d / "low.json", "naive", [0.11, 0.12, 0.11, 0.11], [0.07, 0.09, 0.08, 0.08], 0.25)
+    e191.report_dose(e191.dose_read([low], base, overlap1=full))
+    out = capsys.readouterr().out
+    assert "P2's bar is written for achieved 0.3333" in out
+    assert "NOT met" not in out, "10% of the rise is below the bar and the registration says nothing here"
