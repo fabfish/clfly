@@ -67,3 +67,7 @@ characterise; three can bound a span; only averaging many, which rule 10 asks fo
 - **That the axis claims are uniformly fragile.** Two of them survived the draw-0/1 comparison
   (`docs/findings/2026-09-25-only-two-of-the-axis-claims-survive-a-second-draw.md` §3), and the third draw has not
   yet reached the overlaps where they are stated.
+
+---
+
+**AMENDMENT, later the same day: the "outlier draw" framing is quantity-dependent.** This finding's central measurement stands — draw 2 does move the adjacent-pair interference by 3.90σ at overlap 0.0 where the draw 0/1 pair put it at 1.38σ, so "the draw moves learning and nothing else" was that pair's property. But at the **midpoint** draw 2 restores the learning deficit to **8.12σ** (draw 0: 8.10σ, draw 1: 1.15σ), so draw 1 is the outlier *on the learning quantities* and the one that resolves the interference and retention quantities instead. "What the draw moves" is itself draw-dependent, and the sign of the draw's effect on *the deficit* is what reverses, not the effect on either point. `docs/findings/2026-09-25-the-third-draw-reverses-my-own-last-two-findings.md`

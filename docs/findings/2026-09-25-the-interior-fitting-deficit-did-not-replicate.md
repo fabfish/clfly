@@ -112,3 +112,7 @@ axis.
   called before it does.
 - **Any mechanism.** A sign-reversing draw effect on a learning quantity says which neurons were drawn matters
   differently at different overlaps, and nothing here says why.
+
+---
+
+**CORRECTION, later the same day, on a THIRD support draw: this finding's conclusion is superseded.** Draw 2 measures the interior deficit at **−0.02474 ± 0.00305 = 8.12σ**, so **R1 is MET on 2 of 3 draws** (8.10σ and 8.12σ, nearly equal) and FALSIFIED on draw 1. The sentence "the 8.10σ is a property of draw 0's 80-neuron supports and not of the overlap" is therefore wrong; what is true is that **one draw out of three cancels the deficit entirely**, because draw 1's overlap-0.0 value is the lowest of the three *and* its midpoint value the highest, so the two points of the difference move oppositely. The measurement this finding reports is unchanged and its §2's sign reversal is confirmed by the third draw. `docs/findings/2026-09-25-the-third-draw-reverses-my-own-last-two-findings.md`
