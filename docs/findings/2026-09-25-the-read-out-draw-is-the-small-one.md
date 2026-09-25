@@ -84,3 +84,7 @@ effect, because you cannot tell which one matters from its description."**
 - **Reading the interference bound as small.** §2's last paragraph: on the adjacent-pair term the bound is as large
   as the support draw's own measurable effect.
 - **Any statement about intermediate overlaps.** Two targets only.
+
+---
+
+**AMENDMENT, the same evening: the smallness is SIZE-SPECIFIC, and this finding generalized from one read-out size without saying so.** `e201`'s census found that `e113` had already varied the read-out draw, at size 300: three draws (`readout_seed` 1/2/3) × 5 replicates, where the **distant-pair interference** moves 0.03919 / 0.00098 / 0.00945 — span **0.0382**, pairwise contrasts **2.76 / 2.08 / 2.63σ** — while every other quantity is unresolved. So §2's "nothing is resolved" is a statement about **size 32**, which is the size the axis uses, and at size 300 one term *is* resolved. The same amendment corrects §1's "no artifact in the record was ever run at a second read-out draw": `e113` was. `docs/findings/2026-09-25-41-of-59-families-claim-at-one-draw.md`

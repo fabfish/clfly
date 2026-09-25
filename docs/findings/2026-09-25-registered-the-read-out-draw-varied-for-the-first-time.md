@@ -75,3 +75,7 @@ the two draws' sizes is on the same five quantities.
   sweep does not share a draw with this one.
 - **Rehabilitate the axis's other claims.** F1 concerns the one claim that survived the support draws; the rest were
   already 1 or 2 of 3 and nothing here re-reads them.
+
+---
+
+**CORRECTION, the same evening: the claim of novelty in this registration is FALSE.** `e201`'s family census lists `e113` among the 15 families that vary a draw, and `e113` holds **four artifacts at read-out size 300** with `readout_seed` 1, 2 and 3, plus one at 512 — so the read-out draw HAD been varied before today. What `e199` is first at is a variation at **size 32**, the size every claim on the overlap axis is stated at, with 40 replicates rather than 5. And `e113` qualifies `e199`'s conclusion: at size 300 the distant-pair interference moves at 2.08–2.76σ between draws (span 0.0382 on 5 replicates) where at size 32 it is unresolved, so the read-out draw is the small one *at size 32* and this registration did not say so. `docs/findings/2026-09-25-41-of-59-families-claim-at-one-draw.md`
