@@ -126,7 +126,9 @@ def judge(rows: list[dict], budget_s: float | None = None) -> list[dict]:
     armed = [r for r in rows if r["has_arm"]]
     spent = sum(v for v in {r["artifact"]: r.get("artifact_seconds") or 0.0 for r in rows}.values())
     over = budget_s is not None and spent > budget_s
-    out.append({"id": "S1", "measured": f"{len(rows)} cells, {len(armed)} carrying an arm",
+    out.append({"id": "S1", "measured": f"{len(rows)} cells, {len(armed)} carrying an arm, "
+                                        f"{spent / 60:.1f} min of run time" if spent else
+                                        f"{len(rows)} cells, {len(armed)} carrying an arm",
                 "verdict": ("MET" if not armed and not over else
                             f"FALSIFIER FIRED -- {len(armed)} cell(s) carry an arm" if armed else
                             f"FALSIFIER FIRED -- {spent:.0f} s above the registered {budget_s:.0f} s")})
