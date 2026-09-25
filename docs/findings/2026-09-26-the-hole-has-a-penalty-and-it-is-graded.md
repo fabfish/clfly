@@ -1,5 +1,12 @@
 # The hole has a penalty, and on its first realization the response is graded
 
+> **PARTIALLY RETRACTED 2026-09-26 02:25, by the second realization of the same registration**: `alloy1` at
+> `--rewire-seed 1` gives alignment 0.12815 (2.31× chance) and excess **+0.04130**, against this drawing's 0.14179
+> (2.55×) and **+0.10067** — **a factor of 2.44× at nearly the same alignment**, while two drawings of `alloy0.75`
+> agree to 0.0056. So the headline number here is ONE DRAWING and the "graded" reading built on it does not stand;
+> the existence of a penalty inside the hole does. See
+> `docs/findings/2026-09-26-the-first-in-hole-penalty-does-not-replicate.md`.
+
 *2026-09-26 02:17, `runs/e212_alloy_analytic_rs0.json` — stage 2's **first realization** (`--rewire-seed 0`), read from
 the runner's own report. Stage 2 was registered at two realizations, so **this is a measurement and not P2's verdict**;
 the second realization is in flight. The registration is
