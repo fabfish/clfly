@@ -62,8 +62,19 @@ fields those are differs by method — so the rules are declared per method and 
 
 ## 4. The two limits, and the one experiment that would remove the larger of them
 
-**The axis has two points.** Overlap 0.0 and 1.0 have both been run; **no intermediate overlap has ever been run**,
-so the answer above is a *two-point* direction and not a dose–response. `make_overlap_suite` takes `overlap` as a
+**And the analytic line already has the dose–response this finding asks for, pointing the other way.**
+`runs/e7_interference.json`'s `controlled` block sweeps **six** overlap levels and finds interference **falling** as
+overlap rises — perfectly monotone, `Spearman = −1.000`, which `e7`'s finding records as the refutation of C4's
+direction. `e189` (the same fire) puts the two side by side and localises the disagreement to the **adjacent**
+pairs: the analytic near component falls from +0.0258 to below zero while the network's adjacent-task cost rises
++0.0557 → +0.0833. So the sentence a reader must carry away from this finding is *raising the input overlap raises
+the network line's forgetting*, not *overlap raises forgetting* — the two lines differ, and by a mechanism the
+distance split makes visible.
+
+**The axis has two points *on the network side*.** Overlap 0.0 and 1.0 have both been run; **no intermediate
+overlap has ever been run in the rate network**, so the answer above is a *two-point* direction and not a
+dose–response — while the analytic line's six points make the sharper question available: the network's near
+component should be measured at 0.25/0.5/0.75 to see whether it rises *linearly*, as the analytic one falls. `make_overlap_suite` takes `overlap` as a
 float and `--input-overlap` is already a flag on the runner, so an intermediate point is a command rather than a
 code change — and it is the natural next registration, because a dose–response would separate "overlap raises
 forgetting" from "any overlap at all is enough", which two points cannot.
