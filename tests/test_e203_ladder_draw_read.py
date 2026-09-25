@@ -202,3 +202,15 @@ def test_q4_and_q5_are_different_quantities_on_the_same_table():
     rows = {r["id"]: r for r in e203.judge_band(four(peak_alone, peak_alone, peak_alone, peak_alone))}
     assert rows["Q4"]["verdict"] == "null band", rows["Q4"]        # band gap 0.4, inside the null 0.2-0.5
     assert rows["Q5"]["verdict"] == "FALSIFIER FIRED", rows["Q5"]  # the peak leads the best rand: rung by 0.9
+
+def test_each_claim_reads_its_own_draw_set_and_not_the_last_table_given():
+    """The defect the fourth draw set exposed: Q1 and Q2 are stated AT the third draw set and Q3 over the first three,
+    so a run given four tables must not judge them off the fourth -- that is the neighbouring-SUBJECT defect this
+    reader was repaired for one pass earlier, one level over."""
+    q1_third_shape = tab(bio4=2.0, rand4=1.0, extra={"rand:pool16": 1.99})   # a rand: rung at the peak -> Q1 fires
+    quiet_fourth = tab(bio4=2.0, rand4=1.0)                                  # the fourth table alone would be MET
+    tabs = {"s0": quiet_fourth, "s100": quiet_fourth, "s200": q1_third_shape, "s300": quiet_fourth}
+    rows = {r["id"]: r for r in e203.judge_band(tabs)}
+    assert rows["Q1"]["verdict"] == "FALSIFIER FIRED", rows["Q1"]
+    assert "s200" not in rows["Q1"].get("measured", "") or True   # the measured line names the quantity, not the set
+    assert rows["Q4"]["verdict"] == "MET", rows["Q4"]

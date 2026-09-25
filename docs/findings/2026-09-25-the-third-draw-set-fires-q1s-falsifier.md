@@ -5,6 +5,13 @@ the same command, so rule 49's price for it is the 20–45 min range this row qu
 `experiments/e203_ladder_draw_read.py --drawn .../seed0-100.json --drawn .../seed0-200.json`, exit 0. The
 registration is `docs/findings/2026-09-25-registered-a-third-draw-set-for-the-band.md`.*
 
+> **CORRECTED 2026-09-26 by the fourth draw set**: this finding reads the lead over the best `rand:` rung as a
+> MONOTONE DECAY (0.76623 → 0.36409 → 0.02401) and calls the height-based statement dead. The fourth value is
+> **+0.29046** — it fell and came back — so the decay was three points of a noisy quantity. The falsifier did
+> fire at this draw set (that part stands, and it is 1 of 4 draws so far), and the matched claim this finding
+> calls marginal holds 4 for 4 at +1.15902 on the fourth. See
+> `docs/findings/2026-09-26-the-fourth-draw-set-holds-c2s-claim-and-breaks-the-decay.md`.
+
 ## The three registered claims
 
 | | claim | verdict at draw set 200 |

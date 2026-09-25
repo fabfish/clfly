@@ -153,7 +153,10 @@ def judge_band(tables: dict[str, dict]) -> list[dict]:
     if len(nums) < 3:
         return [{"id": c[0], "verdict": f"REFUSED -- {c[0]} is stated over three draw sets, {len(nums)} given"}
                 for c in BAND_CLAIMS]
-    third = nums[-1]
+    # Q1 and Q2 are stated AT the THIRD draw set, which is `nums[2]` and NOT the last table given: reading them off
+    # the fourth silently would judge a claim whose subject is the third -- the neighbouring-subject defect this
+    # reader was repaired for last, one level over.
+    third = nums[2]
     out: list[dict] = []
     # Q1 -- the peak against EVERY rand: rung of any size
     gap = third["unmatched"]
@@ -161,13 +164,14 @@ def judge_band(tables: dict[str, dict]) -> list[dict]:
                                          f"{third['best_rand']} {third['best_rand_v']:.5f} = {gap:+.5f}",
                 "verdict": "MET" if gap >= 0.5 else "null band" if gap > 0.2 else "FALSIFIER FIRED"})
     # Q2 -- bio:pool4 within 25% of its mean over the first two draw sets
-    known = [t for n, t in live.items()][:2]
+    known_live = [t for t in live.values()]
+    known = known_live[:2]
     means = [t.get("bio:pool4") for t in known]
     if any(m is None for m in means):
         out.append({"id": "Q2", "verdict": "REFUSED -- bio:pool4 is absent from one of the first two draw sets"})
     else:
         mean = sum(means) / len(means)
-        cur = [t for t in live.values()][-1].get("bio:pool4")
+        cur = known_live[2].get("bio:pool4")
         off = abs(cur - mean) / mean if cur is not None else None
         note = f"the two-draw mean of bio:pool4 is {mean:.5f}"
         if abs(mean - Q2_PRIOR_MEAN) > 1e-4:
@@ -179,13 +183,13 @@ def judge_band(tables: dict[str, dict]) -> list[dict]:
                                 "FALSIFIER FIRED"),
                     "note": note + (f"; off the mean by {off:.1%}" if off is not None else "")})
     # Q3 -- the span of the peak across the three
-    peaks = [n["peak_v"] for n in nums]
+    peaks = [n["peak_v"] for n in nums[:3]]   # Q3 is the span over the FIRST THREE, as registered
     span = max(peaks) - min(peaks)
     out.append({"id": "Q3", "measured": f"the peaks {', '.join(f'{p:.5f}' for p in peaks)} span {span:.5f}",
                 "verdict": "MET" if span < 0.5 else "null band" if span < 1.0 else "FALSIFIER FIRED"})
     # Q4-Q6 -- the fourth draw set's three claims, each stated AT that draw set, so they are refused until four tables
     # are given. The boundaries are the registrations', in the direction each was written:
-    last = nums[-1]
+    last = nums[3] if len(nums) >= 4 else nums[-1]
     three_band = (
         ("Q4", "band_gap", "at least", 0.5, 0.2),
         ("Q5", "unmatched", "below", 0.2, 0.5),
