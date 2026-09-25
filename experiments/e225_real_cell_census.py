@@ -85,7 +85,11 @@ def census(root: Path = RUNS) -> dict:
         key = tuple(a["config"].get(f) for f in KEY_FIELDS)
         groups.setdefault(key, []).append({"artifact": a["name"], "value": v,
                                            "family": family(block),
-                                           "rewire_seed": a["config"].get("rewire_seed")})
+                                           "rewire_seed": a["config"].get("rewire_seed"),
+                                           # the WRITE time, which dates the run's end (rule 47), so a group whose
+                                           # members span days is a cross-epoch reproduction rather than two drawings
+                                           # of one sitting
+                                           "mtime": a["mtime"]})
     out = []
     for key, rows in sorted(groups.items(), key=lambda kv: str(kv[0])):
         fams = sorted({r["family"] for r in rows})
@@ -100,8 +104,10 @@ def census(root: Path = RUNS) -> dict:
             cls = "FLOATING"
         else:
             cls = "MATERIAL"
+        stamps = sorted(r["mtime"] for r in rows)
         out.append({"key": dict(zip(KEY_FIELDS, key)), "families": fams, "n": len(rows),
                     "values": vals, "spread": spread, "relative": rel, "class": cls,
+                    "span_days": (stamps[-1] - stamps[0]) / 86400 if len(stamps) > 1 else 0.0,
                     "rows": sorted(rows, key=lambda r: r["artifact"])})
     return {"groups": out, "artifacts_with_a_real_cell": sum(g["n"] for g in out)}
 
@@ -124,7 +130,8 @@ def report(res: dict) -> int:
             print(f"\n   {cls:9} {key}  ({g['n']} artifacts, family {fams})")
             for r in g["rows"]:
                 print(f"      {r['artifact']:<44}{r['value']:.10f}   rewire_seed {r['rewire_seed']}")
-            print(f"      spread {g['spread']:.3e} (relative {g['relative']:.2e})")
+            print(f"      spread {g['spread']:.3e} (relative {g['relative']:.2e}), written over "
+                  f"{g['span_days']:.2f} day(s)")
     material = [g for g in by_class.get("MATERIAL", []) if len(g["families"]) == 1]
     mixed = [g for g in by_class.get("MATERIAL", []) if len(g["families"]) > 1]
     print("\n== what the classes mean ==")

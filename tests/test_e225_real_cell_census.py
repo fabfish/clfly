@@ -52,3 +52,16 @@ def test_the_two_bounds_and_the_gap_that_makes_them_do_no_work():
     than hidden."""
     assert (e225.EXACT, e225.FLOATING) == (1e-12, 1e-4)
     assert e225.DECLARED_CROSS_FAMILY == "any group mixing families"
+
+def test_the_group_carries_its_write_span_so_an_agreement_can_be_dated(tmp_path):
+    """A group's members can be days apart, which turns an agreement into an epoch statement rather than two
+    drawings of one sitting -- so the census reports the span in days beside the spread."""
+    import os, time
+    a = art(tmp_path / "a.json", 0.02)
+    b = art(tmp_path / "b.json", 0.02, rewire_seed=1)
+    now = time.time()
+    os.utime(a, (now - 4 * 86400, now - 4 * 86400))
+    os.utime(b, (now, now))
+    g = [g for g in e225.census(tmp_path)["groups"] if g["n"] > 1][0]
+    assert 3.9 < g["span_days"] < 4.1, g["span_days"]
+    assert g["class"] == "EXACT"
