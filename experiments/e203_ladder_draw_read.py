@@ -99,7 +99,37 @@ def judge(ref: dict, drawn: dict) -> list[dict]:
     return out
 
 
-def report(ref: dict, drawn: dict) -> int:
+def across(tables: dict[str, dict]) -> None:
+    """The per-rung values ACROSS the draw sets given, which is the view a band claim needs.
+
+    `report`'s pairwise verdicts answer "did this claim survive"; a band claim asks "how far does each rung move", and
+    that is a span over the tables rather than a comparison with one reference. Printed always, because two draw sets
+    give a difference and three give a span -- and reading a difference as a span is what today's support-draw work
+    had to unlearn.
+    """
+    # A table that is absent or empty contributes nothing and must not be counted as a draw set -- the refusal path
+    # passes one, and `max()` over it raised rather than skipping.
+    tables = {n: t for n, t in tables.items() if t}
+    rungs = sorted({b for t in tables.values() for b in t})
+    if len(tables) < 2 or not rungs:
+        return
+    names = list(tables)
+    print()
+    print(f"   == each rung across {len(names)} draw sets ({', '.join(names)}) ==")
+    print(f"   {'rung':16} " + " ".join(f"{n[:14]:>14}" for n in names) + f" {'span':>9}  {'leader':>6}")
+    for b in rungs:
+        vals = [tables[n].get(b) for n in names]
+        if any(v is None for v in vals):
+            continue
+        leader = names[max(range(len(names)), key=lambda i: vals[i])]
+        print(f"   {b:16} " + " ".join(f"{v:14.5f}" for v in vals) + f" {max(vals) - min(vals):9.5f}  {leader:>6}")
+    peaks = [max(t.items(), key=lambda kv: kv[1]) for t in tables.values()]
+    print(f"   the peaks: " + ", ".join(f"{n} {p[0]} {p[1]:.5f}" for n, p in zip(names, peaks)))
+    print(f"   the peak's span: {max(p[1] for p in peaks) - min(p[1] for p in peaks):.5f}   "
+          f"(Q3's bar: below 0.5; falsifier at or above 1.0)")
+
+
+def report(ref: dict, drawn: dict, tables: dict | None = None) -> int:
     print(f"   == the pooling ladder's draw-set claims, drawn against the reference ==")
     print(f"   reference {REFERENCE.name}: peak {REFERENCE_PEAK} at {REFERENCE_EXCESS:.5f} "
           f"({len(ref)} bases)")
@@ -119,6 +149,7 @@ def report(ref: dict, drawn: dict) -> int:
     if drawn:
         ranked = sorted(drawn.items(), key=lambda kv: -kv[1])
         print(f"        the drawn table, ranked: " + ", ".join(f"{b} {v:.4f}" for b, v in ranked[:6]))
+    across(tables or {"reference": ref, "drawn": drawn})
     return refused
 
 
@@ -126,9 +157,16 @@ def main(argv=None) -> int:
     p = argparse.ArgumentParser(description=__doc__.splitlines()[0],
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--reference", type=Path, default=REFERENCE)
-    p.add_argument("--drawn", type=Path, default=DRAWN)
+    p.add_argument("--drawn", type=Path, action="append", default=None,
+                   help="a draw set's artifact; repeatable, since a band claim is about how far each rung moves "
+                        "ACROSS draw sets and not about one pair.")
     a = p.parse_args(argv)
-    return 1 if report(table_of(a.reference), table_of(a.drawn)) else 0
+    drawns = [Path(x) for x in a.drawn] if a.drawn else [DRAWN]
+    tables = {Path(a.reference).stem.replace("e181_ladder_", ""): table_of(a.reference)}
+    for d in drawns:
+        tables[d.stem.replace("e204_ladder_", "").replace("e202_ladder_", "")] = table_of(d)
+    first = table_of(drawns[0])
+    return 1 if report(table_of(a.reference), first, tables) else 0
 
 
 if __name__ == "__main__":

@@ -55,3 +55,22 @@ def test_each_claim_can_fire_and_the_null_bands_are_where_they_were_registered(t
     assert x[0]["verdict"] == "FALSIFIER FIRED -- bio:pool64 peaks", x[0]
     assert x[1]["verdict"] == "FALSIFIER FIRED", x[1]   # 1.0 is below 1.141
     assert x[2]["verdict"] == "FALSIFIER FIRED", x[2]   # the gap is 0.05
+
+
+def test_the_across_view_reports_each_rungs_span_and_the_peaks(tmp_path, capsys):
+    """A band claim is about how far each rung MOVES across draw sets, not about one pair, so the reader prints the
+    across view whenever it is given more than one table -- and two draw sets give a difference while three give a
+    span, which is the distinction today's support-draw work had to unlearn."""
+    a = art(tmp_path / "a.json", {"bio:pool4": 2.28, "bio:pool8": 1.45, "rand:pool4": 1.21})
+    b = art(tmp_path / "b.json", {"bio:pool4": 2.06, "bio:pool8": 2.11, "rand:pool4": 1.34})
+    tables = {"draw0": e203.table_of(a), "draw1": e203.table_of(b)}
+    e203.across(tables)
+    out = capsys.readouterr().out
+    assert "each rung across 2 draw sets" in out, out
+    assert "bio:pool8" in out and "0.66000" in out.replace("0.6600", "0.66000") or "0.66" in out, out
+    assert "the peaks: draw0 bio:pool4 2.28000, draw1 bio:pool8 2.11000" in out, out
+    assert "the peak's span: 0.17000" in out, out
+    # one table is not a span and the view stays silent rather than printing a zero-width band
+    capsys.readouterr()
+    e203.across({"draw0": e203.table_of(a)})
+    assert capsys.readouterr().out == ""
