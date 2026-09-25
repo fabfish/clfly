@@ -101,3 +101,48 @@ def test_the_live_composition_is_the_one_the_proxy_could_not_see():
     assert res["network_tally"]["far"]["rises"] == len(res["comparisons"]), res["network_tally"]
     assert len(res["comparisons"]) >= 8
     assert len(res["refused"]) == 1, res["refused"]
+
+
+# --- the dose read, written before its artifacts exist ---------------------------------------------------------
+
+def dose_artifact(path: Path, method: str, near: list[float], far: list[float], overlap: float) -> Path:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    reps = []
+    for n, f in zip(near, far):
+        row = lambda j: {"task": j, "per_task": [{"first_order": v} for v in (
+            [0.0, n, f] if j == 0 else [0.0, 0.0, n])]}
+        reps.append({"interference": [row(0), row(1)]})
+    path.write_text(json.dumps({"config": {"input_overlap": overlap, "lam": 0.003, "methods": method},
+                                "methods": {method: {"replicates": reps}}}), encoding="utf-8")
+    return path
+
+
+def test_the_dose_read_pairs_a_level_against_the_disjoint_baseline_and_checks_p1s_bar(tmp_path):
+    """P1's bar is computed from the measured 0 -> 1 rise (+0.1234 on `naive`) rather than restated: the registered
+    sentence is that the value at achieved 0.3333 is closer to the 1.0 end than to the 0.0 end."""
+    d = tmp_path / "runs"
+    base = dose_artifact(d / "base.json", "naive", [0.09, 0.11, 0.10, 0.10], [0.04, 0.06, 0.05, 0.05], 0.0)
+    over = dose_artifact(d / "half.json", "naive", [0.17, 0.19, 0.18, 0.18], [0.07, 0.09, 0.08, 0.08], 0.5)
+    res = e191.dose_read([over], base)
+    row = res["levels"][0]
+    assert row["target_overlap"] == 0.5 and row["achieved_overlap"] == 0.3333
+    assert row["arms"]["naive"]["near"]["change"] == pytest.approx(0.08, abs=1e-9)
+    assert row["arms"]["naive"]["P1_half_done"] is True, "0.08 > 0.0617"
+    # and a rise below half the 0->1 change does not meet it
+    weak = dose_artifact(d / "weak.json", "naive", [0.10, 0.12, 0.11, 0.11], [0.04, 0.06, 0.05, 0.05], 0.25)
+    assert e191.dose_read([weak], base)["levels"][0]["arms"]["naive"]["P1_half_done"] is False
+
+
+def test_the_dose_read_refuses_an_artifact_that_is_not_written_yet(tmp_path):
+    res = e191.dose_read([tmp_path / "nope.json"], tmp_path / "also-nope.json")
+    assert res["levels"][0]["status"] not in ("", None)
+    assert e191.report_dose(res) == 1, "the count of missing levels is the exit signal"
+
+
+def test_the_dose_read_on_the_live_registration_says_which_levels_are_missing():
+    """The gate, in the form it will have until the runs land: the registration names three levels and none exists."""
+    levels = [Path(f"runs/e193_r32_overlap{n}_methods_40reps.json") for n in (25, 50, 75)]
+    res = e191.dose_read(levels)
+    assert len(res["levels"]) == 3
+    assert all(lv.get("status") == "not written yet" for lv in res["levels"]), res["levels"]
+    assert e191.ACHIEVED_OVERLAP[0.5] == 0.3333 and e191.ACHIEVED_OVERLAP[0.75] == 0.6

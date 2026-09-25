@@ -38,6 +38,17 @@ from experiments.e188_overlap_contrast import INERT_FOR, PAIRS, differing_fields
 RUNS = Path("runs")
 ANALYTIC = "e7_interference.json"
 
+#: What a TARGET `--input-overlap` achieves as a Jaccard overlap, on `mb+cx+al@n1307` with three tasks of 80
+#: neurons at seed 0 -- the circuit and construction every network run uses. Measured by
+#: `overlap_controlled_supports` directly (and reproduced in the registration of the intermediate levels); `e7`'s
+#: controlled sweep reports the same four decimals for the levels it shares, which is what makes the two lines'
+#: x-axes commensurable. The table is a property of the circuit, the support and the seed and NOT of the annotation:
+#: a reader re-running this on a different circuit must recompute it.
+ACHIEVED_OVERLAP = {0.0: 0.0000, 0.25: 0.1429, 0.5: 0.3333, 0.75: 0.6000, 1.0: 1.0000}
+#: The change from the disjoint arm that the registered P1 calls "more than half done", on `naive`: half of the
+#: measured 0 -> 1 rise of +0.1234.
+P1_HALF_DONE = 0.0617
+
 #: The directions each line states today, on the quantity this file reads. The network ones are tallies because
 #: seven admitted comparisons will not be unanimous; the analytic ones are exact, being one artifact's six levels.
 DECLARED = {("analytic", "near"): "falls", ("analytic", "far"): "rises"}
@@ -147,13 +158,88 @@ def report(res: dict) -> int:
     return res["n_mismatches"]
 
 
+def dose_read(levels: list[Path], baseline: Path = Path("runs/e140_r32_methods_plastic_40reps.json"),
+              runs_dir: Path = RUNS) -> dict:
+    """Each intermediate level paired against the disjoint baseline, arm by arm, in the interference account.
+
+    This is the read the registration of the intermediate levels asks for and it exists before the artifacts do, so
+    that the level-by-level verdict is one command rather than a fresh argument -- which is what `e190` bought for
+    `e178`. P1's bar is computed from the measured 0 -> 1 rise rather than restated: the registered sentence is that
+    the value at achieved 0.3333 is *closer to the 1.0 end than to the 0.0 end*, i.e. more than half the 0 -> 1
+    change.
+    """
+    base = load(baseline) if Path(baseline).is_file() else None
+    rows = []
+    for level in levels:
+        if not Path(level).is_file():
+            rows.append({"level": Path(level).name, "status": "not written yet"})
+            continue
+        d = load(level)
+        target = (d.get("config") or {}).get("input_overlap")
+        out = {"level": Path(level).name, "target_overlap": target,
+               "achieved_overlap": ACHIEVED_OVERLAP.get(target), "arms": {}}
+        if base is None:
+            out["status"] = "baseline missing"
+            rows.append(out)
+            continue
+        for method in sorted(set(base.get("methods", {})) & set(d.get("methods", {}))):
+            a, b = per_replicate_split(baseline, method), per_replicate_split(level, method)
+            if a is None or b is None or min(a["n_pairs_near"], b["n_pairs_near"], a["n_pairs_far"],
+                                             b["n_pairs_far"]) == 0:
+                continue
+            entry = {"n": len(a["near"])}
+            for comp in ("near", "far"):
+                pn = paired(b[comp], a[comp])
+                r = abs(pn["change"]) / pn["sem"] if pn["sem"] else 0.0
+                entry[comp] = {"change": pn["change"], "sem": pn["sem"], "sigma": r,
+                               "level0": float(np.nanmean(a[comp])), "level1": float(np.nanmean(b[comp]))}
+            entry["P1_half_done"] = (entry.get("near", {}).get("change", 0.0) > P1_HALF_DONE
+                                     if method == "naive" else None)
+            out["arms"][method] = entry
+        rows.append(out)
+    return {"baseline": Path(baseline).name, "levels": rows}
+
+
+def report_dose(res: dict) -> int:
+    print(f"   == the dose-response, each level against {res['baseline']} ==")
+    missing = 0
+    for row in res["levels"]:
+        if row.get("status"):
+            print(f"        {row['level']}: {row['status']}")
+            missing += 1
+            continue
+        print(f"        {row['level']}: target {row['target_overlap']} -> achieved Jaccard "
+              f"{row['achieved_overlap']}")
+        for method, e in row["arms"].items():
+            near, far = e.get("near"), e.get("far")
+            def fmt(c):
+                return f"{c['change']:+.4f}+/-{c['sem']:.4f}({c['sigma']:.1f}s)" if c else "n/a"
+            tag = "" if e.get("P1_half_done") is None else (
+                "   P1's bar (> +0.0617, half the 0->1 rise) " +
+                ("MET" if e["P1_half_done"] else "NOT met"))
+            print(f"             {method:16} near {fmt(near):24} far {fmt(far):24} n {e['n']}{tag}")
+    print("        (the achieved overlaps are a property of mb+cx+al@n1307, 3 tasks of 80, seed 0: recompute them "
+          "for any other circuit.)")
+    return missing
+
+
 def main(argv=None) -> int:
     p = argparse.ArgumentParser(description=__doc__.splitlines()[0],
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--runs", type=Path, default=RUNS)
+    p.add_argument("--dose", type=Path, action="append", default=None,
+                   help="an artifact at an intermediate overlap level, paired against --baseline; repeatable")
+    p.add_argument("--baseline", type=Path, default=Path("runs/e140_r32_methods_plastic_40reps.json"))
     p.add_argument("--json-out", type=Path, default=None)
     args = p.parse_args(argv)
 
+    if args.dose:
+        dose = dose_read(args.dose, args.baseline, args.runs)
+        n = report_dose(dose)
+        if args.json_out:
+            write_json(args.json_out, {"dose": dose})
+            print(f"wrote {args.json_out}")
+        return 0
     res = audit(args.runs)
     n = report(res)
     if args.json_out:
