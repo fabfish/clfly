@@ -946,23 +946,60 @@ What the line established today, in the order it matters:
 
 ## The benchmark — FlyCL v0
 
-Five sequential tasks, each landing on a distinct circuit, driven through the
-connectome:
+**This block is a contract with the code, checked by `e185`, and its two lists were rewritten on 2026-09-25
+because it described a benchmark the repository does not run.** As it stood it read as a description of five
+sequential modalities, and the code builds three tasks, none of the five having been named in a list the checker
+could read; the audit is in `docs/findings/2026-09-25-the-benchmark-block-described-three-benchmarks.md`.
 
-1. **Olfaction** — combinatorial odour coding through OSN → AL → KC → MBON
-2. **Visual motion** — direction discrimination, optic lobe → LPTC
-3. **Heading / navigation** — landmark-guided turning, central complex
-4. **Looming / escape** — LC4 pathway
-5. **Motor pattern** — descending neurons → VNC targets
+The suite runs on **one** circuit, seeded from the mushroom body, the central complex and the antennal lobe
+(`MB_SEEDS`, `CX_SEEDS`, `AL_SEEDS` in `clfly/connectome/circuits.py`), which is 1307 neurons at
+`--circuit-size 800` — that budget is **soft**, because every cell type keeps a member.
+
+**Implemented suite (checked by `e185`):**
+
+1. **Olfaction, output side** — stimulus into Kenyon cells, read out from MBONs (`odour_identity`)
+2. **Heading / navigation** — central-complex ring neurons in, `CX` out (`heading`)
+3. **Olfaction, input side** — antennal-lobe projection and local neurons in, Kenyon cells out (`odour_input`)
+
+Two of the three are stages of the **one** olfactory pathway. That is what this substrate affords rather than what
+the design asked for: the circuit is olfactory and central-complex by construction, and a modality outside those
+two needs a different circuit before it needs a task spec.
+
+**Proposed and not implemented (checked by `e185`):**
+
+1. **Visual motion** — optic lobe to lobula plate. The annotation carries `{cell_type=T4}` (6241 neurons) and
+   `{cell_type=T5}` (6005, under the prefix rule the runner uses — a **substring** count says 6183, and the
+   difference is `T5` inside longer names) and **none of them is in the circuit above**, so this is a
+   circuit-seed change first.
+2. **Looming / escape** — `{cell_type=LC4}` (207 neurons), the same conclusion.
+3. **Motor pattern** — the brain dataset has `{super_class=descending}` (1303 neurons) and **no `VNC` neurons at
+   all**, so a motor task's read-out has to be brain-side; its inputs are absent from the circuit like the visual
+   ones.
+4. **Odour valence** — the paper's analytic substrate names it (`MBON` with `DAN`), the read-out population
+   `{cell_type=MBON}` is 35 neurons **inside** the circuit, and there is no task spec for it: this one is a spec
+   away rather than a circuit away.
+5. **Innate odour** — lateral horn, `{cell_class=LH}` (556 neurons whole brain, 149 in the circuit), likewise.
+
+The counts above are the ones `e185 --populations` prints, and a modality joins this list by naming its
+population rather than by describing it: the check reads a brace group holding `column=prefix`.
+
+**Baselines (checked by `e185`):** each line below is a claim that the repository offers it, and the check reads
+the corpus's own `config.methods` for the first five:
+
+- `naive` — run, forty replicates and up
+- `ewc` — run, and in each biological basis through `ewc-block`
+- `ewc-block-rand` — run, the group-size-matched control
+- `replay` — run
+- `oracle` — the Kalman/RTS reference line, implemented in `clfly/bench/oracle.py`
+- `frozen` and `joint` — the frozen-body and joint-training controls
+
+**And three baselines this block used to offer are not offered: `SI`, `MAS` and `Online-EWC` appear nowhere
+else in the repository and have never been run.** They are proposed, and the block claimed them for two days.
 
 Metrics: average accuracy; **decomposed forgetting** — irreducible drift term
 separated from estimation degradation, as LGCL §5 recommends, because the
 conventional forgetting metric rewards shrinkage and can be gamed; backward
 transfer; the per-task observability spectrum; and pairwise task principal angles.
-
-Baselines: Naive, EWC (neuron basis), EWC in each biological basis, Online-EWC,
-SI, MAS, capacity-matched replay, joint-training upper bound, the Kalman oracle on
-a low-rank linearisation, and a frozen-random control.
 
 Reference framework: `clfly/bench/` with fixed task orders and seeds, so numbers
 are comparable across methods — a shared protocol that CL-for-SNN work currently
@@ -1116,6 +1153,7 @@ All of it has been run. The scripts as delivered:
 | `e182_command_prose_audit.py --readout-census` over the 144 artifacts whose `config` carries a `readout_size` (`e182`) | C2b | **analysis, and it closes the one suspicion the prose audit raised** — that a runner **rewrites** a `config` value before writing it, because the plan's L1074 says "read-out 0" for an artifact whose `config` says `readout_size: 1307` | **done — no rewrite anywhere, and `0`, `1307` and the flag's absence are three spellings of the whole state.** The artifact's own `readout` block agrees with the run-time rule in **all 60** artifacts that carry a block to check (**0 contradictions of 60**; only 60 of the 144 carry it, so the denominator is printed beside the zero rather than left as "0 of 144"), so `config` is `vars(args)` verbatim and `1307` was passed literally; `--readout-size` is applied only when it is non-zero **and** strictly below the circuit's neuron count, and all 29 whole-state runs sit at `n = 1307` (111 of the 144 are genuine draws, 27 spell the whole state as `0`, 2 as the achieved count itself). **Where 1307 comes from, and the one fragility that is real**: `--circuit-size` is a **soft** budget — the extractor keeps every cell type, so `--circuit-size 800` *achieves* `mb+cx+al@n1307` — and the achieved count lives in the `circuit` name and **nowhere else**, so the same literal means "the whole state" at circuit 800 and "a draw of 1307 neurons" at `--circuit-size 1500` (d = 1874, `e9_ladder_d1874.json`), and **4 of the 144 record no achieved count at all**, which makes their `readout_size` unrecoverable from the artifact. Falsifier: any artifact whose `readout` block disagrees with the rule — the test suite writes such an artifact to prove the check fires |
 | `e127_programme_table_audit.py`'s check C, implemented for the first time, over the programme table's 140 rows and `runs/` (`e127`) | C2b | **the check `e127`'s own docstring promised and the code never had**: rule 22 records that this table has drifted four times **toward *more open***, and the docstring's C — "a row says the work was never run while naming an artifact that exists", the `e694` shape — was not implemented at all (the check the report printed as "C" was the duplicate-first-cell check, which the docstring calls D, and the unparseable-row check was printed as D and appears nowhere in the docstring). A checker that only asks whether a row announces itself as open *after* reporting an answer cannot see a row that announces itself as open and never updates — the same error with the answer written in another file | **done — 4 rows were under-claiming the disk, every one of them already read somewhere else, and all four are fixed.** `e92` says *"launched, prediction before the run"* with **61 artifacts** in `runs/` including `runs/e92_grid_report.json`, read by two findings a day earlier; `e147` says *"the `3e-3` arm is running"* with `runs/e147_r32_frozenbias_ewc_lam3e-3.json` on disk, and that arm decided the registered **falsifier** (the λ step under the freeze is -0.0047 ± 0.0032 = 1.46σ, below its 2σ bar); `e141` says *"the top of the sweep is running"* with `runs/e141_r32_ewc_lam3e-{1,2}.json` on disk; and `e6` says *"relaunched after a caught failure"* with `runs/e64_predictor_6_perseed.json` on disk. Three forms were needed, one live instance each: an **arm** described as running whose artifact carries that value in its name (the state word is read, so "is **in**" is landable and counting it flagged `e141`'s floor arm, which the same cell reports); a **braced registration** whose every value has an artifact (`--lam {3e-4, 3e-2, 3e-1}`, which is what catches `e141`, since its running clause names no value); and the docstring's **launched / no artifact / never run** wording, gated on the status cell's opening. The gate is where the false positives were and it was widened twice by them — `done` alone flagged the four rows whose cell opens `READ —`, and adding `read`/`landed` still flagged L1092, whose cell opens `P1 HOLDS AND IS LARGER THAN THE BASE FAMILY'S` and mentions "launched" about the queue it waited in. The `why` column is excluded on purpose: it is the registration and may say "launched" forever, which is why `e150`'s row is not flagged. **One flag's evidence is weaker and is said so:** L1110's conviction rests on the human step, because the check fired on `e6_*`, the PRE-relaunch artifacts. C now reads **0 of 111 rows** — the 111 being the denominator, since only rows that name their own experiment in one of the two recognised ways can be checked at all (`docs/findings/2026-09-25-the-check-the-table-promised-and-never-ran.md`) |
 | `e184_artifact_citation_census.py` over `runs/` (376 payloads) and the whole document corpus (`e184`) | C2b | **the reverse of `e97`, which no audit had run**: does every file in `runs/` get named by some document? A number whose artifact cannot be found by name cannot be re-checked, which is the state `e97` calls unfalsifiable by construction | **done — every RUN is findable by name, and the literal scan that says otherwise is wrong by 151.** The naive question, is this file's name a substring of the corpus, reports **156** of 376 files as never named; two measured conventions explain **151** of them — **34** cited *only* through a brace shorthand (findings write `runs/e74_drawsd_min{8,16,128}.json` and `runs/e147_r32_frozenbias_ewc_lam3e-{3,4}.json`: one citation, several files, and a substring test sees none of them) and **121** whose experiment is cited at *aggregate* granularity (117 runs + 4 reports). **One file has no citation of any kind and it is not a run**: `runs/e43_e5_replication.json`, an audit report whose plan row names the script — which is why the exit code counts un-named **runs** and not un-named files, since one count mixing them would fire on the audit's own output. **And the same distinction makes a claim of `e182`'s precise**: the corpus is **316 runs carrying a `config`** plus **60 payloads carrying none**, and the 60 are the audits' own reports, so the three config-based audits are blind to no run. The weakest class was sharpened twice rather than left as a lump: of the 117 un-named runs, **2 duplicate a named run** (identical config minus `json_out`) and **115 carry a configuration no named file carries**; those 115 are cited through an aggregate — `e92`'s 60 through `runs/e92_grid_report.json`, `e86`'s 18 through `e86_spread_at_other_sizes.json`, `e94`'s 15 through `e94_predictor_denominators.json` — so the licensed sentence is *every run is findable*, **not** *every run was read*. Robustness, because a zero invites a soft check: letting scripts cite too gives 0 un-named files, and dropping the `.json` requirement from the brace pattern changes exactly **1** class assignment, which is itself a false hit on the script name `experiments/e43_e5_replication.py`. And it is a complement to `e97` rather than a substitute: `e97` measures the declared `Artifacts:` line and finds **121 of 261 findings with none**, while this measures any mention anywhere in the prose, which is where most of this corpus's citations live (`docs/findings/2026-09-25-every-run-is-findable-by-name-and-the-naive-scan-is-wrong-by-151.md`) |
+| `e185_benchmark_spec_audit.py` over the plan's benchmark block, `SUITE_SPECS` and the connectome annotation (`e185`) | C2b | **the block that describes this project's benchmark, checked against the benchmark the code builds** — it read as a description of **five sequential modalities**, the code builds **three tasks**, two of them stages of the one olfactory pathway, and the paper's analytic substrate names a *third* five | **done — the block described three benchmarks and the code builds a fourth; it is now a contract with two marked lists, against which the audit flags 0.** The three lists: the plan's five modalities (olfaction, visual motion, heading, looming, motor pattern), the paper's five assemblies (odour identity, odour valence, heading, odour input, innate odour) and the code's three tasks (`odour_identity`, `heading`, `odour_input`); **three of the plan's five exist nowhere in the repository** — no module outside the annotation mentions `LC4`, `T4`/`T5`, `LPTC`, descending neurons or the VNC — and three of its names are not in the annotation's vocabulary either (`OSN` against the real class `olfactory`, 2282 neurons; `LPTC` against `LPLC`, 460; `VNC` 0, because this is a brain dataset). **The repair is a circuit away rather than a spec line, and that is measured**: the circuit is seeded from `MB_SEEDS`, `CX_SEEDS` and `AL_SEEDS`, and adding the optic lobe at the same `--circuit-size 800` takes the achieved circuit from **1307 to 2262 neurons while cutting the Kenyon-cell population from 335 to 50**, 85% of the olfactory task's input — so a five-modality benchmark either builds a circuit per task, breaking the shared-body premise, or changes the substrate every existing number was measured on. The extension is otherwise cheap: `T4` 6241, `T5` 6005, `LC4` 207 and `descending` 1303 are all in the annotation, with 0 of each in the circuit that runs. **And the baselines**: the block offered ten, the corpus has run **five methods** (`naive`, `ewc`, `ewc-block`, `ewc-block-rand`, `replay`, read from every artifact's own `config.methods`) with `oracle`, `frozen` and `joint` implemented, while **`SI`, `MAS` and `Online-EWC` appear nowhere else in the repository and have never been run**. The known positive is stated exactly: against the old block the check fired **three** times and everything else was hand reading, which is the argument for a marked contract rather than for the check; and four false positives the checker produced while being built are each pinned by a test (the section heading terminated the first list, so it reported the code's own suite as missing from the block that names it; the list collector ran to the end of the block, so the baseline check read prose and flagged `e185` and `clfly/bench/`; the mark's own line was scanned; and the `{column=prefix}` written in the block's explanation of the probe syntax was read as a probe) (`docs/findings/2026-09-25-the-benchmark-block-described-three-benchmarks.md`) |
 
 Every figure carries its control arm, and every recall/precision number in this document
 carries a resolvability check. The prediction scoreboard, including the refutations,

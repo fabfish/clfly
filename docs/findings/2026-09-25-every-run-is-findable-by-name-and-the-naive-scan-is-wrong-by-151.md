@@ -29,7 +29,9 @@ of those, and both are measured classes rather than judgement calls:
 | **no citation of any kind** | **1** | `runs/e43_e5_replication.json` |
 
 So the naive count of 156 is wrong by 151, and the number this audit exists to produce is the last row: **one file,
-and it is not a run.** The corpus's runs are all findable by name.
+and it is not a run** — *and this finding closed it*: `runs/e43_e5_replication.json` is cited by this document, so
+the count the script prints today is **0**. That is the one self-reference the classes cannot avoid, and it is worth
+one line because a reader who reruns the audit sees a zero where the table says one.
 
 ## 2. The one un-named file, and why the exit code asks about runs
 
