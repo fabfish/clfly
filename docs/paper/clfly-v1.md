@@ -532,6 +532,25 @@ tracking interference. Erdős–Rényi is a separate regime, and it also destroy
 makes `(I − W)` near-singular, so it changes the conditioning of the dynamics rather than extending the
 same axis.
 
+**What "a separate regime" turned out to be, measured.** Four nulls that differ in exactly one way — how many of
+the graph's two degree sequences they destroy — separate the penalty cleanly at cs 800: `swap2`, which preserves
+both, and `signshuffle`, which permutes the weights across an untouched graph, both sit at **0.012–0.030**; `alloy1`,
+which preserves every out-degree and frees the in-side, and `inalloy1`, which preserves every in-degree and frees the
+out-side, both sit at **≈0.045** (means 0.05136 and 0.04668, agreeing to 5% from two independent constructions); and
+Erdős–Rényi, which destroys both, sits at **0.14187**. So the separation the table shows is not one construction
+being special: it is **a ladder in how much of the degree structure is destroyed**, and the top of it needs *both*
+sides freed. **The sign pattern is not the driver** — Erdős–Rényi also randomises which synapses are excitatory,
+while the tasks are built through the signed matrix, and a null that permutes only the weights leaves the penalty at
+**0.02776–0.02975**, 5.0× below Erdős–Rényi's, so that confound is tested rather than assumed. **And the top step is
+circuit-size dependent**: at cs 300 and cs 400 the same four cells give top steps of **1.28×** and **1.08×** against
+this table's 2.76× and 3.02×, because the one-side level rises steeply as the circuit shrinks (0.047 at cs 800
+against 0.122–0.139 at cs 300–400) while the two-side level barely moves (0.142–0.157) — so "Erdős–Rényi is a
+separate regime" is true at cs 800 and the separation narrows to 8% at cs 400, which is why the table's contrast
+should be quoted with its circuit size
+(`docs/findings/2026-09-26-the-penalty-follows-how-many-degree-sequences-are-destroyed.md`,
+`docs/findings/2026-09-26-the-sign-confound-is-exonerated.md`,
+`docs/findings/2026-09-26-the-ladders-middle-and-floor-replicate-and-its-top-step-does-not.md`).
+
 **Every σ in this family is one of two, and the distinction decides how strong each claim is.** Both
 endpoints of every contrast here are the same six task seeds of **one** wiring, so there is a σ about
 *these graphs* — the paired within-seed sem, which cancels the task draw — and a σ about *the rewiring
