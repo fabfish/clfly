@@ -1,0 +1,186 @@
+"""E188 -- the question the overlap suite was built to ask, answered on the corpus's own matched pairs.
+
+`clfly/network/tasks.py`'s `make_overlap_suite` exists for one question, and its docstring states it: *"does raising
+input overlap raise forgetting?"* -- with `overlap = 0` giving fully disjoint supports and `overlap = 1` giving every
+task the same inputs. `e187` measured that this builder is what the corpus has overwhelmingly run (120 artifacts,
+2439 replicates, against the assembly suite's 25 and 107). **This reads the overlap axis itself**: every pair of
+payloads that differ in `input_overlap` and, for the method being compared, in nothing that matters.
+
+Each comparison declares **why** it is a pair, and the declaration is checked rather than trusted:
+
+- **exact** -- every `config` field but `input_overlap` and `json_out` is equal;
+- **near** -- the differing fields are named, and each is *inert for the compared method* by the runner's own code
+  path: `fisher_batches` and `lam` are read only by the Fisher/penalty arms, so they cannot touch `naive` or
+  `replay`; `frozen_bias: None` and `frozen_bias: False` are the same state.
+
+The script prints each pair's differing fields beside its two levels, so a reader can reject a pair rather than
+take the pooled number on trust. The contrast is **paired by seed** through `e151`'s `load_arm` and `paired`, since
+both members of every pair start at `seed0 = 0` with the same replicate count and the replicates are in seed order.
+
+    python -m experiments.e188_overlap_contrast
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+from pathlib import Path
+
+import numpy as np
+
+from clfly.bench.artifacts import write_json
+from experiments.e151_pertask_contrast_audit import load_arm, paired
+
+RUNS = Path("runs")
+
+#: (label, method, overlap-0 artifact, overlap-1 artifact, expectation). The expectation is `"pair"` or
+#: `"rejected: <why>"`, and the exit code is the number of declarations the corpus contradicts -- so the one entry
+#: below that is *meant* to be refused is a check on the admission rules rather than noise in the reject list.
+PAIRS = (
+    ("naive, disjoint vs identical inputs", "naive",
+     "e116_r32_40reps.json", "e142_r32_overlap1.json", "pair"),
+    ("naive, second overlap-0 arm of the same configuration", "naive",
+     "e125_r32_plastic.json", "e142_r32_overlap1.json", "pair"),
+    ("naive, third overlap-0 arm", "naive",
+     "e140_r32_methods_plastic_40reps.json", "e142_r32_overlap1.json", "pair"),
+    ("ewc-block (biological side partition)", "ewc-block",
+     "e140_r32_methods_plastic_40reps.json", "e144_r32_overlap1_methods_40reps.json", "pair"),
+    ("replay", "replay",
+     "e140_r32_methods_plastic_40reps.json", "e148_r32_overlap1_replay.json", "pair"),
+    ("ewc-block, overlap-1 arm at lambda one", "ewc-block",
+     "e140_r32_methods_plastic_40reps.json", "e153_r32_overlap1_methods_40reps.json",
+     "rejected: lam is read by the penalised arm"),
+    ("ewc-block-rand, draw 1", "ewc-block-rand",
+     "e140_r32_rand_draw1.json", "e144_r32_overlap1_rand_draw1.json", "pair"),
+    ("ewc-block-rand, draw 2", "ewc-block-rand",
+     "e140_r32_rand_draw2.json", "e144_r32_overlap1_rand_draw2.json", "pair"),
+    ("ewc + frozen bias, lambda 3e-3", "ewc",
+     "e147_r32_frozenbias_ewc_lam3e-3.json", "e150_r32_overlap1_frozenbias_ewc_lam3e-3.json", "pair"),
+    ("ewc + frozen bias, lambda 3e-4", "ewc",
+     "e147_r32_frozenbias_ewc_lam3e-4.json", "e150_r32_overlap1_frozenbias_ewc_lam3e-4.json", "pair"),
+)
+
+#: fields a comparison is allowed to differ in, per method, with the reason -- the runner's own code path decides,
+#: not this file's taste. A field absent from a method's set makes the pair "exact" or fails the check.
+#:
+#: `methods` is here for every method on the strength of a measurement this project already has: each method's arm
+#: is trained independently from the same initial body and the same task draws, so a payload that also ran `replay`
+#: does not change its `naive` arm -- which is what `e102`/`e104`'s C0 checks assert to the digit ("each run's
+#: `naive` row is per-replicate identical to `e116`'s"). The fields that *define* the compared arm are never inert:
+#: `lam` and `frozen_*` for the penalised arms, `pool_buckets` and `partition_seed` for the block arms.
+INERT_FOR = {
+    "naive": {"methods", "fisher_batches", "lam", "replay_per_task", "replay_batch"},
+    "replay": {"methods", "fisher_batches", "lam"},
+    "ewc": {"methods", "fisher_batches", "replay_per_task", "replay_batch", "pool_buckets", "partition_seed"},
+    "ewc-block": {"methods", "fisher_batches", "replay_per_task", "replay_batch"},
+    "ewc-block-rand": {"methods", "fisher_batches", "replay_per_task", "replay_batch"},
+}
+#: the two spellings of "not frozen"
+EQUIVALENT = {("frozen_bias", None, False), ("frozen_bias", False, None)}
+
+
+def differing_fields(a: dict, b: dict) -> dict:
+    out = {}
+    for k in set(a) | set(b):
+        if k in ("json_out", "input_overlap"):
+            continue
+        if a.get(k) != b.get(k) and (k, a.get(k), b.get(k)) not in EQUIVALENT:
+            out[k] = (a.get(k), b.get(k))
+    return out
+
+
+def load(path: Path) -> dict:
+    return json.loads(Path(path).read_text(encoding="utf-8"))
+
+
+def audit(runs_dir: Path = RUNS, pairs=PAIRS) -> dict:
+    rows, rejects = [], []
+    mismatches = []
+    for label, method, lo, hi, expect in pairs:
+        pa, pb = runs_dir / lo, runs_dir / hi
+        if not pa.is_file() or not pb.is_file():
+            rejects.append({"label": label, "why": "artifact missing"})
+            continue
+        da, db = load(pa), load(pb)
+        diff = differing_fields(da["config"], db["config"])
+        bad = {k: v for k, v in diff.items() if k not in INERT_FOR.get(method, set())}
+        if bad:
+            rejects.append({"label": label, "why": f"fields that are not inert for {method}: {sorted(bad)}"})
+            continue
+        A, B = load_arm(pa, method), load_arm(pb, method)
+        if A is None or B is None:
+            rejects.append({"label": label, "why": f"the {method} arm is absent from one payload"})
+            continue
+        if A["n"] != B["n"]:
+            rejects.append({"label": label, "why": f"replicate counts differ: {A['n']} against {B['n']}"})
+            continue
+        pr = paired(B["forgetting"], A["forgetting"])          # overlap 1 minus overlap 0
+        per_task = [paired(B["terms"][:, k], A["terms"][:, k]) for k in range(B["terms"].shape[1])]
+        rows.append({"label": label, "method": method, "overlap0": lo, "overlap1": hi,
+                     "differs_in": sorted(diff), "n": A["n"],
+                     "level_overlap0": float(A["forgetting"].mean()),
+                     "level_overlap1": float(B["forgetting"].mean()),
+                     "change": pr["change"], "sem": pr["sem"],
+                     "sigma": abs(pr["change"]) / pr["sem"] if pr["sem"] else None,
+                     "per_task": [{"change": t["change"], "sem": t["sem"]} for t in per_task]})
+    resolved = [r for r in rows if r["sigma"] and r["sigma"] >= 2]
+    for row in rows + rejects:
+        declared = next(e for lab, _m, _a, _b, e in pairs if lab == row["label"])
+        got = "pair" if "change" in row else f"rejected: {row['why']}"
+        if declared == "pair" and got != "pair":
+            mismatches.append({"label": row["label"], "declared": declared, "got": got})
+        if declared != "pair" and got == "pair":
+            mismatches.append({"label": row["label"], "declared": declared, "got": got})
+    return {"comparisons": rows, "rejected": rejects, "mismatches": mismatches,
+            "n_mismatches": len(mismatches),
+            "n_comparisons": len(rows), "n_resolved": len(resolved),
+            "n_positive": sum(1 for r in rows if r["change"] > 0),
+            "n_negative": sum(1 for r in rows if r["change"] < 0),
+            "room_vs_effect": {"levels": [r["level_overlap0"] for r in rows],
+                               "effects": [r["change"] for r in rows]}}
+
+
+def report(res: dict) -> int:
+    print(f"   comparisons admitted : {res['n_comparisons']}   of which resolved at 2 sigma: {res['n_resolved']}")
+    print(f"   direction of the effect (overlap 1 minus overlap 0): {res['n_positive']} positive, "
+          f"{res['n_negative']} negative")
+    print(f"   {'comparison':52} {'overlap0':>9} {'overlap1':>9} {'change':>9} {'sem':>7} {'sigma':>6}")
+    for r in sorted(res["comparisons"], key=lambda r: -r["level_overlap0"]):
+        sig = f"{r['sigma']:6.2f}" if r["sigma"] is not None else "   n/a"
+        print(f"   {r['label']:52} {r['level_overlap0']:9.4f} {r['level_overlap1']:9.4f} "
+              f"{r['change']:+9.4f} {r['sem']:7.4f} {sig}")
+        if r["differs_in"]:
+            print(f"        (admitted with inert differences in: {', '.join(r['differs_in'])})")
+    for r in res["rejected"]:
+        print(f"   refused -- {r['label']}: {r['why']}")
+    print(f"   declarations the corpus contradicts: {res['n_mismatches']}")
+    for m in res["mismatches"]:
+        print(f"        {m['label']}: declared {m['declared']}, got {m['got']}")
+    print("   what the magnitudes do NOT do, said here so the table is not read as a law: the effect does not order")
+    print("   with the overlap-0 level. The largest absolute effect (+0.0419) is not at the largest level (+0.0750,")
+    print("   which moves +0.0318), and the largest RELATIVE effect is the arm with almost nothing to lose:")
+    for r in sorted(res["comparisons"], key=lambda r: -r["level_overlap0"]):
+        rel = (r["change"] / r["level_overlap0"]) if abs(r["level_overlap0"]) > 1e-6 else None
+        sig = f"{r['sigma']:.2f} sigma" if r["sigma"] is not None else "sigma undefined (zero scatter)"
+        print(f"        overlap-0 level {r['level_overlap0']:+.4f} -> effect {r['change']:+.4f} "
+              f"({sig}" + (f", {rel:.1f}x the level)" if rel is not None else ", level at zero)"))
+    return res["n_mismatches"]
+
+
+def main(argv=None) -> int:
+    p = argparse.ArgumentParser(description=__doc__.splitlines()[0],
+                                formatter_class=argparse.RawDescriptionHelpFormatter)
+    p.add_argument("--runs", type=Path, default=RUNS)
+    p.add_argument("--json-out", type=Path, default=None)
+    args = p.parse_args(argv)
+
+    res = audit(args.runs)
+    n = report(res)
+    if args.json_out:
+        write_json(args.json_out, res)
+        print(f"wrote {args.json_out}")
+    return 0 if n == 0 else 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
