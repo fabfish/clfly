@@ -52,6 +52,16 @@ MB_SEEDS = SeedSpec(
 )
 
 #: The central complex: heading, navigation, motor planning.
+#:
+#: **Measured by `e186`: five of these six values select no neuron**, because they are asked of `cell_class` and the
+#: names live in other columns or in none. Whole-brain counts under this spec's own column: `CX` 2875, and **0** for
+#: `FB`, `EB`, `PB`, `NO` and `LAL`. What is behind each zero is not the same thing, which is why they are listed:
+#: the 593 `cell_type` `FB*` neurons are **inside** `cell_class=CX`, so the fan-shaped body is kept by the class; the
+#: 10 `cell_type` `Nod*` neurons exist but are in no circuit this project has built; `EB` and `PB` match nothing in
+#: any column of the annotation; and **the 551 `cell_type` `LAL*` neurons are `super_class=central` with no
+#: `cell_class` at all** (NaN), so no `cell_class` seed can ever select them — the lateral accessory lobe is absent
+#: from every circuit built so far. Fixing that changes the circuit and is therefore a registered change rather
+#: than an edit: see `docs/findings/2026-09-25-the-two-task-lines-and-the-region-the-seed-cannot-see.md`.
 CX_SEEDS = SeedSpec(
     name="cx",
     column="cell_class",

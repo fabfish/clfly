@@ -131,9 +131,18 @@ def make_task(circ: Circuit, name: str, input_spec: tuple[str, tuple[str, ...]],
 
 #: The default suite.  Three tasks on distinct circuits, so the interference question
 #: has structure to find and the runtime stays tractable.
+#:
+#: **`e186` measures what this suite is against the analytic line's five assemblies**, and two differences are
+#: worth knowing at the point of reading it: `heading`'s input list used to carry `"PB"`, which **selected no
+#: neuron in any column of the annotation** (counted by `e186`: 0 whole brain, 0 in the circuit, so the task's
+#: input is the 55 EPG/PFN/PEN/ER neurons and always has been) -- dropped, and the intent noted rather than lost;
+#: and `odour_input` omits `"ALIN"`, which the analytic assembly of the
+#: same name includes (24 neurons whole brain, 10 in the circuit). With `--shared-head` the *read-out* populations
+#: below are inert and every task differs only in where the stimulus enters; they are the read-outs in the 17
+#: corpus runs that used per-task heads.
 SUITE_SPECS = (
     ("odour_identity", ("cell_type", ("KC",)), ("cell_class", ("MBON",))),
-    ("heading", ("cell_type", ("EPG", "PFN", "PEN", "ER", "PB")),
+    ("heading", ("cell_type", ("EPG", "PFN", "PEN", "ER")),
      ("cell_class", ("CX",))),
     ("odour_input", ("cell_class", ("ALPN", "ALLN")), ("cell_type", ("KC",))),
 )

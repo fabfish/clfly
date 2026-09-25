@@ -124,8 +124,11 @@ TASK_ASSEMBLIES: tuple[Assembly, ...] = (
     Assembly(
         name="heading",
         column="cell_type",
-        values=("EPG", "PFN", "PEN", "ER", "PB", "NO"),
-        note="central complex ring attractor: the fly's compass",
+        values=("EPG", "PFN", "PEN", "ER"),
+        note="central complex ring attractor: the fly's compass. Two values that used to be here, `PB` and `NO`, "
+             "**select no neuron in any column of the annotation** (`e186`: 0 whole brain each; the noduli are "
+             "spelled `Nod1`/`Nod2`/`Nod3`/`Nod5` and are 10 neurons, 0 of them in the mb+cx+al circuit), so they "
+             "were dropped rather than left to look like coverage. Adding the noduli back is a CIRCUIT change.",
     ),
     Assembly(
         name="odour_input",
