@@ -5,6 +5,11 @@
 `clfly/connectome/circuits.py`'s `SeedSpec`s, the annotation (`annotate.load_annotations()`, 139248 rows, four
 label columns) and every `runs/*.json`'s `config`.
 **Instrument:** `experiments/e186_task_lines_compared.py`, tested in `tests/test_e186_task_lines_compared.py`.
+**Corrected in §4 by `e187`**: the reachability table below measures the **assembly** suite
+(`make_suite`, identified circuits), and that is the minority of this corpus's replicates -- 25 artifacts and
+107 repeats against the overlap family's 120 artifacts and 2439 repeats, whose inputs are **random supports**.
+The numbers here are right and the sentence drawn from them about "the two tasks the corpus measures every
+day" is wrong: see `docs/findings/2026-09-25-which-suite-the-corpus-actually-ran.md`.
 
 ---
 
@@ -87,9 +92,12 @@ could read out. Pairwise reachability within the circuit, from each assembly to 
 Both candidate inputs reach the rest of the circuit (68 and 149 neurons reaching 249 and 145 of `odour_input`), so
 the extension is a spec away as `e185` said. The table also shows the two tasks that are **not** connected in the
 circuit at either end: `heading`'s neurons reach **none** of `odour_identity` and **none** of `odour_input` within
-two hops, and `innate_odour` reaches **none** of `heading`. The two tasks the corpus measures every day are
-unreachable from each other in the substrate at this distance — a fact about the 55-neuron heading input population
-that is worth having before reading a forgetting matrix as interference.
+two hops, and `innate_odour` reaches **none** of `heading`. **This is a property of the assembly suite only**, and
+`e187` measured that the assembly suite is the *minority* of the corpus's replicates (25 artifacts, 107 repeats)
+against the overlap family's random supports (120 artifacts, 2439 repeats). So the licensed sentence is narrow:
+*in the assembly suite, the heading input population is two-hop disconnected from the other two, and that suite has
+no high-replicate measurement yet.* The earlier version of this section said "the two tasks the corpus measures
+every day", which the overlap family makes false.
 
 ## 5. Falsifiers and limits
 
