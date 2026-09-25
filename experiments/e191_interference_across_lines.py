@@ -158,8 +158,25 @@ def report(res: dict) -> int:
     return res["n_mismatches"]
 
 
+def analytic_progress(levels: list[float], path: Path = RUNS / ANALYTIC) -> dict:
+    """How far the analytic near component has fallen, as a FRACTION of its own 0 -> 1 fall, per achieved overlap.
+
+    P2 is a claim about the network's *shape* matching the analytic line's timing, and a shape claim needs both
+    lines expressed the same way: the fraction of the total response completed at a given achieved overlap. The
+    analytic fraction is fixed by `e7`'s six levels and is computed here from the artifact rather than quoted, so it
+    cannot drift from the table it comes from.
+    """
+    block = analytic_split(path)
+    total = block[0]["near"] - block[-1]["near"]
+    if not total:
+        return {}
+    return {ach: (block[0]["near"] - next(b["near"] for b in block if abs(b["level"] - lv) < 1e-9)) / total
+            for ach, lv in ((0.0526, 0.1), (0.1429, 0.25), (0.3333, 0.5), (0.6000, 0.75), (1.0, 1.0))
+            if any(abs(b["level"] - lv) < 1e-9 for b in block)}
+
+
 def dose_read(levels: list[Path], baseline: Path = Path("runs/e140_r32_methods_plastic_40reps.json"),
-              runs_dir: Path = RUNS) -> dict:
+              runs_dir: Path = RUNS, overlap1: Path = Path("runs/e144_r32_overlap1_methods_40reps.json")) -> dict:
     """Each intermediate level paired against the disjoint baseline, arm by arm, in the interference account.
 
     This is the read the registration of the intermediate levels asks for and it exists before the artifacts do, so
@@ -195,9 +212,23 @@ def dose_read(levels: list[Path], baseline: Path = Path("runs/e140_r32_methods_p
                                "level0": float(np.nanmean(a[comp])), "level1": float(np.nanmean(b[comp]))}
             entry["P1_half_done"] = (entry.get("near", {}).get("change", 0.0) > P1_HALF_DONE
                                      if method == "naive" else None)
+            # P2: the network's progress is its rise at this level over its OWN 0 -> 1 rise, and the bar is the
+            # analytic fraction at the same achieved overlap -- 60% of it, as registered.
+            # the replicate count has to agree before the pairing exists: without this a synthetic level paired
+            # against the live overlap-1 artifact raised a broadcast error inside `paired` rather than being
+            # refused, which is the same class of defect as an arm with the wrong count in `e188`'s audit
+            full = per_replicate_split(overlap1, method) if Path(overlap1).is_file() else None
+            if full is not None and len(full["near"]) != len(a["near"]):
+                full = None
+            if full is not None:
+                pf = paired(full["near"], a["near"])
+                entry["full_rise"] = {"change": pf["change"], "sem": pf["sem"]}
+                if pf["change"]:
+                    entry["progress_fraction"] = entry["near"]["change"] / pf["change"]
             out["arms"][method] = entry
         rows.append(out)
-    return {"baseline": Path(baseline).name, "levels": rows}
+    return {"baseline": Path(baseline).name, "overlap1": Path(overlap1).name, "levels": rows,
+            "analytic_progress": analytic_progress([0.0526, 0.1429, 0.3333, 0.6000, 1.0])}
 
 
 def report_dose(res: dict) -> int:
@@ -217,7 +248,14 @@ def report_dose(res: dict) -> int:
             tag = "" if e.get("P1_half_done") is None else (
                 "   P1's bar (> +0.0617, half the 0->1 rise) " +
                 ("MET" if e["P1_half_done"] else "NOT met"))
-            print(f"             {method:16} near {fmt(near):24} far {fmt(far):24} n {e['n']}{tag}")
+            prog = e.get("progress_fraction")
+            analytic = res["analytic_progress"].get(row["achieved_overlap"])
+            ptxt = ""
+            if prog is not None and analytic is not None:
+                ptxt = (f"   P2: {100 * prog:.0f}% of the line's own 0->1 rise here against the analytic line's "
+                        f"{100 * analytic:.0f}% at the same achieved overlap"
+                        + (" -- MET" if prog >= 0.6 * analytic else " -- NOT met"))
+            print(f"             {method:16} near {fmt(near):24} far {fmt(far):24} n {e['n']}{tag}{ptxt}")
     print("        (the achieved overlaps are a property of mb+cx+al@n1307, 3 tasks of 80, seed 0: recompute them "
           "for any other circuit.)")
     return missing

@@ -146,3 +146,28 @@ def test_the_dose_read_on_the_live_registration_says_which_levels_are_missing():
     assert len(res["levels"]) == 3
     assert all(lv.get("status") == "not written yet" for lv in res["levels"]), res["levels"]
     assert e191.ACHIEVED_OVERLAP[0.5] == 0.3333 and e191.ACHIEVED_OVERLAP[0.75] == 0.6
+
+
+def test_the_analytic_progress_fractions_come_from_the_artifact():
+    """P2 is a shape claim, so both lines have to be expressed as the fraction of their own 0 -> 1 response. The
+    analytic fractions are computed from e7's six levels rather than quoted, so they cannot drift from the table."""
+    prog = e191.analytic_progress([0.1429, 0.3333, 0.6, 1.0])
+    assert prog[0.1429] == pytest.approx(0.40, abs=0.02), prog
+    assert prog[0.3333] == pytest.approx(0.76, abs=0.02), prog
+    assert prog[0.6] == pytest.approx(0.86, abs=0.02), prog
+    assert prog[1.0] == pytest.approx(1.0, abs=1e-9)
+    # monotone, because the analytic near component falls monotonically over the six levels
+    ordered = [prog[k] for k in (0.1429, 0.3333, 0.6, 1.0)]
+    assert ordered == sorted(ordered)
+
+
+def test_the_dose_read_reports_each_levels_progress_against_the_analytic_fraction(tmp_path):
+    d = tmp_path / "runs"
+    base = dose_artifact(d / "base.json", "naive", [0.09, 0.11, 0.10, 0.10], [0.04, 0.06, 0.05, 0.05], 0.0)
+    full = dose_artifact(d / "full.json", "naive", [0.21, 0.23, 0.22, 0.22], [0.09, 0.11, 0.10, 0.10], 1.0)
+    half = dose_artifact(d / "half.json", "naive", [0.17, 0.19, 0.18, 0.18], [0.07, 0.09, 0.08, 0.08], 0.5)
+    res = e191.dose_read([half], base, overlap1=full)
+    arm = res["levels"][0]["arms"]["naive"]
+    assert arm["full_rise"]["change"] == pytest.approx(0.12, abs=1e-9)
+    assert arm["progress_fraction"] == pytest.approx(0.08 / 0.12, abs=1e-9)
+    assert res["analytic_progress"][0.3333] == pytest.approx(0.76, abs=0.02)
