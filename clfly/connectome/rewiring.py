@@ -126,6 +126,54 @@ def null_names(strengths=SWAP_STRENGTHS) -> tuple[str, ...]:
     return ("real", *(f"swap{s:g}" for s in strengths), "erdos_renyi")
 
 
+def random_targets(W: sp.spmatrix, fraction: float,
+                   rng: np.random.Generator, max_tries_factor: int = 40) -> sp.csr_matrix:
+    """Replace the target of a ``fraction`` of the edges with a guarded uniformly random neuron.
+
+    **The second null family, and the reason it exists.** Swaps preserve in-degree *and* out-degree, and `e209`/`e211`
+    measured that they therefore cannot move the tasks' alignment: across strengths 8 to 1024 (a 128× range) the swap
+    family stays at 0.65–1.72× chance while the edge-count-matched Erdős–Rényi family sits at 4.89–5.23×, so the
+    interval between those two regimes is **not reachable by rewiring harder**. This operation is the knob that can
+    place alignment anywhere in between: it keeps every neuron's **out-degree exactly** and the **edge count exactly**,
+    and it destroys the *pairing* structure much faster than a swap, because the in-degree is free to move.
+
+    The guard is what makes it different from the version this module's docstring records as a failure. Randomising the
+    whole target column *without* a guard made 70% of the edges land on pairs that already existed, so rebuilding summed
+    them and the "rewired" condition was also the "sparser" one (86,443 → 25,594 edges). Here a candidate target that
+    already exists is rejected and redrawn, exactly as a swap rejects a collision, so the edge count is preserved and
+    `swap_fraction` is a meaningful report of how far the graph moved.
+
+    ``fraction`` is the share of edges touched, so ``alloy0`` is the untouched connectome and ``alloy1`` is every edge.
+    """
+    if not 0.0 <= fraction <= 1.0:
+        # a fraction outside the unit interval is a caller error and not a zero: the first version of this
+        # function silently returned the connectome for a negative fraction, which a test caught
+        raise ValueError(f"fraction must be in [0, 1], got {fraction!r}")
+    rows, cols, data = _as_coo(W)
+    m = rows.shape[0]
+    n = W.shape[0]
+    n_touch = min(int(round(fraction * m)), m)
+    if n_touch <= 0:
+        return W.tocsr()
+    existing = set(zip(rows.tolist(), cols.tolist()))
+    idx = rng.choice(m, size=n_touch, replace=False)
+    for i in idx:
+        s = int(rows[i])
+        for _ in range(max_tries_factor):
+            t = int(rng.integers(0, n - 1))
+            if t >= s:                     # uniform over neurons other than the source, so no self-loop
+                t += 1
+            if (s, t) in existing:
+                continue
+            existing.discard((s, int(cols[i])))
+            existing.add((s, t))
+            cols[i] = t
+            break
+        # a source whose targets are nearly exhausted keeps this edge as it is: the guard is what preserves the edge
+        # count, and the cost of that is a few untouched edges on the densest sources, reported by `swap_fraction`
+    return _rebuild(rows, cols, data, n)
+
+
 def apply_null(W: sp.spmatrix, topology: str, rng: np.random.Generator) -> sp.csr_matrix:
     """Apply a named null topology.
 
@@ -137,8 +185,10 @@ def apply_null(W: sp.spmatrix, topology: str, rng: np.random.Generator) -> sp.cs
     if topology.startswith("swap"):
         frac = float(topology[4:])
         return double_edge_swap(W, n_swaps=int(round(frac * W.nnz)), rng=rng)
+    if topology.startswith("alloy"):
+        return random_targets(W, float(topology[5:]), rng)
     if topology == "erdos_renyi":
         return erdos_renyi(W.shape[0], W.nnz, rng, signed=True)
     raise ValueError(
-        f"unknown topology {topology!r}; expected 'real', 'swap<frac>' or 'erdos_renyi'"
+        f"unknown topology {topology!r}; expected 'real', 'swap<frac>', 'alloy<frac>' or 'erdos_renyi'"
     )
