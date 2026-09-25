@@ -80,3 +80,30 @@ def test_the_reader_reproduces_the_registration_s_arithmetic_on_the_artifact_tha
     f = e190.paired_gap(Path("runs/e10_rung_side.json"), "forgetting")
     assert f["mean"] == pytest.approx(0.0035, abs=5e-4), f
     assert (f["mean"] > 0) != (g["mean"] > 0), "the two quantities disagree in sign on these three replicates"
+
+
+# --- the artifact, when it exists -------------------------------------------------------------------------------
+
+ARTIFACT = Path("runs/e178_rung_side_cs300_144reps.json")
+
+
+@pytest.mark.skipif(not ARTIFACT.is_file(), reason="e178's artifact has not been written yet")
+def test_the_registered_read_runs_on_the_real_artifact_when_it_lands():
+    """The guard that makes the landing self-detecting: from the moment the JSON exists, every run of this suite
+    exercises the read on real data, so a malformed or half-written artifact fails here rather than at the moment
+    someone remembers to look.
+
+    It asserts the reader's mechanics and NOT the verdict: P1 may hold, the falsifier may fire, or the result may be
+    unresolved, and all three are outcomes the registration names. What must hold is that the artifact carries both
+    arms at the registered replicate count, that the paired gap is computable, and that the verdict is one of the
+    four registered outcomes.
+    """
+    g = e190.paired_gap(ARTIFACT, "accuracy")
+    assert g is not None, "the artifact exists and the registered quantity must be readable from it"
+    assert g["n"] == 144, f"the registration is 144 replicates, the artifact has {g['n']}"
+    assert g["basis"] == "side" and g["circuit_size"] == 300
+    assert g["sd"] > 0, "a zero sd over 144 replicates would mean the arms are not independent"
+    v = e190.verdict(g, e190.paired_gap(Path("runs/e10_rung_side.json"), "accuracy"))
+    assert v["outcome"].startswith(("P1 HOLDS", "THE FALSIFIER FIRES", "UNRESOLVED")), v
+    assert v["P1"] in ("holds", "does not hold") and v["falsifier"] in ("fires", "does not fire")
+    assert g["timing_s"], "rule 49: the artifact carries its own cost and it is the figure to quote"

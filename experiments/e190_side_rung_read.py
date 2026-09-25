@@ -126,6 +126,13 @@ def report(gap: dict | None, comparator: dict | None, v: dict) -> int:
     print(f"        P1        : {v['P1']}")
     print(f"        P2        : {v['P2']}")
     print(f"        falsifier : {v['falsifier']}")
+    if gap.get("sigma") is not None:
+        # one line written to be pasted into the plan row, so the row quotes the reader rather than a retyping
+        print(f"   PLAN-ROW LINE: {v['outcome']}: paired {PAIR[0]} - {PAIR[1]} on {gap['quantity']} "
+              f"**{gap['mean']:+.4f} +/- {gap['sem']:.4f} = {gap['sigma']:.2f}σ** over {gap['n']} seeds "
+              f"({gap['n_negative']} negative / {gap['n_positive']} positive); P2 {v['P2']}; "
+              f"falsifier {v['falsifier']}; the artifact's own cost {gap['timing_s']:.0f} s"
+              if gap.get("timing_s") else "")
     return 0
 
 
