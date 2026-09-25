@@ -2220,6 +2220,21 @@ about (`docs/findings/2026-09-23-the-last-two-unaudited-sections-were-clean.md`)
     of what was predicted and editing it in place destroys the evidence (rule 50's corollary).
     (`docs/findings/2026-09-25-p2s-bar-is-60-percent-and-the-read-applied-46.md`)
 
+52. **A guard written for one pairing is not a guard for the next — and a reader that drops a row SILENTLY is a reader
+    whose absences cannot be read.** `e191` guarded its *anchor* pairing against a replicate-count mismatch, in a
+    comment that names the class, and did not guard the *baseline* pairing four lines above: a level with 4 replicates
+    against the live 40 raised `operands could not be broadcast together with shapes (4,) (40,)` inside `paired`, which
+    **aborts the whole read** and takes the levels that were fine with it. A crash is worse than a refusal. `e188`'s
+    mirror defect is the other direction: `if a["n"] != b["n"]: continue` made the arm **vanish with no trace**, and a
+    missing row reads as "the artifact does not carry this arm", which is a different fact. Both now refuse with the
+    counts named, and **both reports print the refusals** — without that a level prints its heading and no arms, which
+    is the same refusal-looks-like-an-answer shape as the misspelled artifact names (`overlap{25,50,75}` where the
+    launch wrote `025`/`050`/`075`, which made two tests pass while asserting that levels which exist were "not
+    written yet"). **The pre-flight is the instrument that finds this class**: a *payload* for a registered reader,
+    built before its artifact, exercising the whole path — because every existing test built its payload with a
+    matching count, and no audit reads the code path between a claim and an artifact.
+    (`docs/findings/2026-09-25-a-pre-flight-found-a-crash-where-a-refusal-belongs.md`)
+
 
 
 

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+
 from pathlib import Path
 
 import numpy as np
@@ -116,3 +118,68 @@ def test_the_fitting_deficit_is_arm_independent_including_the_matched_random_con
     s6 = next(c for c in e194.CLAIMS if c[0] == "S6")
     assert s6[2] == "ewc-block-rand.learned_older"
     assert e194.judge(mid, s6[2], s6[3], s6[4], s6[5], s6[6], s6[7]) == "MET"
+
+
+def _levels_artifact_like_the_launch(path, near, far, forgetting, accuracy, arms=("naive", "ewc-block-rand")):
+    """A synthetic level at target `--input_overlap 0.75`, with its config DERIVED from `e116`'s rather than written
+    from scratch: the admission rule compares every key, so a minimal config would be refused for differing in
+    `circuit_size`, `iters` and the rest, and the pre-flight would then be testing the refusal instead of the read."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    base = json.loads(Path("runs/e116_r32_40reps.json").read_text(encoding="utf-8"))
+    config = dict(base["config"], input_overlap=0.75, methods=",".join(arms))
+    config.pop("json_out", None)
+    methods = {}
+    for arm in arms:
+        reps = []
+        for _ in range(40):   # the readers pair by replicate index, so the count has to match the baselines'
+            def row(j, vals):
+                return {"task": j, "per_task": [{"first_order": v} for v in vals]}
+            reps.append({
+                "mean_forgetting": forgetting,
+                "forgetting_per_task": [forgetting, forgetting, forgetting],
+                "final_accuracy": accuracy,
+                "learned": [accuracy + forgetting] * 3,
+                "final_per_task": [accuracy] * 3,
+                "interference": [row(0, [0.0, near, far]), row(1, [0.0, 0.0, near])],
+            })
+        methods[arm] = {"replicates": reps}
+    path.write_text(json.dumps({"config": config, "methods": methods}), encoding="utf-8")
+    return path
+
+
+def test_a_level_at_the_pending_achieved_overlap_produces_verdicts_not_refusals(tmp_path, capsys):
+    """Pre-flight for the artifact that has not landed. A reader that REFUSES when the artifact finally appears wastes
+    the run that waited for it, and a refusal cannot be told from a level that is not there -- which is the defect the
+    reader's own `levels found` line was added for. So the pending achieved overlap is exercised on a synthetic level
+    first, with all six claims required to return a verdict."""
+    lvl = _levels_artifact_like_the_launch(tmp_path / "runs" / "synth075.json",
+                                          near=0.05, far=0.03, forgetting=0.08, accuracy=0.90)
+    values = e194.measure([lvl])
+    vals = values.get(0.6)
+    assert vals, f"the synthetic 0.75 level produced no values: {values}"
+    for cid, ach, key, *_ in e194.CLAIMS:
+        assert ach == 0.6000, cid
+        assert key in vals, f"{cid} names {key}, absent at achieved 0.6 -- that claim would be REFUSED"
+    e194.report(values)
+    out = capsys.readouterr().out
+    assert "REFUSED" not in out, out
+    assert "levels found: achieved 0.6" in out, out
+
+
+def test_a_replicate_count_that_does_not_match_the_baseline_is_refused_not_crashed(tmp_path, capsys):
+    """The pre-flight found this. `e191` guarded its ANCHOR pairing against a count mismatch and not its BASELINE
+    pairing, so a level with four replicates against the live forty raised a broadcast error inside `paired` and took
+    the whole read with it -- including the levels that were fine. A crash is worse than a refusal. `e188`'s mirror
+    defect was the other way round: it `continue`d silently, so an arm with the wrong count vanished with no trace.
+    Both now refuse with the counts named, and both reports print the refusal instead of a bare level heading."""
+    lvl = _levels_artifact_like_the_launch(tmp_path / "runs" / "short.json",
+                                          near=0.05, far=0.03, forgetting=0.08, accuracy=0.90)
+    d = json.loads(lvl.read_text(encoding="utf-8"))
+    for arm in d["methods"].values():
+        arm["replicates"] = arm["replicates"][:4]
+    lvl.write_text(json.dumps(d), encoding="utf-8")
+    values = e194.measure([lvl])
+    assert not values, f"a four-replicate level produced values against forty-replicate baselines: {values}"
+    e194.report(values)
+    out = capsys.readouterr().out
+    assert "levels found: NONE" in out, out

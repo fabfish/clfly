@@ -284,8 +284,21 @@ def dose_read(levels: list[Path], baseline: Path = Path("runs/e140_r32_methods_p
                 out.setdefault("refused_arms", {})[method] = refusals
                 continue
             a, b = per_replicate_split(use, method), per_replicate_split(level, method)
-            if a is None or b is None or min(a["n_pairs_near"], b["n_pairs_near"], a["n_pairs_far"],
-                                             b["n_pairs_far"]) == 0:
+            if a is None or b is None:
+                out.setdefault("refused_arms", {})[method] = ["one of the payloads has no per-pair interference"]
+                continue
+            if min(a["n_pairs_near"], b["n_pairs_near"], a["n_pairs_far"], b["n_pairs_far"]) == 0:
+                out.setdefault("refused_arms", {})[method] = ["one of the payloads has no per-pair interference"]
+                continue
+            # The replicate counts have to agree BEFORE the pairing exists. The guard below was added for the anchor
+            # pairing and not for this one, and a synthetic level with four replicates against the live forty crashed
+            # inside `paired` with a broadcast error rather than being refused -- the same class the anchor's guard
+            # records, one pairing further up. A crash is worse than a refusal here: it takes the whole read with it,
+            # including the levels that were fine.
+            if len(a["near"]) != len(b["near"]):
+                out.setdefault("refused_arms", {})[method] = [
+                    f"replicate counts differ: {Path(use).name} has {len(a['near'])}, "
+                    f"{Path(level).name} has {len(b['near'])}"]
                 continue
             base_overlap = (load(use)["config"] or {}).get("input_overlap")
             entry = {"n": len(a["near"]), "baseline": Path(use).name, "baseline_overlap": base_overlap,
@@ -349,6 +362,8 @@ def report_dose(res: dict) -> int:
             continue
         print(f"        {row['level']}: target {row['target_overlap']} -> achieved Jaccard "
               f"{row['achieved_overlap']}")
+        for m, why in (row.get("refused_arms") or {}).items():
+            print(f"             {m:16} REFUSED: {'; '.join(why)}")
         for method, e in row["arms"].items():
             near, far = e.get("near"), e.get("far")
             def fmt(c):

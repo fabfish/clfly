@@ -179,7 +179,13 @@ def dose_read(levels: list[Path], baseline: Path = Path("runs/e140_r32_methods_p
                 out.setdefault("refused_arms", {})[method] = refusals
                 continue
             a, b = load_arm(use, method), load_arm(level, method)
+            # A silent `continue` here dropped the arm from the read with no trace: an arm whose replicate count
+            # differs from its baseline's is a fact a reader has to see, because the alternative reading of an absent
+            # row is that the artifact does not carry the arm at all.
             if a is None or b is None or a["n"] != b["n"]:
+                out.setdefault("refused_arms", {})[method] = [
+                    f"replicate counts differ or an arm is absent: {Path(use).name} has "
+                    f"{a['n'] if a else None}, {Path(level).name} has {b['n'] if b else None}"]
                 continue
             entry = {"n": a["n"], "baseline": Path(use).name,
                      "baseline_overlap": (load(use)["config"] or {}).get("input_overlap"), "refusals": refusals,
@@ -242,6 +248,8 @@ def report_dose(res: dict) -> int:
             continue
         print(f"        {row['level']}: target {row['target_overlap']} -> achieved Jaccard "
               f"{row['achieved_overlap']}")
+        for m, why in (row.get("refused_arms") or {}).items():
+            print(f"             {m:16} REFUSED: {'; '.join(why)}")
         for method, e in row["arms"].items():
             f, a = e["forgetting"], e["accuracy"]
             # the registered bar is a statement about achieved 0.3333, so it is checked only there (the first
