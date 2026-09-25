@@ -168,8 +168,11 @@ def test_the_dose_read_reports_each_levels_progress_against_the_analytic_fractio
     half = dose_artifact(d / "half.json", "naive", [0.17, 0.19, 0.18, 0.18], [0.07, 0.09, 0.08, 0.08], 0.5)
     res = e191.dose_read([half], base, overlap1=full)
     arm = res["levels"][0]["arms"]["naive"]
-    assert arm["full_rise"]["change"] == pytest.approx(0.12, abs=1e-9)
-    assert arm["progress_fraction"] == pytest.approx(0.08 / 0.12, abs=1e-9)
+    assert arm["full_rise"]["near"]["change"] == pytest.approx(0.12, abs=1e-9)
+    assert arm["progress_fraction"]["near"] == pytest.approx(0.08 / 0.12, abs=1e-9)
+    # BOTH terms get a fraction, which is what makes the registered S1 (distant-pair progress against
+    # adjacent-pair progress) a read rather than a hand computation
+    assert set(arm["full_rise"]) == {"near", "far"} and set(arm["progress_fraction"]) == {"near", "far"}
     assert res["analytic_progress"][0.3333] == pytest.approx(0.76, abs=0.02)
 
 
@@ -235,7 +238,7 @@ def test_the_midpoint_verdict_uses_the_registered_bar_and_not_sixty_percent_of_t
     full = dose_artifact(d / "full.json", "naive", [0.21, 0.23, 0.22, 0.22], [0.09, 0.11, 0.10, 0.10], 1.0)
     half = dose_artifact(d / "half.json", "naive", [0.15, 0.17, 0.16, 0.16], [0.07, 0.09, 0.08, 0.08], 0.5)
     res = e191.dose_read([half], base, overlap1=full)
-    assert res["levels"][0]["arms"]["naive"]["progress_fraction"] == pytest.approx(0.5, abs=1e-6)
+    assert res["levels"][0]["arms"]["naive"]["progress_fraction"]["near"] == pytest.approx(0.5, abs=1e-6)
     assert 0.6 * res["analytic_progress"][0.3333] < 0.5 < e191.P2_BAR, "the case separates the two thresholds"
     e191.report_dose(res)
     out = capsys.readouterr().out

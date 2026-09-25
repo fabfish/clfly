@@ -301,13 +301,19 @@ def dose_read(levels: list[Path], baseline: Path = Path("runs/e140_r32_methods_p
             if full is not None and len(full["near"]) != len(a["near"]):
                 full = None
             if full is not None:
-                pf = paired(full["near"], a["near"])
+                # BOTH terms get a fraction, not just the near one: the registered S1 compares the distant-pair
+                # term's progress against the adjacent-pair term's at achieved 0.6000, and a claim whose read is a
+                # hand computation is the defect rule 42's footer was added to this same function to remove. The
+                # anchor pairing is a rise for BOTH terms under the same condition -- the arm's admitted baseline
+                # being at overlap 0.0 -- because that condition is about the pair of artifacts and not the term.
                 anchor_overlap = (load(overlap1)["config"] or {}).get("input_overlap")
                 if base_overlap == 0.0 and anchor_overlap == 1.0:
-                    entry["full_rise"] = {"change": pf["change"], "sem": pf["sem"]}
-                    if pf["change"]:
-                        entry["progress_fraction"] = entry["near"]["change"] / pf["change"]
+                    entry["full_rise"] = {c: {"change": pf["change"], "sem": pf["sem"]}
+                                          for c, pf in ((c, paired(full[c], a[c])) for c in ("near", "far"))}
+                    entry["progress_fraction"] = {c: entry[c]["change"] / entry["full_rise"][c]["change"]
+                                                  for c in ("near", "far") if entry["full_rise"][c]["change"]}
                 else:
+                    pf = paired(full["near"], a["near"])
                     entry["anchor_minus_baseline"] = {
                         "change": pf["change"], "sem": pf["sem"], "baseline_overlap": base_overlap,
                         "anchor_overlap": anchor_overlap,
@@ -344,7 +350,8 @@ def report_dose(res: dict) -> int:
                        ("MET" if near and near["change"] > P1_HALF_DONE else "NOT met"))
             elif method == "naive":
                 tag = "   (P1's bar applies at achieved 0.3333, not here)"
-            prog = e.get("progress_fraction")
+            prog = (e.get("progress_fraction") or {}).get("near")
+            prog_far = (e.get("progress_fraction") or {}).get("far")
             analytic = res["analytic_progress"].get(row["achieved_overlap"])
             ptxt = ""
             if prog is not None and analytic is not None:
@@ -355,9 +362,14 @@ def report_dose(res: dict) -> int:
                 # for the reason P1's bar is: the sentence is written for achieved 0.3333.
                 verdict = (" -- MET" if prog >= P2_BAR else " -- NOT met") if at_midpoint else \
                     "   (P2's bar is written for achieved 0.3333, not here)"
+                # the distant-pair term is printed beside it because the registered S1 compares the two: at the
+                # midpoint the far term is 82% of the way through its own rise while the near term is at 20%, and a
+                # claim whose read is a hand computation is what rule 42's footer removed from this function
+                far_txt = (f"; the distant-pair term is at {100 * prog_far:.0f}% of its own"
+                           if prog_far is not None else "")
                 ptxt = (f"   P2: {100 * prog:.0f}% of its own 0->1 rise (bar {100 * P2_BAR:.0f}%){verdict}"
                         f"   [the analytic line is {100 * analytic:.0f}% there, i.e. this line is at "
-                        f"{100 * prog / analytic:.0f}% of the analytic's progress]")
+                        f"{100 * prog / analytic:.0f}% of the analytic's progress{far_txt}]")
             elif e.get("anchor_minus_baseline"):
                 ptxt = ("   P2: withheld -- this arm's admitted baseline is itself at overlap "
                         f"{e['anchor_minus_baseline']['baseline_overlap']}, so the anchor pairing is not a 0->1 rise")
