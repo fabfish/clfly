@@ -542,11 +542,14 @@ being special: it is **a ladder in how much of the degree structure is destroyed
 sides freed. **The sign pattern is not the driver** — Erdős–Rényi also randomises which synapses are excitatory,
 while the tasks are built through the signed matrix, and a null that permutes only the weights leaves the penalty at
 **0.02776–0.02975**, 5.0× below Erdős–Rényi's, so that confound is tested rather than assumed. **And the top step is
-circuit-size dependent**: at cs 300 and cs 400 the same four cells give top steps of **1.28×** and **1.08×** against
-this table's 2.76× and 3.02×, because the one-side level rises steeply as the circuit shrinks (0.047 at cs 800
-against 0.122–0.139 at cs 300–400) while the two-side level barely moves (0.142–0.157) — so "Erdős–Rényi is a
-separate regime" is true at cs 800 and the separation narrows to 8% at cs 400, which is why the table's contrast
-should be quoted with its circuit size
+circuit-size dependent**: at cs 300 and cs 400 the same four cells give mean top steps of **1.18×** and **1.11×** over three drawings
+each (worst drawing 1.28×) against this table's 2.76× and 3.02×, because the one-side level rises steeply as the
+circuit shrinks (0.047 at cs 800 against 0.122–0.139 at cs 300–400) while the two-side level barely moves
+(0.142–0.157) — so "Erdős–Rényi is a separate regime" is true at cs 800 and the separation narrows to about 10%
+at cs 400, which is why the table's contrast should be quoted with its circuit size. **And the two-side level is
+the reproducible one at every size**: Erdős–Rényi spans 1.03–1.05× across drawings at cs 300, 400 and 800 while
+the destroyed-one-side constructions span 1.06–1.49× (and 3.34× at cs 800 over five drawings), so the
+construction with nothing left to lose is the stable one and the one-side nulls are where the draw matters
 (`docs/findings/2026-09-26-the-penalty-follows-how-many-degree-sequences-are-destroyed.md`,
 `docs/findings/2026-09-26-the-sign-confound-is-exonerated.md`,
 `docs/findings/2026-09-26-the-ladders-middle-and-floor-replicate-and-its-top-step-does-not.md`).
