@@ -15,6 +15,12 @@ the far component is shared between the lines. **On the interference account tha
 component rises at 2.1–3.2σ in five of five admitted comparisons. So the finding is the composition `e189`'s first
 version printed and its second version refused: **the lines disagree on the adjacent pairs and agree on the distant
 ones** -- and the reason the second version could not see the far agreement is the proxy, not the data.
+
+**One limit, found while writing this, and it bounds the split rather than the claim.** The artifact's
+`interference[j]` carries `per_task[k]` as a dict per ordered pair (`first_order`, `cosine`, `grad_norm`,
+`disp_norm`) but `second_order` as a **single** term per task `j`, taken against the *cumulative* displacement -- so
+the second-order component **cannot** be split by task distance, and this audit reads the first-order one because
+that is the only one the corpus records per pair.
 """
 
 from __future__ import annotations
