@@ -37,6 +37,15 @@ each task drives, and that is the thing being varied here.
 
 ## 2. The design
 
+> **CORRECTION, made before any artifact of this design was read.** The three artifacts are
+> `e195_r32_ovl{00,05,10}_ss1_naive_40reps.json` — **two** digits, not three: the launch's
+> `n=$(echo $ov | tr -d '.')` turns `0.0` into `00`, `0.5` into `05` and `1.0` into `10`. This registration's first
+> version and the plan's row for it both wrote `{000,050,100}`, which reads plausibly and resolves to nothing — the
+> same prose-versus-launch-arithmetic defect that made four files point at `e193_r32_overlap{25,50,75}` where the
+> launch had written `025`/`050`/`075`, and that made two tests pass while asserting that levels which exist were
+> "not written yet" (`docs/findings/2026-09-25-the-midpoints-cost-is-a-learning-deficit-not-forgetting.md` §3). The
+> names were checked against the launch's own log rather than against this document.
+
 Three commands, everything but three flags copied from `e193`'s level-0.50 config so the only differences are the
 manipulation, the draw and the arm list:
 
@@ -44,7 +53,7 @@ manipulation, the draw and the arm list:
 experiments/e8_rate_network.py --circuit-size 800 --iters 500 --lr 3e-3 --batch 32 --train 96 --test 48 \
   --classes 4 --support 80 --shared-head --readout-size 32 --fisher-batches 32 --basis cell_class \
   --seed0 0 --support-seed 1 --methods naive --repeats 40 \
-  --input-overlap {0.0, 0.5, 1.0} --json-out runs/e195_r32_ovl{000,050,100}_ss1_naive_40reps.json
+  --input-overlap {0.0, 0.5, 1.0} --json-out runs/e195_r32_ovl{00,05,10}_ss1_naive_40reps.json
 ```
 
 `naive` only, because every registered claim on this axis is stated on `naive` — the P1/P2 pair, S1-S6 and the cost

@@ -87,7 +87,24 @@ REGISTERED_EXTRAPOLATION = {"S2": "constant slope 30.8%, constant ratio to the a
 
 
 def compare(value: float, op: str, bar: float) -> bool:
-    return {">=": value >= bar, "<": value < bar, "<=": value <= bar, ">": value > bar}[op]
+    return {">=": value >= bar, "<": value < bar, "<=": value <= bar, ">": value > bar,
+            "abs<=": abs(value) <= bar, "abs>=": abs(value) >= bar}[op]
+
+
+#: The two-sided form is not decoration: this project's claims are often "within a band" or "beyond a band" in either
+#: direction -- R3b asks whether the endpoint's learning term is inside +-0.0100 of zero, whose falsifier is beyond
+#: +-0.0150 on EITHER side -- and expressing that as two one-sided claims would let one of them pass while the other
+#: refused, which is not what the registration says.
+CLAIMS_REPLICATION = (
+    ("R1", 0.3333, "learned_older", "<=", -0.0200, ">", -0.0100, None,
+     "the fitting deficit replicates on a second support draw, at at least 62% of draw 0's -0.0326"),
+    ("R2", 0.3333, "far_minus_near", ">=", 40.0, "<", 15.0, (("self",), 15.0, 40.0),
+     "the two interference terms stay separated at the midpoint on a second draw (draw 0: 62.1 points)"),
+    ("R3a", 1.0, "forgetting_cost", ">=", 0.0200, "<", 0.0100, None,
+     "the endpoint still costs RETENTION on a second draw (draw 0: +0.0318, 2.99 sigma)"),
+    ("R3b", 1.0, "learned_older", "abs<=", 0.0100, "abs>=", 0.0150, None,
+     "...and does not cost FITTING, which is what separates the interior from the endpoint"),
+)
 
 
 def judge(values: dict[str, float], key: str, op: str, bar: float, fals_op: str, fals: float,
@@ -100,7 +117,12 @@ def judge(values: dict[str, float], key: str, op: str, bar: float, fals_op: str,
         return "FALSIFIER FIRED"
     if null_spec:
         keys, lo, hi = null_spec
-        if all(k in values for k in keys) and all(lo <= values[k] <= hi for k in keys):
+        # ("self",) means the claim's OWN quantity, which is what "a 15-40 point gap" names; a tuple of other keys
+        # means the terms the registration names instead, which is what S1's null does.
+        if keys == ("self",):
+            if lo <= value <= hi:
+                return "the registered null"
+        elif all(k in values for k in keys) and all(lo <= values[k] <= hi for k in keys):
             return "the registered null"
     return "between the bar and the falsifier"
 
@@ -186,8 +208,10 @@ def measure(levels: list[Path], baseline: Path | None = None, candidates: list[P
     return out
 
 
-def report(values: dict) -> int:
-    print(f"   == the S claims: the registered shape and cost claims, judged at the achieved overlap each one names ==")
+def report(values: dict, claims=CLAIMS) -> int:
+    label = "S" if claims is CLAIMS else "R"
+    print(f"   == the {label} claims: the registered shape and cost claims, judged at the achieved overlap each one "
+          f"names ==")
     print(f"   (registered in {REGISTRATION})")
     # Which levels RESOLVED is printed before any verdict, because a claim's refusal has two causes -- the artifact is
     # not written yet, or the path does not name it -- and the first version's output was identical for both. An
@@ -196,7 +220,7 @@ def report(values: dict) -> int:
     print("   levels found: " + (", ".join(f"achieved {a}" for a in found) if found
                                  else "NONE -- check the artifact names before reading any refusal below"))
     refused = 0
-    for cid, ach, key, op, bar, fals_op, fals, null_spec, meaning in CLAIMS:
+    for cid, ach, key, op, bar, fals_op, fals, null_spec, meaning in claims:
         vals = values.get(ach)
         if vals is None:
             print(f"        {cid}: REFUSED -- no measured progress at achieved {ach}")
@@ -227,9 +251,32 @@ def main(argv=None) -> int:
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--dose", action="append", default=None,
                    help="an artifact to read; repeatable. Default: the three registered levels.")
+    # The endpoints, for a family whose baselines are NOT this draw's. The admission rule compares configs and
+    # `support_seed` is not an inert field, so a level on another SUPPORT DRAW is refused against `e116`/`e153` --
+    # correctly, since a different draw is a different realization of the x-axis -- and the family's own endpoints
+    # have to be named. Without these the reader would refuse every claim of a replication and look like an origin
+    # script that had not run yet.
+    p.add_argument("--baseline", default=None, help="the admitted baseline's path, overriding the default candidate.")
+    p.add_argument("--candidate", action="append", default=None,
+                   help="a baseline candidate, in order; repeatable. Default: the readers' own lists.")
+    p.add_argument("--overlap1", default=None, help="the overlap-1.0 anchor's path, for the 0 -> 1 denominators.")
+    p.add_argument("--claims", choices=("s", "replication"), default="s",
+                   help="which registered table to judge: the six axis claims at achieved 0.6, or the four "
+                        "second-draw replication claims at achieved 0.3333 and 1.0.")
     a = p.parse_args(argv)
-    values = measure([Path(x) for x in a.dose] if a.dose else LEVELS)
-    missing = report(values)
+    claims = CLAIMS if a.claims == "s" else CLAIMS_REPLICATION
+    kw = {}
+    if a.baseline:
+        kw["baseline"] = Path(a.baseline)
+    if a.candidate:
+        kw["candidates"] = [Path(x) for x in a.candidate]
+    if a.overlap1:
+        kw["overlap1"] = Path(a.overlap1)
+    values = measure([Path(x) for x in a.dose] if a.dose else LEVELS, **kw)
+    if kw:
+        print(f"   (endpoints given: baseline {a.baseline}, anchor {a.overlap1}, "
+              f"{len(a.candidate or [])} candidate(s) in order)")
+    missing = report(values, claims)
     return 1 if missing else 0
 
 

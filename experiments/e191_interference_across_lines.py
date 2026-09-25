@@ -433,14 +433,19 @@ def main(argv=None) -> int:
                    help="an artifact at an intermediate overlap level, paired against --baseline; repeatable")
     p.add_argument("--baseline", type=Path, action="append", default=None,
                    help="candidate disjoint baselines, tried in order and admitted per ARM (repeatable; default e140 then e153)")
+    p.add_argument("--overlap1", type=Path, default=None,
+                   help="the overlap-1.0 anchor's path, for the 0 -> 1 denominators. Needed when the dose is on a "
+                        "different SUPPORT DRAW from the default anchor, since the admission rule refuses the pair "
+                        "otherwise -- and the two draws' Jaccards are identical, so it is the same axis.")
     p.add_argument("--json-out", type=Path, default=None)
     args = p.parse_args(argv)
 
     if args.dose:
+        anchor_kw = {"overlap1": args.overlap1} if args.overlap1 else {}
         cands = args.baseline or [Path("runs/e116_r32_40reps.json"),
                                   Path("runs/e140_r32_methods_plastic_40reps.json"),
                                   Path("runs/e153_r32_overlap1_methods_40reps.json")]
-        dose = dose_read(args.dose, cands[0], args.runs, candidates=cands)
+        dose = dose_read(args.dose, cands[0], args.runs, candidates=cands, **anchor_kw)
         n = report_dose(dose)
         if args.json_out:
             write_json(args.json_out, {"dose": dose})

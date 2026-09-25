@@ -201,3 +201,41 @@ def test_the_readers_take_explicit_endpoints_which_is_what_a_second_draw_needs()
     assert "near" not in threaded, threaded
     assert "learned_older" in threaded, threaded
     assert abs(threaded["learned_older"] - default["learned_older"]) > 1e-6, "the threading did not reach the readers"
+
+
+def test_the_cli_takes_the_endpoints_and_echoes_which_draw_they_belong_to(capsys):
+    """A replicated family's read has to be a COMMAND rather than a snippet, and it has to say whose endpoints it
+    used: `--baseline`, `--candidate` and `--overlap1` reach `measure`, and the echo is what makes a reader notice
+    that a draw-1 family was read against draw-1 baselines rather than silently refused against draw 0's."""
+    rc = e194.main(["--dose", "runs/e193_r32_overlap050_methods_40reps.json",
+                    "--baseline", "runs/e153_r32_overlap1_methods_40reps.json",
+                    "--candidate", "runs/e153_r32_overlap1_methods_40reps.json",
+                    "--overlap1", "runs/e153_r32_overlap1_methods_40reps.json"])
+    out = capsys.readouterr().out
+    assert "endpoints given: baseline runs/e153" in out, out
+    # the six claims are all stated at achieved 0.6 and this dose carries 0.3333, so the read refuses them -- the
+    # point of the test is that it refused for THAT reason and echoed the endpoints while doing it
+    assert rc >= 1, out
+
+
+def test_the_replication_table_calibrates_on_draw_zero_before_it_is_applied_to_draw_one(capsys):
+    """The four second-draw claims are decidable BEFORE draw 1 exists, because draw 0 satisfies them: R1 needs
+    `learned (older)` at or below -0.0200 (draw 0: -0.0326), R2 a gap of at least 40 points (draw 0: 62.1), R3a
+    forgetting at or above +0.0200 (draw 0: +0.0318) and R3b an absolute `learned (older)` at or below 0.0100 (draw
+    0: 0.0010). A replication table whose own claims the family being replicated FAILS would fire its falsifiers for
+    the wrong reason, so the calibration is asserted rather than assumed."""
+    lv = [Path(f"runs/e193_r32_overlap{n:03d}_methods_40reps.json") for n in (25, 50)]
+    e116 = Path("runs/e116_r32_40reps.json")
+    e144 = Path("runs/e144_r32_overlap1_methods_40reps.json")
+    if not all(p.is_file() for p in lv + [e116, e144]):
+        pytest.skip("the draw-0 family is not in this checkout")
+    values = e194.measure(lv + [e144], baseline=e116, candidates=[e116], overlap1=e144)
+    for cid, ach, key, op, bar, fals_op, fals, null_spec, _ in e194.CLAIMS_REPLICATION:
+        assert ach in values and key in values[ach], (cid, sorted(values))
+        assert e194.judge(values[ach], key, op, bar, fals_op, fals, null_spec) == "MET", (cid, values[ach][key])
+    # and the table is selectable from the command line, with the endpoints that a second draw needs
+    rc = e194.main(["--claims", "replication", "--dose", str(lv[1]), "--dose", str(e144),
+                    "--baseline", str(e116), "--candidate", str(e116), "--overlap1", str(e144)])
+    out = capsys.readouterr().out
+    assert "== the R claims" in out and "R1:" in out and "R3b:" in out, out
+    assert rc == 0, "draw 0 satisfies all four claims, so nothing should be refused"
