@@ -132,7 +132,11 @@ def test_the_live_census_names_the_families_that_deliberately_measure_a_draw():
     only = {r["family"] for r in res["families"] if r["verdict"] == "DRAW ONLY"}
     assert {"e32", "e33", "e65", "e117"} <= only, (only, "e32/e33/e65 vary rewire_seed and e117 varies readout_seed")
     singles = [r for r in res["families"] if r["verdict"] == "SINGLE-DRAW"]
-    assert sum(r["n_artifacts"] for r in singles) == 187, sum(r["n_artifacts"] for r in singles)
+    # a FLOOR and not a count (corrected 2026-09-26): the number is the artifacts the live corpus holds in
+    # single-draw families, so every new experiment pushes it up -- two ladder artifacts took it from 187 to
+    # 189 and broke the equality, which is the same defect the e172 and e163 pinned counts had. What the test
+    # is for is that the census SEES those families, and the DRAW ONLY names above are that test.
+    assert sum(r["n_artifacts"] for r in singles) >= 187, sum(r["n_artifacts"] for r in singles)
     # the rule is derived from the corpus's own vocabulary, and on the real corpus it names exactly six keys --
     # including the two a handwritten list was missing
     assert set(res["draw_fields"]) == {"readout_seed", "support_seed", "partition_seed", "rewire_seed",
