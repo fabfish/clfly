@@ -105,19 +105,33 @@ def judge(values: dict[str, float], key: str, op: str, bar: float, fals_op: str,
     return "between the bar and the falsifier"
 
 
-def measure(levels: list[Path]) -> dict:
+def measure(levels: list[Path], baseline: Path | None = None, candidates: list[Path] | None = None,
+            overlap1: Path | None = None) -> dict:
     """Every quantity the claims name, per achieved overlap, from the readers that own them.
 
     A value is present only when the reader that owns it produced a `progress_fraction` for the `naive` arm at that
     exact achieved overlap; anything else is absent and the claim that needs it is refused.
 
+    `baseline`, `candidates` and `overlap1` are threaded to both readers, which is what makes a family on a
+    **different support draw** readable: the admission rule compares configs, `support_seed` is not an inert field,
+    and so a draw-1 level is refused against a draw-0 baseline -- correctly, since a different draw is a different
+    x-axis realization and not an inert difference. Passing the family's own endpoints is then the read rather than
+    a hand computation.
+
     The cost decomposition is the exception: it needs no fraction, only the two per-task series the runner records,
-    so it is present whenever the level and the disjoint baseline both carry a `naive` arm. The identity it rests on
-    is exact and is checked in the tests: `mean(final_per_task[:-1]) == mean(learned[:-1]) - mean_forgetting`, so the
+    so it is present whenever the level and the disjoint baseline both carry an arm. The identity it rests on is
+    exact and is checked in the tests: `mean(final_per_task[:-1]) == mean(learned[:-1]) - mean_forgetting`, so the
     accuracy cost *is* the sum of a learning term and a retention term and the two can be read off separately.
     """
-    ints = interference_read(levels)
-    accs = accuracy_read(levels)
+    kw: dict = {}
+    if baseline is not None:
+        kw["baseline"] = baseline
+    if candidates is not None:
+        kw["candidates"] = candidates
+    if overlap1 is not None:
+        kw["overlap1"] = overlap1
+    ints = interference_read(levels, **kw)
+    accs = accuracy_read(levels, **kw)
     out: dict[float, dict[str, float]] = {}
     for row in ints["levels"]:
         if row.get("status"):
@@ -155,7 +169,7 @@ def measure(levels: list[Path]) -> dict:
         for arm in DECOMPOSITION_ARMS:
             if arm not in (d.get("methods") or {}):
                 continue
-            use, _ = admitting_baseline(d.get("config") or {}, arm, DECOMPOSITION_CANDIDATES)
+            use, _ = admitting_baseline(d.get("config") or {}, arm, candidates or DECOMPOSITION_CANDIDATES)
             if use is None:
                 continue
             b_reps, l_reps = load(use)["methods"][arm]["replicates"], d["methods"][arm]["replicates"]

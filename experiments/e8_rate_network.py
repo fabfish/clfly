@@ -839,6 +839,11 @@ def main(argv=None) -> int:
                         "`choice(size=32)` -- so the 'read-out axis' is a sequence of unrelated neuron "
                         "samples, and the only way to test whether a shape along it is about the SIZE rather "
                         "than about WHICH neurons were drawn is to hold one fixed while the other moves")
+    p.add_argument("--support-seed", type=int, default=None,
+                   help="seed for the overlap suite's SUPPORT draw; defaults to --seed0, so every artifact written "
+                        "before this flag existed is unaffected. The supports are the x-axis of every overlap "
+                        "result, and until this flag existed no artifact recorded which draw it used (see "
+                        "`support_draw`), so the axis rested on one draw with no way to vary it.")
     p.add_argument("--partition-seed", type=int, default=None,
                    help="seed for the matched-random partition draw; defaults to --seed0, so every artifact "
                         "written before this flag existed is unaffected. A matched-random control is the "
@@ -927,6 +932,14 @@ def main(argv=None) -> int:
         print(f"  read-out: {len(rs)} neurons of {circ.n_neurons}, draw seed {draw_seed}, subset {draw_hash}")
     common = dict(n_train=args.train, n_test=args.test, noise=args.noise,
                   n_classes=args.classes)
+    #: The support draw. `overlap_controlled_supports` picks neurons with `rng.permutation(n)`, and until this
+    #: fire the seed was `make_overlap_suite`'s default 0 with NO flag to vary it -- so every artifact in the
+    #: overlap family shares one draw of which neurons each task drives, and `e168`'s question (which draw is this?)
+    #: had no answer for the supports at all while it had one for the matched-random control. The default is
+    #: `--seed0` so artifacts written before the flag existed still identify their draw, exactly as
+    #: `--readout-seed`'s default does.
+    support_seed = args.seed0 if getattr(args, "support_seed", None) is None else args.support_seed
+    support_draw = None
     if args.input_overlap is None:
         suite = rate_tasks.make_suite(circ, shared_head=args.shared_head,
                                       readout_subset=rs, **common)
@@ -935,8 +948,16 @@ def main(argv=None) -> int:
         suite = rate_tasks.make_overlap_suite(
             circ, n_tasks=len(rate_tasks.SUITE_SPECS), support=args.support,
             overlap=args.input_overlap, shared_head=args.shared_head,
-            readout_subset=rs, **common)
+            readout_subset=rs, seed=support_seed, **common)
         suite_label = f"overlap={args.input_overlap:g}"
+        # A fingerprint of the SUPPORTS THE RUN ACTUALLY USED -- read off the tasks rather than recomputed from the
+        # construction, so it cannot silently describe a draw the run did not use. Two overlap artifacts are
+        # comparable on the x-axis only if their fingerprints agree when the target overlap agrees.
+        sup_hash = hashlib.sha1(" ".join(
+            ",".join(str(int(x)) for x in np.sort(t.input_neurons))
+            for t in suite).encode()).hexdigest()[:12]
+        support_draw = {"draw_seed": int(support_seed), "fingerprint_sha1": sup_hash,
+                        "n_per_support": int(len(suite[0].input_neurons))}
     net = build_net(circ, RateConfig(seed=args.seed0))
 
     # Synapse partitions for the block-EWC variants, plus the matched random control.
@@ -986,7 +1007,13 @@ def main(argv=None) -> int:
            # Which matched-random partition this run used, when it used one: the control is a population and
            # this is the sample, so two artifacts whose block-rand rows differ are not comparable unless their
            # fingerprints agree (or unless the draws are averaged, which is what rule 10 asks for).
-           **({"partition_draw": partition_draw} if partition_draw is not None else {})}
+           **({"partition_draw": partition_draw} if partition_draw is not None else {}),
+           # Which SUPPORT draw this run used, on the same reasoning as `readout` above and as `partition_draw`
+           # beside it: the overlap suite's supports are an RNG draw, `config` records the target overlap and not
+           # which neurons were chosen, and until this fire nothing recorded the draw at all -- so two artifacts at
+           # the same target overlap were "the same configuration" by every check this corpus applies while driving
+           # entirely different neurons. None for the default suite, which uses identified circuits.
+           **({"support_draw": support_draw} if support_draw is not None else {})}
     # A heartbeat, because a replicate here is minutes to hours and until this fire a long run was COMPLETELY
     # unobservable: `--json-out` is written once at the end (rule 47 -- the timestamp is the run's end, so a
     # partial artifact would be a lie), which left a six-hour command with no output at all. `e178` was 5.4 h into

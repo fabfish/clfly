@@ -183,3 +183,21 @@ def test_a_replicate_count_that_does_not_match_the_baseline_is_refused_not_crash
     e194.report(values)
     out = capsys.readouterr().out
     assert "levels found: NONE" in out, out
+
+
+def test_the_readers_take_explicit_endpoints_which_is_what_a_second_draw_needs():
+    """A family on a different support draw cannot be admitted against this draw's baselines: `support_seed` is not an
+    inert field and should not be, since a different draw is a different realization of the x-axis. So `measure`
+    threads `baseline`, `candidates` and `overlap1`, and this pins that the threading reaches the readers: with `e153`
+    (overlap 1.0) as the baseline the progress fractions are REFUSED -- the denominator is not a 0 -> 1 change -- while
+    the cost decomposition still resolves, which is what separates a threaded read from a refused one."""
+    levels = [Path("runs/e193_r32_overlap050_methods_40reps.json")]
+    e153 = Path("runs/e153_r32_overlap1_methods_40reps.json")
+    if not levels[0].is_file() or not e153.is_file():
+        pytest.skip("the midpoint artifact or e153 is not in this checkout")
+    default = e194.measure(levels)[0.3333]
+    threaded = e194.measure(levels, baseline=e153, candidates=[e153], overlap1=e153)[0.3333]
+    assert "near" in default and "learned_older" in default
+    assert "near" not in threaded, threaded
+    assert "learned_older" in threaded, threaded
+    assert abs(threaded["learned_older"] - default["learned_older"]) > 1e-6, "the threading did not reach the readers"
