@@ -682,6 +682,25 @@ association is real but not as precise as it was implied to be
 > (launched 2026-09-25 12:35, three intermediate levels) is measuring
 > (`docs/findings/2026-09-25-raising-the-input-overlap-raises-forgetting-nine-for-nine.md`,
 > `docs/findings/2026-09-25-the-composition-survives-the-quantity-the-proxy-could-not-see.md`).
+
+> **And the network line's own interference term is SATURATED at λ = 1.0, so the rise above is an
+> unpenalised-arm measurement.** The box's "+0.1234 ± 0.0158 = 7.8σ" is `naive`, which carries no penalty. On the
+> penalised arms the same quantity barely moves with the overlap, and the reason is not insensitivity: at overlap 1.0
+> `ewc-block`'s adjacent-pair interference is **+0.14700** at λ = 3e-3 (`e144`) against **+0.00162** at λ = 1.0
+> (`e153`) — **+0.14538 ± 0.01183 = 12.3σ**, a **98.9%** removal — and at λ = 3e-3 it **rises** with the overlap
+> (**+0.09564** at 0.0 in `e140` → **+0.14700** at 1.0, the direction `naive` shows too), while at λ = 1.0 it reads
+> about **0.002** at both points where it exists (overlap 1.0, and the level-0.25 artifact's 0.25) against a 40-seed
+> sem of about **0.004** on a change in it. So the channel reads 0.1–0.15 when the penalty is 333× weaker and 0.002
+> when it is not: **saturated, not blind** — which is what the λ = 1.0 rows' "forgetting moves 4.1σ while the
+> interference moves 0.3σ" has been taken to mean, and it makes that dissociation a ceiling on the *instrument*
+> rather than evidence that the forgetting is mechanically independent of the interference. **The consequence for
+> this claim**: C4's network-line direction is measured on the unpenalised arm and on the weakly penalised one, and a
+> run that asked the overlap question only at λ = 1.0 would report that the interference does not respond to the
+> overlap at all. **Scope**: one λ pair, two overlap points, and the attribution leans on "arms are independent of
+> the methods list" (`e176`'s P0, the third instance) because `e144` and `e153` differ in the methods list as well as
+> in `lam` — `ewc-block` is not the `replay` arm, so the extra arm cannot reach it, but that is an argument and not a
+> control (`docs/findings/2026-09-25-p2s-bar-is-60-percent-and-the-read-applied-46.md`).
+
 ### C2b — the network basis negative has never been asked at the rung that matters
 
 The rate-network line reports that a biological synapse partition never beats a
