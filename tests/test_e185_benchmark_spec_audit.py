@@ -101,3 +101,56 @@ def test_the_live_block_passes_against_the_code_and_the_corpus():
     assert set(res["specs"]) == {"odour_identity", "heading", "odour_input"}
     assert {"naive", "ewc", "replay"} <= set(res["methods_the_corpus_ran"])
     assert len(res["probes"]) >= 5, "the block must keep naming the populations of its proposed modalities"
+
+
+# --- the two collector defects, and the phantom baseline they hid ---------------------------------------------
+
+SPLIT_BLOCK = ("## The benchmark — FlyCL v0\n\n"
+               "**Implemented suite (checked by `e185`):**\n\n"
+               "1. olfaction (`odour_identity`)\n2. heading (`heading`)\n\n"
+               "A paragraph sitting BETWEEN the lists, which is what the collector used to stop on.\n\n"
+               "**Baselines (checked by `e185`):**\n\n"
+               "- `naive` — run\n- `oracle` — the reference line, implemented in `clfly/bench/oracle.py`\n\n"
+               "Metrics: nothing to check here.\n")
+
+
+def test_the_collector_keeps_scanning_after_a_paragraph(tmp_path):
+    """The defect that made the baseline arm read NOTHING for three fires while reporting a clean zero: the loop
+    broke out at the first prose line, so any mark after one was invisible."""
+    plan, _ = build(tmp_path, SPLIT_BLOCK)
+    lines = e185.benchmark_block(plan.read_text(encoding="utf-8")).splitlines()
+    assert e185.tokens(e185.marked(lines, e185.IMPLEMENTED_MARK))[:2] == ["odour_identity", "heading"]
+    assert e185.tokens(e185.marked(lines, e185.BASELINE_MARK)) == ["naive", "oracle", "clfly/bench/oracle.py"]
+
+
+def test_a_wrapped_bullet_is_one_item(tmp_path):
+    block = ("## The benchmark — FlyCL v0\n\n**Proposed and not implemented (checked by `e185`):**\n\n"
+             "1. visual motion, whose annotation values are `{cell_type=T4}` and whose\n"
+             "   neurons are in no circuit\n2. looming, `{cell_type=LC4}`\n\nMetrics: nothing.\n")
+    plan, _ = build(tmp_path, block)
+    lines = e185.benchmark_block(plan.read_text(encoding="utf-8")).splitlines()
+    got = e185.tokens(e185.marked(lines, e185.PROPOSED_MARK))
+    assert "{cell_type=T4}" in got and "{cell_type=LC4}" in got, got
+
+
+def test_a_path_inside_a_baseline_bullet_is_evidence_rather_than_a_claim(tmp_path):
+    plan, runs = build(tmp_path, SPLIT_BLOCK)
+    assert e185.audit(plan, runs, specs=SPECS)["n_flags"] == 0
+
+
+def test_a_control_with_no_file_behind_it_is_flagged(tmp_path):
+    """`joint`: the word that was blessed by a three-word list, and appears in no module, no flag and no artifact."""
+    plan, runs = build(tmp_path, SPLIT_BLOCK.replace("- `naive` — run", "- `joint` — the upper bound, supposedly"))
+    flags = e185.audit(plan, runs, specs=SPECS)["flags"]
+    assert [f["token"] for f in flags] == ["joint"]
+
+
+def test_the_live_block_offers_no_baseline_the_repository_cannot_show_a_file_for():
+    """The vacuity guard as well as the claim: a baseline arm reading an empty list reports a clean zero, so the
+    list's length is asserted before its verdict is believed."""
+    res = e185.audit(Path("docs/research_plan.md"), Path("runs"))
+    lines = e185.benchmark_block(Path("docs/research_plan.md").read_text(encoding="utf-8")).splitlines()
+    offered = e185.tokens(e185.marked(lines, e185.BASELINE_MARK))
+    assert len(offered) >= 5, f"the baseline list must be non-empty to be checked at all: {offered}"
+    assert "joint" not in offered, "a joint-training upper bound is named in no module, flag or artifact"
+    assert res["n_flags"] == 0, res["flags"]

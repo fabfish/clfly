@@ -60,10 +60,15 @@ SECTION_END = "\n## "
 IMPLEMENTED_MARK = "**Implemented suite"
 PROPOSED_MARK = "**Proposed and not implemented"
 BASELINE_MARK = "**Baselines"
-#: controls the repository does implement, spelled as the block spells them. `naive` and `replay` are NOT here on
-#: purpose: they are methods the corpus has actually run, so `methods_run` is the evidence for them rather than a
-#: word in this file.
-CONTROL_WORDS = ("oracle", "frozen", "joint")
+#: where a control has to be findable to count as implemented: a flag in some runner's parser (through `e172`'s
+#: registry, so `--frozen-body` is evidence for `frozen`) or a module on disk whose name carries the token (so
+#: `clfly/bench/oracle.py` is evidence for `oracle`). This replaced a three-word list (`oracle`, `frozen`, `joint`)
+#: on 2026-09-25, and the word it was blessing is the finding: **`joint` exists nowhere in this repository** -- no
+#: module, no flag, no artifact's `methods`, which are exactly naive, ewc, ewc-block, ewc-block-rand and replay --
+#: so the block claimed a joint-training upper bound that has never been built, and the check agreed because it was
+#: matching a word rather than evidence. See
+#: `docs/findings/2026-09-25-the-baseline-list-had-three-words-and-two-of-them-were-real.md`.
+CONTROL_EVIDENCE_DIRS = (Path("clfly"), Path("experiments"))
 TOKEN_RE = re.compile(r"`([^`]+)`")
 PROBE_RE = re.compile(r"\{([a-z_]+)=([A-Za-z0-9_]+)\}")
 
@@ -100,10 +105,22 @@ def marked(lines: list[str], mark: str) -> list[str]:
         if on and item.match(ln):
             out.append(ln)
             continue
+        if on and ln.strip() and ln[:1] in (" ", "	"):
+            # an indented line continues the item above it: a bullet that wraps is one item, and the first
+            # version of this collector ended the list at the wrap, so only the first item of the proposed
+            # list was ever read
+            out.append(ln)
+            continue
         if on and not ln.strip():
             continue
+        # The list has ended; KEEP SCANNING. Breaking out of the loop here was the defect this function carried
+        # for three fires: the implemented suite's list is followed by a paragraph, so the loop stopped before
+        # ever reaching the proposed and baseline marks -- and those two arms were reading NOTHING on the live
+        # block while reporting a clean zero. A synthetic block with no prose between its lists could not see it,
+        # which is why the bug survived its own tests; the live check's baseline arm is what found it, by being
+        # asked for its evidence and returning none.
         if on:
-            break
+            on = False
     return out
 
 
@@ -140,12 +157,39 @@ def task_checks(block_lines: list[str], specs) -> list[dict]:
     return flags
 
 
-def baseline_checks(block_lines: list[str], ran: set[str]) -> list[dict]:
-    """Every baseline the block offers must be a method the corpus ran, or a control the repository implements."""
+def control_evidence(dirs=CONTROL_EVIDENCE_DIRS) -> dict[str, str]:
+    """The controls the repository actually implements, as token -> the evidence that says so.
+
+    Two kinds count, and both are files rather than words: a **flag** in some runner's parser, read from `e172`'s
+    syntax-derived registry (`frozen` from `--frozen-body`/`--frozen-bias`), and a **module** whose name carries the
+    token (`oracle` from `clfly/bench/oracle.py`). A control that is neither is not offered.
+    """
+    from experiments.e172_parser_registry import registry
+    out: dict[str, str] = {}
+    for runner, keys in registry(Path("experiments")).items():
+        for key in keys:
+            for tok in ("frozen", "oracle", "joint", "replay", "naive"):
+                if tok in key:
+                    out.setdefault(tok, f"the flag --{key.replace('_', '-')} in {runner}")
+    for d in dirs:
+        for p in Path(d).rglob("*.py"):
+            stem = p.stem
+            for tok in ("oracle", "joint", "frozen"):
+                if tok in stem:
+                    out.setdefault(tok, f"{p.as_posix()}")
+    return out
+
+
+def baseline_checks(block_lines: list[str], ran: set[str], controls: dict[str, str] | None = None) -> list[dict]:
+    """Every baseline the block offers must be a method the corpus ran, or a control with a FILE behind it."""
+    if controls is None:
+        controls = control_evidence()
     flags = []
     for tok in tokens(marked(block_lines, BASELINE_MARK)):
+        if "/" in tok or tok.endswith((".py", ".json")):
+            continue                      # a path is the bullet's EVIDENCE, not another baseline claim
         low = tok.lower()
-        if low in ran or any(c in low for c in CONTROL_WORDS):
+        if low in ran or low in controls:
             continue
         flags.append({"what": "a baseline named as offered, with no implementation and no run", "token": tok})
     return flags
@@ -184,7 +228,8 @@ def audit(plan: Path = PLAN, runs_dir: Path = RUNS, specs=None, with_populations
     lines = block.splitlines()
     flags = task_checks(lines, specs)
     ran = methods_run(runs_dir)
-    flags += baseline_checks(lines, ran)
+    controls = control_evidence()
+    flags += baseline_checks(lines, ran, controls)
     probes = PROBE_RE.findall(block)
     census = population_census(probes, circuit_size) if (with_populations and probes) else []
     # The census is PRINTED and not flagged, and the reason is a measurement: a population inside the circuit is
@@ -192,7 +237,7 @@ def audit(plan: Path = PLAN, runs_dir: Path = RUNS, specs=None, with_populations
     # read-out of `odour_identity`. A flag on "in the circuit, therefore a missing task" would fire on the task
     # that is running, which is the class of false positive rule 22 records as costing more than the check saves.
     return {"plan": str(plan), "specs": spec_names(specs), "spec_names_implemented": spec_names(specs),
-            "methods_the_corpus_ran": sorted(ran), "probes": [f"{c}={p}" for c, p in probes],
+            "methods_the_corpus_ran": sorted(ran), "control_evidence": controls, "probes": [f"{c}={p}" for c, p in probes],
             "population_census": census, "flags": flags, "n_flags": len(flags),
             "block_lines": len(lines), "proposed_tokens": sorted(set(tokens(marked(lines, PROPOSED_MARK))))}
 
@@ -201,6 +246,8 @@ def report(res: dict) -> int:
     print(f"== {res['plan']}'s benchmark block ({res['block_lines']} lines) ==")
     print(f"   task specs the code builds (SUITE_SPECS) : {', '.join(res['specs'])}")
     print(f"   methods the corpus has actually run      : {', '.join(res['methods_the_corpus_ran'])}")
+    for tok, why in sorted(res["control_evidence"].items()):
+        print(f"   control `{tok}` is implemented by          : {why}")
     print(f"   population probes written in the block   : {', '.join(res['probes']) or '(none)'}")
     for c in res["population_census"]:
         print(f"        {c['column']}={c['prefix']:12} whole brain {c['whole_brain']!s:>7}"
