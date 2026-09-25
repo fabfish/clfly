@@ -73,3 +73,22 @@ def test_an_unknown_topology_name_is_refused_and_the_swap_family_is_unchanged():
     assert swap.nnz == W.nnz
     assert rw.swap_fraction(W, swap) > 0.5
     assert rw.null_names() == ("real", "swap0.1", "swap0.5", "swap2", "erdos_renyi")
+
+def test_the_sign_shuffle_moves_only_the_weights(tmp_path=None):
+    """The third construction, and the reason it exists: `erdos_renyi` here changes the edge set AND assigns random
+    signs, so every contrast that used it as "no structure at all" changed two things at once. This null keeps the
+    graph (edge set, per-row edge counts) and the weight multiset exactly, and permutes only the pairing."""
+    rng = np.random.default_rng(7)
+    n, m = 40, 120
+    flat = rng.choice(n * (n - 1), size=m, replace=False)
+    rows = flat // (n - 1)
+    cols = flat % (n - 1)
+    cols = np.where(cols >= rows, cols + 1, cols)
+    data = rng.choice([-1.0, 1.0], size=m) * rng.integers(1, 4, size=m)
+    W = sp.csr_matrix((data, (rows, cols)), shape=(n, n))
+    A = rw.apply_null(W, "signshuffle", np.random.default_rng(8))
+    assert set(zip(A.tocoo().row.tolist(), A.tocoo().col.tolist())) == set(zip(W.tocoo().row.tolist(),
+                                                                              W.tocoo().col.tolist()))
+    assert sorted(A.data.tolist()) == sorted(W.data.tolist())
+    assert np.array_equal((A != 0).sum(axis=1).A1, (W != 0).sum(axis=1).A1), "per-row EDGE COUNTS must hold"
+    assert float((A.data != W.data).mean()) > 0.5, "and most weights must actually move"

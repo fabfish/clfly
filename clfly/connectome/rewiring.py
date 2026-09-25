@@ -174,6 +174,23 @@ def random_targets(W: sp.spmatrix, fraction: float,
     return _rebuild(rows, cols, data, n)
 
 
+def sign_shuffle(W: sp.spmatrix, rng: np.random.Generator) -> sp.csr_matrix:
+    """Permute the weights across the edges, keeping the graph and the weight multiset EXACTLY.
+
+    **The third construction, and it exists because of a confound.** `erdos_renyi` here draws its edge set uniformly
+    *and* assigns each edge a random sign (`signed=True`), while the alloy preserves the connectome's own weights. So
+    every contrast that has used the Erdős–Rényi null as "no structure at all" has changed **two** things at once: the
+    wiring *and* which synapses are excitatory. The tasks are built by propagating assemblies through the **signed**
+    weights (`tasks.build_tasks` → `stable_weights`), so the sign pattern is part of the substrate the tasks live in.
+
+    This null moves only the second of the two: the edge set, the degree sequence, and the multiset of weights are all
+    preserved, and only the pairing of a weight to an edge is destroyed. If the penalty's jump between the alloy and
+    Erdős–Rényi is a *sign* effect, this construction shows it on its own.
+    """
+    rows, cols, data = _as_coo(W)
+    return _rebuild(rows, cols, data[rng.permutation(data.shape[0])], W.shape[0])
+
+
 def apply_null(W: sp.spmatrix, topology: str, rng: np.random.Generator) -> sp.csr_matrix:
     """Apply a named null topology.
 
@@ -187,8 +204,11 @@ def apply_null(W: sp.spmatrix, topology: str, rng: np.random.Generator) -> sp.cs
         return double_edge_swap(W, n_swaps=int(round(frac * W.nnz)), rng=rng)
     if topology.startswith("alloy"):
         return random_targets(W, float(topology[5:]), rng)
+    if topology == "signshuffle":
+        return sign_shuffle(W, rng)
     if topology == "erdos_renyi":
         return erdos_renyi(W.shape[0], W.nnz, rng, signed=True)
     raise ValueError(
-        f"unknown topology {topology!r}; expected 'real', 'swap<frac>', 'alloy<frac>' or 'erdos_renyi'"
+        f"unknown topology {topology!r}; expected 'real', 'swap<frac>', 'alloy<frac>', 'signshuffle' or "
+        f"'erdos_renyi'"
     )
