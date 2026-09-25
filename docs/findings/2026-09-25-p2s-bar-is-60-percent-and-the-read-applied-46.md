@@ -170,6 +170,21 @@ rise and the 0 → 1 rise is 2.99σ. Whether the midpoint's sem is the same as t
 and is not assumed here; it is recorded because a verdict at the midpoint consults that bar in the same breath as
 P2's.
 
+**Both dose reads now print rule 42's price at every level**, so this is the instrument's statement rather than a
+sentence in a finding. At the level-0.25 read, `seeds_for_three_sigma(sigma) = 40 * (3 / sigma)**2` gives:
+
+| | value | σ at this level's own sem | seeds for 3σ |
+|---|---|---|---|
+| `naive` near change (interference) | +0.01516 | **1.23σ** | 237 |
+| P1's bar on that quantity | 0.0617 | **5.02σ** | **14** |
+| `naive` forgetting | +0.0141 | **1.16σ** | 268 |
+| the forgetting bar (`DOSE_HALF_DONE`) | 0.0159 | **1.31σ** | **209** |
+
+So the two bars the midpoint will consult are in **different regimes**: the interference bar is resolved at a third
+of the queue that exists, and the forgetting bar is not resolved at five times it. The identity is pinned to rule
+42's own published prices (4 seeds at 9.35σ gives 4.1; 169 at 1.46σ gives 168.9), which is what the tests check — the
+same rule that says *write the claim as a bound and say which bound* when the price outruns the queue.
+
 ## 6. What this does not license
 
 - **P2's verdict at any level other than achieved 0.3333**, and none at all from the block arms — their row prints
@@ -190,10 +205,16 @@ P2's.
 `experiments/e191_interference_across_lines.py`: `P2_BAR = 0.60`;
 `P2_REGISTERED_ANALYTIC_AT_MIDPOINT = 0.80`; the rise denominator taken only when the arm's own admitted baseline is
 at overlap 0.0, else `anchor_minus_baseline`; P2's verdict gated to achieved 0.3333; the analytic line's progress
-printed as a ratio with the registration's quoted value beside the artifact's.
+printed as a ratio with the registration's quoted value beside the artifact's; `seeds_for_three_sigma`, printed as a
+per-level footer carrying both the change's and the bar's price.
 
-`tests/test_e191_interference_across_lines.py`: two tests added —
+`experiments/e188_overlap_contrast.py`: the same rule-42 footer on the forgetting account, with the helper duplicated
+rather than shared because `e191` imports this file and a shared one would be a cycle — the same reason
+`ACHIEVED_OVERLAP` is carried twice, and the duplication is what its test pins.
+
+`tests/test_e191_interference_across_lines.py`: three tests added —
 `test_a_block_arms_anchor_pairing_is_not_taken_as_a_zero_to_one_rise` (the denominator refuses, the pairing is still
-recorded) and `test_the_midpoint_verdict_uses_the_registered_bar_and_not_sixty_percent_of_the_analytic` (the 50% case
-that separates the two thresholds, the ratio printed as context, and no verdict away from the midpoint). 13 tests in
-the file, all passing.
+recorded), `test_the_midpoint_verdict_uses_the_registered_bar_and_not_sixty_percent_of_the_analytic` (the 50% case
+that separates the two thresholds, the ratio printed as context, and no verdict away from the midpoint) and
+`test_the_seed_price_reproduces_rule_42s_own_published_values`. `tests/test_e188_overlap_contrast.py`: one, for the
+duplicated helper. 14 and 11 tests in the two files, all passing.

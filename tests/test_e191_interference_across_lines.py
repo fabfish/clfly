@@ -249,3 +249,20 @@ def test_the_midpoint_verdict_uses_the_registered_bar_and_not_sixty_percent_of_t
     out = capsys.readouterr().out
     assert "P2's bar is written for achieved 0.3333" in out
     assert "NOT met" not in out, "10% of the rise is below the bar and the registration says nothing here"
+
+
+def test_the_seed_price_reproduces_rule_42s_own_published_values(tmp_path, capsys):
+    """Rule 42's form is "quote the prediction, quote what each reading predicts, and quote the seeds the test would
+    need", and its published figures pin the identity: 40 * (3 / sigma)**2 gives 4 seeds for the plastic contrast at
+    9.35 sigma and 169 for the frozen lambda step at 1.46 sigma. Printing a price the rule does not reproduce would
+    be worse than printing none, so the two values are checked against it."""
+    assert e191.seeds_for_three_sigma(9.35) == pytest.approx(4, abs=0.5)
+    assert e191.seeds_for_three_sigma(1.46) == pytest.approx(169, abs=1)
+    assert e191.seeds_for_three_sigma(0.0) is None, "no sem, no price"
+    # and the read prints both prices at a level: the bar's and the measurement's
+    d = tmp_path / "runs"
+    base = dose_artifact(d / "base.json", "naive", [0.09, 0.11, 0.10, 0.10], [0.04, 0.06, 0.05, 0.05], 0.0)
+    half = dose_artifact(d / "half.json", "naive", [0.15, 0.17, 0.16, 0.16], [0.07, 0.09, 0.08, 0.08], 0.5)
+    e191.report_dose(e191.dose_read([half], base))
+    out = capsys.readouterr().out
+    assert "rule 42" in out and "P1's bar 0.06170" in out and "seeds at 3s" in out

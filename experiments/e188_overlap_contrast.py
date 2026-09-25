@@ -97,6 +97,13 @@ def load(path: Path) -> dict:
 #: than restated: on `naive` the 0 -> 1 forgetting rise is +0.0318 (2.99 sigma) and the registered P1 says the
 #: value at achieved 0.3333 is closer to the 1.0 end than to the 0.0 end, i.e. more than half of that.
 DOSE_HALF_DONE = 0.0159
+
+
+#: Rule 42's price, carried here for the same reason `ACHIEVED_OVERLAP` is: `e191` imports this file, so a shared
+#: helper would be a cycle. A contrast measured `sigma` sems from zero at n = 40 needs 40 * (3 / sigma)**2 seeds at
+#: 3 sigma, which reproduces rule 42's own published prices (4 for 9.35 sigma, 169 for 1.46 sigma) exactly.
+def seeds_for_three_sigma(sigma: float) -> float | None:
+    return 360.0 / sigma ** 2 if sigma else None
 #: What a target `--input-overlap` achieves as a Jaccard overlap, for the circuit the network runs use. Carried
 #: here as well as in `e191` because both reads print it beside a level and a reader should not have to know which
 #: file holds the table; both carry the same caveat -- it is a property of `mb+cx+al@n1307`, three tasks of 80
@@ -214,6 +221,14 @@ def report_dose(res: dict) -> int:
                 print(f"                  (cleaner candidates refused: {'; '.join(e['refusals'])})")
             if e["differs_in"]:
                 print(f"                  (admitted with inert differences in: {', '.join(e['differs_in'])})")
+        na = row["arms"].get("naive")
+        if na and na.get("forgetting", {}).get("sem"):
+            sem = na["forgetting"]["sem"]
+            parts = []
+            for label, val in (("the change", abs(na["forgetting"]["change"])), ("P1's bar", DOSE_HALF_DONE)):
+                sig = val / sem
+                parts.append(f"{label} {val:.5f} = {sig:.2f}s ({seeds_for_three_sigma(sig):.0f} seeds at 3s)")
+            print(f"             rule 42, at this level's naive forgetting sem {sem:.5f}: " + "; ".join(parts))
     print("        (the achieved overlaps are a property of mb+cx+al@n1307, 3 tasks of 80, seed 0: recompute them "
           "for any other circuit.)")
     return missing

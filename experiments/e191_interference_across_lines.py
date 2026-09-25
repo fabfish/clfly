@@ -67,6 +67,17 @@ P2_BAR = 0.60
 #: value beside the registration's rather than letting either stand unlabelled.
 P2_REGISTERED_ANALYTIC_AT_MIDPOINT = 0.80
 
+
+def seeds_for_three_sigma(sigma: float) -> float | None:
+    """Rule 42's price: a contrast measured `sigma` sems from zero at n = 40 needs 40 * (3 / sigma)**2 seeds at 3 sigma.
+
+    The rule's own form is "quote the prediction, quote what each reading predicts, and quote the seeds the test
+    would need", and its published values are reproduced by this identity exactly -- 4 seeds for the plastic
+    contrast at 9.35 sigma (4.1) and 169 for the frozen lambda step at 1.46 sigma (168.9) -- which the tests check,
+    so a price printed here cannot drift from the rule it comes from.
+    """
+    return 360.0 / sigma ** 2 if sigma else None
+
 #: The directions each line states today, on the quantity this file reads. The network ones are tallies because
 #: seven admitted comparisons will not be unanimous; the analytic ones are exact, being one artifact's six levels.
 DECLARED = {("analytic", "near"): "falls", ("analytic", "far"): "rises"}
@@ -353,6 +364,14 @@ def report_dose(res: dict) -> int:
             pair = f"{e.get('baseline_overlap')} -> {row['target_overlap']}"
             print(f"             {method:16} {pair:14} vs {e.get('baseline', '?')[:24]:26} near {fmt(near):24} "
                   f"far {fmt(far):24} n {e['n']}{tag}{ptxt}")
+        na = row["arms"].get("naive")
+        if na and na.get("near", {}).get("sem"):
+            sem = na["near"]["sem"]
+            parts = []
+            for label, val in (("the change", abs(na["near"]["change"])), ("P1's bar", P1_HALF_DONE)):
+                sig = val / sem
+                parts.append(f"{label} {val:.5f} = {sig:.2f}s ({seeds_for_three_sigma(sig):.0f} seeds at 3s)")
+            print(f"             rule 42, at this level's naive near sem {sem:.5f}: " + "; ".join(parts))
     if analytic_mid is not None:
         print(f"        (P2's registration quotes the analytic line at "
               f"{100 * P2_REGISTERED_ANALYTIC_AT_MIDPOINT:.0f}% of its fall at achieved 0.3333, while `e7` gives "

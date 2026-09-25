@@ -156,3 +156,18 @@ def test_the_launched_dose_response_is_a_near_pair_with_its_baseline_on_inert_fi
         assert set(diff) <= e188.INERT_FOR[method], (method, e188.INERT_FOR[method])
     # and the target the row registers is one of the levels whose ACHIEVED overlap is tabulated
     assert launched["input_overlap"] in e188.ACHIEVED_OVERLAP
+
+
+def test_the_seed_price_reproduces_rule_42s_own_published_values():
+    """Carried here as well as in `e191` because the two reads are imported in opposite directions, so the helper is
+    duplicated rather than shared -- and a duplicated constant that stops matching the rule it came from is exactly
+    what a test is for. Rule 42's published prices are 4 seeds at 9.35 sigma and 169 at 1.46 sigma."""
+    assert e188.seeds_for_three_sigma(9.35) == pytest.approx(4, abs=0.5)
+    assert e188.seeds_for_three_sigma(1.46) == pytest.approx(169, abs=1)
+    assert e188.seeds_for_three_sigma(0.0) is None, "no sem, no price"
+    assert e188.seeds_for_three_sigma(9.35) == pytest.approx(e191_price(9.35), rel=1e-12)
+
+
+def e191_price(sigma: float) -> float:
+    """The same identity, written out, so the duplication above is checked rather than asserted."""
+    return 40 * (3 / sigma) ** 2
