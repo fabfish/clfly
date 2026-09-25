@@ -66,18 +66,29 @@ Three things make that a thin margin rather than a reason not to fix it:
 
 ## 3. Four run-like artifacts that record no duration at all
 
+> **CORRECTED 2026-09-25, later the same evening**: the paragraph below named *three* runners and put two of the
+> four gaps on `e136_geometry_persistence.py`, and both are wrong — that module **reads** the two `barrier_r*`
+> grids and defines three flags. `e205` now derives each gap's writer from `e172`'s parser registry and counts a
+> disagreement as a violation, and the derived writers are `e122_path_geometry.py` (28 of 29 keys) and
+> `e124_barrier_distribution.py` (30 of 31, 32 of 33, 32 of 33). **Two** runners had no clock, not three, and
+> both now write `timing_s` — verified by two real runs. All four also carry the same key their own parser does not
+define -- `save_theta`, which the runners assign into their own namespace at runtime -- which is why `e172`'s
+> containment test names nobody for them. See
+> `docs/findings/2026-09-25-the-four-artifacts-with-no-duration-are-also-the-four-no-parser-can-claim.md`.
+
 Reading the spelling question forced a second one: *does every run say how long it took?* Of the **161**
 run-like artifacts (a `methods` dict, or a parser-sized config), **4 record no duration under either
-spelling**: `e122_path_geometry`, `e124_barrier_12seeds`, `e130_barrier_r32`, `e131_barrier_r1307`. They were
-written by three runners — `e122_path_geometry.py`, `e124_barrier_distribution.py`,
-`e136_geometry_persistence.py` — and **not one of the three imports `time`**. So this is not a misspelling but
+spelling**: `e122_path_geometry`, `e124_barrier_12seeds`, `e130_barrier_r32`, `e131_barrier_r1307`. They came
+from **two** runners — `e122_path_geometry.py` and `e124_barrier_distribution.py` (the second wrote three of
+them, at three read-outs) — and **neither imported `time`** [see the correction box above: this paragraph
+first said three runners and named the module that reads two of the grids]. So this is not a misspelling but
 an absence: the quantity was never computed.
 
-The artifacts are already written and their durations are unknowable now, so this finding **records the gap
-and declares the four in the module** rather than counting them: a check that reports an unfixable historical
-gap as a violation is a check that runs red forever, and this project's standing rule about checkers is that
-one which reports everything gets ignored. The fix for the next runs is a `timing_s` write in those three
-runners, recorded here and not applied, because none of them can be re-executed from this session's budget.
+The four artifacts are already written and their durations are unknowable now, so this finding **records the
+gap and declares the four in the module** rather than counting them: a check that reports an unfixable historical
+gap as a violation is a check that runs red forever, and this project's standing rule about checkers is that one
+which reports everything gets ignored. [Correction: the `timing_s` write **was** then applied to both runners
+and verified by two real runs, which the box above records.]
 
 ## 4. The fix, and the standing check that keeps it fixed
 

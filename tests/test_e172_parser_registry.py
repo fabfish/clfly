@@ -48,11 +48,20 @@ def test_the_registry_dates_forty_times_the_artifacts_e103_can_and_the_four_it_c
     # size would make every future flag break the test that checks the premise
     assert len(parsers["e8_rate_network.py"]) >= 30
     res = e172.classify(load_artifacts(), parsers)
-    assert len(res["unique"]) >= 280 and len(res["unclaimed"]) == 4
+    assert len(res["unique"]) >= 280 and len(res["unclaimed"]) >= 4
+# a floor and not a count (corrected 2026-09-25): the unclaimed set is exactly the artifacts of the two runners
+# that inject `save_theta` into their own namespace, so it gains one per run of either -- two smoke runs made it
+# six and broke the equality that stood here. What the test is for is the CLASS, and the line below is that test.
     # the four are unclaimed for one reason: each carries `save_theta`, which its own runner does NOT define
     configs = {a["name"]: set(a["config"]) for a in load_artifacts()}
     unclaimed = {r["name"] for r in res["unclaimed"]}
     assert unclaimed and all("save_theta" in configs[n] for n in unclaimed)
+    # and the classic test is the precise one: drop the injected key and each artifact is claimable by one of
+    # the two runners that inject it -- e130/e131 included, whose FILENAMES name no runner at all
+    injectors = ("e122_path_geometry.py", "e124_barrier_distribution.py")
+    offenders = [n for n in sorted(unclaimed)
+                 if not any(configs[n] - {"save_theta"} <= parsers[m] for m in injectors)]
+    assert not offenders, offenders
     # and `save_theta` is not unknown to the tree: it is a FLAG in one runner and a runtime-written synonym in the
     # two runners whose artifacts carry it -- the same key name meaning two different things
     assert [n for n, keys in parsers.items() if "save_theta" in keys] == ["e8_rate_network.py"]

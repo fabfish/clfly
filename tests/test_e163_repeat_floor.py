@@ -160,17 +160,23 @@ def test_the_census_reports_coverage_and_the_refusals_by_reason(capsys):
     """Most of the corpus derives a command, and the refusals are two kinds with two different remedies.
 
     The maps come from `e172`'s registry now, which is what took coverage from two hand-mapped runners to every
-    parser in the tree: **295 configs derive a command and 21 are refused**, and the four that no runner fits are
-    **exactly the artifacts `e172` found carrying a key no parser defines** (`save_theta`, which two runners assign
-    at runtime). The other seventeen are small configs several parsers could have written, which a caller lifts by
-    naming the runner -- so the two refusals are different problems and the census keeps them apart.
+    parser in the tree: **295 configs derive a command and 21 are refused**, and the ones that no runner fits are
+    **exactly the artifacts carrying a key no parser defines** (`save_theta`, which two runners assign at runtime
+    to satisfy the shared `run_method`). The other seventeen are small configs several parsers could have written,
+    which a caller lifts by naming the runner -- so the two refusals are different problems and the census keeps
+    them apart.
+
+    `none_fit` is a **floor and not a count** (corrected 2026-09-25): it is the number of artifacts from those two
+    runners, so every further run of either adds one -- two smoke runs of them took it from four to six and broke
+    this assertion, which is the same reason `e172`'s parser-floor comment gives one file over. `e205` names the
+    class.
     """
     assert e163.main(["--census"]) == 0
     out = capsys.readouterr().out
     handled = int(out.split("configs the path handles:")[1].split()[0])
     none_fit = int(out.split("NO runner fits:")[1].split()[0])
     several = int(out.split("SEVERAL fit:")[1].split()[0])
-    assert handled >= 250 and none_fit == 4 and several >= 10
+    assert handled >= 250 and none_fit >= 4 and several >= 10
     assert len(e163.RUNNERS) > 50, "the maps are read from every parser, not from two hand-written ones"
 
 

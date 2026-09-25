@@ -31,7 +31,7 @@ def test_a_run_like_artifact_with_no_duration_is_listed_and_an_undeclared_one_co
     art(tmp_path / "e900_run.json", methods={"naive": {}})
     art(tmp_path / "e900_summary.json", config={"circuit_size": 800, "note": "hand-built"})
     res = e205.census(tmp_path)
-    assert res["no_duration"] == ["e900_run.json"], res["no_duration"]
+    assert [w["artifact"] for w in res["no_duration"]] == ["e900_run.json"], res["no_duration"]
     assert res["run_like"] == 1
     # a hand-built summary is not run-like, so its absent duration is not a gap -- and that is a scope
     # decision the module makes explicitly rather than a consequence of which key it happens to read
@@ -75,3 +75,33 @@ def test_the_three_duration_readers_go_through_the_helper_and_the_declared_write
     assert all(Path("experiments", m).exists() for m in e205.NO_DURATION.values())
     for module in ("e169_start_time_dating.py", "e190_side_rung_read.py", "e38_variance_budget.py"):
         assert "duration_seconds" in Path("experiments", module).read_text(encoding="utf-8"), module
+
+
+def test_the_writer_of_a_gap_is_derived_from_the_parser_registry_and_not_declared():
+    """The correction this check made on its own first run: two of the four gaps were declared to
+    `e136_geometry_persistence.py`, which READS those grids, and the registry says otherwise. The derivation is
+    max overlap rather than containment, because a flag that has since been removed makes containment fail."""
+    # a synthetic registry where the best parser misses one key the artifact HAS -- the `save_theta` shape, a flag
+    # that has since been removed, which is exactly why containment fails and ranking works
+    parsers = {"writer.py": {"a", "b", "c"}, "reader.py": {"a"}, "other.py": {"a", "b"}}
+    got = e205.derive_writer({"a": 1, "b": 2, "c": 3, "gone": 4}, parsers)
+    assert got["module"] == "writer.py" and got["overlap"] == 3 and got["runner_up"] == 2
+    assert got["missing_from_best"] == ["gone"], got
+    # and against the real registry: e122's own flag set belongs to `e122_path_geometry.py`
+    real = e205.parser_registry()
+    flags = sorted(real["e122_path_geometry.py"])
+    assert e205.derive_writer({k: 0 for k in flags}, real)["module"] == "e122_path_geometry.py"
+
+
+def test_a_declared_runner_that_does_not_derive_is_counted_as_a_violation(tmp_path, monkeypatch):
+    """The declaration is data, the derivation is evidence, and the two are compared rather than assumed. This is
+    the correction the real table needed: `e136_geometry_persistence.py` reads the two barrier grids and defines
+    three flags, so declaring it their writer is a defect the check reports instead of believing."""
+    (tmp_path / "e900_run.json").write_text(
+        json.dumps({"config": {**{f"k{i}": 0 for i in range(24)}, "circuit_size": 100, "iters": 5},
+                    "check": {}}), encoding="utf-8")
+    monkeypatch.setattr(e205, "NO_DURATION", {"e900_run.json": "e136_geometry_persistence.py"})
+    res = e205.census(tmp_path)
+    w = res["no_duration"][0]
+    assert w["declared"] == "e136_geometry_persistence.py" and not w["declared_agrees"]
+    assert e205.report(res) == 1, "a gap declared to the wrong writer is one violation and nothing else"

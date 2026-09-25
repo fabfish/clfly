@@ -33,6 +33,7 @@ import argparse
 import itertools
 import json
 import math
+import time
 from pathlib import Path
 
 import numpy as np
@@ -206,6 +207,7 @@ def main(argv=None) -> int:
                         "training -- the statistics are a function of the stored rows and scalars, so a "
                         "statistic that was computed wrongly can be corrected without paying for the run again")
     args = p.parse_args(argv)
+    t0 = time.time()
 
     if args.reanalyse:
         art = json.loads(args.reanalyse.read_text(encoding="utf-8"))
@@ -335,6 +337,11 @@ def main(argv=None) -> int:
             "C0": c0, "C0b_extension_control": ext,
             "endpoint_controls": {k: {"all_agree": v["all_agree"]} for k, v in controls.items()},
             "P3": p3, "P3_as_first_computed": p3_alt,
+            # `e205` found this runner's three artifacts carried no duration under either spelling, so no
+            # reader of a cost could see them and `e169`'s start-time clock had nothing to subtract. The
+            # `--reanalyse` branch rewrites the stored payload instead of building one, so a reanalysis
+            # cannot pass its own few seconds off as the run's cost -- it preserves this field.
+            "timing_s": time.time() - t0,
         })
         print(f"\nwrote {args.json_out}")
     return 0

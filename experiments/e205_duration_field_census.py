@@ -25,11 +25,29 @@ Three questions, all answered from disk, none of them requiring a run:
     a run must have a readable duration, and no module may read a raw duration key instead of going
     through `duration_seconds`. The exit code is the count of violations, which is 0 as of this writing.
 
+Reading the second question forced a third, about the four artifacts that record no duration at all: *who
+wrote them?* `e172`'s parser registry answers it, and the answer is the finding's own second half -- a
+``config`` is ``vars(args)``, so the writer is the parser that accounts for the most of the artifact's keys,
+**and the four gaps have a unique best parser each** (`e122_path_geometry.py` at 28 of 29 keys, and
+`e124_barrier_distribution.py` at 30 of 31, 32 of 33 and 32 of 33) **while `e172`'s own superset test finds
+zero candidates for them**, because every one carries the same key its own parser does not define: ``save_theta``,
+which BOTH runners assign into their own namespace at runtime (`args.save_theta = args.theta_dir`) to satisfy the
+shared `run_method`. So a `config` is `vars(args)` **plus the runner's own plumbing**, and these four are the
+record's most provenance-poor artifacts -- no duration, no
+`environment`, no `code_revision`, and not attributable by the registry that exists to attribute -- and the
+declaration below is **checked against the derived writer** rather than asserted.
+
+**And a second correction, made by that check on its first run**: two of the four gaps were declared with
+`e136_geometry_persistence.py` as the writer, which is the module that **reads** those grids and defines three
+flags. The registry-derived writer disagrees and the disagreement is counted, so the artifact's reader is not
+its writer -- the same shape as `e201`'s draw fields and `e172`'s epochs.
+
 **What it cannot do**: it reads `runs/*.json` through `e103`'s loader, so a file with no ``config`` dict is
-outside its view (and outside `e198`'s and `e201`'s too); its source check is text, so a module that
-obtained a duration some third way would be invisible to it; and it cannot tell whether a duration that
-*is* recorded is the duration of the thing the reader thinks it is -- it checks that the quantity is
-readable, not that it means what a sentence about it says.
+outside its view (and outside `e198`'s and `e201`'s too); its source check is text, so a module that obtained
+a duration some third way would be invisible to it; it cannot tell whether a duration that *is* recorded is the
+duration of the thing the reader thinks it is -- it checks that the quantity is readable, not that it means what
+a sentence about it says; and a writer is a **best parser and not a proof**, so a runner that copied another's
+flags would be attributed to whichever explains more keys, which is why the margin is printed.
 
     python -m experiments.e205_duration_field_census
     python -m experiments.e205_duration_field_census --json-out runs/e205_duration_field_census.json
@@ -46,6 +64,7 @@ from pathlib import Path
 
 from clfly.bench.artifacts import duration_field, duration_seconds, write_json
 from experiments.e103_reproducibility_audit import load_artifacts
+from experiments.e172_parser_registry import registry as parser_registry
 
 RUNS = Path("runs")
 EXPERIMENTS = Path("experiments")
@@ -57,15 +76,17 @@ SPELLINGS = ("timing_s", "timing.total_s")
 #: a top-level numeric key that names a duration-shape but is not a run's duration
 SHAPED_BUT_OTHER = ("summary.time_s",)
 
-#: run-like artifacts that record no duration at all, declared with the runner that wrote each. These are
-#: printed and NOT counted: those runs are over and their durations are unknowable, so the honest output is
-#: the gap itself plus the fix for the next run (a ``timing_s`` write in `e122_path_geometry.py`,
-#: `e124_barrier_distribution.py` and `e136_geometry_persistence.py`, none of which imports ``time``).
+#: run-like artifacts that record no duration at all, declared with the runner that wrote each. The declared
+#: runner is **checked against the registry-derived one** (see `derive_writer`), because the first version of
+#: this table named `e136_geometry_persistence.py` for the two `barrier_r*` grids -- the module that READS them.
+#: These four are printed and NOT counted: their runs are over and their durations are unknowable, so the honest
+#: output is the gap itself plus the fix applied here (the ``timing_s`` write now in `e122_path_geometry.py` and
+#: `e124_barrier_distribution.py`, the two runners that had no clock at all).
 NO_DURATION = {
     "e122_path_geometry.json": "e122_path_geometry.py",
     "e124_barrier_12seeds.json": "e124_barrier_distribution.py",
-    "e130_barrier_r32.json": "e136_geometry_persistence.py",
-    "e131_barrier_r1307.json": "e136_geometry_persistence.py",
+    "e130_barrier_r32.json": "e124_barrier_distribution.py",
+    "e131_barrier_r1307.json": "e124_barrier_distribution.py",
 }
 
 #: a run artifact's config is `vars(args)` from a runner; below this size it is hand-built
@@ -101,6 +122,24 @@ def strange_spellings(payload: dict) -> list[str]:
     return out
 
 
+def derive_writer(config: dict, parsers: dict) -> dict:
+    """Which module's parser accounts for the most of this artifact's config keys, with its margin.
+
+    A ``config`` is ``vars(args)``, so a runner's parser defines every key the artifact carries -- except when a
+    flag has since been **removed**, which is why `e172`'s superset test (`candidates`) returns nobody for the
+    four artifacts this is used on. Ranking by overlap instead of requiring containment names one writer per gap
+    with a margin of two to six keys over the runner-up, and the margin is the honesty of the answer: a copied
+    flag set would be attributed to whichever explains more keys, and nothing here could tell.
+    """
+    ranked = sorted(((len(set(config) & flags), module) for module, flags in parsers.items()),
+                    key=lambda pair: (-pair[0], pair[1]))
+    best_keys, best = ranked[0]
+    runner_up = ranked[1][0] if len(ranked) > 1 else 0
+    return {"module": best, "overlap": best_keys, "keys": len(config), "runner_up": runner_up,
+            "runner_up_module": ranked[1][1] if len(ranked) > 1 else None,
+            "missing_from_best": sorted(set(config) - parsers[best])}
+
+
 def read_sites(root: Path = EXPERIMENTS) -> list[dict]:
     """Every source line that mentions a duration key, classified as a write or a read of one.
 
@@ -124,6 +163,7 @@ def read_sites(root: Path = EXPERIMENTS) -> list[dict]:
 def census(runs: Path = RUNS) -> dict:
     """The two spellings' population, the compute each holds, and the artifacts that hold none."""
     arts = load_artifacts(runs)
+    parsers = parser_registry()
     rows, unknown, run_like, no_duration = [], [], 0, []
     for a in arts:
         seconds = duration_seconds(a["payload"])
@@ -135,7 +175,11 @@ def census(runs: Path = RUNS) -> dict:
         if run_like_here:
             run_like += 1
             if seconds is None:
-                no_duration.append(a["name"])
+                writer = derive_writer(a["config"], parsers)
+                writer["artifact"] = a["name"]
+                writer["declared"] = NO_DURATION.get(a["name"])
+                writer["declared_agrees"] = writer["declared"] == writer["module"]
+                no_duration.append(writer)
     by_field: dict = {}
     for r in rows:
         if r["field"] is None:
@@ -151,8 +195,7 @@ def census(runs: Path = RUNS) -> dict:
         "artifacts": len(rows), "run_like": run_like, "rows": rows,
         "by_field": by_field,
         "total_seconds": sum(s["seconds"] for s in by_field.values()),
-        "no_duration": sorted(no_duration),
-        "no_duration_declared": sorted(NO_DURATION),
+        "no_duration": sorted(no_duration, key=lambda w: w["artifact"]),
         "unknown_spellings": unknown,
         "shaped_but_other": list(SHAPED_BUT_OTHER),
         "read_sites": reads,
@@ -200,13 +243,23 @@ def report(res: dict) -> int:
               f"{sum(1 for n, _ in flat[:13] if n in nested)} of the top 13 are analytic artifacts, "
               f"against a median artifact of {med / 60:.1f} min")
 
-    print("\n== the run-like artifacts that record NO duration ==")
-    undeclared = [n for n in res["no_duration"] if n not in NO_DURATION]
-    for name in res["no_duration"]:
-        print(f"   {name:<40}{NO_DURATION.get(name, 'UNDECLARED')}")
+    print("\n== the run-like artifacts that record NO duration, and who wrote each ==")
+    undeclared = [w for w in res["no_duration"] if w["declared"] is None]
+    for w in res["no_duration"]:
+        print(f"   {w['artifact']:<40}{w['module']:<36}{w['overlap']:>3} of {w['keys']} keys"
+              f"   (runner-up {w['runner_up_module']} {w['runner_up']})")
+        if not w["declared_agrees"]:
+            print(f"      DECLARED {w['declared']}, DERIVED {w['module']} -- the declaration is wrong")
+        if w["missing_from_best"]:
+            print(f"      keys the best parser does not define: {', '.join(w['missing_from_best'])}"
+                  f" (which is why `e172`'s superset test names nobody -- that key is the runner's own plumbing,")
+            print("      assigned into its own namespace at runtime rather than declared as a flag)")
+    print("   every one of them is unclaimed by `e172`'s containment test for that same reason, so a `config` is")
+    print("   `vars(args)` PLUS what the runner adds to it -- which is also the direction `e169`'s key-clock reads")
     print(f"   {len(res['no_duration'])} of {res['run_like']} run-like artifacts, every one declared "
-          f"({len(undeclared)} undeclared); the three runners that wrote them import no clock at all, which is "
-          f"the fix recorded rather than applied.")
+          f"({len(undeclared)} undeclared, "
+          f"{sum(1 for w in res['no_duration'] if not w['declared_agrees'])} declared wrongly); the two runners "
+          f"behind them now write `timing_s`, so the next run of either records its own cost.")
 
     print("\n== the standing check ==")
     print(f"   artifacts holding a duration-shaped numeric key outside {SPELLINGS}: "
@@ -222,9 +275,11 @@ def report(res: dict) -> int:
     print(f"   and the lines that WRITE one: {len(res['write_sites'])}, which is where a spelling is born")
     for s in res["write_sites"]:
         print(f"      {s['module']}:{s['line']}  {s['text']}")
-    verdict = len(res["unknown_spellings"]) + len(undeclared) + len(res["outside_helper"])
+    verdict = (len(res["unknown_spellings"]) + len(undeclared)
+               + sum(1 for w in res["no_duration"] if not w["declared_agrees"])
+               + len(res["outside_helper"]))
     print(f"\n   VERDICT: {verdict} violation(s) -- an unknown spelling, an undeclared run-like artifact with no "
-          f"readable duration, or a reader that bypasses the helper")
+          f"readable duration, a gap declared to the wrong writer, or a reader that bypasses the helper")
     return verdict
 
 

@@ -44,6 +44,7 @@ from __future__ import annotations
 
 import argparse
 from pathlib import Path
+import time
 
 import numpy as np
 
@@ -258,6 +259,7 @@ def main(argv=None) -> int:
                         "setup is the benchmark's (default: the e116 forty-replicate run at this read-out)")
     p.add_argument("--json-out", type=Path, default=None)
     args = p.parse_args(argv)
+    t0 = time.time()
 
     net, suite = setup(args)
     shared = bool(args.shared_head)
@@ -335,7 +337,11 @@ def main(argv=None) -> int:
 
     if args.json_out:
         write_json(args.json_out, {"config": vars(args), "check": check, "controls": controls,
-                                   "scalars": scalars, "profiles": profiles})
+                                   "scalars": scalars, "profiles": profiles,
+                                   # `e205` found this artifact carried no duration at all, which no reader of a
+                                   # cost can see past: a missing field reads as a run that cost nothing, and
+                                   # `e169`'s start-time clock (`mtime - timing_s`) needs the same number
+                                   "timing_s": time.time() - t0})
         print(f"\nwrote {args.json_out}")
     return 0
 
