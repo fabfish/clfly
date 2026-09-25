@@ -79,3 +79,7 @@ axis work was written against repeatedly.
 - **That the two *earlier* corrections were avoidable.** They were correct readings of one and two draws; what was
   avoidable was writing a conclusion at n = 1 and again at n = 2. **The remedy is the design, not the prose**: this
   family needs its five levels at three or more draws before any of its shape claims is quotable.
+
+---
+
+**AMENDMENT, 19:59, when draw 2's endpoint landed: R3a is 3 of 3 and R2 is 1 of 3.** §2's tally was missing the endpoint. Read now: the endpoint's forgetting rises on all three draws (+0.03177 = 2.99σ, +0.03516 = 3.30σ, +0.02161 = 2.70σ), which makes it the **only** claim on the axis that survives three draws — and the one the corpus already had as nine of nine — while R2's separation is **1 of 3**, failing on draw 2 with a **negative** gap of −11.32 points. `docs/findings/2026-09-25-three-draws-four-claims-exactly-one-is-3-of-3.md`
