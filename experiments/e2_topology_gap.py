@@ -122,7 +122,13 @@ def run(args) -> dict:
 
 
 def report(results: dict) -> None:
-    order = [t for t in TOPOLOGY_ORDER if t in results["topologies"]]
+    # The order is the artifact's OWN topology order, with the canonical names first: building it from
+    # `TOPOLOGY_ORDER` alone printed an empty table for a run whose levels are `swap8`/`swap16`/`swap32`/`swap64`
+    # (`--geometry-only`, `e209`), i.e. the report said nothing about what the run had measured.
+    known = [t for t in TOPOLOGY_ORDER if t in results["topologies"]]
+    order = known + [t for t in results["topologies"] if t not in known]
+    armed = [t for t in order
+             if isinstance(results["topologies"][t].get("diagonal(EWC)"), dict)]
     print(f"\n{'topology':14} {'overlap':>8} {'over/ch':>8} {'flatten':>8} | "
           f"{'a:EWC':>9} {'a_sem':>8} | {'r:EWC':>9} {'r_sem':>8} | "
           f"{'a:bio-rand':>11} {'sig':>6}")
@@ -130,6 +136,11 @@ def report(results: dict) -> None:
     for t in order:
         a = results["topologies"][t]
         g = a["geometry"]
+        if t not in armed:
+            print(f"{t:14} {g['consecutive_alignment']:8.4f} "
+                  f"{g['consecutive_alignment']/g['chance_alignment']:8.3f} "
+                  f"{g['flattening']:8.3f} | " + f"{'(no arms: geometry-only)':>30} |")
+            continue
         ab, ar = a["bio:cell_class"]["analytic"], a["rand:cell_class"]["analytic"]
         delta = ab["excess_mean"] - ar["excess_mean"]
         sem = float(np.hypot(ab["excess_sem"], ar["excess_sem"]))
@@ -144,7 +155,18 @@ def report(results: dict) -> None:
               + realized +
               f"{delta:+11.5f} {abs(delta)/sem if sem else float('inf'):6.2f}")
 
+    # Two ways this section used to print a claim it had not measured: `all()` over an EMPTY list is True, so a
+    # screening run announced five `monotone=YES` lines with no values under them, and a one-topology run announced
+    # an ordering from a single point. Both are the defect this project keeps finding -- a verdict produced by the
+    # shape of an empty sequence rather than by a measurement.
+    if not armed:
+        print("\nno arms were computed (a screening run): the penalty column, the monotonicity readings and the")
+        print("adjacent-contrast significances are NOT available, and none of them is reported as a verdict.")
+        return
     print("\nmonotonicity along the null order (real -> erdos_renyi):")
+    if len(order) < 2:
+        print(f"  NOT COMPUTED -- {len(order)} topology in this artifact, and an ordering needs two")
+        return
     readings = (
         ("task overlap", lambda a: a["geometry"]["consecutive_alignment"]),
         ("overlap/chance", lambda a: a["geometry"]["consecutive_alignment"]
@@ -153,7 +175,7 @@ def report(results: dict) -> None:
         ("bio-rand (analytic)", lambda a: a["bio:cell_class"]["analytic"]["excess_mean"]
             - a["rand:cell_class"]["analytic"]["excess_mean"]),
     )
-    if all((results["topologies"][t]["diagonal(EWC)"].get("realized") or {}) for t in order):
+    if all((results["topologies"][t]["diagonal(EWC)"].get("realized") or {}) for t in armed):
         readings = readings + (
             ("EWC excess (realized)",
              lambda a: a["diagonal(EWC)"]["realized"]["excess_mean"]),)

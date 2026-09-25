@@ -45,6 +45,10 @@ BAND = (0.09101, 0.27135)
 SPREAD_BAR = 1.5
 #: S1's registered ceiling, in seconds
 SCREEN_BUDGET_S = 45 * 60
+#: the registered size of the screen: four strengths x five realizations. The claims are stated over the WHOLE
+#: screen, so a partial read is refused -- reading 8 of 20 cells as if they were 20 is the neighbouring-subject
+#: defect this project keeps finding, and it is the one thing a reader can get wrong while every number is right.
+EXPECTED_CELLS = 20
 
 #: (id, subject, the registered sentence, the falsifier) -- quoted, never restated
 CLAIMS = (
@@ -114,6 +118,10 @@ def judge(rows: list[dict], budget_s: float | None = None) -> list[dict]:
     """S1-S3 as verdicts, refused rather than guessed when the cells a sentence names are absent."""
     if not rows:
         return [{"id": c[0], "verdict": f"REFUSED -- no {PREFIX}*.json cell carries a geometry block"} for c in CLAIMS]
+    if len(rows) < EXPECTED_CELLS:
+        return [{"id": c[0], "verdict": f"REFUSED -- the screen is registered at {EXPECTED_CELLS} cells and "
+                                        f"{len(rows)} are on disk, so a verdict now would be about a partial design"}
+                for c in CLAIMS]
     out: list[dict] = []
     armed = [r for r in rows if r["has_arm"]]
     spent = sum(v for v in {r["artifact"]: r.get("artifact_seconds") or 0.0 for r in rows}.values())
