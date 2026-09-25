@@ -87,3 +87,71 @@ def test_the_live_plan_passes_at_this_check_s_precision():
     assert res["contradictions"] == []
     assert res["duplicate_rows"] == []
     assert res["unparseable"] == []
+    # check C, and its denominator: it is only a check where a row claims an experiment as its OWN, which 111 of
+    # 140 rows do -- so "0 flags" here is a statement about those 111 and not about the table
+    assert res["underclaims"] == []
+    assert res["rows_naming_their_own_experiment_with_artifacts"] > 50
+
+
+def runs_dir(tmp_path: Path, *names: str) -> Path:
+    d = tmp_path / "runs"
+    d.mkdir(exist_ok=True)
+    for n in names:
+        (d / n).write_text("{}", encoding="utf-8")
+    return d
+
+
+def test_check_c_fires_on_an_arm_the_row_still_calls_running(tmp_path):
+    """The `e147` shape, live in the plan for two days: the first cell says the second arm is running and the
+    second arm's artifact is on disk."""
+    runs = runs_dir(tmp_path, "e147_r32_frozenbias_ewc_lam3e-3.json")
+    p = doc(tmp_path, row("`--frozen-bias --methods ewc --lam {3e-4, 3e-3}` at read-out 32 (`e147`; the `3e-4` arm "
+                          "is in, the `3e-3` arm is running)", "why", "**done for the first arm — the rest.**"))
+    res = audit(p, runs)
+    assert len(res["underclaims"]) == 1
+    assert res["underclaims"][0]["form"] == "an arm is still described as running"
+    assert res["underclaims"][0]["artifacts"] == ["e147_r32_frozenbias_ewc_lam3e-3.json"]
+
+
+def test_check_c_fires_when_every_registered_arm_is_on_disk(tmp_path):
+    """The `e141` shape: the running clause names no value ("the top of the sweep is running"), so the braced
+    registration is what has to be compared with the disk."""
+    runs = runs_dir(tmp_path, "e141_r32_ewc_lam3e-4.json", "e141_r32_ewc_lam3e-2.json", "e141_r32_ewc_lam3e-1.json")
+    p = doc(tmp_path, row("`--methods ewc --lam {3e-4, 3e-2, 3e-1} --repeats 40` at read-out 32 (`e141`; the "
+                          "`3e-4` arm is in, the top of the sweep is running)", "why",
+                          "**done for the floor arm — the rest.**"))
+    res = audit(p, runs)
+    assert len(res["underclaims"]) == 1
+    assert res["underclaims"][0]["form"] == "every registered arm is on disk"
+    assert len(res["underclaims"][0]["artifacts"]) == 3
+
+
+def test_check_c_does_not_fire_when_the_arm_it_names_is_not_on_disk(tmp_path):
+    """The direction that makes it a check: `e178`'s row is genuinely in flight, and its own artifacts are absent.
+    A missing arm is a row that is telling the truth."""
+    runs = runs_dir(tmp_path, "e141_r32_ewc_lam3e-4.json")   # the floor arm is in, the top is not
+    p = doc(tmp_path, row("`--methods ewc --lam {3e-4, 3e-2, 3e-1}` at read-out 32 (`e141`; the `3e-4` arm is in, "
+                          "the top of the sweep is running)", "why", "**done for the floor arm — the rest.**"))
+    assert audit(p, runs)["underclaims"] == []
+
+
+def test_check_c_ignores_another_experiments_artifacts_cited_as_a_prior(tmp_path):
+    """A row cites other experiments' artifacts as priors and baselines constantly -- `e178`'s row names `e10` and
+    `e60` in the sentence that says its own artifacts do not exist yet. Only the row's OWN id counts, and the two
+    ways it is stated are the runner it names and a parenthesised label."""
+    runs = runs_dir(tmp_path, "e10_rung_side.json", "e60_side_lam0.1_16reps.json")
+    p = doc(tmp_path, row("`e8_rate_network.py --circuit-size 300 --repeats 144`, against `e10` and `e60`", "why",
+                          "**LAUNCHED, NOT READ — no artifact, and no number is printed.**"))
+    assert audit(p, runs)["underclaims"] == []
+
+
+def test_check_c_does_not_fire_on_a_row_whose_own_opening_reports_the_answer(tmp_path):
+    """The measured false-positive class: `P1 HOLDS` and `READ —` are how this table announces an answer, and a
+    cell that opens that way is reporting; the word "launched" three sentences later is prose about a queue."""
+    runs = runs_dir(tmp_path, "e92_grid_report.json")
+    p = doc(tmp_path, row("`e92_grid_profiles.py`", "why",
+                          "**P1 HOLDS AND THE SWEEP IS COMPLETE**, launched when a slot freed, and the queue "
+                          "cleared."))
+    res = audit(p, runs)
+    assert res["underclaims"] == []
+    assert res["underclaims_excluded_by_a_finished_word"] == 1, "it must be counted, not silently ignored"
