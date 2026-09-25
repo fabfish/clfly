@@ -4,7 +4,15 @@
 **Read of:** `runs/e7_interference.json`'s `controlled` block (the analytic line's six overlap levels) and the same
 nine matched pairs `e188` admitted, split by task distance from their own retention matrices.
 **Instrument:** `experiments/e189_overlap_sign_across_lines.py`, tested in
-`tests/test_e189_overlap_sign_across_lines.py`. The admitted pairs and their inert-field rules are **imported from
+`tests/test_e189_overlap_sign_across_lines.py`.
+**§3's far-component correction is itself corrected by `e191`**: this file read the network line's
+**accuracy drop**, whose standard errors are large, and refused to call the far component resolved. The
+network line also records an **interference decomposition per pair**
+(`methods.<m>.replicates[r].interference[j]["per_task"][k]`), and on that quantity -- the one that shares a
+name with the analytic line's -- the far component rises at 2σ in **nine of nine** admitted comparisons
+(2.1σ to 7.4σ). So the composition this file's *first* version printed and its second version refused is the
+right one, and the refusal was a property of the proxy rather than of the data. See
+`docs/findings/2026-09-25-the-composition-survives-the-quantity-the-proxy-could-not-see.md`. The admitted pairs and their inert-field rules are **imported from
 `e188`**, so the two audits cannot drift apart about which payloads are evidence.
 
 ---
