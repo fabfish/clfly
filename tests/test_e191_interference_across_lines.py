@@ -171,3 +171,23 @@ def test_the_dose_read_reports_each_levels_progress_against_the_analytic_fractio
     assert arm["full_rise"]["change"] == pytest.approx(0.12, abs=1e-9)
     assert arm["progress_fraction"] == pytest.approx(0.08 / 0.12, abs=1e-9)
     assert res["analytic_progress"][0.3333] == pytest.approx(0.76, abs=0.02)
+
+
+def test_each_dose_row_states_the_overlap_pair_it_measures():
+    """The baselines sit at different overlaps once per-arm admission is on (`e140` at 0.0 for `naive`, `e153` at
+    1.0 for the block arms), so a row that names only its baseline invites reading across rows. The pair is what a
+    reader must compare."""
+    d = tmp_path = __import__("pathlib").Path("tmp_pair_test")
+    base0 = dose_artifact(d / "base0.json", "naive", [0.09, 0.11, 0.10, 0.10], [0.04, 0.06, 0.05, 0.05], 0.0)
+    base1 = dose_artifact(d / "base1.json", "ewc-block", [0.09, 0.11, 0.10, 0.10], [0.04, 0.06, 0.05, 0.05], 1.0)
+    lvl0 = dose_artifact(d / "lvl0.json", "naive", [0.17, 0.19, 0.18, 0.18], [0.07, 0.09, 0.08, 0.08], 0.25)
+    lvl1 = dose_artifact(d / "lvl1.json", "ewc-block", [0.17, 0.19, 0.18, 0.18], [0.07, 0.09, 0.08, 0.08], 0.25)
+    res = e191.dose_read([lvl0, lvl1], base0, candidates=[base0, base1])
+    first, second = res["levels"]
+    assert first["arms"]["naive"]["baseline_overlap"] == 0.0
+    assert second["arms"]["ewc-block"]["baseline_overlap"] == 1.0
+    assert first["arms"]["naive"]["baseline"].startswith("base0")
+    assert second["arms"]["ewc-block"]["baseline"].startswith("base1")
+    for f in d.rglob("*.json"):
+        f.unlink()
+    d.rmdir()

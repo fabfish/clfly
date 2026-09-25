@@ -117,7 +117,11 @@ def admitting_baseline(level_config: dict, method: str, candidates: list[Path]) 
         if not Path(cand).is_file():
             refusals.append(f"{Path(cand).name}: absent")
             continue
-        diff = sorted(differing_fields(load(cand)["config"], level_config))
+        payload = load(cand)
+        if method not in (payload.get("methods") or {}):
+            refusals.append(f"{Path(cand).name}: does not carry the {method} arm")
+            continue
+        diff = sorted(differing_fields(payload["config"], level_config))
         bad = [k for k in diff if k not in INERT_FOR.get(method, set())]
         if bad:
             refusals.append(f"{Path(cand).name}: differs in {bad}, which {method} reads")
@@ -148,7 +152,11 @@ def dose_read(levels: list[Path], baseline: Path = Path("runs/e140_r32_methods_p
             out["status"] = "baseline missing"
             rows.append(out)
             continue
-        for method in sorted(set(base.get("methods", {})) & set(d.get("methods", {}))):
+        pool: set[str] = set()
+        for cand in (candidates or [baseline]):
+            if Path(cand).is_file():
+                pool |= set((load(cand).get("methods") or {}))
+        for method in sorted(pool & set(d.get("methods", {}))):
             use, refusals = admitting_baseline(d.get("config") or {}, method,
                                               candidates or [baseline, Path("runs/e153_r32_overlap1_methods_40reps.json")])
             if use is None:
@@ -158,6 +166,7 @@ def dose_read(levels: list[Path], baseline: Path = Path("runs/e140_r32_methods_p
             if a is None or b is None or a["n"] != b["n"]:
                 continue
             entry = {"n": a["n"], "baseline": Path(use).name,
+                     "baseline_overlap": (load(use)["config"] or {}).get("input_overlap"),
                      "differs_in": sorted(differing_fields(load(use)["config"], d["config"]))}
             pf = paired(b["forgetting"], a["forgetting"])
             entry["forgetting"] = {"change": pf["change"], "sem": pf["sem"],
@@ -189,7 +198,8 @@ def report_dose(res: dict) -> int:
             f, a = e["forgetting"], e["accuracy"]
             tag = "" if e.get("half_done") is None else (
                 "   P1's bar (> +0.0159, half the 0->1 rise) " + ("MET" if e["half_done"] else "NOT met"))
-            print(f"             {method:16} vs {e.get('baseline', '?')[:30]:32} forgetting {f['change']:+.4f}+/-{f['sem']:.4f}"
+            pair = f"{e.get('baseline_overlap')} -> {row['target_overlap']}"
+            print(f"             {method:16} {pair:14} vs {e.get('baseline', '?')[:22]:24} forgetting {f['change']:+.4f}+/-{f['sem']:.4f}"
                   f"({f['sigma']:.1f}s)  accuracy {a['change']:+.4f}+/-{a['sem']:.4f}({a['sigma']:.1f}s)"
                   f"  n {e['n']}{tag}")
             if e["differs_in"]:

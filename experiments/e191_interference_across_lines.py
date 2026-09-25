@@ -16,6 +16,12 @@ component rises at 2.1–3.2σ in five of five admitted comparisons. So the find
 version printed and its second version refused: **the lines disagree on the adjacent pairs and agree on the distant
 ones** -- and the reason the second version could not see the far agreement is the proxy, not the data.
 
+**And the dose read's admission rule is what caught a 333x penalty step dressed as an overlap effect**: the three
+`e193` commands inherited the runner's default `--lam 1.0` while the family they are registered against runs
+`--lam 3e-3`, and `lam` is inert for `naive` and is the penalty strength for the block arms. Each arm therefore takes
+the first candidate baseline whose config diff is inert **for that arm** and that **carries that arm**, the row prints
+the overlap pair it measures, and every choice is reversible by reading the row.
+
 **One limit, found while writing this, and it bounds the split rather than the claim.** The artifact's
 `interference[j]` carries `per_task[k]` as a dict per ordered pair (`first_order`, `cosine`, `grad_norm`,
 `disp_norm`) but `second_order` as a **single** term per task `j`, taken against the *cumulative* displacement -- so
@@ -190,7 +196,11 @@ def admitting_baseline(level_config: dict, method: str, candidates: list[Path]) 
         if not Path(cand).is_file():
             refusals.append(f"{Path(cand).name}: absent")
             continue
-        diff = sorted(differing_fields(load(cand)["config"], level_config))
+        payload = load(cand)
+        if method not in (payload.get("methods") or {}):
+            refusals.append(f"{Path(cand).name}: does not carry the {method} arm")
+            continue
+        diff = sorted(differing_fields(payload["config"], level_config))
         bad = [k for k in diff if k not in INERT_FOR.get(method, set())]
         if bad:
             refusals.append(f"{Path(cand).name}: differs in {bad}, which {method} reads")
@@ -224,7 +234,14 @@ def dose_read(levels: list[Path], baseline: Path = Path("runs/e140_r32_methods_p
             out["status"] = "baseline missing"
             rows.append(out)
             continue
-        for method in sorted(set(base.get("methods", {})) & set(d.get("methods", {}))):
+        # the methods to try are the union of what the CANDIDATE baselines carry, intersected with the level's --
+        # intersecting with the first baseline alone meant a level whose only arm is admitted by the second
+        # baseline iterated over nothing and came out empty
+        pool: set[str] = set()
+        for cand in (candidates or [baseline]):
+            if Path(cand).is_file():
+                pool |= set((load(cand).get("methods") or {}))
+        for method in sorted(pool & set(d.get("methods", {}))):
             use, refusals = admitting_baseline(d.get("config") or {}, method,
                                               candidates or [baseline, Path("runs/e153_r32_overlap1_methods_40reps.json")])
             if use is None:
@@ -234,7 +251,8 @@ def dose_read(levels: list[Path], baseline: Path = Path("runs/e140_r32_methods_p
             if a is None or b is None or min(a["n_pairs_near"], b["n_pairs_near"], a["n_pairs_far"],
                                              b["n_pairs_far"]) == 0:
                 continue
-            entry = {"n": len(a["near"]), "baseline": Path(use).name}
+            base_overlap = (load(use)["config"] or {}).get("input_overlap")
+            entry = {"n": len(a["near"]), "baseline": Path(use).name, "baseline_overlap": base_overlap}
             for comp in ("near", "far"):
                 pn = paired(b[comp], a[comp])
                 r = abs(pn["change"]) / pn["sem"] if pn["sem"] else 0.0
@@ -292,7 +310,8 @@ def report_dose(res: dict) -> int:
                 ptxt = (f"   P2: {100 * prog:.0f}% of the line's own 0->1 rise here against the analytic line's "
                         f"{100 * analytic:.0f}% at the same achieved overlap"
                         + (" -- MET" if prog >= 0.6 * analytic else " -- NOT met"))
-            print(f"             {method:16} vs {e.get('baseline', '?')[:34]:36} near {fmt(near):24} "
+            pair = f"{e.get('baseline_overlap')} -> {row['target_overlap']}"
+            print(f"             {method:16} {pair:14} vs {e.get('baseline', '?')[:24]:26} near {fmt(near):24} "
                   f"far {fmt(far):24} n {e['n']}{tag}{ptxt}")
     print("        (the achieved overlaps are a property of mb+cx+al@n1307, 3 tasks of 80, seed 0: recompute them "
           "for any other circuit.)")
