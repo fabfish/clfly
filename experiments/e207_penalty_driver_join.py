@@ -310,6 +310,23 @@ def report(rows: list[dict]) -> int:
           f"({', '.join(disagree) if disagree else 'none'}) -- so no geometry statistic here tracks the penalty "
           f"with a consistent sign, and the sorted table is where the shape that survives lives.")
 
+    print("\n== the alignment axis's COVERAGE: where the record has cells and where it has holes ==")
+    ordered = sorted((r for r in rows if r["geometry"].get("all_pairs_alignment") is not None),
+                     key=lambda r: r["geometry"]["all_pairs_alignment"])
+    if len(ordered) >= 2:
+        pairs = sorted(((b["geometry"]["all_pairs_alignment"] - a["geometry"]["all_pairs_alignment"], a, b)
+                        for a, b in zip(ordered, ordered[1:])), key=lambda g: -g[0])
+        lo = ordered[0]["geometry"]["all_pairs_alignment"]
+        hi = ordered[-1]["geometry"]["all_pairs_alignment"]
+        print(f"   {len(ordered)} cells from alignment {lo:.5f} to {hi:.5f}; the largest gaps between CONSECUTIVE "
+              f"cells:")
+        for width, a, b in pairs[:4]:
+            print(f"      {width:.5f} of alignment between {a['artifact']} ({a['topology']}, "
+                  f"penalty {a['penalty']:+.5f}) and {b['artifact']} ({b['topology']}, penalty {b['penalty']:+.5f})")
+        print("   a design that fills the largest gap is aimed at the interval where a penalty change has to happen")
+        print("   between two cells the record has measured, and the two penalties printed either side are what it")
+        print("   would have to lie between")
+
     print("\n== the hole's registered claims, T1-T3 ==")
     print(f"   the hole is the measured pair {HOLE[0]} - {HOLE[1]} (the largest in-axis alignment and the smallest")
     print("   high-regime one), and T1-T3 are quoted from the registration of the sweep that fills it.")
