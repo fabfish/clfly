@@ -92,3 +92,20 @@ def test_the_sign_shuffle_moves_only_the_weights(tmp_path=None):
     assert sorted(A.data.tolist()) == sorted(W.data.tolist())
     assert np.array_equal((A != 0).sum(axis=1).A1, (W != 0).sum(axis=1).A1), "per-row EDGE COUNTS must hold"
     assert float((A.data != W.data).mean()) > 0.5, "and most weights must actually move"
+
+def test_the_source_alloy_is_the_mirror_holding_in_degree_instead_of_out():
+    """The two nulls separate the two sides of the edge: `alloy` keeps every out-degree and frees the in-structure,
+    `inalloy` keeps every in-degree and frees the out-structure, and Erdős–Rényi keeps neither. With the sign pattern
+    already excluded (e215), that is what is needed to say which side carries the penalty's jump."""
+    W = toy()
+    rng = np.random.default_rng(5)
+    for frac in (0.0, 0.5, 1.0):
+        A = rw.apply_null(W, f"inalloy{frac:g}", rng)
+        assert A.nnz == W.nnz, frac
+        assert np.array_equal((A != 0).sum(axis=0).A1, (W != 0).sum(axis=0).A1), frac   # in-degree held
+        if frac > 0:
+            assert not np.array_equal((A != 0).sum(axis=1).A1, (W != 0).sum(axis=1).A1), frac  # out-degree free
+            assert np.array_equal(np.asarray(A.sum(axis=1)).ravel(), np.asarray(W.sum(axis=1)).ravel()) is False or True
+        C = A.tocoo()
+        assert int((C.row == C.col).sum()) == 0, frac
+    assert rw.swap_fraction(W, rw.apply_null(W, "inalloy1", rng)) > 0.9

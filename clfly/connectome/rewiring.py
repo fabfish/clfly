@@ -174,6 +174,44 @@ def random_targets(W: sp.spmatrix, fraction: float,
     return _rebuild(rows, cols, data, n)
 
 
+def random_sources(W: sp.spmatrix, fraction: float,
+                   rng: np.random.Generator, max_tries_factor: int = 40) -> sp.csr_matrix:
+    """The mirror of `random_targets`: replace the SOURCE of a fraction of the edges, keeping in-degree exactly.
+
+    **Why the mirror matters.** `random_targets` (the alloy) keeps every neuron's **out-degree** exactly and destroys
+    the **in**-structure; this keeps every neuron's **in-degree** exactly and destroys the **out**-structure; the
+    edge-count-matched Erdős–Rényi null preserves neither. `e215` excluded the third difference between them (the sign
+    pattern, which `erdos_renyi` also randomises), so the remaining question is which side of the edge the structure
+    has to sit on for the penalty's jump — and these two nulls separate the sides with everything else held.
+
+    The guard is the same as `random_targets`': a candidate source that would duplicate an edge is rejected and
+    redrawn, so the edge count is preserved exactly; `fraction` is the share of edges touched.
+    """
+    if not 0.0 <= fraction <= 1.0:
+        raise ValueError(f"fraction must be in [0, 1], got {fraction!r}")
+    rows, cols, data = _as_coo(W)
+    m = rows.shape[0]
+    n = W.shape[0]
+    n_touch = min(int(round(fraction * m)), m)
+    if n_touch <= 0:
+        return W.tocsr()
+    existing = set(zip(rows.tolist(), cols.tolist()))
+    idx = rng.choice(m, size=n_touch, replace=False)
+    for i in idx:
+        t = int(cols[i])
+        for _ in range(max_tries_factor):
+            s = int(rng.integers(0, n - 1))
+            if s >= t:                     # uniform over neurons other than the target, so no self-loop
+                s += 1
+            if (s, t) in existing:
+                continue
+            existing.discard((int(rows[i]), t))
+            existing.add((s, t))
+            rows[i] = s
+            break
+    return _rebuild(rows, cols, data, n)
+
+
 def sign_shuffle(W: sp.spmatrix, rng: np.random.Generator) -> sp.csr_matrix:
     """Permute the weights across the edges, keeping the graph and the weight multiset EXACTLY.
 
@@ -204,11 +242,14 @@ def apply_null(W: sp.spmatrix, topology: str, rng: np.random.Generator) -> sp.cs
         return double_edge_swap(W, n_swaps=int(round(frac * W.nnz)), rng=rng)
     if topology.startswith("alloy"):
         return random_targets(W, float(topology[5:]), rng)
+    if topology.startswith("inalloy"):
+        return random_sources(W, float(topology[7:]), rng)
     if topology == "signshuffle":
         return sign_shuffle(W, rng)
     if topology == "erdos_renyi":
         return erdos_renyi(W.shape[0], W.nnz, rng, signed=True)
     raise ValueError(
-        f"unknown topology {topology!r}; expected 'real', 'swap<frac>', 'alloy<frac>', 'signshuffle' or "
+        f"unknown topology {topology!r}; expected 'real', 'swap<frac>', 'alloy<frac>', 'inalloy<frac>', "
+        f"'signshuffle' or "
         f"'erdos_renyi'"
     )
