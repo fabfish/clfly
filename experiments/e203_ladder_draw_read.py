@@ -1,4 +1,4 @@
-"""E203 -- the pooling ladder's draw-set claims (P1-P3), judged from the two artifacts and nothing else.
+"""E203 -- the pooling ladder's draw-set claims (P1-P3 and the band's Q1-Q3), judged from the artifacts and nothing else.
 
 Registered 2026-09-25 before its run (`docs/findings/2026-09-25-registered-the-pooling-ladder-at-a-second-draw-set.md`):
 the linear line's task draw had never been varied across a ladder's cells, because every pooling ladder in the record
@@ -19,6 +19,17 @@ Every claim compares the drawn table against the **reference** table (`e181`, `-
 registered sentence for each is quoted into `CLAIMS` so the bar and the sentence can be read together. The quantity is
 `excess` -- alignment above the chance level that the same partition achieves against random task subspaces -- which is
 what this line's C2 claim is about.
+
+## And the band's own claims, which needed a second quantity
+
+The third draw set's registration asked three further questions (`Q1`-`Q3` in `BAND_CLAIMS`), and judging them
+exposed that this reader had been printing only **one** of the two gaps a ladder comparison can mean. `P3` compares the
+peak rung with its **own size-matched control**; `Q1` compares the peak with the **best `rand:` rung of any size**.
+They are different statements, and on the corpus they point different ways -- at draw set 100 the matched gap at the
+*peak* is the largest of the three while the matched gap at the *named* rung is the smallest of its own three -- so
+both are now printed per draw set, beside the count of biological rungs in the top eight. **The reader whose whole
+purpose was to print the registered quantity had been printing a neighbouring one**, and the third draw set's
+falsifier fired on the quantity it had never printed.
 """
 from __future__ import annotations
 
@@ -58,6 +69,102 @@ def table_of(path: Path) -> dict[str, float]:
     d = json.loads(Path(path).read_text(encoding="utf-8"))
     block = ((d.get("topologies") or {}).get("real")) or {}
     return {b: v["excess"] for b, v in block.items() if isinstance(v, dict) and v.get("excess") is not None}
+
+
+#: The band claims, registered for the THIRD draw set
+#: (`docs/findings/2026-09-25-registered-a-third-draw-set-for-the-band.md` section 3), quoted rather than restated.
+#: P1-P3 ask "did the claim survive"; these ask "how far does each rung move", and the two turned out to need different
+#: quantities: **Q1 is about the peak's lead over the best `rand:` rung at all**, which the pairwise reader never
+#: computed -- it computed the lead over the *same-sized* control -- while P1's band and Q1's decay are two different
+#: statements about the same table.
+BAND_CLAIMS = (
+    ("Q1", "the biological advantage is present again",
+     "At draw set 200 the peak's `excess` exceeds **every** `rand:` rung's by **at least 0.5**",
+     "falsifier: a `rand:` rung comes within 0.2 of the peak, which would make the band a pooling-depth effect; "
+     "null: a gap of 0.2-0.5, i.e. the advantage survives and shrank again"),
+    ("Q2", "`bio:pool4` is the stable member of the band",
+     "Its excess at draw set 200 lies within **25%** of its mean over draw sets 0 and 100 (2.16987), i.e. in "
+     "**[1.627, 2.712]**",
+     "falsifier: outside **50%** (below 1.085 or above 3.255); null: between 25% and 50%"),
+    ("Q3", "the head's value stays in a band of half a unit",
+     "The **span of the peak's excess across the three draw sets** is **below 0.5**",
+     "falsifier: a span at or above **1.0**; null: between 0.5 and 1.0"),
+)
+
+#: the mean of `bio:pool4` over draw sets 0 and 100, quoted from the registration, and asserted against the tables
+Q2_PRIOR_MEAN = 2.16987
+Q2_PRIOR_BAND = ("bio:pool4", 0.25)
+
+
+def band_numbers(tables: dict[str, dict]) -> list[dict]:
+    """Per draw set, the two quantities the band claims turn on, plus the membership count they are stated about.
+
+    `unmatched` is the peak's lead over the best `rand:` rung of any size -- Q1's quantity, which no earlier reader
+    printed -- and `matched` is the lead over the peak rung's own size-matched control, which is what P3 registers.
+    They are not comparable to each other, and at draw set 100 the matched gap at the *peak* is the largest of the
+    three while the matched gap at the *named* rung is the smallest of its own three: once the peak moves, the peak
+    and the named rung are different objects.
+    """
+    out = []
+    for name, t in tables.items():
+        if not t:
+            continue
+        ranked = sorted(t.items(), key=lambda kv: -kv[1])
+        peak, peak_v = ranked[0]
+        rands = [(b, v) for b, v in ranked if b.startswith("rand:")]
+        best_rand = rands[0] if rands else (None, float("nan"))
+        matched = t.get("rand:" + peak.split(":", 1)[-1], float("nan"))
+        out.append({"draw": name, "peak": peak, "peak_v": peak_v, "best_rand": best_rand[0],
+                    "best_rand_v": best_rand[1], "unmatched": peak_v - best_rand[1],
+                    "matched": peak_v - matched,
+                    "bio_in_top8": sum(1 for b, _ in ranked[:8] if b.startswith("bio:"))})
+    return out
+
+
+def judge_band(tables: dict[str, dict]) -> list[dict]:
+    """Q1-Q3 as verdicts, refused rather than guessed when the tables a claim is stated over are not present.
+
+    Q1 and Q2 are stated **at draw set 200**, which is the LAST table given; Q3 is stated over **the three draw
+    sets**; Q2's band is a statement about the mean of the first two. So a run given two tables can compute Q3's
+    two-draw span but must refuse Q1's and Q2's bars, and a run given one must refuse all three -- printing a number
+    for a claim whose table is absent is the fabrication `e190` and `e194` exist to refuse.
+    """
+    live = {n: t for n, t in tables.items() if t}
+    nums = band_numbers(live)
+    if len(nums) < 3:
+        return [{"id": c[0], "verdict": f"REFUSED -- {c[0]} is stated over three draw sets, {len(nums)} given"}
+                for c in BAND_CLAIMS]
+    third = nums[-1]
+    out: list[dict] = []
+    # Q1 -- the peak against EVERY rand: rung of any size
+    gap = third["unmatched"]
+    out.append({"id": "Q1", "measured": f"the peak {third['peak']} {third['peak_v']:.5f} against the best rand: rung "
+                                         f"{third['best_rand']} {third['best_rand_v']:.5f} = {gap:+.5f}",
+                "verdict": "MET" if gap >= 0.5 else "null band" if gap > 0.2 else "FALSIFIER FIRED"})
+    # Q2 -- bio:pool4 within 25% of its mean over the first two draw sets
+    known = [t for n, t in live.items()][:2]
+    means = [t.get("bio:pool4") for t in known]
+    if any(m is None for m in means):
+        out.append({"id": "Q2", "verdict": "REFUSED -- bio:pool4 is absent from one of the first two draw sets"})
+    else:
+        mean = sum(means) / len(means)
+        cur = [t for t in live.values()][-1].get("bio:pool4")
+        off = abs(cur - mean) / mean if cur is not None else None
+        note = f"the two-draw mean of bio:pool4 is {mean:.5f}"
+        if abs(mean - Q2_PRIOR_MEAN) > 1e-4:
+            note += f", which is not the {Q2_PRIOR_MEAN} the bar was registered against -- read the verdict against "\
+                    f"the measured mean"
+        out.append({"id": "Q2", "measured": f"bio:pool4 {cur:.5f}" if cur is not None else "",
+                    "verdict": ("REFUSED -- bio:pool4 is absent from the third draw set" if cur is None else
+                                "MET" if off <= Q2_PRIOR_BAND[1] else "null band" if off <= 0.5 else
+                                "FALSIFIER FIRED"),
+                    "note": note + (f"; off the mean by {off:.1%}" if off is not None else "")})
+    # Q3 -- the span of the peak across the three
+    peaks = [n["peak_v"] for n in nums]
+    span = max(peaks) - min(peaks)
+    out.append({"id": "Q3", "measured": f"the peaks {', '.join(f'{p:.5f}' for p in peaks)} span {span:.5f}",
+                "verdict": "MET" if span < 0.5 else "null band" if span < 1.0 else "FALSIFIER FIRED"})
+    return out
 
 
 def judge(ref: dict, drawn: dict) -> list[dict]:
@@ -127,6 +234,25 @@ def across(tables: dict[str, dict]) -> None:
     print(f"   the peaks: " + ", ".join(f"{n} {p[0]} {p[1]:.5f}" for n, p in zip(names, peaks)))
     print(f"   the peak's span: {max(p[1] for p in peaks) - min(p[1] for p in peaks):.5f}   "
           f"(Q3's bar: below 0.5; falsifier at or above 1.0)")
+
+    print()
+    print("   == per draw set, the two gaps the band claims are about ==")
+    print(f"   {'draw set':<26}{'peak':<14}{'value':>9}{'best rand:':>14}{'value':>9}"
+          f"{'unmatched':>11}{'matched':>9}{'bio/8':>7}")
+    for n in band_numbers(tables):
+        print(f"   {n['draw']:<26}{n['peak']:<14}{n['peak_v']:>9.5f}{str(n['best_rand']):>14}"
+              f"{n['best_rand_v']:>9.5f}{n['unmatched']:>+11.5f}{n['matched']:>+9.5f}{n['bio_in_top8']:>4} of 8")
+    print("   `unmatched` is the peak against the best `rand:` rung of ANY size (Q1's quantity); `matched` is the")
+    print("   lead over the peak rung's own size-matched control (P3's quantity). They are different statements and")
+    print("   at draw set 100 they point different ways, which is why both are printed.")
+
+    print()
+    print("   == the band's registered claims, Q1-Q3 ==")
+    for c, row in zip(BAND_CLAIMS, judge_band(tables)):
+        print(f"        {row['id']}: {row.get('measured', '')}  -> {row['verdict']}"
+              + (f"   ({row['note']})" if row.get("note") else ""))
+        print(f"             the claim was: {c[2]}")
+        print(f"             and its {c[3]}")
 
 
 def report(ref: dict, drawn: dict, tables: dict | None = None) -> int:

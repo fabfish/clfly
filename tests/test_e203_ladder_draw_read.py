@@ -74,3 +74,57 @@ def test_the_across_view_reports_each_rungs_span_and_the_peaks(tmp_path, capsys)
     capsys.readouterr()
     e203.across({"draw0": e203.table_of(a)})
     assert capsys.readouterr().out == ""
+
+def tab(bio4=2.0, bio8=1.9, rand4=1.0, rand8=0.9, extra=None):
+    """A ladder table built to order, for the band claims: the four rungs Q1-Q3 are stated about."""
+    t = {"bio:pool4": bio4, "bio:pool8": bio8, "rand:pool4": rand4, "rand:pool8": rand8}
+    t.update(extra or {})
+    return t
+
+
+def test_the_band_claims_refuse_until_three_draw_sets_are_given():
+    """Q1 and Q2 are stated AT the third draw set and Q2's band is the mean of the first two, so a run given two
+    tables can print Q3's two-draw span but must refuse the other two rather than invent their subject."""
+    two = {"a": tab(), "b": tab(bio4=2.1)}
+    rows = e203.judge_band(two)
+    assert all("REFUSED" in r["verdict"] for r in rows), rows
+    three = {"a": tab(), "b": tab(bio4=2.1), "c": tab(bio4=2.05)}
+    assert [r["id"] for r in e203.judge_band(three)] == ["Q1", "Q2", "Q3"]
+
+
+def test_q1_is_about_every_random_rung_and_not_the_size_matched_one():
+    """The distinction the third draw set turned on: P3 compares the peak with its OWN size-matched control, Q1 with
+    the best `rand:` rung of any size. A table whose matched control is far below but whose pool16 sits at the peak
+    is the draw-set-200 shape, and the first version of this reader had no quantity that could see it."""
+    close = {"a": tab(rand4=1.0), "b": tab(rand4=1.05),
+             "c": tab(bio4=2.0, rand4=1.0, extra={"rand:pool16": 1.99})}
+    rows = {r["id"]: r for r in e203.judge_band(close)}
+    assert rows["Q1"]["verdict"] == "FALSIFIER FIRED", rows["Q1"]
+    assert rows["Q2"]["verdict"] == "MET", rows["Q2"]
+    far = {"a": tab(rand4=1.0), "b": tab(rand4=1.05), "c": tab(bio4=2.0, rand4=1.0)}
+    assert {r["id"]: r for r in e203.judge_band(far)}["Q1"]["verdict"] == "MET"
+    # and the null band is the registration's 0.2-0.5
+    mid = {"a": tab(), "b": tab(bio4=2.1), "c": tab(bio4=2.0, rand4=1.0, extra={"rand:pool16": 1.75})}
+    assert {r["id"]: r for r in e203.judge_band(mid)}["Q1"]["verdict"] == "null band"
+
+
+def test_q2_measures_against_the_mean_of_the_first_two_draw_sets():
+    """The bar is 25% of the two-draw mean, computed from the tables given rather than read from the registration --
+    and the registration's own 2.16987 is printed beside the measured mean so the two can be compared."""
+    ok = {"a": tab(bio4=2.0), "b": tab(bio4=2.4), "c": tab(bio4=2.2)}   # mean 2.2, third off it by 0%
+    assert {r["id"]: r for r in e203.judge_band(ok)}["Q2"]["verdict"] == "MET"
+    off = {"a": tab(bio4=2.0), "b": tab(bio4=2.4), "c": tab(bio4=1.6)}  # mean 2.2, off by 27%
+    assert {r["id"]: r for r in e203.judge_band(off)}["Q2"]["verdict"] == "null band"
+    bad = {"a": tab(bio4=2.0), "b": tab(bio4=2.4), "c": tab(bio4=1.0)}  # off by 55%
+    assert {r["id"]: r for r in e203.judge_band(bad)}["Q2"]["verdict"] == "FALSIFIER FIRED"
+
+
+def test_q3_is_the_span_of_the_peak_and_not_of_a_named_rung():
+    """`bio:pool4` can sit still while `bio:pool8` takes the head and moves a lot -- the span is over the PEAK, which
+    is why the claim is about the head rather than about the rung Q2 names."""
+    still = {"a": tab(bio4=2.0, bio8=1.9), "b": tab(bio4=2.0, bio8=1.9), "c": tab(bio4=2.0, bio8=1.9)}
+    assert {r["id"]: r for r in e203.judge_band(still)}["Q3"]["verdict"] == "MET"
+    # a span of 0.6 is the registration's null band and 1.2 fires its falsifier; they are asserted apart because
+    # the first version of this test wrote 2.6 expecting a firing, and the reader said `null band`
+    moved = {"a": tab(bio4=2.0, bio8=1.9), "b": tab(bio8=3.2), "c": tab(bio4=2.0)}
+    assert {r["id"]: r for r in e203.judge_band(moved)}["Q3"]["verdict"] == "FALSIFIER FIRED"
