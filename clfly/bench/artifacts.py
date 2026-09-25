@@ -47,6 +47,38 @@ def nonfinite_to_null(obj):
     return obj
 
 
+def duration_field(payload: dict) -> str | None:
+    """Which spelling this artifact recorded its duration under, or ``None`` if it recorded none.
+
+    The corpus uses two, and `e205` measured that the split is not random: the analytic line
+    (`e3_basis_selection`, `e9`, `e13`, `e58`, `e79`) writes ``timing = {"total_s": ...}`` and carries no
+    ``methods`` dict, and every trained runner writes a top-level ``timing_s``.
+    """
+    if isinstance(payload.get("timing_s"), (int, float)):
+        return "timing_s"
+    timing = payload.get("timing")
+    if isinstance(timing, dict) and isinstance(timing.get("total_s"), (int, float)):
+        return "timing.total_s"
+    return None
+
+
+def duration_seconds(payload: dict) -> float | None:
+    """A run's wall-clock duration in seconds, under **either** spelling the corpus uses.
+
+    Every reader of a duration goes through this function rather than through a key, because the key is
+    a property of which instrument wrote the artifact and not of the quantity: a reader keying on
+    ``timing_s`` cannot see the thirteen analytic artifacts, and one keying on ``timing.total_s`` cannot
+    see the other 298 (`e205`). The two spellings are the same measurement -- both are ``time.time() - t0``
+    taken at the end of ``main`` -- so they are interchangeable and the caller needs no branch.
+    """
+    field = duration_field(payload)
+    if field == "timing_s":
+        return float(payload["timing_s"])
+    if field == "timing.total_s":
+        return float(payload["timing"]["total_s"])
+    return None
+
+
 def write_json(path, obj, indent: int = 1) -> None:
     """Write ``obj`` as strict, spec-conformant JSON, creating parent directories.
 

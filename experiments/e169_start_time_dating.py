@@ -11,7 +11,9 @@ Two clocks are tried on the same 129 run artifacts:
   * **write time** — the file's mtime, which is what `e163` dated the 09-23 epoch with;
   * **start time** — `mtime - timing_s`, the clock rule 47 asks for.
 
-**Scope matters and is declared**: a *run* artifact is one carrying `timing_s`, a `methods` dict and a config of at
+**Scope matters and is declared**: a *run* artifact is one carrying a duration **under either of the corpus's two
+spellings** (`duration_seconds`; `e205` measured that a reader keying on `timing_s` alone is blind to the thirteen
+analytic artifacts, which this scope excludes for its other two reasons as well), a `methods` dict and a config of at
 least 25 keys (`vars(args)` from this runner; the smaller configs in `runs/` are hand-built summaries, and asking
 them for a parser's keyset is asking the wrong object — the defect `e103`'s docstring records twice), and pairs
 whose two clocks are within 60 s are **not counted either way**, because ordering them is a coin flip and
@@ -29,7 +31,7 @@ import argparse
 import datetime
 from pathlib import Path
 
-from clfly.bench.artifacts import write_json
+from clfly.bench.artifacts import duration_seconds, write_json
 from experiments.e103_reproducibility_audit import load_artifacts
 
 #: a config this size is `vars(args)` from this project's main runner; below it the config is a hand-built summary
@@ -40,13 +42,13 @@ TIE_SECONDS = 60.0
 
 def start_time(artifact: dict) -> float:
     """When the run *began*: the file's write time less the duration it recorded."""
-    return artifact["mtime"] - artifact["payload"]["timing_s"]
+    return artifact["mtime"] - duration_seconds(artifact["payload"])
 
 
 def in_scope(artifact: dict, min_keys: int = PARSER_SIZED) -> bool:
     """Whether this artifact is a run whose config is a parser dump, and so can be dated this way."""
     payload = artifact["payload"]
-    return (isinstance(payload.get("timing_s"), (int, float))
+    return (duration_seconds(payload) is not None
             and isinstance(payload.get("methods"), dict)
             and len(artifact["config"]) >= min_keys)
 
@@ -89,7 +91,7 @@ def main(argv=None) -> int:
 
     arts = [a for a in load_artifacts() if in_scope(a)]
     rows = [{"name": a["name"], "keys": set(a["config"]), "mtime": a["mtime"],
-             "payload": a["payload"], "duration": a["payload"]["timing_s"]} for a in arts]
+             "payload": a["payload"], "duration": duration_seconds(a["payload"])} for a in arts]
     for r in rows:
         r["start"] = start_time(r)
     out: dict = {"in_scope": len(rows)}

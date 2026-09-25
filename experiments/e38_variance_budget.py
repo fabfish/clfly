@@ -32,6 +32,8 @@ from pathlib import Path
 import numpy as np
 from scipy.stats import chi2, norm
 
+from clfly.bench.artifacts import duration_seconds
+
 #: (label, path, the two arm names that form the matched pair)
 RUNS = [
     ("lam1.0 side", "runs/e10_rung_side.json", ("ewc-block", "ewc-block-rand")),
@@ -103,7 +105,7 @@ def main() -> None:
             n_eval = sum(t["n_test"] for t in d["tasks"])
         rec = {"path": path, "basis": cfg.get("basis"), "lam": cfg.get("lam"),
                "fisher_batches": cfg.get("fisher_batches"),
-               "timing_s": d.get("timing_s"), "n_eval": n_eval, "arms": {}}
+               "timing_s": duration_seconds(d), "n_eval": n_eval, "arms": {}}
         for name, m in d["methods"].items():
             acc = np.array([r["final_accuracy"] for r in m["replicates"]], dtype=float)
             n = len(acc)
@@ -277,7 +279,7 @@ def main() -> None:
         sigma = delta / sem if sem else float("nan")
         floor = 1.96 * sem
         reps = required_repeats(0.01, float((a - b).std(ddof=1)))
-        hrs = (d.get("timing_s") or float("nan")) / 3600
+        hrs = (duration_seconds(d) or float("nan")) / 3600
         print(f"   {d['config']['basis']:<22}{a.mean():>11.4f}{b.mean():>10.4f}"
               f"{delta:>+10.4f}{sigma:>+8.2f}{floor:>8.4f}{reps:>22.0f}{hrs:>8.2f}")
         rungs.append({"basis": d["config"]["basis"], "lam": d["config"]["lam"],

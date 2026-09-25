@@ -29,7 +29,7 @@ from pathlib import Path
 
 import numpy as np
 
-from clfly.bench.artifacts import write_json
+from clfly.bench.artifacts import duration_seconds, write_json
 
 RUNS = Path("runs")
 DEFAULT_ARTIFACT = "runs/e178_rung_side_cs300_144reps.json"
@@ -67,7 +67,7 @@ def paired_gap(artifact: Path, quantity: str = "accuracy", pair=PAIR) -> dict | 
             "circuit_size": config.get("circuit_size"), "basis": config.get("basis"),
             "repeats": config.get("repeats"), "readout_size": config.get("readout_size"),
             "input_overlap": config.get("input_overlap"),
-            "timing_s": d.get("timing_s"), "per_replicate": [float(x) for x in diff]}
+            "timing_s": duration_seconds(d), "per_replicate": [float(x) for x in diff]}
 
 
 def verdict(gap: dict, comparator: dict | None) -> dict:
