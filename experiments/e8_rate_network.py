@@ -908,6 +908,7 @@ def main(argv=None) -> int:
     args = p.parse_args(argv)
 
     t0 = time.time()
+    t_cpu0 = time.process_time()
     conn = graph.build()
     ann = annotate.load_annotations()
     circ = circuits.extract(conn, ann, hops=0, max_neurons=args.circuit_size)
@@ -1002,9 +1003,11 @@ def main(argv=None) -> int:
                                    partitions=partitions))
             done += 1
             elapsed = time.time() - t_start
+            cpu = time.process_time() - t_cpu0
             print(f"  [{done}/{total}] {method} replicate {r + 1}/{args.repeats} "
                   f"in {time.time() - r0:.0f} s; elapsed {elapsed / 60:.1f} min, "
-                  f"projected {elapsed / done * total / 60:.1f} min", flush=True)
+                  f"projected {elapsed / done * total / 60:.1f} min, "
+                  f"cpu/wall {cpu / elapsed:.1f}x", flush=True)
         agg = {
             "mean_forgetting": float(np.mean([x["mean_forgetting"] for x in reps])),
             "forgetting_sem": float(np.std([x["mean_forgetting"] for x in reps],
@@ -1128,6 +1131,12 @@ def main(argv=None) -> int:
                       f"{pc['repeats_for_0.01']:.0f}")
 
     out["timing_s"] = time.time() - t0
+    # The process's own CPU time, because wall time alone cannot be extrapolated when the machine's load varies:
+    # `e178`'s probe measured 162 s for one replicate and the run took 7+ hours, and without the probe's THREAD
+    # time there was no way to tell a 9% load effect from a units error -- the projection had to be argued rather
+    # than computed. With both in the artifact, `cpu_time_s / timing_s` is the effective parallelism and a queue's
+    # price is computable even while it runs (the reader can read `process_time` from outside).
+    out["cpu_time_s"] = time.process_time() - t_cpu0
 
     print(f"\n  chance = {1.0 / suite[0].n_classes:.3f}   ({time.time()-t0:.0f}s)")
     if args.json_out:
