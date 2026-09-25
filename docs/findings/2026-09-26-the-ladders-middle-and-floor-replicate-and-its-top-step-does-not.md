@@ -52,6 +52,16 @@ That is a real demotion of this week's strongest new structural claim, found by 
 more-than-one-circuit-size standard to it before quoting it in the paper. C3's status note carries both halves, and the
 "top step" phrasing is marked as size-specific.
 
+> **TESTED 2026-09-26 05:43, and only half of it held**: `e221` varied the support at cs 800 (20 and 160 against
+> the convention's 80, two drawings each) and **U1 was MET** — the one-side level is **1.42×** higher at the
+> smaller share (0.07642 against 0.05374, bar 1.3×) — while **U2 landed outside all three of its registered
+> outcomes**: the top step is 1.96× at support 20 and 2.10× at support 160, both *above* 1.5× and only 1.07×
+> apart, and the relation is **non-monotone** (2.76× at the convention's 80). So the share is a real variable
+> for the one-side level and **not** for the ladder's shape, and the circuit-size dependence of the top step
+> still has no tested explanation. The candidate's direction was also corrected on the way in, since
+> `--support` is 10% of the circuit SIZE while the neuron count is not proportional
+> (`docs/findings/2026-09-26-the-support-share-moves-the-one-side-level-but-not-the-top-step.md`).
+
 ## 5. What this does not do
 
 Three sizes and **one realization per cell at cs 300 and cs 400** — the alloy's own five-drawing spread at cs 800 was
