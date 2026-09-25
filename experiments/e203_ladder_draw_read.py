@@ -68,8 +68,17 @@ def judge(ref: dict, drawn: dict) -> list[dict]:
     ranked = sorted(drawn.items(), key=lambda kv: -kv[1])
     peak, peak_v = ranked[0]
     runner, runner_v = ranked[1] if len(ranked) > 1 else ("", float("nan"))
-    out.append({"id": "P1", "measured": f"peak {peak} at {peak_v:.5f}",
-                "verdict": "MET" if peak == REFERENCE_PEAK else f"FALSIFIER FIRED -- {peak} peaks",
+    # The registration named THREE outcomes for P1, and the first version of this reader applied only two: same rung
+    # (MET) or a different one (falsifier). Its null was *"another BIOLOGICAL rung beats it by less than 0.2"*, and on
+    # `e202` that is exactly what happened -- `bio:pool8` peaks 0.049 above `bio:pool4` -- so a two-outcome reader
+    # reports a fired falsifier where the registration says the null landed.
+    if peak == REFERENCE_PEAK:
+        verdict = "MET"
+    elif "bio:" in peak and (peak_v - drawn.get(REFERENCE_PEAK, float("-inf"))) < 0.2:
+        verdict = f"the registered null -- {peak} peaks above {REFERENCE_PEAK} by "                   f"{peak_v - drawn[REFERENCE_PEAK]:.5f}, under 0.2"
+    else:
+        verdict = f"FALSIFIER FIRED -- {peak} peaks"
+    out.append({"id": "P1", "measured": f"peak {peak} at {peak_v:.5f}", "verdict": verdict,
                 "note": f"runner-up {runner} at {runner_v:.5f}"})
     v = drawn.get(REFERENCE_PEAK)
     if v is None:

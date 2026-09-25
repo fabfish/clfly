@@ -46,6 +46,10 @@ def test_each_claim_can_fire_and_the_null_bands_are_where_they_were_registered(t
     assert w[1]["verdict"] == "null band", w[1]      # 0.68 away, between 25% and 50% of 2.28112
     assert w[2]["verdict"] == "MET", w[2]            # the gap is 0.6
     # another rung peaking fires P1, a value below 50% fires P2, and a small gap fires P3
+    # the registered null: another BIOLOGICAL rung peaks by less than 0.2 -- which is what `e202` did
+    near = art(tmp_path / "nn.json", {"bio:pool4": 2.05, "bio:pool8": 2.10, "rand:pool4": 1.33})
+    y = e203.judge(ref, e203.table_of(near))
+    assert y[0]["verdict"].startswith("the registered null"), y[0]
     far = art(tmp_path / "f.json", {"bio:pool4": 1.0, "bio:pool64": 1.5, "rand:pool4": 0.95})
     x = e203.judge(ref, e203.table_of(far))
     assert x[0]["verdict"] == "FALSIFIER FIRED -- bio:pool64 peaks", x[0]
