@@ -72,3 +72,53 @@ def test_the_outlier_is_named_and_its_leverage_is_made_visible(tmp_path):
     assert a["n"] == 4
     # removing the outlier leaves the in-axis triple, whose association is the opposite sign
     assert a["r_without_outlier"] < 0, a
+
+def cell2(topology: str, alignment: float, penalty: float) -> dict:
+    """A joined cell as `cells()` produces it, for the hole claims."""
+    return {"artifact": "e900.json", "topology": topology, "penalty": penalty, "circuit_size": 800,
+            "geometry": {"all_pairs_alignment": alignment, "chance_alignment": 0.0555}}
+
+
+def test_the_swap_strength_is_parsed_from_the_topology_name():
+    """T2 and T3 are stated about the sweep's NEW levels, so which levels are new has to be read off the name --
+    and a topology that names no strength must not be counted as one."""
+    assert e207.swap_strength("swap4") == 4.0 and e207.swap_strength("swap16") == 16.0
+    assert e207.swap_strength("swap0.5") == 0.5
+    assert e207.swap_strength("real") is None and e207.swap_strength("erdos_renyi") is None
+
+
+def test_t1_is_about_a_cell_inside_the_hole_and_t2_and_t3_refuse_without_new_levels():
+    """Before the sweep, the corpus has no cell in the hole and no level above swap2 -- so T1's FALSIFIER is the
+    honest state and T2/T3 are refused rather than judged on the axis the corpus already had."""
+    axis_only = [cell2("real", 0.0055, 0.018), cell2("swap2", 0.060, 0.012)]
+    rows = {r["id"]: r for r in e207.judge_hole(axis_only)}
+    assert rows["T1"]["verdict"] == "FALSIFIER FIRED", rows["T1"]
+    assert "REFUSED" in rows["T2"]["verdict"] and "REFUSED" in rows["T3"]["verdict"]
+    filled = axis_only + [cell2("swap4", 0.12, 0.03)]
+    assert {r["id"]: r for r in e207.judge_hole(filled)}["T1"]["verdict"] == "MET"
+
+
+def test_t2_reads_the_highest_alignment_cell_still_below_the_high_regime():
+    """The registered bar: at or above 0.06 means the jump is substantially made inside the hole, at or below 0.035
+    means the hole behaves like the axis. The cell read is the one nearest the top edge, and the ER cell must not
+    be it -- ER is the regime the hole is measured against."""
+    def at(hole_penalty):
+        return [cell2("real", 0.0055, 0.018), cell2("swap2", 0.060, 0.012), cell2("swap4", 0.12, hole_penalty),
+                cell2("swap8", 0.16, hole_penalty), cell2("erdos_renyi", 0.29, 0.1419)]
+    assert {r["id"]: r for r in e207.judge_hole(at(0.07))}["T2"]["verdict"] == "MET"
+    assert {r["id"]: r for r in e207.judge_hole(at(0.05))}["T2"]["verdict"] == "null band"
+    assert {r["id"]: r for r in e207.judge_hole(at(0.02))}["T2"]["verdict"] == "FALSIFIER FIRED"
+
+
+def test_t3_is_monotone_with_ties_allowed_and_a_drop_fires_it():
+    """The registered sentence says NON-DECREASING, so the test is on the differences and not on a rank correlation
+    of exactly 1: a tied pair is monotone-with-ties and asserting rho == 1 would report a fired falsifier for it."""
+    def seq(*penalties):
+        strengths = (4.0, 8.0, 16.0)
+        return [cell2(f"swap{s:g}", 0.1 + 0.03 * i, p) for i, (s, p) in enumerate(zip(strengths, penalties))]
+    rising = seq(0.03, 0.05, 0.09)
+    assert {r["id"]: r for r in e207.judge_hole(rising)}["T3"]["verdict"] == "MET"
+    tied = seq(0.03, 0.03, 0.09)
+    assert {r["id"]: r for r in e207.judge_hole(tied)}["T3"]["verdict"] == "MET"
+    dropping = seq(0.09, 0.03, 0.05)
+    assert "FALSIFIER FIRED" in {r["id"]: r for r in e207.judge_hole(dropping)}["T3"]["verdict"]

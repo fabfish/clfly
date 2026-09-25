@@ -23,6 +23,15 @@ about one point (``r = +0.97`` for alignment, against a rank correlation of ``+0
 rank-based one decides, and the Pearson-with-ER-removed is printed beside them so the outlier's leverage is visible
 rather than argued about.
 
+## And the hole's own claims, quoted
+
+The join found a factor-3.2 alignment hole between a flat in-axis regime and a tight high regime, and `e208` was 
+registered to fill it with `swap4`, `swap8` and `swap16`. Its three claims are held here as `HOLE_CLAIMS` and 
+quoted rather than restated, so `T1` (the hole is reachable), `T2` (graded at or above 0.06 against threshold at 
+or below 0.035) and `T3` (non-decreasing inside the new levels) are decided by this reader and not by a session's 
+arithmetic -- the same rule `e203` and `e194` apply to their own registrations. Before the sweep lands, `T1`'s 
+falsifier is the honest state: no cell in the record sits inside the hole.
+
 ## What it cannot do
 
 It reports an association across a family of topologies, each measured once, at three to five points per circuit size --
@@ -38,6 +47,7 @@ import argparse
 import glob
 import json
 import math
+import re
 import sys
 from pathlib import Path
 
@@ -48,6 +58,81 @@ RUNS = Path("runs")
 PENALTY_ARM = "diagonal(EWC)"
 #: the topology that is a regime rather than a point on the axis, named so its leverage can be removed and shown
 OUTLIER = "erdos_renyi"
+#: the alignment hole this join found, as registered for `e208`
+#: (`docs/findings/2026-09-26-registered-filling-c3s-alignment-hole.md`): the largest in-axis cell and the smallest
+#: high-regime one, so the hole is a measured pair of numbers and not a round figure.
+HOLE = (0.08475, 0.27135)
+#: the swap strength above which a level counts as one of the sweep's NEW levels (the existing ones stop at 2)
+NEW_ABOVE_STRENGTH = 2.0
+#: T2's registered boundaries
+T2_BARS = (0.06, 0.035)
+
+#: The hole claims, registered for `e208` before its run, quoted rather than restated.
+HOLE_CLAIMS = (
+    ("T1", "the hole is filled (a design check, not a prediction about the substrate)",
+     "At least one of the new levels has `all_pairs_alignment` inside the hole, i.e. above 0.09 and below 0.271",
+     "falsifier: every new level lands either below 0.085 or above 0.271, which would mean the swap operation "
+     "cannot reach the intermediate regime at this circuit size and the hole is a property of the DESIGN SPACE "
+     "rather than of the record"),
+    ("T2", "threshold or gradient (the question C3 needs)",
+     "The highest-alignment cell still below 0.271 has an excess at or above 0.06",
+     "falsifier: at or below 0.035, i.e. the hole behaves like the axis and the jump happens between it and "
+     "Erdos-Renyi, making that jump a property of that construction rather than of the tasks' geometry; "
+     "null: 0.035-0.06"),
+    ("T3", "the order inside the new levels",
+     "The new levels' penalties are non-decreasing in alignment (rank correlation +1 across the three new cells, "
+     "ties allowed)",
+     "falsifier: a negative rank correlation, which would say penalty and alignment move oppositely INSIDE the "
+     "hole -- the plan's oldest result holding over the one range nobody has looked at; null: positive but not "
+     "monotone"),
+)
+
+
+def swap_strength(topology: str) -> float | None:
+    """The strength a `swapN` topology names, or ``None`` for one that names no strength (`real`, `erdos_renyi`)."""
+    m = re.fullmatch(r"swap([0-9.]+)", topology)
+    return float(m.group(1)) if m else None
+
+
+def judge_hole(rows: list[dict]) -> list[dict]:
+    """T1-T3 as verdicts, refused rather than guessed when the cells their sentences name are absent.
+
+    T1 asks whether ANY cell sits inside the hole, which is a statement about the join rather than about one
+    artifact, so it is judged on every cell given. T2 and T3 are statements about the sweep's new levels, so they
+    need a cell whose topology names a strength above ``NEW_ABOVE_STRENGTH`` -- and a corpus that has none is
+    refused rather than judged on the axis it already had.
+    """
+    below = [r for r in rows if r["geometry"].get("all_pairs_alignment") is not None]
+    lo, hi = HOLE
+    inside = [r for r in below if lo < r["geometry"]["all_pairs_alignment"] < hi]
+    new = sorted((r for r in below if (swap_strength(r["topology"]) or 0.0) > NEW_ABOVE_STRENGTH),
+                 key=lambda r: r["geometry"]["all_pairs_alignment"])
+    out: list[dict] = []
+    out.append({"id": "T1", "measured": f"{len(inside)} cell(s) inside the hole {lo}-{hi}",
+                "verdict": "MET" if inside else "FALSIFIER FIRED"})
+    edge = [r for r in below if r["geometry"]["all_pairs_alignment"] < hi]
+    if not new:
+        out.append({"id": "T2", "verdict": "REFUSED -- no cell names a swap strength above "
+                                           f"{NEW_ABOVE_STRENGTH:g}, so the sweep's levels are absent"})
+        out.append({"id": "T3", "verdict": "REFUSED -- as T2"})
+        return out
+    top = max(edge or new, key=lambda r: r["geometry"]["all_pairs_alignment"])
+    p = top["penalty"]
+    met, falsifier = T2_BARS
+    out.append({"id": "T2", "measured": f"the highest-alignment cell below {hi} is {top['topology']} at "
+                                        f"{top['geometry']['all_pairs_alignment']:.5f} with excess {p:.5f}",
+                "verdict": "MET" if p >= met else "FALSIFIER FIRED" if p <= falsifier else "null band"})
+    if len(new) < 2:
+        out.append({"id": "T3", "verdict": "REFUSED -- the ordering needs at least two new levels"})
+        return out
+    # the claim is "non-decreasing, ties allowed", so the test is on the DIFFERENCES and not on the rank
+    # correlation's sign: a tied pair moves rho below 1 without violating the sentence, and asserting rho == 1
+    # would report a fired falsifier for a monotone-with-ties sequence
+    drops = [(a["topology"], b["topology"]) for a, b in zip(new, new[1:]) if b["penalty"] < a["penalty"]]
+    out.append({"id": "T3", "measured": "new levels in alignment order: "
+                                        + ", ".join(f"{r['topology']} {r['penalty']:.5f}" for r in new),
+                "verdict": "MET" if not drops else f"FALSIFIER FIRED -- {drops[0][0]} above {drops[0][1]}"})
+    return out
 
 
 def penalty_of(block: dict) -> float | None:
@@ -224,6 +309,14 @@ def report(rows: list[dict]) -> int:
     print(f"\n   VERDICT: {len(disagree)} of {len(tally)} statistics change sign across circuit sizes "
           f"({', '.join(disagree) if disagree else 'none'}) -- so no geometry statistic here tracks the penalty "
           f"with a consistent sign, and the sorted table is where the shape that survives lives.")
+
+    print("\n== the hole's registered claims, T1-T3 ==")
+    print(f"   the hole is the measured pair {HOLE[0]} - {HOLE[1]} (the largest in-axis alignment and the smallest")
+    print("   high-regime one), and T1-T3 are quoted from the registration of the sweep that fills it.")
+    for c, row in zip(HOLE_CLAIMS, judge_hole(rows)):
+        print(f"        {row['id']}: {row.get('measured', '')}  -> {row['verdict']}")
+        print(f"             the claim was: {c[2]}")
+        print(f"             and its {c[3]}")
     return 0
 
 
