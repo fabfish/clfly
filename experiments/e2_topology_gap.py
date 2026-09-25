@@ -98,7 +98,14 @@ def run(args) -> dict:
 
         agg = {"geometry": {k: float(np.mean([task_geometry(s, r)[k]
                                               for s, r in zip(seqs, ranks)]))
-                            for k in task_geometry(seqs[0], ranks[0])}}
+                            for k in task_geometry(seqs[0], ranks[0])},
+               # THE CIRCUIT, recorded because nothing else in this family does: the runner has printed `d=1307`
+               # since its first run and no artifact of the topology line carries it, so a share like
+               # `support / n_neurons` -- the quantity the support-share question turns on -- cannot be read from
+               # the record (the analytic block's own `n` is the REPLICATE count, 3). The analytic ladder family
+               # stores this as `_abs.d`; this one did not.
+               "circuit": {"n_neurons": int(circ.n_neurons), "n_edges": int(W.nnz),
+                           "targets_changed": float(rewiring.swap_fraction(W0, W))}}
         if args.geometry_only:
             # The screening path: the geometry block is what a design that samples BY ALIGNMENT needs to choose its
             # cells, and the three arms are what make a cell cost minutes. A screening artifact therefore carries no

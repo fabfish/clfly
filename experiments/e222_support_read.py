@@ -83,8 +83,17 @@ def sweep(directory: Path = RUNS) -> dict[int, list[dict]]:
             continue
         ones = [vals[t] for t in ONE_SIDE]
         hi = max(ones)
+        # the neuron count the cell ran on, from the `circuit` block the runner began writing on 2026-09-26 --
+        # NOT from the analytic block's `n`, which is the REPLICATE count (3), and NOT from
+        # `config.circuit_size`, which is the requested size (800) rather than the circuit's 1307 neurons. Cells
+        # written before that date carry no count at all, and this reader says so rather than guessing: the
+        # support share is then quoted from the run log (`d=1307`) and marked as such.
+        n_neurons = next((b["circuit"].get("n_neurons") for b in
+                          (dd for dd in (d.get("topologies") or {}).values() if isinstance(dd, dict))
+                          if isinstance(b.get("circuit"), dict)), None)
         out.setdefault(int(m.group(1)), []).append(
             {"artifact": path.name, "rewire_seed": (d.get("config") or {}).get("rewire_seed"),
+             "n_neurons": n_neurons,
              "levels": vals, "one_side_mean": sum(ones) / 2, "one_side_ratio": hi / min(ones),
              "top_step": vals["erdos_renyi"] / hi if hi else float("nan")})
     return dict(sorted(out.items()))
@@ -129,8 +138,13 @@ def judge(by_support: dict[int, list[dict]]) -> list[dict]:
 def report(by_support: dict[int, list[dict]]) -> int:
     print("== the support sweep at cs 800 ==")
     for sup, rows in by_support.items():
-        share = sup / NEURONS[800]
-        print(f"   support {sup} ({share:.1%} of the {NEURONS[800]} neurons):")
+        n_neurons = next((r["n_neurons"] for r in rows if r["n_neurons"]), None)
+        if n_neurons:
+            print(f"   support {sup} ({sup / n_neurons:.2%} of the {n_neurons} neurons its artifacts record):")
+        else:
+            print(f"   support {sup} (SHARE NOT READABLE -- no artifact of this family records the neuron count; "
+                  f"the count is quoted from the run log and the share computed from it):")
+            print(f"      quoted: {NEURONS[800]} neurons at cs 800, so {sup}/{NEURONS[800]} = {sup / NEURONS[800]:.2%}")
         for d in sorted(rows, key=lambda r: r["rewire_seed"] if r["rewire_seed"] is not None else -1):
             lv = d["levels"]
             print(f"      seed {d['rewire_seed']}: alloy1 {lv['alloy1']:.5f}  inalloy1 {lv['inalloy1']:.5f}  "
@@ -140,7 +154,7 @@ def report(by_support: dict[int, list[dict]]) -> int:
         tops = [d["top_step"] for d in rows]
         print(f"      one-side mean range {min(means):.5f}-{max(means):.5f} "
               f"(ratio {max(means) / max(min(means), 1e-12):.2f}x), top step {min(tops):.2f}x-{max(tops):.2f}x")
-    share80 = 80 / NEURONS[800]
+    share80 = 80 / NEURONS[800] if NEURONS.get(800) else float("nan")
     print(f"\n   and the convention's own support, quoted from the artifacts that measured it: ")
     print(f"      support 80 ({share80:.1%} of the neurons): alloy1 {REFERENCE_80['alloy1']:.5f}, "
           f"inalloy1 {REFERENCE_80['inalloy1']:.5f}, erdos_renyi {REFERENCE_80['erdos_renyi']:.5f}   "

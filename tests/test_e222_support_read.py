@@ -68,3 +68,20 @@ def test_the_reference_support_is_quoted_and_not_recomputed(tmp_path):
     support(tmp_path, 160, [(0.05, 0.05, 0.15), (0.05, 0.05, 0.15)])
     got = e222.sweep(tmp_path)
     assert set(got) == {20, 160}
+
+def test_the_share_is_read_from_the_circuit_block_or_declared_unreadable(tmp_path):
+    """The neuron count is the quantity the support-share question turns on, and this family began recording it
+    only on 2026-09-26 -- so the reader must read it where it exists and SAY it cannot where it does not, rather
+    than taking the analytic block's `n` (the replicate count, 3) or `config.circuit_size` (the requested 800)."""
+    support(tmp_path, 20, [(0.09, 0.08, 0.16), (0.09, 0.08, 0.16)])
+    support(tmp_path, 160, [(0.05, 0.05, 0.15), (0.05, 0.05, 0.15)])
+    rows = e222.sweep(tmp_path)
+    assert all(r["n_neurons"] is None for r in rows[20]), "the fixture writes no circuit block"
+    # and with one present it is used
+    p = tmp_path / "e221_support20_rs0.json"
+    d = json.loads(p.read_text(encoding="utf-8"))
+    for block in d["topologies"].values():
+        block["circuit"] = {"n_neurons": 1307, "n_edges": 26568, "targets_changed": 0.98}
+    p.write_text(json.dumps(d), encoding="utf-8")
+    rows = e222.sweep(tmp_path)
+    assert [r["n_neurons"] for r in rows[20]] == [1307, None], rows[20]
