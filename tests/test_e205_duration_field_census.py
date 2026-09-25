@@ -104,7 +104,10 @@ def test_a_declared_runner_that_does_not_derive_is_counted_as_a_violation(tmp_pa
     res = e205.census(tmp_path)
     w = res["no_duration"][0]
     assert w["declared"] == "e136_geometry_persistence.py" and not w["declared_agrees"]
-    assert e205.report(res) == 1, "a gap declared to the wrong writer is one violation and nothing else"
+    # the verdict also counts what the LIVE source tree contributes (a raw duration read somewhere else), so the
+    # expectation is stated relative to it rather than as a constant -- the first version of this test asserted
+    # `== 1` and broke when a new module read the key, which is the coupling this comment exists to record
+    assert e205.report(res) == 1 + len(res["outside_helper"]), "the declared disagreement is the one counted here"
 
 def test_the_third_spelling_lives_one_level_down_and_the_scan_descends_into_blocks():
     """The defect this module committed on its own first run: it declared `summary.time_s` a near-miss to inspect
