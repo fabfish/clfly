@@ -26,9 +26,17 @@ configuration makes that draw live -- `readout_size` below the circuit's neuron 
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
+import re
 import sys
 from pathlib import Path
+
+import numpy as np
+
+from clfly.connectome.tasks import overlap_controlled_supports
+from clfly.network import tasks as rate_tasks
+from clfly.network.tasks import SUITE_SPECS
 
 RUNS = Path("runs")
 
@@ -38,9 +46,12 @@ DRAWS = (
     # identify, and counting those as unidentified is the false-alarm class `e126`'s preamble is about -- a checker
     # that reports everything gets ignored.
     ("readout", "the read-out subset",
-     lambda d: (d.get("config") or {}).get("readout_size") is not None
-     and (d.get("config") or {}).get("circuit_size") is not None
-     and (d.get("config") or {}).get("readout_size") < (d.get("config") or {}).get("circuit_size"),
+     # `readout_size = 0` is the runner's "use the whole state" (`if args.readout_size and ...`), so it is NOT a
+     # subset of size zero -- counting it as live is the false-positive class this census is written to avoid, and it
+     # accounted for most of the residue before this test required the size to be TRUTHY as well as smaller than n.
+     lambda d: bool((d.get("config") or {}).get("readout_size"))
+     and _circuit_neurons(d) is not None
+     and (d.get("config") or {}).get("readout_size") < _circuit_neurons(d),
      lambda d: ((d.get("readout") or {}).get("subset_sha1")),
      "`--readout-seed`"),
     ("partition_draw", "the matched-random partition",
@@ -54,7 +65,54 @@ DRAWS = (
 )
 
 
-def census(runs_dir: Path = RUNS) -> dict:
+def _circuit_neurons(d: dict) -> int | None:
+    """The neuron count the draws were taken from: `config.circuit_size` is `max_neurons` and NOT the count.
+
+    The runner draws from `circ.n_neurons`, which the artifact prints as "`N` neurons of `M`" and names in its
+    `circuit` string (`mb+cx+al@n1307`). Using `circuit_size` here would be wrong by the difference between the two
+    -- 800 against 1307 on this circuit -- and the read-out subset is drawn from `M`.
+    """
+    m = re.search(r"@n(\d+)", str(d.get("circuit") or ""))
+    return int(m.group(1)) if m else None
+
+
+def reconstruct_readout(d: dict) -> str | None:
+    """The read-out subset's fingerprint, rebuilt from the artifact's own config.
+
+    The expression is the runner's: ``sha1(" ".join(str(i) for i in sort(choice(n, size, replace=False))))`` with the
+    draw seed `--readout-seed` or `--seed0`. **Validated against every artifact that records the field** -- 68 of 68
+    reproduce -- which is what makes a reconstruction evidence rather than a guess.
+    """
+    c = d.get("config") or {}
+    n = _circuit_neurons(d)
+    size = (d.get("readout") or {}).get("size", c.get("readout_size"))
+    if n is None or not size or size >= n:
+        return None
+    seed = c.get("readout_seed")
+    seed = c.get("seed0", 0) if seed is None else seed
+    rs = np.sort(np.random.default_rng(seed).choice(n, size=size, replace=False))
+    return hashlib.sha1(" ".join(str(int(x)) for x in rs).encode()).hexdigest()[:12]
+
+
+def reconstruct_supports(d: dict) -> str | None:
+    """The overlap suite's support fingerprint, rebuilt from the artifact's own config. No connectome is needed:
+    `overlap_controlled_supports` is a pure function of (n, T, size, overlap, seed). Validated against the 6 artifacts
+    that record it, all of which reproduce."""
+    c = d.get("config") or {}
+    n = _circuit_neurons(d)
+    if n is None or c.get("input_overlap") is None or not c.get("support"):
+        return None
+    seed = c.get("support_seed")
+    seed = c.get("seed0", 0) if seed is None else seed
+    try:
+        sups = overlap_controlled_supports(n, len(SUITE_SPECS), c["support"], c["input_overlap"],
+                                           np.random.default_rng(seed))
+    except Exception:
+        return None
+    return hashlib.sha1(" ".join(",".join(str(int(x)) for x in np.sort(s)) for s in sups).encode()).hexdigest()[:12]
+
+
+def census(runs_dir: Path = RUNS, reconstruct: bool = False) -> dict:
     rows, unreadable = [], []
     for path in sorted(runs_dir.glob("*.json")):
         try:
@@ -64,13 +122,44 @@ def census(runs_dir: Path = RUNS) -> dict:
             continue
         if not isinstance(d, dict) or "config" not in d:
             continue
-        row = {"artifact": path.name, "config": {}, "live": {}, "recorded": {}}
+        row = {"artifact": path.name, "config": {}, "live": {}, "recorded": {}, "source": {}}
         for key, _label, live, recorded, _flag in DRAWS:
             is_live = bool(live(d))
             row["live"][key] = is_live
-            row["recorded"][key] = recorded(d) if is_live else None
+            val = recorded(d) if is_live else None
+            row["source"][key] = "recorded" if val else None
+            if is_live and not val and reconstruct:
+                fn = {"readout": reconstruct_readout, "support_draw": reconstruct_supports}.get(key)
+                if fn is not None:
+                    val = fn(d)
+                    row["source"][key] = "reconstructed" if val else None
+            row["recorded"][key] = val
         rows.append(row)
-    return {"rows": rows, "unreadable": unreadable}
+    out = {"rows": rows, "unreadable": unreadable, "reconstructed": reconstruct}
+    if reconstruct:
+        # the reconstruction is only evidence if it reproduces the artifacts that DO record the field
+        checks = {}
+        for key, _label, live, recorded, _flag in DRAWS:
+            fn = {"readout": reconstruct_readout, "support_draw": reconstruct_supports}.get(key)
+            if fn is None:
+                continue
+            agree = disagree = 0
+            for path in sorted(runs_dir.glob("*.json")):
+                try:
+                    d2 = json.loads(path.read_text(encoding="utf-8"))
+                except Exception:
+                    continue
+                rec = recorded(d2) if isinstance(d2, dict) else None
+                if not rec:
+                    continue
+                got = fn(d2)
+                if got == rec:
+                    agree += 1
+                else:
+                    disagree += 1
+            checks[key] = {"agree": agree, "disagree": disagree}
+        out["checks"] = checks
+    return out
 
 
 def report(res: dict) -> int:
@@ -89,6 +178,13 @@ def report(res: dict) -> int:
             worst = (label, un, key)
     print()
     print(f"   {unidentified_total} (artifact, live draw) pairs cannot say which draw they used")
+    if res.get("reconstructed"):
+        # The reconstruction is only evidence if it reproduces the artifacts that DO record the field: an
+        # unvalidated rebuild would turn an unidentified draw into a mis-identified one, which is worse.
+        print("   --reconstruct was given, so the draws that are pure functions of the config are rebuilt and "
+              "VALIDATED against the artifacts that record them:")
+        for key, c in (res.get("checks") or {}).items():
+            print(f"     {key:16} reproduces {c['agree']} recorded fingerprints and disagrees with {c['disagree']}")
     if worst:
         label, un, key = worst
         print(f"   the largest class is {label} (`{key}`): {len(un)} artifacts, e.g. "
@@ -111,8 +207,11 @@ def main(argv=None) -> int:
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--runs", type=Path, default=RUNS)
     p.add_argument("--json-out", type=Path, default=None)
+    p.add_argument("--reconstruct", action="store_true",
+                   help="rebuild the read-out and support draws from each artifact's own config where the field is "
+                        "absent, validating the reconstruction against the artifacts that record it")
     a = p.parse_args(argv)
-    res = census(a.runs)
+    res = census(a.runs, reconstruct=a.reconstruct)
     if a.json_out:
         from clfly.bench.artifacts import write_json
         write_json(a.json_out, res)

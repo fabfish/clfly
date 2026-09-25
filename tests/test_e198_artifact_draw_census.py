@@ -17,16 +17,20 @@ def test_a_draw_is_live_only_when_the_configuration_makes_it_so(tmp_path):
     read out from EVERY neuron has no subset to identify, an artifact without an overlap suite has no support draw,
     and an artifact without a `*-rand` arm has no partition draw."""
     d = tmp_path / "runs"
-    # read out from the whole circuit: no subset draw exists
-    full = artifact(d / "full.json", {"circuit_size": 800, "readout_size": 800})
+    # read out from the WHOLE state: `readout_size` 0 is falsy in the runner, so no subset is drawn
+    full = artifact(d / "full.json", {"circuit_size": 800, "readout_size": 0, "seed0": 0},
+                    circuit="mb+cx+al@n1307")
     # a subset: the draw is live and unidentified
-    sub = artifact(d / "sub.json", {"circuit_size": 800, "readout_size": 32})
+    sub = artifact(d / "sub.json", {"circuit_size": 800, "readout_size": 32, "seed0": 0},
+                   circuit="mb+cx+al@n1307")
     # an overlap suite: the support draw is live even without any readout key
-    ovl = artifact(d / "ovl.json", {"circuit_size": 800, "input_overlap": 0.5})
+    ovl = artifact(d / "ovl.json", {"circuit_size": 800, "input_overlap": 0.5, "seed0": 0},
+                   circuit="mb+cx+al@n1307")
     # a rand arm: the partition draw is live
-    rnd = artifact(d / "rnd.json", {"circuit_size": 800, "methods": "naive,ewc-block-rand"})
+    rnd = artifact(d / "rnd.json", {"circuit_size": 800, "methods": "naive,ewc-block-rand", "seed0": 0},
+                   circuit="mb+cx+al@n1307")
     rows = {r["artifact"]: r for r in e198.census(d)["rows"]}
-    assert rows["full.json"]["live"]["readout"] is False, "the whole circuit is not a subset draw"
+    assert rows["full.json"]["live"]["readout"] is False, "readout_size 0 is the whole state, not a subset"
     assert rows["sub.json"]["live"]["readout"] is True
     assert rows["sub.json"]["recorded"]["readout"] is None
     assert rows["ovl.json"]["live"]["support_draw"] is True
@@ -60,3 +64,50 @@ def test_the_live_census_reproduces_e168s_count_on_the_real_corpus():
     un = [r for r in res["rows"] if r["live"]["partition_draw"] and not r["recorded"]["partition_draw"]]
     assert len(un) == 31, f"e168 published 31; this census counts {len(un)}"
     assert any(r["live"]["support_draw"] for r in res["rows"]), "the overlap family should be present"
+
+
+def test_the_reconstruction_reproduces_every_recorded_fingerprint():
+    """The reconstruction is evidence only because it is validated: a rebuild that did not reproduce the artifacts
+    which DO record the field would turn an unidentified draw into a mis-identified one, which is worse than leaving
+    it unknown. Both draws' reconstructions are checked against the real corpus, and both must be unanimous."""
+    import json as _json
+    from pathlib import Path as _P
+    for key, fn, field in (("readout", e198.reconstruct_readout, lambda d: (d.get("readout") or {}).get("subset_sha1")),
+                           ("support_draw", e198.reconstruct_supports,
+                            lambda d: (d.get("support_draw") or {}).get("fingerprint_sha1"))):
+        agree = disagree = 0
+        for p in sorted(_P("runs").glob("*.json")):
+            try:
+                d = _json.loads(p.read_text(encoding="utf-8"))
+            except Exception:
+                continue
+            rec = field(d) if isinstance(d, dict) else None
+            if not rec:
+                continue
+            if fn(d) == rec:
+                agree += 1
+            else:
+                disagree += 1
+        if agree == 0:
+            return  # no artifacts of this family in this checkout
+        assert disagree == 0, f"{key}: reconstruction disagreed with {disagree} recorded fingerprints"
+        assert agree >= 6, (key, agree)
+
+
+def test_a_zero_readout_size_is_the_whole_state_and_not_a_subset_draw(tmp_path):
+    """`0` is falsy in the runner, so `readout_size = 0` means "use the whole state" and no subset is drawn -- counting
+    it as a subset of size zero reported 27 artifacts as having an unidentified draw that does not exist."""
+    d = tmp_path / "runs"
+    artifact(d / "whole.json", {"circuit_size": 800, "readout_size": 0,
+                                "seed0": 0, "methods": "naive"}, circuit="mb+cx+al@n1307")
+    artifact(d / "subset.json", {"circuit_size": 800, "readout_size": 32,
+                                 "seed0": 0, "methods": "naive"}, circuit="mb+cx+al@n1307")
+    rows = {r["artifact"]: r for r in e198.census(d)["rows"]}
+    assert rows["whole.json"]["live"]["readout"] is False, "0 is the whole state, not a size-zero subset"
+    assert rows["subset.json"]["live"]["readout"] is True
+    # and the reconstruction needs the circuit's neuron count, which comes from the circuit string and not
+    # from circuit_size (800 here against the real 1307)
+    assert e198._circuit_neurons({"circuit": "mb+cx+al@n1307"}) == 1307
+    assert e198._circuit_neurons({"circuit": None}) is None
+    assert e198.reconstruct_readout({"config": {"readout_size": 32, "seed0": 0},
+                                     "readout": {"size": 32, "draw_seed": 0}}) is None, "no n, no reconstruction"
