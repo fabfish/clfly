@@ -113,6 +113,6 @@ be invisible to it. That is the same limit `e182` measured on the prose side, fr
 
 ```
 uv run python -m experiments.e127_programme_table_audit              # A 0, B 0, C 0 of 111 rows, D 0, E 0
-uv run python -m experiments.e127_programme_table_audit --json-out runs/e127_table_audit.json
+uv run python -m experiments.e127_programme_table_audit --json-out ONE_PATH.json
 uv run pytest tests/test_e127_programme_table_audit.py -q
 ```
