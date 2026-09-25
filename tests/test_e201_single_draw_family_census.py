@@ -91,3 +91,49 @@ def test_the_linear_lines_draws_are_seed0_seeds_and_control_draws(tmp_path):
     art(d3 / "e905_b.json", circuit_size=800, readout_size=32, seed0=0, repeats=40, methods="naive")
     rows3 = {r["family"]: r for r in e201.census(d3)["families"]}
     assert rows3["e905"]["averaging"] == [], rows3["e905"]["averaging"]
+
+
+def test_the_null_model_rewiring_is_a_draw_and_not_a_manipulation(tmp_path):
+    """`rewire_seed` chooses the rewiring a topology control is built from, so a family that varies it is measuring a
+    DRAW -- and the corpus carries it in 26 artifacts (`e32`/`e33`/`e65`). A handwritten field list omitted it, which
+    made those families look like "replicates" and hid the one family type that answers this census's question; and
+    the fix has to reach `draw_keys` too, since a field in the list but not in the tuple leaves len(draws) == 1."""
+    d = tmp_path / "runs"
+    art(d / "e906_a.json", circuit_size=800, support=80, rewire_seed=0, topology="shuffled")
+    art(d / "e906_b.json", circuit_size=800, support=80, rewire_seed=1, topology="shuffled")
+    rows = {r["family"]: r for r in e201.census(d)["families"]}
+    assert rows["e906"]["verdict"] == "DRAW ONLY", rows["e906"]
+    assert "rewire_seed" in rows["e906"]["varies"], rows["e906"]
+    assert set(e201.draw_keys(json.loads((d / "e906_a.json").read_text(encoding="utf-8")))) != \
+        set(e201.draw_keys(json.loads((d / "e906_b.json").read_text(encoding="utf-8")))), \
+        "the rewire component must reach draw_keys, not only the field list"
+
+
+def test_a_key_holding_a_path_string_is_not_a_draw(tmp_path):
+    """The rule over the corpus's vocabulary has to exclude `matching_seeds`, which is a path and not a seed."""
+    d = tmp_path / "runs"
+    art(d / "e907_a.json", circuit_size=800, matching_seeds="runs/e116_a.json")
+    art(d / "e907_b.json", circuit_size=800, matching_seeds="runs/e116_b.json")
+    res = e201.census(d)
+    rows = {r["family"]: r for r in res["families"]}
+    # it IS a difference between the two artifacts, and it counts as a DESIGN input rather than a draw
+    assert "matching_seeds" in rows["e907"]["manipulations"], rows["e907"]
+    assert "matching_seeds" not in res["draw_fields"], res["draw_fields"]
+    assert res["draw_fields"] == [], "the only seed-like key here holds a path, so this corpus has no draw field"
+
+
+def test_the_live_census_names_the_families_that_deliberately_measure_a_draw():
+    """The four DRAW ONLY families are the corpus's own draw measurements -- the rewiring's (`e32`/`e33`/`e65`) and the
+    read-out's (`e117`) -- and a reader asking "has this draw ever been varied?" can now read the answer off the
+    census instead of believing a claim like the one `e199`'s registration got wrong."""
+    res = e201.census(Path("runs"))
+    if not res["families"]:
+        return
+    only = {r["family"] for r in res["families"] if r["verdict"] == "DRAW ONLY"}
+    assert {"e32", "e33", "e65", "e117"} <= only, (only, "e32/e33/e65 vary rewire_seed and e117 varies readout_seed")
+    singles = [r for r in res["families"] if r["verdict"] == "SINGLE-DRAW"]
+    assert sum(r["n_artifacts"] for r in singles) == 187, sum(r["n_artifacts"] for r in singles)
+    # the rule is derived from the corpus's own vocabulary, and on the real corpus it names exactly six keys --
+    # including the two a handwritten list was missing
+    assert set(res["draw_fields"]) == {"readout_seed", "support_seed", "partition_seed", "rewire_seed",
+                                       "seed_b", "seed_step"}, res["draw_fields"]

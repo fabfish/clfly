@@ -40,11 +40,38 @@ from experiments.e198_artifact_draw_census import _circuit_neurons
 
 RUNS = Path("runs")
 
-#: The config fields that NAME a draw. A family's draws are compared by (seed, neuron count, size) as in `e200`,
-#: because a fingerprint bundles the draw with the manipulation.
-DRAW_FIELDS = ("readout_seed", "support_seed", "partition_seed")
+#: The keys that are the BASE and the COUNT of a draw set rather than draws themselves: `seed0` is 0 in every artifact
+#: in the corpus, and `seeds` is how many task draws a linear run averages -- which `draw_keys` handles as its own
+#: component.
+SEED_LIKE_NOT_DRAWS = ("seed0", "seeds")
 
-#: Config fields that are bookkeeping and never part of a design or a manipulation.
+
+def draw_fields(configs) -> tuple:
+    """The config fields that NAME a draw, derived from the corpus's own vocabulary rather than listed by hand.
+
+    A hand-written list was wrong twice in one evening: it missed the linear line entirely (whose draws are
+    `seed0`/`seeds`/`control_draws`, so 3- and 18-seed ladders looked "single-draw") and it missed `rewire_seed`, which
+    the null-model families `e32`/`e33`/`e65` vary across 26 artifacts -- and because `draw_keys` builds its tuple from
+    components it names, a field in the list but not the tuple still leaves one draw. So the rule is:
+
+        a key whose name contains "seed" and whose values are ALL integers or None is a draw,
+
+    with `seed0` and `seeds` excluded as the base and the count of a draw set. `matching_seeds` holds a path string and
+    is therefore not a draw -- it is a design input, and a family varying it is a manipulation family. A future line
+    naming its flag something else is still invisible, which is the honest limit of a rule over a vocabulary.
+    """
+    seen: dict[str, list] = {}
+    for c in configs:
+        for k, v in c.items():
+            if "seed" in k.lower() and k not in SEED_LIKE_NOT_DRAWS:
+                seen.setdefault(k, []).append(v)
+    out = []
+    for k in sorted(seen):
+        if all(v is None or (isinstance(v, (int, float)) and not isinstance(v, bool)) for v in seen[k]):
+            out.append(k)
+    return tuple(out)
+
+
 IGNORED = ("json_out", "seed0", "repeats")
 
 
@@ -74,6 +101,11 @@ def draw_keys(d: dict) -> tuple:
         out.append(("tasks", c.get("seed0", 0), c.get("seeds")))
     if c.get("control_draws") is not None:
         out.append(("control", c.get("seed0", 0), c.get("control_draws")))
+    # And the NULL-MODEL draw: `rewire_seed` chooses the rewiring a topology control is built from, so a family that
+    # varies it is varying a draw and not a manipulation -- `e32`/`e33`/`e65` vary it across 26 artifacts and were
+    # being called "replicates", which hides the one family type that measures a draw.
+    if c.get("rewire_seed") is not None:
+        out.append(("rewire", c.get("seed0", 0), c.get("rewire_seed")))
     return tuple(out)
 
 
@@ -114,6 +146,8 @@ def census(runs_dir: Path = RUNS) -> dict:
         if not isinstance(d, dict) or "config" not in d:
             continue
         fams.setdefault(family_of(path), []).append((path.name, d))
+    # the draw fields are derived from THIS corpus's vocabulary, so the rule and the run agree
+    fields = draw_fields([dict(m[1].get("config") or {}) for ms in fams.values() for m in ms])
     rows = []
     for key, members in fams.items():
         if len(members) < 2:
@@ -122,7 +156,7 @@ def census(runs_dir: Path = RUNS) -> dict:
         varying = sorted({k for k in set().union(*[set(c) for c in cfg]) if k not in IGNORED
                           and len({str(c.get(k)) for c in cfg}) > 1})
         draws = {draw_keys(m[1]) for m in members}
-        manipulations = [k for k in varying if k not in DRAW_FIELDS]
+        manipulations = [k for k in varying if k not in fields]
         avg = sorted({averaging(m[1]) for m in members} - {""})
         rows.append({
             "averaging": avg,
@@ -140,7 +174,8 @@ def census(runs_dir: Path = RUNS) -> dict:
                         else "REPLICATED ACROSS DRAWS" if len(draws) > 1 else "SINGLE-DRAW"),
         })
     rows.sort(key=lambda r: (-r["n_artifacts"], r["family"]))
-    return {"families": rows, "n_artifacts": sum(r["n_artifacts"] for r in rows)}
+    return {"families": rows, "n_artifacts": sum(r["n_artifacts"] for r in rows),
+            "draw_fields": list(fields)}
 
 
 def report(res: dict) -> int:
