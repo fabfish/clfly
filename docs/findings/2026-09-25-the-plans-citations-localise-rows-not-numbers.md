@@ -55,6 +55,19 @@ that a run's projection and an in-place agreement live there — and the paper's
   numbers in order to correct them, so presence is necessary and not sufficient. Nothing here says the plan's 276
   "elsewhere" numbers are wrong; it says their citations do not point at them.
 
+## 4. And the instrument is silenced by its own write-up, measured
+
+The two members above are quoted **in this document**, and that changes the next run of the audit: re-running it on the
+plan now reports **0** in the strictest class rather than 2, because the sentence that cites this finding contains
+`1.5e-9` and `40.5` and this finding carries them. The class was not resolved; it was *documented*, and a document is
+what the audit reads.
+
+That is the second time this session that an audit's own report moved its own count — `e184`'s single uncited file was
+cited by the finding that reported it, and the count printed afterwards is 0 where the table says 1 — so it is now
+**rule 50**: *an audit whose subject is "does document A carry number N" is silenced by its own write-up; freeze the
+flagged set at the time of the run (`--json-out`), and read a re-run as a measurement of the write-up.* The table in §1
+is the frozen set; the two members in §2 are quoted so that the record survives the silencing.
+
 ## Reproduce
 
 ```
