@@ -89,7 +89,23 @@ BAND_CLAIMS = (
     ("Q3", "the head's value stays in a band of half a unit",
      "The **span of the peak's excess across the three draw sets** is **below 0.5**",
      "falsifier: a span at or above **1.0**; null: between 0.5 and 1.0"),
+    ("Q4", "the MATCHED advantage holds at its bar, four for four",
+     "`bio:pool4`'s excess exceeds `rand:pool4`'s by **at least 0.5** at draw set 300",
+     "falsifier: at or below **0.2**, i.e. the matched advantage has collapsed and the third draw set's 0.014 "
+     "margin was the edge of a fall; null: 0.2-0.5"),
+    ("Q5", "the unmatched statement does not come back",
+     "The peak's lead over the best `rand:` rung of any size is **below 0.2** at draw set 300",
+     "falsifier: at or above **0.5**, which would revive the height-based statement in the opposite direction; "
+     "null: 0.2-0.5"),
+    ("Q6", "the biological rungs still hold the top of the table",
+     "At least **5 of the top 8** rungs are biological at draw set 300",
+     "falsifier: **3 or fewer**, which would make the top of the table a random-rung regime and put the third draw "
+     "set's 5 on a trajectory rather than at a level; null: exactly 4"),
 )
+
+#: Q4-Q6 are stated AT the fourth draw set, so they are refused until four tables are given -- the same admission rule
+#: the rest of this reader applies, one draw set further on.
+FOURTH_DRAW_CLAIMS = ("Q4", "Q5", "Q6")
 
 #: the mean of `bio:pool4` over draw sets 0 and 100, quoted from the registration, and asserted against the tables
 Q2_PRIOR_MEAN = 2.16987
@@ -167,6 +183,27 @@ def judge_band(tables: dict[str, dict]) -> list[dict]:
     span = max(peaks) - min(peaks)
     out.append({"id": "Q3", "measured": f"the peaks {', '.join(f'{p:.5f}' for p in peaks)} span {span:.5f}",
                 "verdict": "MET" if span < 0.5 else "null band" if span < 1.0 else "FALSIFIER FIRED"})
+    # Q4-Q6 -- the fourth draw set's three claims, each stated AT that draw set, so they are refused until four tables
+    # are given. The boundaries are the registrations', in the direction each was written:
+    last = nums[-1]
+    three_band = (
+        ("Q4", "band_gap", "at least", 0.5, 0.2),
+        ("Q5", "unmatched", "below", 0.2, 0.5),
+        ("Q6", "bio_in_top8", "at least", 5, 3),
+    )
+    for cid, quantity, direction, met, falsifier in three_band:
+        if len(nums) < 4:
+            out.append({"id": cid, "verdict": f"REFUSED -- {cid} is stated at the fourth draw set, "
+                                              f"{len(nums)} given"})
+            continue
+        v = last[quantity]
+        if direction == "at least":
+            verdict = "MET" if v >= met else "FALSIFIER FIRED" if v <= falsifier else "null band"
+        else:
+            verdict = "MET" if v < met else "FALSIFIER FIRED" if v >= falsifier else "null band"
+        shown = f"{v:d}" if isinstance(v, int) else f"{v:+.5f}"
+        out.append({"id": cid, "measured": f"{quantity} {shown} at {last['draw']} (bar {direction} {met})",
+                    "verdict": verdict})
     return out
 
 
@@ -252,7 +289,10 @@ def across(tables: dict[str, dict]) -> None:
     print("   at draw set 100 they point different ways, which is why all three are printed.")
 
     print()
-    print("   == the band's registered claims, Q1-Q3 ==")
+    print("   == the band's registered claims, Q1-Q6 ==")
+    print("   Q1-Q3 are the third draw set's; Q4-Q6 are the fourth's and are REFUSED until four tables are given.")
+    print("   Those refusals are printed and NOT counted: a run that supplies fewer tables is not a defective run,")
+    print("   and the exit code carries the pairwise refusals, which are the ones an absent ARTIFACT produces.")
     for c, row in zip(BAND_CLAIMS, judge_band(tables)):
         print(f"        {row['id']}: {row.get('measured', '')}  -> {row['verdict']}"
               + (f"   ({row['note']})" if row.get("note") else ""))

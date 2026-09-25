@@ -89,7 +89,9 @@ def test_the_band_claims_refuse_until_three_draw_sets_are_given():
     rows = e203.judge_band(two)
     assert all("REFUSED" in r["verdict"] for r in rows), rows
     three = {"a": tab(), "b": tab(bio4=2.1), "c": tab(bio4=2.05)}
-    assert [r["id"] for r in e203.judge_band(three)] == ["Q1", "Q2", "Q3"]
+    rows = e203.judge_band(three)
+    assert [r["id"] for r in rows] == ["Q1", "Q2", "Q3", "Q4", "Q5", "Q6"], rows
+    assert all("REFUSED" in r["verdict"] for r in rows[3:]), rows[3:]
 
 
 def test_q1_is_about_every_random_rung_and_not_the_size_matched_one():
@@ -139,3 +141,64 @@ def test_the_band_gap_is_the_named_rungs_matched_contrast_and_not_the_peaks():
     rows = e203.band_numbers(tabs)
     assert [round(r["band_gap"], 5) for r in rows] == [1.0, 1.0], rows
     assert round(rows[0]["matched"], 5) == 2.1, rows[0]   # the peak is bio:pool8 there, so its control is rand:pool8
+
+def wide(n_bio_in_top8: int) -> dict:
+    """A sixteen-rung table whose top eight holds exactly `n_bio_in_top8` biological rungs, for Q6.
+
+    `rand:` interleaves `bio:` one step behind, which is the 4-of-8 case; the fifth and the second are made by moving
+    one value across the boundary rather than by rebuilding the table.
+    """
+    bio = {f"bio:pool{k}": 1.0 - 0.1 * k for k in range(1, 9)}
+    rnd = {f"rand:pool{k}": 1.0 - 0.1 * k - 0.05 for k in range(1, 9)}
+    if n_bio_in_top8 == 5:
+        bio["bio:pool5"] = 0.62
+    if n_bio_in_top8 == 2:
+        rnd["rand:pool1"] = 1.0
+        for k in range(1, 5):
+            rnd[f"rand:pool{k + 1}"] = 0.98 - 0.05 * k
+    return {**bio, **rnd}
+
+
+def four(a, b, c, d):
+    """Four draw sets in the order the reader is given them: Q4-Q6 are stated at the FOURTH."""
+    return {"s0": a, "s100": b, "s200": c, "s300": d}
+
+
+def test_q4_to_q6_are_the_fourth_draw_sets_three_claims_with_three_bands_each():
+    """Q4 is the claim C2 rests on (the matched gap at the named rung), Q5 is the death of the height-based statement
+    (the peak over the best `rand:` rung of any size), Q6 is the membership count. A registered falsifier that cannot
+    fire is not a test, so each is asserted in its MET band, its null band and its falsifier band."""
+    def at(bio4, rand4, extra=None):
+        return tab(bio4=bio4, rand4=rand4, extra=extra)
+
+    # Q4 -- matched gap 1.0 / 0.45 / 0.10 against bars "at least 0.5" and "at or below 0.2"
+    for bio4, rand4, want in ((2.0, 1.0, "MET"), (2.0, 1.55, "null band"), (2.0, 1.9, "FALSIFIER FIRED")):
+        rows = {r["id"]: r for r in e203.judge_band(four(at(bio4, rand4), at(bio4, rand4),
+                                                         at(bio4, rand4), at(bio4, rand4)))}
+        assert rows["Q4"]["verdict"] == want, (bio4, rand4, rows["Q4"])
+    # Q5 -- the peak over the best rand: rung of ANY size: 0.05 / 0.30 / 0.60 against "below 0.2" and "at or above 0.5"
+    for near, want in ((0.05, "MET"), (0.30, "null band"), (0.60, "FALSIFIER FIRED")):
+        rows = {r["id"]: r for r in e203.judge_band(four(at(2.0, 1.0), at(2.0, 1.0), at(2.0, 1.0),
+                                                         at(2.0, 1.0, {"bio:pool64": 2.0 + near - 0.001,
+                                                                       "rand:pool64": 1.999})))}
+        assert rows["Q5"]["verdict"] == want, (near, rows["Q5"])
+    # Q6 -- the membership count: 5 / 4 / 2 of the top eight
+    for n, want in ((5, "MET"), (4, "null band"), (2, "FALSIFIER FIRED")):
+        rows = {r["id"]: r for r in e203.judge_band(four(wide(n), wide(n), wide(n), wide(n)))}
+        assert rows["Q6"]["verdict"] == want, (n, rows["Q6"])
+
+
+def test_q4_and_q5_are_different_quantities_on_the_same_table():
+    """The whole point of the fourth draw set: a table can hold the matched advantage at its bar while the peak has no
+    lead at all. That is the draw-100 shape, where the peak is `bio:pool8` and the band gap is at the named rung -- so
+    a reader printing one gap would report both statements as the same number."""
+    like_draw100 = tab(bio4=2.0, rand4=1.0, extra={"bio:pool8": 3.0, "rand:pool8": 2.95})
+    rows = {r["id"]: r for r in e203.judge_band(four(like_draw100, like_draw100, like_draw100, like_draw100))}
+    assert rows["Q4"]["verdict"] == "MET", rows["Q4"]            # band gap 1.0
+    assert rows["Q5"]["verdict"] == "MET", rows["Q5"]            # the peak leads the best rand: rung by 0.05
+    assert rows["Q6"]["verdict"] == "FALSIFIER FIRED", rows["Q6"]  # four rungs, so at most two are biological
+    # and the reverse: the peak is far above every rand: rung while the named rung's own control is close behind it
+    peak_alone = tab(bio4=2.0, rand4=1.6, extra={"bio:pool8": 2.5, "rand:pool8": 1.6})
+    rows = {r["id"]: r for r in e203.judge_band(four(peak_alone, peak_alone, peak_alone, peak_alone))}
+    assert rows["Q4"]["verdict"] == "null band", rows["Q4"]        # band gap 0.4, inside the null 0.2-0.5
+    assert rows["Q5"]["verdict"] == "FALSIFIER FIRED", rows["Q5"]  # the peak leads the best rand: rung by 0.9
