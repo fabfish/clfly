@@ -99,6 +99,16 @@ def run(args) -> dict:
         agg = {"geometry": {k: float(np.mean([task_geometry(s, r)[k]
                                               for s, r in zip(seqs, ranks)]))
                             for k in task_geometry(seqs[0], ranks[0])}}
+        if args.geometry_only:
+            # The screening path: the geometry block is what a design that samples BY ALIGNMENT needs to choose its
+            # cells, and the three arms are what make a cell cost minutes. A screening artifact therefore carries no
+            # `analytic` arm at all -- which also keeps it out of `e207`'s join, where a cell without a penalty is
+            # not a cell.
+            out["topologies"][topology] = agg
+            print(f"      geometry only: alignment {agg['geometry']['all_pairs_alignment']:.5f} "
+                  f"({agg['geometry']['all_pairs_alignment'] / agg['geometry']['chance_alignment']:.2f}x chance)"
+                  f"  ({time.time()-t0:.0f}s)")
+            continue
         for name, b in bases.items():
             # The realized arm is a single trajectory per seed and costs about half the runtime;
             # the analytic estimator supersedes it everywhere a conclusion is drawn, so it is
@@ -191,6 +201,10 @@ def main(argv=None) -> int:
     p.add_argument("--no-realized", action="store_true",
                    help="skip the realized-error arm; the analytic estimator supersedes it "
                         "everywhere a conclusion is drawn and the arm costs about half the runtime")
+    p.add_argument("--geometry-only", action="store_true",
+                   help="write only the `geometry` block, skipping all three arms: the screening path for a design "
+                        "that selects cells BY ALIGNMENT rather than by swap strength (see `e209`). A cell measured "
+                        "this way carries no penalty and is therefore not a cell of `e207`'s join")
     args = p.parse_args(argv)
     args.topologies = tuple(t for t in args.topologies.split(",") if t)
 
