@@ -114,9 +114,12 @@ def band_numbers(tables: dict[str, dict]) -> list[dict]:
         rands = [(b, v) for b, v in ranked if b.startswith("rand:")]
         best_rand = rands[0] if rands else (None, float("nan"))
         matched = t.get("rand:" + peak.split(":", 1)[-1], float("nan"))
+        # P3's quantity at the NAMED rung rather than at the peak: the band claim C2 rests on is this one, and a
+        # reader that printed only the peak's matched gap would be printing the neighbouring quantity again
+        band_gap = (t.get("bio:pool4", float("nan")) - t.get("rand:pool4", float("nan")))
         out.append({"draw": name, "peak": peak, "peak_v": peak_v, "best_rand": best_rand[0],
                     "best_rand_v": best_rand[1], "unmatched": peak_v - best_rand[1],
-                    "matched": peak_v - matched,
+                    "matched": peak_v - matched, "band_gap": band_gap,
                     "bio_in_top8": sum(1 for b, _ in ranked[:8] if b.startswith("bio:"))})
     return out
 
@@ -236,15 +239,17 @@ def across(tables: dict[str, dict]) -> None:
           f"(Q3's bar: below 0.5; falsifier at or above 1.0)")
 
     print()
-    print("   == per draw set, the two gaps the band claims are about ==")
+    print("   == per draw set, the three gaps the band claims are about ==")
     print(f"   {'draw set':<26}{'peak':<14}{'value':>9}{'best rand:':>14}{'value':>9}"
-          f"{'unmatched':>11}{'matched':>9}{'bio/8':>7}")
+          f"{'unmatched':>11}{'matched':>9}{'band gap':>10}{'bio/8':>7}")
     for n in band_numbers(tables):
         print(f"   {n['draw']:<26}{n['peak']:<14}{n['peak_v']:>9.5f}{str(n['best_rand']):>14}"
-              f"{n['best_rand_v']:>9.5f}{n['unmatched']:>+11.5f}{n['matched']:>+9.5f}{n['bio_in_top8']:>4} of 8")
+              f"{n['best_rand_v']:>9.5f}{n['unmatched']:>+11.5f}{n['matched']:>+9.5f}"
+              f"{n['band_gap']:>+10.5f}{n['bio_in_top8']:>4} of 8")
     print("   `unmatched` is the peak against the best `rand:` rung of ANY size (Q1's quantity); `matched` is the")
-    print("   lead over the peak rung's own size-matched control (P3's quantity). They are different statements and")
-    print("   at draw set 100 they point different ways, which is why both are printed.")
+    print("   lead over the peak rung's own size-matched control; `band gap` is `bio:pool4` - `rand:pool4`, which"
+          " is P3's quantity at the NAMED rung and the one C2 rests on. Three different statements, and")
+    print("   at draw set 100 they point different ways, which is why all three are printed.")
 
     print()
     print("   == the band's registered claims, Q1-Q3 ==")

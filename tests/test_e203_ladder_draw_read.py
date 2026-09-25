@@ -128,3 +128,14 @@ def test_q3_is_the_span_of_the_peak_and_not_of_a_named_rung():
     # the first version of this test wrote 2.6 expecting a firing, and the reader said `null band`
     moved = {"a": tab(bio4=2.0, bio8=1.9), "b": tab(bio8=3.2), "c": tab(bio4=2.0)}
     assert {r["id"]: r for r in e203.judge_band(moved)}["Q3"]["verdict"] == "FALSIFIER FIRED"
+
+def test_the_band_gap_is_the_named_rungs_matched_contrast_and_not_the_peaks():
+    """The third quantity: `bio:pool4` - `rand:pool4` at every draw set, which is P3s bar carried across the draws and
+    the claim C2 rests on. The peak's own matched gap is a different number whenever the peak is not pool4 -- at draw
+    set 100 it is +1.27079 against the band gap's +0.72123 -- and printing only one of them is the defect this reader
+    was just repaired for."""
+    tabs = {"a": {"bio:pool4": 2.0, "rand:pool4": 1.0, "bio:pool8": 3.0, "rand:pool8": 0.9},
+            "b": {"bio:pool4": 2.1, "rand:pool4": 1.1, "bio:pool8": 2.9, "rand:pool8": 0.9}}
+    rows = e203.band_numbers(tabs)
+    assert [round(r["band_gap"], 5) for r in rows] == [1.0, 1.0], rows
+    assert round(rows[0]["matched"], 5) == 2.1, rows[0]   # the peak is bio:pool8 there, so its control is rand:pool8
