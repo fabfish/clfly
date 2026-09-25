@@ -93,6 +93,83 @@ def load(path: Path) -> dict:
     return json.loads(Path(path).read_text(encoding="utf-8"))
 
 
+#: The bars the level-by-level read checks, taken from the registered design of the intermediate levels rather
+#: than restated: on `naive` the 0 -> 1 forgetting rise is +0.0318 (2.99 sigma) and the registered P1 says the
+#: value at achieved 0.3333 is closer to the 1.0 end than to the 0.0 end, i.e. more than half of that.
+DOSE_HALF_DONE = 0.0159
+#: What a target `--input-overlap` achieves as a Jaccard overlap, for the circuit the network runs use. Carried
+#: here as well as in `e191` because both reads print it beside a level and a reader should not have to know which
+#: file holds the table; both carry the same caveat -- it is a property of `mb+cx+al@n1307`, three tasks of 80
+#: neurons, seed 0.
+ACHIEVED_OVERLAP = {0.0: 0.0000, 0.25: 0.1429, 0.5: 0.3333, 0.75: 0.6000, 1.0: 1.0000}
+
+
+def dose_read(levels: list[Path], baseline: Path = Path("runs/e140_r32_methods_plastic_40reps.json")) -> dict:
+    """Each intermediate level against the disjoint baseline, arm by arm, on the accuracy drop AND the accuracy.
+
+    The same design `e191` reads on the interference account, on the two quantities `e188`'s two-point contrast was
+    measured with -- so the dose-response can be read on whichever account the question is asked in, and the two can
+    disagree without either being a mistake (they are different quantities with different sems).
+    """
+    base = load(baseline) if Path(baseline).is_file() else None
+    rows = []
+    for level in levels:
+        if not Path(level).is_file():
+            rows.append({"level": Path(level).name, "status": "not written yet"})
+            continue
+        d = load(level)
+        target = (d.get("config") or {}).get("input_overlap")
+        out = {"level": Path(level).name, "target_overlap": target,
+               "achieved_overlap": ACHIEVED_OVERLAP.get(target), "arms": {}}
+        if base is None:
+            out["status"] = "baseline missing"
+            rows.append(out)
+            continue
+        for method in sorted(set(base.get("methods", {})) & set(d.get("methods", {}))):
+            a, b = load_arm(baseline, method), load_arm(level, method)
+            if a is None or b is None or a["n"] != b["n"]:
+                continue
+            entry = {"n": a["n"], "differs_in": sorted(differing_fields(base["config"], d["config"]))}
+            pf = paired(b["forgetting"], a["forgetting"])
+            entry["forgetting"] = {"change": pf["change"], "sem": pf["sem"],
+                                   "sigma": abs(pf["change"]) / pf["sem"] if pf["sem"] else None}
+            acc_key = "final_accuracy"
+            af = np.array([r[acc_key] for r in base["methods"][method]["replicates"]], dtype=float)
+            bf = np.array([r[acc_key] for r in d["methods"][method]["replicates"]], dtype=float)
+            pa = paired(bf, af)
+            entry["accuracy"] = {"change": pa["change"], "sem": pa["sem"],
+                                 "sigma": abs(pa["change"]) / pa["sem"] if pa["sem"] else None}
+            entry["half_done"] = (entry["forgetting"]["change"] > DOSE_HALF_DONE
+                                  if method == "naive" else None)
+            out["arms"][method] = entry
+        rows.append(out)
+    return {"baseline": Path(baseline).name, "levels": rows}
+
+
+def report_dose(res: dict) -> int:
+    print(f"   == the accuracy dose-response, each level against {res['baseline']} ==")
+    missing = 0
+    for row in res["levels"]:
+        if row.get("status"):
+            print(f"        {row['level']}: {row['status']}")
+            missing += 1
+            continue
+        print(f"        {row['level']}: target {row['target_overlap']} -> achieved Jaccard "
+              f"{row['achieved_overlap']}")
+        for method, e in row["arms"].items():
+            f, a = e["forgetting"], e["accuracy"]
+            tag = "" if e.get("half_done") is None else (
+                "   P1's bar (> +0.0159, half the 0->1 rise) " + ("MET" if e["half_done"] else "NOT met"))
+            print(f"             {method:16} forgetting {f['change']:+.4f}+/-{f['sem']:.4f}"
+                  f"({f['sigma']:.1f}s)  accuracy {a['change']:+.4f}+/-{a['sem']:.4f}({a['sigma']:.1f}s)"
+                  f"  n {e['n']}{tag}")
+            if e["differs_in"]:
+                print(f"                  (admitted with inert differences in: {', '.join(e['differs_in'])})")
+    print("        (the achieved overlaps are a property of mb+cx+al@n1307, 3 tasks of 80, seed 0: recompute them "
+          "for any other circuit.)")
+    return missing
+
+
 def audit(runs_dir: Path = RUNS, pairs=PAIRS) -> dict:
     rows, rejects = [], []
     mismatches = []
@@ -171,9 +248,19 @@ def main(argv=None) -> int:
     p = argparse.ArgumentParser(description=__doc__.splitlines()[0],
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--runs", type=Path, default=RUNS)
+    p.add_argument("--dose", type=Path, action="append", default=None,
+                   help="an artifact at an intermediate overlap level, paired against --baseline; repeatable")
+    p.add_argument("--baseline", type=Path, default=Path("runs/e140_r32_methods_plastic_40reps.json"))
     p.add_argument("--json-out", type=Path, default=None)
     args = p.parse_args(argv)
 
+    if args.dose:
+        dose = dose_read(args.dose, args.baseline)
+        n = report_dose(dose)
+        if args.json_out:
+            write_json(args.json_out, {"dose": dose})
+            print(f"wrote {args.json_out}")
+        return 0
     res = audit(args.runs)
     n = report(res)
     if args.json_out:

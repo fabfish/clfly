@@ -14,6 +14,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import pytest
+
 from experiments import e188_overlap_contrast as e188
 
 
@@ -93,3 +95,44 @@ def test_the_live_table_is_nine_comparisons_one_unanimous_direction_and_one_decl
     assert res["n_negative"] == 0, "raising the input overlap has raised forgetting in every comparison so far"
     assert res["n_resolved"] >= 6
     assert len(res["rejected"]) == 1 and "lam" in res["rejected"][0]["why"]
+
+
+# --- the dose read ----------------------------------------------------------------------------------------------
+
+def dose_payload(path: Path, method: str, forgetting: list[float], accuracy: list[float],
+                 overlap: float) -> Path:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps({
+        "config": {"input_overlap": overlap, "lam": 0.003, "methods": method},
+        "methods": {method: {"replicates": [{"mean_forgetting": f, "final_acc": a, "final_accuracy": a,
+                                             "forgetting_per_task": [f, f, f],
+                                             "final_per_task": [a, a, a]}
+                                            for f, a in zip(forgetting, accuracy)]}},
+    }), encoding="utf-8")
+    return path
+
+
+def test_the_dose_read_pairs_a_level_against_the_baseline_on_both_quantities(tmp_path):
+    d = tmp_path / "runs"
+    base = dose_payload(d / "base.json", "naive", [0.07, 0.08, 0.075, 0.075], [0.90, 0.86, 0.88, 0.88], 0.0)
+    level = dose_payload(d / "half.json", "naive", [0.10, 0.11, 0.105, 0.105], [0.84, 0.80, 0.82, 0.82], 0.5)
+    res = e188.dose_read([level], base)
+    row = res["levels"][0]
+    assert row["target_overlap"] == 0.5 and row["achieved_overlap"] == 0.3333
+    assert row["arms"]["naive"]["forgetting"]["change"] == pytest.approx(0.03, abs=1e-9)
+    assert row["arms"]["naive"]["accuracy"]["change"] == pytest.approx(-0.06, abs=1e-9)
+    assert row["arms"]["naive"]["half_done"] is True, "0.03 > 0.0159"
+    weak = dose_payload(d / "weak.json", "naive", [0.075, 0.085, 0.08, 0.08], [0.90, 0.86, 0.88, 0.88], 0.25)
+    assert e188.dose_read([weak], base)["levels"][0]["arms"]["naive"]["half_done"] is False
+
+
+def test_the_dose_read_refuses_a_level_that_is_not_written_yet(tmp_path):
+    res = e188.dose_read([tmp_path / "nope.json"], tmp_path / "also-nope.json")
+    assert e188.report_dose(res) == 1
+
+
+def test_the_live_registration_names_three_levels_and_none_exists_yet():
+    levels = [Path(f"runs/e193_r32_overlap{n}_methods_40reps.json") for n in (25, 50, 75)]
+    res = e188.dose_read(levels)
+    assert all(lv.get("status") == "not written yet" for lv in res["levels"])
+    assert e188.ACHIEVED_OVERLAP[0.5] == 0.3333
