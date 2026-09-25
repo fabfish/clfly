@@ -79,6 +79,19 @@ take artifact paths rather than a design, so the read is one command per level.
   property of `mb+cx+al@n1307` at seed 0, and a different circuit changes every cell. The artifacts record the
   target `input_overlap` and **not** the achieved Jaccard, so a reader must recompute §2's table for the circuit
   the run used — which is why the table is here rather than in the read.
+
+  > **CORRECTION, 2026-09-25: this bullet is wrong in its first half and right in its second, and the wrong half
+  > mattered.** The table is **not** a property of the circuit: `overlap_controlled_supports` builds a shared pool
+  > plus disjoint private complements, so ``|A_j n A_k| / size`` is *exactly* the target and the Jaccard is exactly
+  > ``o / (2 - o)`` for **any** `n`, `size`, `T` or `seed` — checked on three circuit sizes and three seeds, and the
+  > five cells reproduce the formula to four decimals (0.25 → 0.1429, 0.5 → 0.3333, 0.75 → 0.6). So no recomputation
+  > is needed, the axis carries **no measurement error**, and `e7`'s agreement is not independent confirmation but the
+  > same construction evaluated twice — which is *stronger* than a sampling agreement, since the two lines' x-axes
+  > need no conversion at all. **The second half stands and is the real gap**: which neurons each task drives depends
+  > on the circuit and the seed and is recorded in no artifact, so what is unrecorded is the supports' *identity*, not
+  > their overlap. The table is now bound to the construction by a test rather than by a comment, so a change to
+  > `overlap_controlled_supports` fails there instead of silently moving the x-axis of a multi-hour run
+  > (`docs/findings/2026-09-25-the-x-axis-is-arithmetic-not-a-measurement.md`).
 - **The cost is per arm-replicate and the machine's load has varied by 67%** across the five artifacts in §3, so
   5.8–9.6 h is a range and the artifact's own `timing_s` is the only figure to quote afterwards.
 

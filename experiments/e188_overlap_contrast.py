@@ -104,10 +104,11 @@ DOSE_HALF_DONE = 0.0159
 #: 3 sigma, which reproduces rule 42's own published prices (4 for 9.35 sigma, 169 for 1.46 sigma) exactly.
 def seeds_for_three_sigma(sigma: float) -> float | None:
     return 360.0 / sigma ** 2 if sigma else None
-#: What a target `--input-overlap` achieves as a Jaccard overlap, for the circuit the network runs use. Carried
-#: here as well as in `e191` because both reads print it beside a level and a reader should not have to know which
-#: file holds the table; both carry the same caveat -- it is a property of `mb+cx+al@n1307`, three tasks of 80
-#: neurons, seed 0.
+#: What a target `--input-overlap` achieves as a Jaccard overlap. Carried here as well as in `e191` because both
+#: reads print it beside a level and a reader should not have to know which file holds the table. **It is arithmetic
+#: and not a property of the circuit** -- see `e191`'s comment on the same table, and the test that binds both to
+#: `overlap_controlled_supports`: the construction makes the per-size overlap exactly the target, so the Jaccard is
+#: ``o / (2 - o)`` for any circuit, support size, task count or seed.
 ACHIEVED_OVERLAP = {0.0: 0.0000, 0.25: 0.1429, 0.5: 0.3333, 0.75: 0.6000, 1.0: 1.0000}
 
 

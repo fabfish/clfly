@@ -307,3 +307,33 @@ def test_the_analytic_far_profile_is_computed_and_may_be_negative():
         f.unlink()
     d.rmdir()
     d.parent.rmdir()
+
+
+def test_the_x_axis_table_is_arithmetic_and_the_construction_makes_it_so():
+    """`ACHIEVED_OVERLAP` said it was a property of `mb+cx+al@n1307`, three tasks of 80 neurons at seed 0, and that a
+    reader on another circuit "must recompute it". It is not: `overlap_controlled_supports` builds a shared pool plus
+    disjoint private complements, so ``|A_j n A_k| / size`` is EXACTLY the target and the Jaccard is exactly
+    ``o / (2 - o)`` for any `n`, `size`, `T` or `seed`. This test binds the table to that construction, on three
+    circuit sizes and three seeds, and asserts the two modules' copies agree -- so a change to the construction fails
+    here instead of silently invalidating the x-axis of a multi-hour run."""
+    from clfly.connectome.tasks import overlap_controlled_supports
+
+    from experiments import e188_overlap_contrast as e188
+    assert e188.ACHIEVED_OVERLAP == e191.ACHIEVED_OVERLAP, "the two copies of the table have drifted apart"
+    for target, table in sorted(e191.ACHIEVED_OVERLAP.items()):
+        formula = 0.0 if target == 0.0 else target / (2.0 - target)
+        assert table == pytest.approx(round(formula, 4), abs=1e-9), (target, table, formula)
+    for n in (300, 800, 5000):
+        for seed in (0, 1, 7):
+            for target in (0.0, 0.25, 0.5, 0.75, 1.0):
+                sups = overlap_controlled_supports(n, 3, 80, target, np.random.default_rng(seed))
+                seen = set()
+                for i in range(3):
+                    for j in range(i + 1, 3):
+                        a, b = set(sups[i].tolist()), set(sups[j].tolist())
+                        seen.add(round(len(a & b) / len(a | b), 9))
+                assert len(seen) == 1, f"not uniform pairwise at n={n} seed={seed} target={target}: {seen}"
+                # the CONSTRUCTION is exact; the table holds that value rounded to four places, and the rounding is
+                # load-bearing because both reads key their per-level lookups on it
+                formula = 0.0 if target == 0.0 else target / (2.0 - target)
+                assert seen.pop() == pytest.approx(formula, abs=1e-9), (n, seed, target)

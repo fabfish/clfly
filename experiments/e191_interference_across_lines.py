@@ -44,12 +44,16 @@ from experiments.e188_overlap_contrast import INERT_FOR, PAIRS, differing_fields
 RUNS = Path("runs")
 ANALYTIC = "e7_interference.json"
 
-#: What a TARGET `--input-overlap` achieves as a Jaccard overlap, on `mb+cx+al@n1307` with three tasks of 80
-#: neurons at seed 0 -- the circuit and construction every network run uses. Measured by
-#: `overlap_controlled_supports` directly (and reproduced in the registration of the intermediate levels); `e7`'s
-#: controlled sweep reports the same four decimals for the levels it shares, which is what makes the two lines'
-#: x-axes commensurable. The table is a property of the circuit, the support and the seed and NOT of the annotation:
-#: a reader re-running this on a different circuit must recompute it.
+#: What a TARGET `--input-overlap` achieves as a Jaccard overlap. **This is arithmetic, not a measurement of the
+#: circuit**: `overlap_controlled_supports` builds the supports from a shared pool plus disjoint private complements,
+#: so the per-size overlap is exactly the target and the Jaccard is exactly ``o / (2 - o)`` for every pair regardless
+#: of `n`, `size`, `T` or `seed` -- which is what the tests assert, on three circuit sizes and three seeds. `e7`'s
+#: controlled sweep's agreement on these four decimals is therefore not independent confirmation: it is the same
+#: construction evaluated twice, which is *stronger* than a sampling agreement, since no conversion between the two
+#: lines' x-axes is needed at all. Two consequences: the axis carries **no measurement error**, and the provenance
+#: gap is the supports' **identity** (which neurons, which does depend on the circuit and the seed and is not recorded
+#: in any artifact) rather than their overlap. A change to the construction -- a rejection step, a different call --
+#: invalidates this table, which is why the test binds it to `overlap_controlled_supports` rather than to this comment.
 ACHIEVED_OVERLAP = {0.0: 0.0000, 0.25: 0.1429, 0.5: 0.3333, 0.75: 0.6000, 1.0: 1.0000}
 #: The change from the disjoint arm that the registered P1 calls "more than half done", on `naive`: half of the
 #: measured 0 -> 1 rise of +0.1234.
