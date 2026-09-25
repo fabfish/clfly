@@ -61,6 +61,41 @@ Why not the alternatives:
 
 Stated so they can fail.
 
+> **A note on what each claim below is measured AT, added 2026-09-25 after a day spent finding out.** Every run makes
+> several RNG draws, and the corpus did not record them: `e198`'s census finds **238** (artifact, draw) pairs that
+> could not say which draw they used, and `e198 --reconstruct` identifies **264 of the 299** live pairs, validated
+> against every artifact that records the field (read-out **68 of 68**, supports **6 of 6**). Two of those draws have
+> now been measured, and they behave differently:
+>
+> - **The overlap suite's SUPPORTS are a large draw.** Two support draws, on identical configurations and identical 40
+>   seeds, differ by **3.34σ on `learned (older)` at overlap 0.0** and by **4.40σ / 6.59σ / 4.95σ** on that quantity,
+>   the newest task and the adjacent-pair interference at the midpoint. **Six of the overlap axis's claims failed to
+>   replicate across them**, including a headline 8.10σ result that reversed sign and the registered P1 of the
+>   original pre-registration (NOT met on draw 0, MET at 4.70σ on draw 1).
+> - **The READ-OUT draw is small at the size this project uses.** At read-out 32 it is unresolved on **all twelve**
+>   quantity-by-end combinations (largest 1.70σ, and 5.7× smaller than the support draw on `learned (older)`); at
+>   read-out 300 an *existing* family (`e113`) shows it moving the distant-pair interference at 2.08–2.76σ, so its
+>   smallness is **size-specific** and nothing here licenses it at other sizes.
+> - **The draw can be made to cancel**: in a comparison between ARMS at the same supports the draw is identical on
+>   both sides, which is why the λ = 1.0 family's 12.3σ interference saturation is unaffected while every
+>   cross-**overlap** claim is not.
+>
+> **What that means for the claims below.** Of the four registered claims on the overlap axis, at three support
+> draws, **exactly one survives**: the endpoint's forgetting rises with the input overlap (+0.03177 = 2.99σ, +0.03516
+> = 3.30σ, +0.02161 = 2.70σ, and +0.04349 = 4.82σ at a second read-out draw) — and it is the claim this project
+> already had as *nine of nine matched comparisons*. The interior fitting deficit is **2 of 3**, the endpoint's
+> learning term 2 of 3, and the two interference terms' separation **1 of 3** (negative on the third draw).
+> **Corpus-wide, `e201`'s family census finds 41 of 59 families — 215 of 285 artifacts — making manipulation claims
+> at a single draw**, and `e200` finds **none of the declared comparisons confounded** (27 of 27 same draw): a
+> single-draw family's within-family contrasts are attributable, and what is untested is their generalization beyond
+> that draw. So each claim below should be read with three questions in mind: *which family carries it*, *how many
+> draws that family used*, and *whether the draw's magnitude has been measured for that manipulation*.
+> (`docs/findings/2026-09-25-three-draws-four-claims-exactly-one-is-3-of-3.md`,
+> `docs/findings/2026-09-25-the-read-out-draw-is-the-small-one.md`,
+> `docs/findings/2026-09-25-41-of-59-families-claim-at-one-draw.md`,
+> `docs/findings/2026-09-25-every-declared-comparison-is-on-the-same-draws.md`,
+> `docs/findings/2026-09-25-the-corpus-draws-are-reconstructible.md`)
+
 ### C1 — Substrate effect
 
 The EWC↔Kalman gap is **substantially larger** on the connectome topology than on
@@ -606,6 +641,20 @@ parameters, so unless the rotation is shared across tasks a "rotated basis EWC" 
 not a compression. Baselines rarely mention this; `bases.py` tracks it in
 `n_shared_parameters`.
 
+> **And the rung tables are single-draw families, stated here because this claim is the project's core.** `e201`'s
+> census finds **41 of 59 families — 215 of 285 artifacts — making manipulation claims at a single draw**, and the
+> ladder is among the largest: `e92` holds 60 artifacts varying `circuit_size`/`k`/`shape`/`support` at one draw,
+> `e86` 18 and `e94` 16. The tables below are therefore **within-family** comparisons — attributable to the basis at
+> that draw — and what is untested is whether the *ranking* holds at another draw of the supports. That question was
+> **not** asked today and the design that would ask it is cheap: the ladder's rungs are linear-line runs, so a second
+> support draw is a re-run rather than a new instrument. **What was measured is how large such a draw can be**: on the
+> network suite two support draws differ by 3.34σ on `learned (older)` at overlap 0.0 and by up to 6.59σ on the newest
+> task at the midpoint, so a rung table at one draw is not automatically safe. And **the read-out draw is the small
+> one at the size used here** (unresolved on twelve quantity-by-end combinations at size 32), which is the draw the
+> rung rows actually vary in `e113`/`e117`
+> (`docs/findings/2026-09-25-41-of-59-families-claim-at-one-draw.md`).
+
+
 ### C3 — Modularity is itself a continual-learning mechanism
 
 Interpolating the connectome toward a random graph by densifying **cross-module**
@@ -711,6 +760,31 @@ association is real but not as precise as it was implied to be
 > pending level — at achieved 0.6000 the network's far progress must exceed `e7`'s 52.16% by at least 15 points,
 > with the falsifier being a gap at or below zero
 > (`docs/findings/2026-09-25-the-two-lines-far-components-agree-in-sign-and-not-in-timing.md`).
+
+
+> **THE AXIS IS READ AND ITS VERDICT IS IN, 2026-09-25 21:00 — and it is mostly negative.** All three registered levels
+> landed (achieved Jaccard 0.1429 / 0.3333 / 0.6000, the family closing at exit 0) and all six shape and cost claims
+> were judged by `e194`: **S1 between its bar and its falsifier** (the distant-minus-adjacent progress gap is 28.02
+> points against a bar of 40), **S2 MET** at 47.88% where the registration's own two extrapolations read 30.8% and
+> 22.6% — both under-predicting, so a bar placed at either would have called a MET a failure — **S3 MET** at 23.74
+> points, **S4 MET** at 157.9% (the accuracy overshoot does come back down from the midpoint's 176.6%), **S5's
+> FALSIFIER FIRED** at −0.0263 = 7.48σ and **S6 MET** at −0.0143 = 3.43σ.
+>
+> **Then the replication read the same claims at two further support draws and a second read-out draw, and four of the
+> six did not survive it.** The tally is in the box at the head of this document: R1 **2 of 3**, R2 **1 of 3** (with a
+> NEGATIVE gap of −11.32 points on draw 2, i.e. the distant-pair term sits *below* the adjacent-pair one at the
+> midpoint), R3b 2 of 3, and **R3a 3 of 3 — the endpoint's forgetting rise, which is the claim this project already
+> had as nine of nine**. So the two results this section was built to report — **the interior's cost being a FITTING
+> deficit (8.10σ) and the two interference terms having opposite shapes (a 62-point gap)** — are **single-draw
+> quantities**, and the second is one draw's arrangement of the supports. **The x-axis itself is arithmetic and not a
+> measurement** (the achieved Jaccard is `o/(2−o)` at any seed), so nothing here is attributable to axis drift; what
+> the axis lacked was draws. **What would make a shape claim quotable**: five levels at three or more support draws,
+> which is 15 runs of the naive arm and was deliberately not launched — the two extra interior levels that were
+> launched for it (`e196`) were **stopped after 1 of 40 replicates of their first level**, before any artifact was
+> written, because refining one draw's shape stopped being worth anything the moment R2's falsifier fired
+> (`docs/findings/2026-09-25-only-two-of-the-axis-claims-survive-a-second-draw.md`,
+> `docs/findings/2026-09-25-the-third-draw-reverses-my-own-last-two-findings.md`,
+> `docs/findings/2026-09-25-the-interior-fitting-deficit-did-not-replicate.md`).
 
 ### C2b — the network basis negative has never been asked at the rung that matters
 
