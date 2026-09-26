@@ -72,3 +72,36 @@ def test_a_grid_point_that_is_not_in_the_corpus_is_measured_and_reported_as_the_
     assert e231.report(rows) == 0
     out = capsys.readouterr().out
     assert "0.95" in out and "ratio" in out and "0.56" in out
+
+
+def test_the_rewire_seed_is_the_null_s_own_stream_and_defaults_to_seed0():
+    """The corpus's convention: without `--rewire-seed`, `seed0` drives the null AND the tasks, so a curve is one
+    drawing. The flag exists so the null's drawing can be varied while the task stream is held fixed."""
+    import inspect
+
+    sig = inspect.signature(e231.measure)
+    assert "rewire_seed" in sig.parameters and sig.parameters["rewire_seed"].default is None
+    assert "rewire_seed" in inspect.getsource(e231.main), "the CLI has to reach it"
+    assert "default_rng(rw)" in inspect.getsource(e231.measure), "the null is drawn from the rewire stream"
+
+
+def test_the_report_carries_the_drawing_it_measured(tmp_path, capsys):
+    """With more than one drawing in play, a row that does not say which drawing it is cannot be read."""
+    r = row(300, 0.9, {"alloy1": 7.2, "inalloy1": 11.62})
+    r["rewire_seed"] = 1
+    assert e231.report([r]) == 0
+    # the live rows carry it too
+    live = e231.measure(300, 30, 0.9, topologies=("alloy1",), seeds=1, rewire_seed=1)
+    assert live["rewire_seed"] == 1
+
+
+def test_two_drawings_of_the_same_cell_are_printed_as_two_curves(capsys):
+    """The lottery's data shape: same (size, rho) at two `rewire_seed` values. A report that keyed its table on
+    (size, rho) alone would silently show the last drawing's number for both."""
+    a = row(300, 0.9, {"alloy1": 7.2, "inalloy1": 11.62})
+    b = row(300, 0.9, {"alloy1": 11.19, "inalloy1": 6.29})
+    a["rewire_seed"], b["rewire_seed"] = 0, 1
+    assert e231.report([a, b]) == 0
+    out = capsys.readouterr().out
+    assert "rewire seed 0" in out and "rewire seed 1" in out
+    assert "0.62x" in out and "1.78x" in out, out

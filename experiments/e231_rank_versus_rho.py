@@ -61,18 +61,23 @@ VERIFY_AT = (0.5, 0.9, 0.99)
 
 
 def measure(size: int, support: int, rho: float, topologies=TOPOLOGIES, seeds: int = 3, seed0: int = 0,
-            q: float = 0.02) -> dict:
-    """One (size, rho) row: every topology's task geometry, measured the way the runner measures it."""
+            q: float = 0.02, rewire_seed: int | None = None) -> dict:
+    """One (size, rho) row: every topology's task geometry, measured the way the runner measures it.
+
+    `rewire_seed` seeds the null's own stream (the runner's `--rewire-seed`); without it `seed0` drives both the
+    null and the tasks, which is the corpus's convention and the reason a single curve is one DRAWING of the null.
+    """
     from clfly.connectome import annotate, circuits, graph, rewiring, tasks
 
     conn = graph.build()
     ann = annotate.load_annotations()
     circ = circuits.extract(conn, ann, hops=0, max_neurons=size)
     W0 = circ.net.weights()
-    out = {"size": int(size), "support": int(support), "rho": float(rho),
+    rw = seed0 if rewire_seed is None else rewire_seed
+    out = {"size": int(size), "support": int(support), "rho": float(rho), "rewire_seed": int(rw),
            "neurons": int(circ.net.n_neurons), "topologies": {}}
     for topo in topologies:
-        W = rewiring.apply_null(W0, topo, np.random.default_rng(seed0))
+        W = rewiring.apply_null(W0, topo, np.random.default_rng(rw))
         circ.net = graph.Connectome(circ.net.n_neurons, circ.net.root_ids, W.tocsr())
         geos, error = [], None
         try:
@@ -120,14 +125,17 @@ def verify(rows: list[dict], runs: Path = RUNS) -> list[dict]:
 
 def report(rows: list[dict], checks: list[dict] | None = None) -> int:
     rho_values = sorted({r["rho"] for r in rows})
+    # a row is one (size, rho) measured at ONE drawing of the null; with more than one drawing in play the curves
+    # have to be printed per drawing, or the second drawing of a cell silently overwrites the first in the table
+    groups = sorted({(r["size"], r.get("rewire_seed", 0)) for r in rows})
     print("== the effective rank of the task geometry against rho (the corpus's own statistic) ==")
-    for size in sorted({r["size"] for r in rows}):
-        sizes = [r for r in rows if r["size"] == size]
-        print(f"\n   cs {size}  ({sizes[0]['neurons']} neurons, support {sizes[0]['support']})")
+    for size, rw in groups:
+        sub = [r for r in rows if r["size"] == size and r.get("rewire_seed", 0) == rw]
+        print(f"\n   cs {size}  ({sub[0]['neurons']} neurons, support {sub[0]['support']}, rewire seed {rw})")
         print(f"      {'topology':12} " + " ".join(f"{rho:>7.4g}" for rho in rho_values) + "   verdict")
         for topo in TOPOLOGIES:
-            cells = {r["rho"]: r["topologies"].get(topo, {}) for r in sizes}
-            ranks = [cells[rho].get("effective_rank") for rho in rho_values]
+            cells = {r["rho"]: r["topologies"].get(topo, {}) for r in sub}
+            ranks = [cells.get(rho, {}).get("effective_rank") for rho in rho_values]
             if any(v is None for v in ranks):
                 print(f"      {topo:12} " + " ".join(
                     "      -" if v is None else f"{v:7.2f}" for v in ranks) + "   UNMEASURABLE")
@@ -136,20 +144,20 @@ def report(rows: list[dict], checks: list[dict] | None = None) -> int:
             verdict = ("falls monotonically" if not any(rises) else
                        f"RISES at {[f'{rho_values[i + 1]:.3g}' for i, up in enumerate(rises) if up]}")
             print(f"      {topo:12} " + " ".join(f"{v:7.2f}" for v in ranks) + f"   {verdict}")
-    if rows and len(rho_values) > 1:
-        print("\n   the asymmetry the curve is about (out-structure destroyed vs in-structure destroyed):")
+    if rows:
+        print("\n   the asymmetry the curve is about (in-structure destroyed vs out-structure destroyed), by drawing:")
         for size in sorted({r["size"] for r in rows}):
-            sizes = [r for r in rows if r["size"] == size]
-            pairs = []
-            for rho in rho_values:
-                row = next(r for r in sizes if r["rho"] == rho)
-                a = row["topologies"].get("alloy1", {}).get("effective_rank")
-                b = row["topologies"].get("inalloy1", {}).get("effective_rank")
-                pairs.append((rho, a, b, (a / b) if a and b else None))
-            for rho, a, b, ratio in pairs:
-                print(f"      cs {size} rho {rho:<6.4g} alloy1 {a if a is None else f'{a:6.2f}'}  "
-                      f"inalloy1 {b if b is None else f'{b:6.2f}'}  ratio "
-                      f"{'-' if ratio is None else f'{ratio:6.2f}'}x")
+            for rw in sorted({r.get("rewire_seed", 0) for r in rows if r["size"] == size}):
+                sub = [r for r in rows if r["size"] == size and r.get("rewire_seed", 0) == rw]
+                parts = []
+                for rho in rho_values:
+                    r = next((x for x in sub if x["rho"] == rho), None)
+                    if r is None:
+                        continue
+                    a = r["topologies"].get("alloy1", {}).get("effective_rank")
+                    b = r["topologies"].get("inalloy1", {}).get("effective_rank")
+                    parts.append(f"{rho:g}: {'-' if not (a and b) else f'{a / b:.2f}x'}")
+                print(f"      cs {size} rewire seed {rw:<3} ratio alloy1/inalloy1   " + "  ".join(parts))
     if checks:
         print("\n== does this instrument reproduce the corpus's own geometry blocks? ==")
         for c in checks:
@@ -171,6 +179,9 @@ def main(argv=None) -> int:
     ap.add_argument("--support", type=int, default=None, help="override the corpus's convention (size / 10)")
     ap.add_argument("--seeds", type=int, default=3)
     ap.add_argument("--seed0", type=int, default=0)
+    ap.add_argument("--rewire-seed", type=int, default=None,
+                    help="seed the null's own stream separately from the tasks (the runner's flag); without it "
+                         "`seed0` drives both, so a curve is ONE drawing of the null")
     ap.add_argument("--q", type=float, default=0.02)
     ap.add_argument("--no-verify", action="store_true", help="skip the comparison against the corpus's blocks")
     ap.add_argument("--json-out", type=Path, default=None)
@@ -181,11 +192,12 @@ def main(argv=None) -> int:
     for size in [int(s) for s in args.sizes.split(",") if s.strip()]:
         support = args.support or SIZES.get(size, max(1, size // 10))
         for rho in grid:
-            row = measure(size, support, rho, seeds=args.seeds, seed0=args.seed0, q=args.q)
+            row = measure(size, support, rho, seeds=args.seeds, seed0=args.seed0, q=args.q,
+                          rewire_seed=args.rewire_seed)
             row["rho"] = rho
             rows.append(row)
             ranks = {t: c.get("effective_rank") for t, c in row["topologies"].items()}
-            print(f"   cs {size} rho {rho:<6.4g} " + "  ".join(
+            print(f"   cs {size} rho {rho:<6.4g} rw {row['rewire_seed']} " + "  ".join(
                 f"{t} {'-' if v is None else f'{v:6.2f}'}" for t, v in ranks.items()), flush=True)
     checks = None if args.no_verify else verify(rows)
     if args.json_out:
