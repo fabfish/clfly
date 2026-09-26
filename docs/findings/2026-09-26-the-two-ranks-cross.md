@@ -57,6 +57,10 @@ propagated support matrix's squared singular values; the third row is `prop / ta
   sits *above* 1 until `rho` 0.95 (3.43 → 0.72). So the compression factor is not a property of the propagator alone
   but of (family, size) jointly — which is the same shape of statement the task-side curves already demanded.
 
+## 3b. Correction: there is no crossing -- the two columns were different supports
+
+`e236` audited this finding's headline and found it to be a **support mismatch**. A task's covariance is `(Gs * weights) @ Gs.T` for `Gs = G[:, support]`, i.e. a quadratic form in ONE assembly's propagator columns, while the `prop` column here is measured on the **union** of the three assemblies' supports (148 columns). The participation ratio is not size-normalised, and the 148-column union's spectrum is far more concentrated near criticality: at cs 300/`rho` 0.98 a single assembly's propagation has a participation ratio of **12.45** against the union's **1.34** (9.3x apart), while at `rho` 0.9 the two agree (23.79 against 23.89). Measured at the SAME support, `pr_s / pr_gs` runs **0.92 to 1.00** over six `rho` values at both sizes, the algebraic ranks are equal (29.6 = the support size at cs 300), the leading shares agree to three decimals and the containment residual is **1e-15** -- so the tasks are a faithful quadratic read-out of the propagation they are built from. **The crossing is withdrawn**; what stands is this module's within-family `rho` curve, its matched-random control, and the fact that the UNION's rank collapses far earlier than any of its parts' (`docs/findings/2026-09-26-the-crossing-was-a-support-mismatch.md`).
+
 ## 4. What this cannot do
 
 - **One drawing per cell**, and the in/out contrast here inherits exactly what `e232` measured: the cs-800

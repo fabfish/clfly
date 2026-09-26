@@ -29,6 +29,12 @@ The exit code is the number of cells that could **not** be measured (a failed so
 `rho -> 1` the factorisation can fail or the solve can blow up, and an instrument that cannot say "unmeasurable" would
 report a number anyway.
 
+**The `prop` column is the UNION support's, and it is NOT comparable to a task's** (`e236`): a task is a quadratic
+form in ONE assembly's propagator columns, and the participation ratio is not size-normalised, so the 148-column
+union's rank collapses earlier and further than any of its parts' (0.11x of a single assembly's at cs 300/`rho` 0.98).
+The comparable measurement is `e236`'s, and at the same support the two agree to 0.92-1.00 at every cell -- there is no
+crossing. What stands of this module's reading is its *within-family* curve and its matched-random control.
+
 **What it cannot do**: it measures the propagator's *action on the assembly supports*, not its spectrum or its
 condition number, so "the propagator's rank" is a statement about those columns; one drawing per cell (the null's
 stream is `seed0`, as everywhere in this line) and `e232` measured that the **in/out comparison** is drawing-dependent,
@@ -195,6 +201,9 @@ def report(rows: list[dict], stored: dict | None = None) -> int:
                       f"{'matches e231' if hit else f'NO MATCH (e231 has {[round(v, 4) for v in vals]})'}")
         print(f"   {checked - mismatched} of {checked} cells match, so the task side is the corpus's own statistic")
     bad = sum(1 for r in rows for c in r["topologies"].values() if c.get("effective_rank") is None)
+    print("   (the `prop` column is the UNION support's propagation; a task is a quadratic form in ONE assembly's")
+    print("    columns, so the two columns are not comparable -- `e236` measures the SAME support and finds them")
+    print("    agreeing to 0.92-1.00 at every cell)")
     print(f"\n   unmeasurable cells: {bad}")
     return bad
 
