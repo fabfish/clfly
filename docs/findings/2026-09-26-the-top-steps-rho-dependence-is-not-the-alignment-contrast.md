@@ -54,6 +54,10 @@ nulls at `rho` 0.99 carry a *rank-1* task geometry. **The two-side distinction i
 propagation regime as much as about the destructive operation** — and the size dependence (2.2×) is the smaller of
 the two effects.
 
+## 3b. Correction: the rank contrast's cs-800 half is inside its own drawing scatter
+
+`e230` asked whether the rank contrasts read here beat the families' own scatter across drawings, and the answer splits the claim: **at cs 300 all four families resolve it** (`alloy1` 25.25x against a 2.73x scatter, `inalloy1` 23.53x against 2.08x, `erdos_renyi` 7.68x against 1.06x, `real` 3.76x against 1.98x), and **at cs 800 the collapsing family resolves it** (`inalloy1` 44.79x against 4.14x) while the family it was compared against does not (`alloy1`: twelve drawings spanning **16.44x** against a single-drawing contrast of **3.01x**). So the rank reading stands at cs 300 and for the collapsing side at cs 800, and the "the two families come apart" half is a statement about which drawing was taken (`docs/findings/2026-09-26-the-rank-contrast-meets-its-own-drawing-scatter.md`). The alignment half of this finding is untouched.
+
 ## 4. What this cannot do
 
 - **Three cells, one drawing each**, so the penalty's 11.56× span rests on four artifacts, and the rank contrast is

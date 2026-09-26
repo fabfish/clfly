@@ -42,16 +42,25 @@ thing R3's design can state*. The geometry block says why:
 
 | cs 800, `rho` 0.99 | excess | alignment × chance | `effective_rank` |
 |---|---|---|---|
-| `alloy1` (out-degrees destroyed) | 0.11395 | 3.377 | **21.01** |
-| `inalloy1` (in-degrees destroyed) | 0.01312 | 4.356 | **1.29** |
+| `alloy1` (out-degree kept, **in**-structure destroyed) | 0.11395 | 3.377 | **21.01** |
+| `inalloy1` (in-degree kept, **out**-structure destroyed) | 0.01312 | 4.356 | **1.29** |
 | `erdos_renyi` (both) | 0.04751 | 6.921 | 4.20 |
 | `real` | 0.00693 | 0.199 | 11.80 |
 
-Destroying the **in**-side at high `rho` collapses the task geometry to **1.29 effective dimensions** and its penalty
-with it (0.01312); destroying the **out**-side leaves **21.0** dimensions and a penalty 8.7× higher (0.11395). So at
-high `rho` the two one-side nulls are not two drawings of one construction — they are two different regimes, and
-"the one-side level" is a mean over quantities that have come apart. At cs 300, `rho` 0.99 they stay together
-(0.00547 against 0.00825, 1.5×; ranks 1.05 and 1.10) — so the asymmetry is itself `rho`- and size-dependent.
+Destroying the **out**-structure at high `rho` collapses the task geometry to **1.29 effective dimensions** and its
+penalty with it (0.01312, the `inalloy1` row); destroying the **in**-structure leaves **21.0** dimensions and a penalty
+8.7× higher (0.11395, the `alloy1` row). So at high `rho` the two one-side nulls are not two drawings of one
+construction — they are two different regimes, and "the one-side level" is a mean over quantities that have come
+apart. At cs 300, `rho` 0.99 they stay together (0.00547 against 0.00825, 1.5×; ranks 1.05 and 1.10) — so the
+asymmetry is itself `rho`- and size-dependent.
+
+> **Correction (same day, minutes later).** The two labels in the table above and in this paragraph were the wrong
+> way round when this finding was first written: `alloy1` **keeps** the out-degree and destroys the in-structure, and
+> `inalloy1` keeps the in-degree and destroys the out-structure (`clfly/connectome/rewiring.py`). The numbers were
+> right and unchanged; the sentence naming *which side* collapses was inverted. The corrected reading — **the
+> out-structure's destruction is what collapses the task geometry** — is the one the next unit starts from. It was
+> caught by re-reading the null's own docstring while designing that unit, which is the only reason it is a
+> one-fire-old error rather than a permanent one.
 
 ## 4. The mechanism statement, at its measured strength
 
