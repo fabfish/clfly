@@ -71,6 +71,10 @@ At cs 800 the ordering fails outright: predicted 1.02 / 2.15 / 3.02 / 3.28 again
 4.35 — `alloy1` is the *lowest* predicted and by far the *highest* measured. Both claims therefore say the same
 thing: **at cs 300 the collapse is an eigenvalue-gap phenomenon, and at cs 800 it is not.**
 
+## 3b. Correction: both of this finding's claims were drawing 0's
+
+`e239` re-measured the whole-matrix rank and the second eigenvalue at two more `rewire_seed` values at both sizes. **Both claims' falsifiers fired.** The cs-800 counterexample needed the two families to share a second eigenvalue while their ranks differed 24x: across drawings the eigenvalue gaps between them run 0.0000, 0.0000, 0.0169, 0.0210, **0.1737** and **0.2543**, and the rank ratio at `rho` 0.99 runs 0.98x / 2.39x / 0.98x at cs 300 and **23.70x / 1.00x / 1.83x** at cs 800 -- the 24x was that one drawing's, and in the drawing where the eigenvalues differ most (0.1737) the ranks are equal to within 1%. **And S2's MET is withdrawn**: the second-eigenvalue ordering and the measured rank ordering agree in only **three of six** (size, drawing) cells (yes at cs 300 drawings 0 and 1 and cs 800 drawing 2; no at cs 300 drawing 2 and cs 800 drawings 0 and 1). What stands is the exact part: the scalar rescale, `eig(G) = 1/(1 - rho λ̂)`, the non-normality ratios, and the `stable_weights` radius estimate being ~0.9% low on a near-degenerate leading pair. The internal control is exact -- `real`'s whole-`G` rank is bit-identical across drawings (1.0449 at cs 300, 1.0802 at cs 800), so all the movement is the null's. (`docs/findings/2026-09-26-the-counterexample-was-a-drawing.md`)
+
 ## 4. What this cannot do
 
 - **One drawing per cell** (`seed0`), and the cs-800 counterexample is exactly a single drawing of each family — which
