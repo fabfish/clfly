@@ -1,0 +1,119 @@
+"""`e244` reads the corpus's accidental drawings, so the tests pin the three things its verdicts turn on: that `real`
+is not a kind, that the relative spread is scale-free where the first implementation's was not, and that the
+within-cell test (K3) fires on a reversal the pooled test cannot see -- which is the finding's whole point.
+"""
+
+from __future__ import annotations
+
+import json
+from pathlib import Path
+from statistics import median
+
+from experiments import e244_drawing_spread_by_kind as e244
+
+
+def _artifact(path: Path, *, size: int, support: int, rewire_seed: int, tops: dict) -> None:
+    """One stand-in run: only the fields the module reads (`config`, and each topology's excess and rank)."""
+    path.write_text(json.dumps({
+        "config": {"circuit_size": size, "support": support, "rho": 0.9, "seeds": 3, "rewire_seed": rewire_seed},
+        "topologies": {t: {"diagonal(EWC)": {"analytic": {"excess_mean": ex}},
+                           "geometry": {"effective_rank": rk}} for t, (ex, rk) in tops.items()}}),
+        encoding="utf-8")
+
+
+def _one(gs, cell, family):
+    return {(x["cell"], x["family"]): x for x in gs}[(cell, family)]
+
+
+def test_real_is_not_a_kind_and_the_swap_strengths_are():
+    """`real` is the observed network, never redrawn -- it must fall outside the ladder, and every construction on it."""
+    assert e244.kind_of("real") is None
+    assert e244.kind_of("swap0.5") == e244.kind_of("swap64") == e244.kind_of("signshuffle") == 0
+    assert e244.kind_of("alloy1") == e244.kind_of("alloy0.25") == e244.kind_of("inalloy1") == 1
+    assert e244.kind_of("erdos_renyi") == 2
+    assert e244.kind_of("degree_sequence") is None
+
+
+def test_the_relative_range_is_scale_free_while_spread_over_mean_is_not(tmp_path):
+    """The same two drawings at ten times the level: the ratio spread and `(max - min)/mean` are unchanged, while the
+    first implementation's `spread / mean` moves by the factor of ten. That is why K2 was rewritten before reporting."""
+    for name, scale in (("a", 1.0), ("b", 10.0)):
+        d = tmp_path / name
+        d.mkdir()
+        for rw, v in ((0, 0.05), (1, 0.10)):
+            _artifact(d / f"r{rw}.json", size=800, support=80, rewire_seed=rw, tops={"alloy1": (v * scale, 30.0)})
+    lo, _ = e244.groups(tmp_path / "a")
+    hi, _ = e244.groups(tmp_path / "b")
+    lo, hi = _one(lo, (800, 80, 0.9), "alloy1"), _one(hi, (800, 80, 0.9), "alloy1")
+    assert lo["excess_spread"] == hi["excess_spread"] == 2.0
+    assert abs(lo["excess_rel_range"] - hi["excess_rel_range"]) < 1e-12, (lo, hi)
+    assert abs((lo["excess_spread"] / lo["excess_mean"]) / (hi["excess_spread"] / hi["excess_mean"]) - 10.0) < 1e-9
+
+
+def _corpus(root: Path, alloy1_at_convention: tuple[float, float]) -> None:
+    """The live shape in miniature: one cell carries all three kinds, four more carry only kinds 1 and 2 -- so the
+    kind-0 rung is one cell's number while kind 1's is a five-cell median, which is how a reversal gets diluted."""
+    for rw, (a0, a1) in ((0, (0.020, alloy1_at_convention[0])), (1, (0.021, alloy1_at_convention[1]))):
+        _artifact(root / f"conv{rw}.json", size=800, support=80, rewire_seed=rw,
+                  tops={"swap2": (a0, 5.0), "alloy1": (a1, 30.0), "erdos_renyi": (0.100 + 0.001 * rw, 90.0)})
+    for i, (size, support) in enumerate(((400, 40), (400, 80), (300, 30), (800, 20))):
+        for rw, a1 in ((0, 0.040), (1, 0.041)):
+            _artifact(root / f"c{i}_{rw}.json", size=size, support=support, rewire_seed=rw,
+                      tops={"alloy1": (a1, 30.0), "erdos_renyi": (0.100 + 0.001 * rw, 90.0)})
+
+
+def test_k3_is_MET_when_every_cell_lists_the_kinds_in_order(tmp_path):
+    """All kinds ordered inside every cell: the pooled K1 orders and the within-cell K3 confirms it."""
+    _corpus(tmp_path, (0.040, 0.041))
+    gs, _ = e244.groups(tmp_path)
+    rows = {r["id"]: r for r in e244.judge(gs)}
+    assert rows["K1"]["verdict"].startswith("MET"), rows["K1"]
+    assert rows["K3"]["verdict"].startswith("MET"), rows["K3"]
+    assert "6 of 6" in rows["K3"]["measured"], rows["K3"]
+
+
+def test_k3_fires_on_one_cell_whose_one_side_family_spreads_wider(tmp_path):
+    """The same corpus with the one cell that carries all three kinds reversed: the pooled K1 still orders, because the
+    kind-0 rung is that single cell while kind 1's median sits on five -- and K3 is the claim that notices."""
+    _corpus(tmp_path, (0.010, 0.030))
+    gs, _ = e244.groups(tmp_path)
+    rows = {r["id"]: r for r in e244.judge(gs)}
+    assert rows["K1"]["verdict"].startswith("MET"), rows["K1"]
+    assert rows["K3"]["verdict"].startswith("FALSIFIER FIRED"), rows["K3"]
+    assert "5 of 6" in rows["K3"]["measured"] and "800/sup 80" in rows["K3"]["measured"], rows["K3"]
+
+
+def test_the_same_reversal_without_the_four_other_cells_breaks_the_pooled_K1(tmp_path):
+    """Drop the four kind-1-and-2-only cells and the reversal is no longer diluted: now K1 and K3 fire together, which
+    is what makes K3's role here a check on the pooling rather than a second opinion."""
+    for rw, (a0, a1) in ((0, (0.020, 0.010)), (1, (0.021, 0.030))):
+        _artifact(tmp_path / f"conv{rw}.json", size=800, support=80, rewire_seed=rw,
+                  tops={"swap2": (a0, 5.0), "alloy1": (a1, 30.0), "erdos_renyi": (0.100 + 0.001 * rw, 90.0)})
+    gs, _ = e244.groups(tmp_path)
+    rows = {r["id"]: r for r in e244.judge(gs)}
+    assert rows["K1"]["verdict"].startswith("FALSIFIER FIRED"), rows["K1"]
+    assert rows["K3"]["verdict"].startswith("FALSIFIER FIRED"), rows["K3"]
+
+
+def test_the_live_census_orders_when_pooled_and_reverses_inside_the_one_cell():
+    """The finding's two numbers, pinned on the artifact: K1 ordered with disjoint ranges, K3's one reversal at
+    cs 800/sup 80, and that cell being the only one that carries a no-destruction construction at all."""
+    p = Path("runs/e244_drawing_spread_by_kind.json")
+    if not p.exists():
+        return
+    d = json.loads(p.read_text(encoding="utf-8"))
+    rows = {r["id"]: r for r in d["claims"]}
+    assert rows["K1"]["verdict"].startswith("MET"), rows["K1"]
+    assert rows["K2"]["verdict"].startswith("MET"), rows["K2"]
+    assert rows["K3"]["verdict"].startswith("FALSIFIER FIRED"), rows["K3"]
+    assert "6 of 7" in rows["K3"]["measured"] and "800/sup 80" in rows["K3"]["measured"], rows["K3"]
+    kinds: dict = {}
+    for g in d["groups"]:
+        if g["excess_spread"] is not None:
+            kinds.setdefault(tuple(g["cell"]), {}).setdefault(g["kind"], []).append(g["excess_spread"])
+    cell = kinds[(800, 80, 0.9)]
+    assert sorted(cell) == [0, 1, 2], sorted(cell)
+    assert median(cell[1]) > median(cell[0]), "the reversal: the one-side kind is the looser one inside the cell"
+    assert median(cell[2]) < min(median(cell[0]), median(cell[1])), "the two-side kind is tightest there"
+    assert {tuple(g["cell"]) for g in d["groups"] if g["kind"] == 0} == {(800, 80, 0.9)}
+    assert d["control"] and all(c["excess_spread"] == 1.0 for c in d["control"]), d["control"]
