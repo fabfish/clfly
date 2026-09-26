@@ -95,7 +95,7 @@ def test_the_same_reversal_without_the_four_other_cells_breaks_the_pooled_K1(tmp
     assert rows["K3"]["verdict"].startswith("FALSIFIER FIRED"), rows["K3"]
 
 
-def test_the_live_census_orders_when_pooled_and_reverses_at_both_comparable_cells():
+def test_the_live_census_orders_when_pooled_and_reverses_at_every_comparable_cell():
     """The findings' numbers, pinned on the artifact: K1 ordered with disjoint ranges, K3's reversal at both cells that
     carry a no-destruction construction, and the margins -- +2.2% at cs 300/support 30 and +104.4% at cs 800/support
     80 -- which is why kind 0's stability and kind 1's volatility, not kind 0's looseness, is the reading."""
@@ -104,10 +104,10 @@ def test_the_live_census_orders_when_pooled_and_reverses_at_both_comparable_cell
         return
     d = json.loads(p.read_text(encoding="utf-8"))
     rows = {r["id"]: r for r in d["claims"]}
-    assert rows["K1"]["verdict"].startswith("MET"), rows["K1"]
+    assert rows["K1"]["verdict"].startswith("null band"), rows["K1"]  # the rho-0.99 cell overlaps kind 2 and 0
     assert rows["K2"]["verdict"].startswith("MET"), rows["K2"]
     assert rows["K3"]["verdict"].startswith("FALSIFIER FIRED"), rows["K3"]
-    assert "8 of 10" in rows["K3"]["measured"], rows["K3"]
+    assert "9 of 12" in rows["K3"]["measured"], rows["K3"]
     kinds: dict = {}
     for g in d["groups"]:
         if g["excess_spread"] is not None:
@@ -128,5 +128,5 @@ def test_the_live_census_orders_when_pooled_and_reverses_at_both_comparable_cell
     assert median(third[0]) > median(third[1]), "cs 800/support 20 gives the pooled direction at matched counts"
     # kind 0 is the stable rung across the cells and kind 1 is the volatile one -- the reading, pinned
     assert abs(median(cell[0]) / median(small[0]) - 1.0) < 0.1, (median(cell[0]), median(small[0]))
-    assert {tuple(g["cell"]) for g in d["groups"] if g["kind"] == 0} == {(800, 80, 0.9), (300, 30, 0.9), (800, 20, 0.9), (400, 40, 0.9)}
+    assert {tuple(g["cell"]) for g in d["groups"] if g["kind"] == 0} == {(800, 80, 0.9), (300, 30, 0.9), (300, 30, 0.99), (800, 20, 0.9), (400, 40, 0.9)}
     assert d["control"] and all(c["excess_spread"] == 1.0 for c in d["control"]), d["control"]
