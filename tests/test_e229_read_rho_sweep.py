@@ -1,0 +1,132 @@
+"""`e229` decides `e228`'s three registered claims, and its first duty is to say which denominator each figure is.
+
+The top step is (**Erdős–Rényi**) ÷ (**the one-side level** = the mean of the `alloy1` and `inalloy1` excesses);
+Erdős–Rényi ÷ `real` is a *different* quantity, and the live cs-300 cell shows why that matters: at `rho` 0.5 it
+reads **109×** while the top step reads **1.02×**, because the `real` cell's own excess collapses by 135× when `rho`
+falls. The reader also recomputes the `rho = 0.9` references from the artifacts that measured them rather than from
+the record's prose, which is how the record's quoted 2.76×/3.02× turn out to be the two **families'** spellings of
+one level (alloy1 over seven drawings, inalloy1 over three) rather than one level and something else.
+"""
+
+from __future__ import annotations
+
+import json
+from pathlib import Path
+
+from experiments import e229_read_rho_sweep as e229
+
+
+def cell_payload(topology_excess: dict, circuit_size: int, rho: float | None = None) -> dict:
+    block = {t: {"diagonal(EWC)": {"analytic": {"excess_mean": v}}} for t, v in topology_excess.items()}
+    cfg = {"circuit_size": circuit_size, "support": 30 if circuit_size == 300 else 80, "seeds": 3, "seed0": 0,
+           "q": 0.02}
+    if rho is not None:
+        cfg["rho"] = rho
+    return {"config": cfg, "topologies": block, "timing_s": 1.0}
+
+
+def write_runs(tmp_path: Path, files: dict[str, dict]) -> Path:
+    tmp_path.mkdir(parents=True, exist_ok=True)
+    for name, payload in files.items():
+        (tmp_path / name).write_text(json.dumps(payload), encoding="utf-8")
+    return tmp_path
+
+
+def full_design(cs300: dict, cs800: dict) -> dict:
+    """A complete design: the two new cells per size, plus the `rho = 0.9` references the reader recomputes."""
+    files = {}
+    for rho, (ones, er) in cs300.items():
+        files[f"e228_rho{str(rho).replace('.', '')}_cs300.json"] = cell_payload(
+            {"real": 0.02, "alloy1": ones, "inalloy1": ones, "erdos_renyi": er}, 300, rho)
+    for rho, (ones, er) in cs800.items():
+        files[f"e228_rho{str(rho).replace('.', '')}_cs800.json"] = cell_payload(
+            {"real": 0.018, "alloy1": ones, "inalloy1": ones, "erdos_renyi": er}, 800, rho)
+    # the references: cs 300 from one artifact, cs 800 from an ER artifact plus each family's own drawings
+    files["e217_ladder_cs300.json"] = cell_payload({"real": 0.02978, "alloy1": 0.12247, "inalloy1": 0.12233,
+                                                    "erdos_renyi": 0.15668}, 300)
+    files["e208_hole_sweep_cs800_3seeds.json"] = cell_payload({"real": 0.01830, "erdos_renyi": 0.14187}, 800)
+    files["e212_alloy_analytic_rs0.json"] = cell_payload({"alloy1": 0.10067}, 800)
+    files["e213_alloy_draws_rs0.json"] = cell_payload({"alloy1": 0.04130}, 800)
+    files["e216_inalloy_rs0.json"] = cell_payload({"inalloy1": 0.04671}, 800)
+    return files
+
+
+def test_an_incomplete_design_is_refused_rather_than_judged(tmp_path):
+    """The fire that launched the sweep saw exactly this: one cell of sixteen, and three refusals."""
+    root = write_runs(tmp_path, {"e228_rho05_cs300.json": cell_payload(
+        {"real": 0.00022, "alloy1": 0.02940, "inalloy1": 0.01876, "erdos_renyi": 0.02452}, 300, 0.5)})
+    cells = [e229.cell(root / "e228_rho05_cs300.json")]
+    verdicts = e229.judge(cells, e229.references(root))
+    assert [v["id"] for v in verdicts] == ["R1", "R2", "R3"]
+    assert all("REFUSED" in v["verdict"] for v in verdicts)
+    assert e229.main(["--runs", str(root)]) == 3, "the exit code is the refusal count"
+
+
+def test_the_two_ratios_are_different_quantities_on_the_live_cell(tmp_path):
+    """ER ÷ `real` and the top step disagree by two orders of magnitude on the registered sweep's first cell, so the
+    reader has to print both and the claims have to name which one they are about."""
+    root = write_runs(tmp_path, {"e228_rho05_cs300.json": cell_payload(
+        {"real": 0.00022, "alloy1": 0.02940, "inalloy1": 0.01876, "erdos_renyi": 0.02452}, 300, 0.5)})
+    c = e229.cell(root / "e228_rho05_cs300.json")
+    assert 1.0 < c["top_step"] < 1.05 and c["er_over_real"] > 100
+    assert c["top_step_by_family"]["alloy1"] < 1 < c["top_step_by_family"]["inalloy1"]
+
+
+def test_the_references_are_recomputed_from_the_artifacts_not_from_the_record(tmp_path):
+    """cs 800's quoted 3.02x is `inalloy1`'s spelling of the one-side level and the 2.76x is `alloy1`'s, so the
+    reader computes both families separately and prints the mean as a third spelling."""
+    root = write_runs(tmp_path, full_design({0.5: (0.02, 0.06), 0.99: (0.2, 0.1)},
+                                            {0.5: (0.05, 0.045), 0.99: (0.05, 0.55)}))
+    refs = e229.references(root)
+    assert abs(refs["cs300"]["top_step"] - 1.28) < 0.02
+    assert abs(refs["cs800"]["top_step_by_family"]["inalloy1"] - 3.037) < 0.01
+    assert abs(refs["cs800"]["family_means"]["alloy1"] - 0.070985) < 1e-6
+    assert refs["cs800_drawings"] == {"alloy1": 2, "inalloy1": 1}
+    assert abs(refs["cs800"]["top_step"] - 2.411) < 0.02
+    assert refs["cs800"]["top_step_by_family"]["alloy1"] < refs["cs800"]["top_step"] \
+        < refs["cs800"]["top_step_by_family"]["inalloy1"]
+
+
+def test_a_complete_design_is_judged_and_a_falling_top_step_meets_r2(tmp_path):
+    root = write_runs(tmp_path, full_design({0.5: (0.02, 0.06), 0.99: (0.2, 0.1)},
+                                            {0.5: (0.05, 0.045), 0.99: (0.05, 0.55)}))
+    cells = [c for c in (e229.cell(p) for p in sorted(root.glob("e228_rho*_cs*.json"))) if c is not None]
+    verdicts = {v["id"]: v["verdict"] for v in e229.judge(cells, e229.references(root))}
+    assert verdicts["R1"].startswith("MET"), verdicts["R1"]
+    assert verdicts["R2"].startswith("MET"), verdicts["R2"]
+    assert verdicts["R3"].startswith("MET"), verdicts["R3"]
+    assert e229.main(["--runs", str(root)]) == 0
+
+
+def test_a_rising_top_step_fires_r2_s_falsifier_and_a_flat_one_fires_r1_s(tmp_path):
+    rising = write_runs(tmp_path / "rising",
+                        full_design({0.5: (0.2, 0.1), 0.99: (0.02, 0.06)},
+                                    {0.5: (0.05, 0.045), 0.99: (0.05, 0.55)}))
+    cells = [c for c in (e229.cell(p) for p in sorted(rising.glob("e228_rho*_cs*.json"))) if c is not None]
+    v = {x["id"]: x["verdict"] for x in e229.judge(cells, e229.references(rising))}
+    assert v["R2"].startswith("FALSIFIER")
+    # a flat cs-300 range fires R1's falsifier, and cs-800 cells that sit ON the reference fire R3's
+    flat = write_runs(tmp_path / "flat",
+                      full_design({0.5: (0.02, 0.0242), 0.99: (0.02, 0.0232)},
+                                  {0.5: (0.05, 0.12), 0.99: (0.05, 0.13)}))
+    cells = [c for c in (e229.cell(p) for p in sorted(flat.glob("e228_rho*_cs*.json"))) if c is not None]
+    v = {x["id"]: x["verdict"] for x in e229.judge(cells, e229.references(flat))}
+    assert v["R1"].startswith("FALSIFIER"), v["R1"]
+    assert v["R3"].startswith("FALSIFIER"), v["R3"]
+
+
+def test_rho_is_read_from_the_config_and_a_missing_one_is_the_builders_default(tmp_path):
+    root = write_runs(tmp_path, {"e228_rho05_cs300.json": cell_payload(
+        {"real": 0.02, "alloy1": 0.03, "inalloy1": 0.03, "erdos_renyi": 0.06}, 300, 0.5),
+        "e228_rhocs300.json": cell_payload({"real": 0.02, "alloy1": 0.03, "inalloy1": 0.03, "erdos_renyi": 0.06}, 300)})
+    assert e229.cell(root / "e228_rho05_cs300.json")["rho"] == 0.5
+    assert e229.cell(root / "e228_rhocs300.json")["rho"] == 0.9
+
+
+def test_the_live_reader_refuses_until_the_sweep_is_complete():
+    """The gate is the refusal count: while `e228`'s cells are still being written, three claims are refused and the
+    reader must not report a verdict it cannot compute."""
+    cells = [c for c in (e229.cell(p) for p in sorted(e229.RUNS.glob(e229.TEST_GLOB))) if c is not None]
+    verdicts = e229.judge(cells, e229.references())
+    expected = 3 if len(cells) < 16 else 0
+    assert sum("REFUSED" in v["verdict"] for v in verdicts) == expected, (len(cells), verdicts)
