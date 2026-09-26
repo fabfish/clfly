@@ -60,4 +60,6 @@ run e259 python -m experiments.e259_c2b_null_power --json-out runs/e259_c2b_null
 run e260 python -m experiments.e260_domain_in_the_readers --json-out runs/e260_domain_in_the_readers.json
 run e261 python -m experiments.e261_three_rep_floor_measured --json-out runs/e261_three_rep_floor_measured.json
 
+run e262 python -m experiments.e262_replicate_order_is_not_a_variable --json-out runs/e262_replicate_order_is_not_a_variable.json
+
 echo "ALL DONE"
