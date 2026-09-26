@@ -46,6 +46,23 @@ with no subsetting at all.
   beside them, and the margin computed both on the equal-count base and on the corpus's larger drawings where they
   exist (the kind-1 families have two here, so the two forms coincide for kind 1 and differ only for kind 0).
 
+## 2b. A correction registered while the runs were in flight, before any of their data existed
+
+Writing this module's own table exposed a mismatch in T1 above, and it is worth stating in the registration rather
+than after the result. **T1's bars come from the *all-drawings* margins at the two reference cells** (1.008 at cs
+300/support 30 and 2.044 at cs 800/support 80) while the new cell is read at **two** drawings. On a consistent
+two-drawing footing the same two reference cells read
+
+    cs 300/support 30   equal-count-two margin 0.851   (kind-1 rank spreads 2.73x, 2.08x)
+    cs 800/support 80   equal-count-two margin 1.660   (kind-1 rank spreads 14.08x, 8.02x)
+
+so T1's interval is drawn on a different scale from the quantity it judges. **T1b, added to the module at 17:20 while
+both runs were still running and no artifact of theirs existed**, restates the prediction on one footing: the new
+cell's equal-count-two margin lies **strictly inside (0.851, 1.660)**. **Falsifier**: outside that interval, which
+would mean the margin is not monotone in the rank contrast over these three cells. The reference values are computed
+from data already on disk; the new cell's value is not, so this is a blind prediction, and T1 stays registered as
+written — if the two disagree, both verdicts are reported.
+
 ## 3. Cost, and what it cannot do
 
 **Cost**: cs 800's cells have run at 228–240 s for three seeds without the realized arm (`e213`'s ten cells), so two
