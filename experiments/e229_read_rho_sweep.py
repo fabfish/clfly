@@ -223,7 +223,53 @@ def judge(cells: list[dict], refs: dict) -> list[dict]:
     return sorted(out, key=lambda r: r["id"])
 
 
-def report(cells: list[dict], refs: dict) -> int:
+def geometry_of(payload: dict) -> dict:
+    """Each topology's alignment against the tasks and the task geometry's shape -- the runner's `geometry` block."""
+    out = {}
+    for t, b in (payload.get("topologies") or {}).items():
+        geo = (b or {}).get("geometry") if isinstance(b, dict) else None
+        if not isinstance(geo, dict):
+            continue
+        al, ch = geo.get("all_pairs_alignment"), geo.get("chance_alignment")
+        if not (isinstance(al, (int, float)) and isinstance(ch, (int, float)) and ch):
+            continue
+        out[t] = {"alignment": float(al), "chance": float(ch), "x_chance": float(al) / float(ch),
+                  # the task geometry's SHAPE, which the same block carries: at a fixed circuit these do not depend
+                  # on the basis at all, so they are the candidates a penalty's dependence on `rho` can be read
+                  # against when the alignment statistic turns out not to move.
+                  "effective_rank": geo.get("effective_rank"), "mean_rank": geo.get("mean_rank"),
+                  "flattening": geo.get("flattening")}
+    return out
+
+
+def mechanism(cells: list[dict], directory: Path = RUNS) -> list[dict]:
+    """The penalty's rho dependence against the ALIGNMENT's rho dependence, cell by cell.
+
+    The top step is a ratio of penalties; if its rho dependence were carried by how differently Erdos-Renyi and the
+    one-side nulls line up with the tasks, the two ratios would move together. They are printed side by side so that
+    "it is the alignment contrast" is a measurement rather than an assumption -- the same question `e213` asked of
+    the alloy family at one `rho`.
+    """
+    out = []
+    for c in sorted(cells, key=lambda c: (c["circuit_size"], c["rho"])):
+        payload = read(directory / c["artifact"])
+        geo = geometry_of(payload or {}) if payload else {}
+        ones = [geo[t]["x_chance"] for t in ONE_SIDE if t in geo]
+        if not ones or "erdos_renyi" not in geo:
+            continue
+        one_align = sum(ones) / len(ones)
+        out.append({"artifact": c["artifact"], "circuit_size": c["circuit_size"], "rho": c["rho"],
+                    "alignment_x_chance": {t: round(v["x_chance"], 3) for t, v in geo.items()},
+                    "effective_rank": {t: v["effective_rank"] for t, v in geo.items()},
+                    "flattening": {t: v["flattening"] for t, v in geo.items()},
+                    "excess": {t: c["levels"].get(t) for t in geo},
+                    "one_side_alignment": one_align,
+                    "alignment_top_step": geo["erdos_renyi"]["x_chance"] / one_align if one_align else None,
+                    "penalty_top_step": c["top_step"]})
+    return out
+
+
+def report(cells: list[dict], refs: dict, with_geometry: bool = False) -> int:
     print("== the e228 cells ==")
     for c in sorted(cells, key=lambda c: (c["circuit_size"], c["rho"])):
         lv = c["levels"]
@@ -253,6 +299,24 @@ def report(cells: list[dict], refs: dict) -> int:
               f"{r8['top_step_by_family']['inalloy1']:.3f}x) -- so the record's "
               f"{QUOTED['cs800_alloy1']:.2f}x and {QUOTED['cs800_inalloy1']:.2f}x are the two FAMILIES' spellings "
               f"of one level, and the mean spelling is {r8['top_step']:.3f}x")
+    if with_geometry:
+        print("\n== the mechanism: the penalty's rho dependence against the geometry's ==")
+        rows = mechanism(cells, RUNS)
+        for r in rows:
+            print(f"   cs {r['circuit_size']} rho {r['rho']:<5} alignment x chance {r['alignment_x_chance']}")
+            print(f"        excess {r['excess']}")
+            print(f"        effective_rank {r['effective_rank']}   flattening {r['flattening']}")
+            print(f"        one-side alignment {r['one_side_alignment']:.3f}x chance  "
+                  f"alignment top step {r['alignment_top_step']:.3f}x  "
+                  f"PENALTY top step {r['penalty_top_step']:.3f}x")
+        if len(rows) > 1:
+            pens = [r["penalty_top_step"] for r in rows]
+            aligns = [r["alignment_top_step"] for r in rows]
+            print(f"   across {len(rows)} cells the penalty top step spans {max(pens) / min(pens):.2f}x while the "
+                  f"alignment top step spans {max(aligns) / min(aligns):.2f}x")
+            print("   (if those two spanned together, the top step would be the alignment contrast; they are printed")
+            print("    side by side so that reading is a measurement, the question `e213` asked of one family at one")
+            print("    rho -- and beside them the task geometry's own SHAPE, which is basis-independent)")
     print("\n== the registered claims, R1-R3 ==")
     refused = 0
     for c, row in zip(CLAIMS, judge(cells, refs)):
@@ -270,14 +334,24 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0],
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--runs", type=Path, default=RUNS)
+    ap.add_argument("--geometry", action="store_true",
+                    help="also print the penalty's rho dependence beside the ALIGNMENT's, from each artifact's"
+                         " own geometry block")
     ap.add_argument("--json-out", type=Path, default=None)
     args = ap.parse_args(argv)
     cells = [c for c in (cell(Path(p)) for p in sorted(glob.glob(str(args.runs / TEST_GLOB)))) if c is not None]
     refs = references(args.runs)
     if args.json_out:
-        write_json(args.json_out, {"cells": cells, "references": refs, "claims": judge(cells, refs)})
+        data = {"cells": cells, "references": refs, "claims": judge(cells, refs)}
+        write_json(args.json_out, data)
         print(f"wrote {args.json_out}")
-    return report(cells, refs)
+    if args.geometry:
+        print("\n== the mechanism, as the reader's own cross-tab ==")
+        for r in mechanism(cells, args.runs):
+            print(f"   cs {r['circuit_size']} rho {r['rho']:<5} penalty top step {r['penalty_top_step']:.3f}x  "
+                  f"alignment top step {r['alignment_top_step']:.3f}x  "
+                  f"(alignment x chance {r['alignment_x_chance']})")
+    return report(cells, refs, args.geometry)
 
 
 if __name__ == "__main__":

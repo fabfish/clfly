@@ -11,6 +11,7 @@ one level (alloy1 over seven drawings, inalloy1 over three) rather than one leve
 from __future__ import annotations
 
 import json
+import pytest
 from pathlib import Path
 
 from experiments import e229_read_rho_sweep as e229
@@ -146,3 +147,27 @@ def test_the_live_reader_refuses_only_the_claims_whose_cells_are_absent():
     verdicts = e229.judge(cells, refs)
     assert sum("REFUSED" in v["verdict"] for v in verdicts) == expected, (sizes, verdicts)
     assert len(verdicts) == 3
+
+
+def test_the_mechanism_cross_tab_reads_the_alignment_block_the_runner_writes(tmp_path):
+    """The penalty's rho dependence against the ALIGNMENT's: both ratios are computed from the artifacts' own
+    `geometry` blocks, so "the top step is the alignment contrast" is a measurement rather than an assumption."""
+    payload = cell_payload({"real": 0.02, "alloy1": 0.03, "inalloy1": 0.03, "erdos_renyi": 0.06}, 300, 0.5)
+    payload["topologies"]["alloy1"]["geometry"] = {"all_pairs_alignment": 0.6, "chance_alignment": 1.0}
+    payload["topologies"]["inalloy1"]["geometry"] = {"all_pairs_alignment": 0.4, "chance_alignment": 1.0}
+    payload["topologies"]["erdos_renyi"]["geometry"] = {"all_pairs_alignment": 2.0, "chance_alignment": 1.0}
+    root = write_runs(tmp_path, {"e228_rho05_cs300.json": payload})
+    rows = e229.mechanism([e229.cell(root / "e228_rho05_cs300.json")], root)
+    assert len(rows) == 1
+    assert rows[0]["alignment_x_chance"] == {"alloy1": 0.6, "inalloy1": 0.4, "erdos_renyi": 2.0}
+    assert abs(rows[0]["one_side_alignment"] - 0.5) < 1e-12
+    assert abs(rows[0]["alignment_top_step"] - 4.0) < 1e-12
+    assert rows[0]["penalty_top_step"] == pytest.approx(0.06 / 0.03, rel=1e-9)
+
+
+def test_a_cell_without_a_geometry_block_is_skipped_rather_than_guessed(tmp_path):
+    """A cell whose artifact carries no `geometry` block cannot answer the alignment question, and the cross-tab says
+    nothing about it instead of assuming a chance level of 1."""
+    payload = cell_payload({"real": 0.02, "alloy1": 0.03, "inalloy1": 0.03, "erdos_renyi": 0.06}, 300, 0.5)
+    root = write_runs(tmp_path, {"e228_rho05_cs300.json": payload})
+    assert e229.mechanism([e229.cell(root / "e228_rho05_cs300.json")], root) == []
