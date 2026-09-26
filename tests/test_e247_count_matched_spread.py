@@ -88,7 +88,7 @@ def test_per_cell_reads_the_live_artifacts_into_families_by_kind(tmp_path):
 def test_the_live_corpus_halves_the_quoted_spreads_and_shares_the_noise():
     """The finding's numbers on the artifact: alloy1's six-drawing cell at 3.34x is 1.64x at a two-drawing budget,
     the count-matched separation collapses to 1.004x, the cell covariates are flat, and R5's shared noise, which
-    `e248`'s, `e249`'s and `e251`'s new drawings move from +0.724 to +0.711."""
+    `e248`'s, `e249`'s and `e251`'s new drawings move from +0.724 to +0.761."""
     p = Path("runs/e247_count_matched_spread.json")
     if not p.exists():
         return
@@ -100,9 +100,9 @@ def test_the_live_corpus_halves_the_quoted_spreads_and_shares_the_noise():
         assert rows[cid]["verdict"].startswith("MET"), rows[cid]
     for cid in ("R1", "R2"):
         assert rows[cid]["verdict"].startswith("FALSIFIER FIRED"), rows[cid]
-    assert "15.33x" in rows["R1"]["measured"] and "3.47x" in rows["R1"]["measured"], rows["R1"]
+    assert "16.31x" in rows["R1"]["measured"] and "3.47x" in rows["R1"]["measured"], rows["R1"]
     assert "1.879x" in rows["R2"]["measured"], rows["R2"]
     assert "overlapping=True" in rows["R2"]["measured"], rows["R2"]
-    assert "+0.711" in rows["R5"]["measured"], rows["R5"]
+    assert "+0.761" in rows["R5"]["measured"], rows["R5"]
     cell = d["table"]["alloy1"]["(800, 80, 0.9)"]
     assert cell["n"] == 8 and abs(cell["all"] - 3.34) < 0.01 and abs(cell["pair_median"] - 1.64) < 0.01, cell

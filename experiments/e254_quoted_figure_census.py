@@ -69,7 +69,7 @@ REGISTRY = (
       ((300, 30, 0.99), "alloy1"), ((300, 30, 0.99), "erdos_renyi")], True),
     ("the-rank-curve-falls-monotonically-in-rho", "every family's effective rank falls over the rho grid",
      [((300, 30, r), f) for r in (0.5, 0.7, 0.8, 0.9, 0.95, 0.98, 0.99)
-      for f in ("alloy1", "erdos_renyi")], False),
+      for f in ("alloy1", "erdos_renyi")], True),   # e255 drew the low-rho end: the fall survived, 1.00x to 1.10x
     ("erdos-renyi-does-not-collapse", "it plateaus at 3.18 while the one-side families reach 1.0",
      [((300, 30, 0.99), "erdos_renyi"), ((300, 30, 0.99), "alloy1"), ((300, 30, 0.99), "inalloy1")], False),
     ("the-one-zero-margin-across-cells", "0.787 / 0.851 / 0.935 / 1.660 at four cells",

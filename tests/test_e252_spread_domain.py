@@ -80,20 +80,21 @@ def test_the_live_artifact_restores_exactly_the_three_demoted_verdicts():
     if not p.exists():
         return
     d = json.loads(p.read_text(encoding="utf-8"))
-    assert len(d["in_domain"]) == 7 and len(d["out_of_domain"]) == 2, (d["in_domain"], d["out_of_domain"])
+    assert len(d["in_domain"]) == 10 and len(d["out_of_domain"]) == 2, (d["in_domain"], d["out_of_domain"])
     assert d["out_of_domain"] == ["(300, 30, 0.98)", "(300, 30, 0.99)"], d["out_of_domain"]
     before, after = d["verdicts_all"], d["verdicts_domain"]
     moved = sorted(cid for cid in before if before[cid] != after.get(cid))
-    # e253's two cells grew the corpus from 38 groups to 44 and added a second cell outside the domain, so K2 moves too
-    assert moved == ["K1", "K2", "R1", "R2"], moved
-    for cid in ("K1", "R1", "R2"):
+    # e255's six low-rho groups grew the corpus to 53 and are INSIDE the domain, so R1's falsification survives it
+    assert moved == ["K1", "N3", "R2"], moved
+    for cid in ("K1", "R2"):
         assert after[cid].startswith("MET"), (cid, after[cid])
+    assert after["R1"].startswith("FALSIFIER"), after["R1"]  # e255's low-rho groups are IN the domain and keep it
     rows = {r["id"]: r for r in d["claims"]}
-    # D2 still holds; D3 and D4 fire because their bars were COUNTS drawn against a 38-group corpus
-    assert rows["D2"]["verdict"].startswith("MET"), rows["D2"]
-    for cid in ("D3", "D4"):
+    # all three now fire: D2 because R1's falsification survives inside the domain, D3/D4 because their bars are
+    # COUNTS drawn against a 38-group corpus that now holds 53
+    for cid in ("D2", "D3", "D4"):
         assert rows[cid]["verdict"].startswith("FALSIFIER FIRED"), rows[cid]
-    assert "9 of 44" in rows["D3"]["measured"], rows["D3"]
+    assert "9 of 53" in rows["D3"]["measured"], rows["D3"]
     for cid in ("D1",):
         assert rows[cid]["verdict"].startswith("FALSIFIER FIRED"), rows[cid]
     assert "3.3444" in rows["D1"]["measured"], rows["D1"]

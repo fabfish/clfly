@@ -95,15 +95,11 @@ def test_the_live_census_finds_two_exposed_figures_at_the_low_rho_cells():
     d = json.loads(p.read_text(encoding="utf-8"))
     verdicts = {f["verdict"] for f in d["figures"]}
     assert verdicts <= {"SAFE", "DECOMPOSED", "STILL EXPOSED"}, verdicts
+    # e255 drew the three cells the census flagged, so nothing is exposed any more
     exposed = [f for f in d["figures"] if f["verdict"] == "STILL EXPOSED"]
-    assert len(exposed) == 2 and len(d["figures"]) == 12, (len(exposed), len(d["figures"]))
-    assert {f["name"] for f in exposed} == {"the-rank-curve-falls-monotonically-in-rho",
-                                            "the-cs-300-rank-contrasts-resolve"}
-    for f in exposed:
-        assert {c[2] for c, _, _ in f["thin"]} == {0.5, 0.7, 0.8}, f["thin"]
-        assert all(k == 1 for _, _, k in f["thin"]), f["thin"]
-    assert len([f for f in d["figures"] if f["verdict"] == "DECOMPOSED"]) == 4, d["figures"]
+    assert exposed == [] and len(d["figures"]) == 12, (exposed, len(d["figures"]))
+    assert len([f for f in d["figures"] if f["verdict"] == "DECOMPOSED"]) == 6, d["figures"]
     rows = {r["id"]: r for r in d["claims"]}
     assert rows["C1"]["verdict"].startswith("FALSIFIER FIRED"), rows["C1"]
     assert rows["C2"]["verdict"].startswith("MET"), rows["C2"]
-    assert d["counts"]["300/30/0.5/alloy1"] == 1 and d["counts"]["800/80/0.9/alloy1"] == 8, d["counts"]
+    assert d["counts"]["300/30/0.5/alloy1"] == 2 and d["counts"]["800/80/0.9/alloy1"] == 8, d["counts"]

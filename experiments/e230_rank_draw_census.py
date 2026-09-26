@@ -46,20 +46,16 @@ REF_RHO = 0.9
 DECLARED_UNRESOLVABLE: dict[tuple, str] = {
     (800, "alloy1"): "twelve drawings at rho 0.9 span 1.72-28.35 (16.44x) in effective_rank, and the rho contrast the "
                      "mechanism reading quotes for this family at cs 800 is 21.01 against the 1.29 of another family "
-                     "at rho 0.99 -- a single-drawing contrast of the same size as the family's own scatter. The "
-                     "cs-300 half of the same claim is resolvable and is not declared here",
-    # declared 2026-09-26 18:20, when e253 put a second drawing at rho 0.95 and 0.98: the cs-300 rho contrasts that
-    # this audit had called resolvable (7.68x to 25.25x) were read off ONE drawing per rho value, and one more drawing
-    # at two of those values collapses them to the numbers below -- each now inside its family's own scatter
-    (300, "alloy1"): "its rho contrast as read is 1.51x against its own within-scatter 2.73x; a second drawing at rho "
-                     "0.95 and 0.98 collapsed a 25.25x reading to this",
-    (300, "inalloy1"): "its rho contrast as read is 1.31x against its own within-scatter 2.08x, after the same two "
-                       "drawings",
-    (300, "swap0.5"): "its rho contrast as read is 4.05x against its own within-scatter 8.77x, after the same two "
-                      "drawings",
-    (300, "swap2"): "its rho contrast as read is 1.18x against its own within-scatter 7.77x, after the same two "
-                    "drawings",
+                     "at rho 0.99 -- a single-drawing contrast of the same size as the family's own scatter",
+    # declared 2026-09-26 18:20 when e253 put a second drawing at rho 0.95 and 0.98, and still declared after e255 drew
+    # the low-rho end: their contrasts as read stay inside their own scatters
+    (300, "swap0.5"): "its rho contrast as read is 4.05x against its own within-scatter 8.77x",
+    (300, "swap2"): "its rho contrast as read is 1.18x against its own within-scatter 7.77x",
 }
+# and two entries were REMOVED 2026-09-26 19:05: cs 300 alloy1 and inalloy1 were declared at 18:20 (their contrasts had
+# collapsed to 1.51x and 1.31x) and e255's drawings at rho 0.5, 0.7 and 0.8 took away the last single-drawing rho
+# groups at cs 300, so this audit's as-read column is not computable for them at all and they leave the table rather
+# than staying declared. A declaration is not permanent: it is a statement about the corpus's current drawings.
 
 
 def rows_of(root: Path = RUNS) -> list[dict]:
