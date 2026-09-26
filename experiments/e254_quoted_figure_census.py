@@ -18,7 +18,16 @@ drawings. Everything else is read from the corpus: a figure is
   input now has two or more -- the list of what has been checked;
 - **STILL EXPOSED** when an input still has exactly one drawing -- the list that matters.
 
-Three registered claims:
+**Extended 2026-09-26 19:20** with the three cs-800 figures the registry had not named, which is the blind spot
+`e255` left: `e255` closed the low-`rho` thinness at cs 300 and noted that cs 800's `rho` cells carry three families at
+one drawing each, but the registry named no figure resting on them, so the census could not see whether that thinness
+mattered. It does: the extension exposes **two more figures**, both at cs 800.
+
+Claims, and their provenance. **C1**, **C2** and **C3** were registered before their run. **E1** to **E3** were added
+with the extension above and were computed in the same minute, so they are **confirmatory** and their value is as a
+**regression**: they pin the coverage so a future registry edit that silently drops a cs-800 figure fires.
+
+Registered claims:
 
 - **C1 -- the census finds at least three figures still exposed.** **Falsifier**: fewer than three, which would make
   the instrument a bookkeeping exercise rather than a map of what is unchecked.
@@ -84,12 +93,31 @@ REGISTRY = (
       for f in ("alloy1", "inalloy1")], True),
     ("the-floor-s-level", "swap0.5 and swap2 at 0.012 to 0.023",
      [((800, 80, 0.9), "swap0.5"), ((800, 80, 0.9), "swap2")], False),
+    # added 2026-09-26 19:20: the three cs 800 figures this registry did not name, which is the blind spot e255 left
+    ("the-rank-curve-at-cs-800", "the same fall as cs 300's, over the same rho grid at the other size",
+     [((800, 80, r), f) for r in (0.5, 0.7, 0.8, 0.9, 0.95, 0.98, 0.99)
+      for f in ("alloy1", "erdos_renyi")], False),
+    ("the-size-effect-changes-sign-with-rho", "cs 800 over cs 300 reads 1.13x at rho 0.5, 2.14x at 0.9 and 0.06x at 0.99",
+     [((800, 80, r), f) for r in (0.5, 0.9, 0.99) for f in ("alloy1", "erdos_renyi")] +
+     [((300, 30, r), f) for r in (0.5, 0.9, 0.99) for f in ("alloy1", "erdos_renyi")], False),
+    ("the-two-side-level-is-flat-across-sizes", "Erdos-Renyi at cs 800 and at cs 300, both at rho 0.9",
+     [((800, 80, 0.9), "erdos_renyi"), ((300, 30, 0.9), "erdos_renyi")], False),
 )
 WEAK_SWAPS = ("swap0.1", "swap4", "swap8", "swap16", "swap32", "swap64", "swap256", "swap1024")
 CLAIMS = (
     ("C1", "the census finds at least three figures still exposed",
      "At least three registered figures name an input that still has exactly one drawing",
      "falsifier: fewer than three, which would make the instrument bookkeeping rather than a map"),
+    ("E1", "the extension exposes at least two more figures",
+     "Naming the cs-800 figures brings at least two of them out as exposed",
+     "falsifier: none, i.e. no quoted figure rests on cs 800's one-drawing rho cells [confirmatory, added with the "
+     "extension: it is a coverage regression, not a blind test]"),
+    ("E2", "every new exposure is a cs-800 rho cell",
+     "The newly exposed figures are exposed through cs 800's rho grid and nowhere else",
+     "falsifier: an exposure elsewhere in the corpus [confirmatory]"),
+    ("E3", "the cs-800 rank curve is thin at most of its rho values",
+     "The cs-800 rank curve names single-drawing inputs at more than four of its seven rho values",
+     "falsifier: four or fewer, which would leave the cs-800 curve mostly drawn [confirmatory]"),
     ("C2", "the exposure is concentrated, not spread",
      "Every still-exposed figure is exposed through a cell at rho other than 0.9 or through a weak-swap rung of an "
      "otherwise well-drawn cell",
@@ -145,6 +173,29 @@ def judge(fam: dict) -> list[dict]:
                             or "no figure is exposed",
                 "verdict": "MET -- every exposure is a rho cell or a weak-swap rung" if not stray else
                            f"FALSIFIER FIRED -- {[r['name'] for r in stray]} is exposed through a drawn family"})
+    cs800 = ("the-rank-curve-at-cs-800", "the-size-effect-changes-sign-with-rho",
+             "the-two-side-level-is-flat-across-sizes")
+    if not all(any(r["name"] == n for r in rows) for n in cs800):
+        return out + [{"id": cid, "verdict": f"REFUSED -- {cs800[0]} is not in the registry"} for cid in
+                      ("E1", "E2", "E3")]
+    e_rows = [r for r in rows if r["name"] in cs800]
+    newly = [r for r in e_rows if r["verdict"] == "STILL EXPOSED"]
+    out.append({"id": "E1", "measured": f"{len(newly)} of the {len(e_rows)} cs-800 figures the extension named are "
+                                        f"exposed: {', '.join(r['name'] for r in newly) or 'none'}",
+                "verdict": "MET -- at least two are" if len(newly) >= 2 else
+                           "FALSIFIER FIRED -- the cs-800 thinness feeds fewer than two quoted figures"})
+    off = [r["name"] for r in newly if not all(c[0] == 800 for c, _, _ in r["thin"])]
+    out.append({"id": "E2", "measured": "; ".join(f"{r['name']}: " + ", ".join(f"cs {c[0]}/rho {c[2]:g}" for c, _, _ in r["thin"])
+                                                   for r in newly) or "nothing new is exposed",
+                "verdict": "MET -- every new exposure is a cs-800 rho cell" if not off else
+                           f"FALSIFIER FIRED -- {off} is exposed elsewhere"})
+    curve = [r for r in rows if r["name"] == "the-rank-curve-at-cs-800"][0]
+    rhos = {c[2] for c, _, _ in curve["thin"]}
+    out.append({"id": "E3", "measured": f"the cs-800 rank curve names single-drawing inputs at {len(rhos)} of its 7 rho "
+                                        f"values ({sorted(rhos)})",
+                "verdict": "MET -- more than four" if len(rhos) > 4 else
+                           "FALSIFIER FIRED -- four or fewer"})
+
     return out
 
 

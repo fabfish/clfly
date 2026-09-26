@@ -86,7 +86,7 @@ def test_a_decomposed_figure_is_not_safe_and_not_exposed():
         mod.REGISTRY = saved
 
 
-def test_the_live_census_finds_two_exposed_figures_at_the_low_rho_cells():
+def test_the_live_census_reports_the_cs_300_close_out_and_the_cs_800_exposure():
     """The finding's numbers on the artifact: twelve figures, two still exposed, both through the cs-300 rho 0.5, 0.7
     and 0.8 cells, and four decomposed by this session's fires."""
     p = Path("runs/e254_quoted_figure_census.json")
@@ -95,10 +95,16 @@ def test_the_live_census_finds_two_exposed_figures_at_the_low_rho_cells():
     d = json.loads(p.read_text(encoding="utf-8"))
     verdicts = {f["verdict"] for f in d["figures"]}
     assert verdicts <= {"SAFE", "DECOMPOSED", "STILL EXPOSED"}, verdicts
-    # e255 drew the three cells the census flagged, so nothing is exposed any more
+    # e255 closed the cs-300 exposure; extending the registry with the cs-800 figures then exposed two more
     exposed = [f for f in d["figures"] if f["verdict"] == "STILL EXPOSED"]
-    assert exposed == [] and len(d["figures"]) == 12, (exposed, len(d["figures"]))
+    assert len(d["figures"]) == 15, len(d["figures"])
+    assert {f["name"] for f in exposed} == {"the-rank-curve-at-cs-800", "the-size-effect-changes-sign-with-rho"}, exposed
     assert len([f for f in d["figures"] if f["verdict"] == "DECOMPOSED"]) == 6, d["figures"]
+    assert len([f for f in d["figures"] if f["verdict"] == "SAFE"]) == 7, d["figures"]
+    rows_e = {r["id"]: r for r in d["claims"]}
+    for cid in ("E1", "E2", "E3"):
+        assert rows_e[cid]["verdict"].startswith("MET"), rows_e[cid]
+    assert "6 of its 7 rho values" in rows_e["E3"]["measured"], rows_e["E3"]
     rows = {r["id"]: r for r in d["claims"]}
     assert rows["C1"]["verdict"].startswith("FALSIFIER FIRED"), rows["C1"]
     assert rows["C2"]["verdict"].startswith("MET"), rows["C2"]
