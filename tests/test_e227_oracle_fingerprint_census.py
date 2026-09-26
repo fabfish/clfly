@@ -93,6 +93,23 @@ def test_the_live_corpus_has_four_bit_exact_groups_and_two_declared_drifts():
     assert statuses == {"attributed", "OPEN -- not attributed"}, statuses
 
 
+def test_rho_absent_and_rho_at_its_default_are_one_configuration(tmp_path):
+    """A config field whose absence means the runner's default must not split a group -- and a DIFFERENT value of it
+    must not be merged into one, which would report a design difference as a reproducibility failure."""
+    cfg_default = dict(CFG)
+    cfg_explicit = {**CFG, "rho": 0.9}
+    cfg_other = {**CFG, "rho": 0.5}
+    root = write(tmp_path, [artifact("absent.json", cfg_default, 0.5),
+                            artifact("explicit.json", cfg_explicit, 0.5),
+                            artifact("other.json", cfg_other, 0.5)])
+    res = e227.census(root)
+    keys = {g["key"]: g["n"] for g in res["groups"]}
+    assert len(keys) == 2, keys
+    assert [n for k, n in keys.items() if "rho=0.9" in k] == [2], keys
+    assert [n for k, n in keys.items() if "rho=0.5" in k] == [1], keys
+    assert res["drifts"] == [], res["drifts"]
+
+
 def test_the_excess_amplifies_the_fingerprints_own_spread(tmp_path):
     """The arithmetic reason the excess is the wrong instrument: it is a difference of two larger numbers."""
     root = write(tmp_path, [artifact("a.json", CFG, 0.5, excess=0.0100),

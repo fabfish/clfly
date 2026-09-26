@@ -83,7 +83,8 @@ def run(args) -> dict:
 
         seqs, ranks = [], []
         for seed in range(args.seed0, args.seed0 + args.seeds):
-            wt = tasks.build_tasks(circ, support_size=args.support, q=args.q, seed=seed)
+            wt = tasks.build_tasks(circ, support_size=args.support, q=args.q, seed=seed,
+                                   **({} if args.rho is None else {"rho": args.rho}))
             seqs.append(wt.sequence)
             ranks.append(wt.ranks)
 
@@ -222,6 +223,13 @@ def main(argv=None) -> int:
     p.add_argument("--seeds", type=int, default=1)
     p.add_argument("--seed0", type=int, default=0)
     p.add_argument("--q", type=float, default=0.02)
+    p.add_argument("--rho", type=float, default=None,
+                   help="the assembly geometry's spectral radius -- how far the propagation is from stability "
+                        "(`stable_weights`; the task builder's own default is 0.9). Exposed so the one variable the "
+                        "ladder's size dependence has never been tested against can be varied without a code change "
+                        "between runs. Omitting it leaves the builder's default in force and records `null`, which "
+                        "is the same configuration as `--rho 0.9` and is normalised as such by the determinism "
+                        "audits; artifacts written before this flag existed carry no `rho` key at all")
     p.add_argument("--topologies", default=",".join(TOPOLOGY_ORDER))
     p.add_argument("--rewire-seed", type=int, default=None,
                    help="seed the swap stream separately from the tasks; without it `seed0` drives "

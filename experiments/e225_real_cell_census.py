@@ -50,7 +50,12 @@ from experiments.e103_reproducibility_audit import load_artifacts
 
 RUNS = Path("runs")
 #: the fields that determine the tasks and the circuit, so that two cells agreeing on them must agree in value
-KEY_FIELDS = ("circuit_size", "support", "seeds", "seed0", "q")
+KEY_FIELDS = ("circuit_size", "support", "seeds", "seed0", "q", "rho")
+#: fields whose absence means "the runner's default", so an artifact written before the flag existed and one that
+#: passes it explicitly are the SAME configuration rather than two. `rho` is the assembly geometry's spectral radius
+#: (`tasks.build_tasks`' own default is 0.9); a different `rho` is a different task set, so a group that varies it is
+#: not a reproducibility failure and must not be grouped as one.
+KEY_DEFAULTS = {"rho": 0.9}
 #: the tolerance classes
 #: the tolerance classes. The FLOATING/MATERIAL boundary is 1e-4 relative and the corpus leaves it four orders of
 #: room: the largest within-family difference is **1.66e-6** (the pooling runner at two epochs) and the only
@@ -62,6 +67,12 @@ EXACT, FLOATING = 1e-12, 1e-4
 #: pooling runner and the cell-class runner compute "the excess" with different bases and different flags, so their
 #: `real` cells are two quantities rather than two measurements of one.
 DECLARED_CROSS_FAMILY = "any group mixing families"
+
+
+def field(cfg: dict, name: str):
+    """A config field with the runners' default filled in, so `rho` absent and `rho: 0.9` are one configuration."""
+    v = cfg.get(name)
+    return KEY_DEFAULTS.get(name) if v is None and name in KEY_DEFAULTS else v
 
 
 def family(block: dict) -> str:
@@ -89,7 +100,7 @@ def census(root: Path = RUNS) -> dict:
         v = excess(block)
         if v is None:
             continue
-        key = tuple(a["config"].get(f) for f in KEY_FIELDS)
+        key = tuple(field(a["config"], f) for f in KEY_FIELDS)
         groups.setdefault(key, []).append({"artifact": a["name"], "value": v,
                                            "family": family(block),
                                            "rewire_seed": a["config"].get("rewire_seed"),

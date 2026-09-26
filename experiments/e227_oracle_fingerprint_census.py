@@ -53,12 +53,16 @@ from clfly.bench.artifacts import write_json
 from experiments.e103_reproducibility_audit import load_artifacts
 
 RUNS = Path("runs")
-KEY_FIELDS = ("circuit_size", "support", "seeds", "seed0", "q")
+KEY_FIELDS = ("circuit_size", "support", "seeds", "seed0", "q", "rho")
+#: the value a config field has when the config does not carry it: an artifact written before `--rho` existed and one
+#: that passes `--rho 0.9` are the same configuration, and the audit has to say so rather than split them (or, worse,
+#: group two different rho values as one and report a reproducibility failure that is a design difference).
+KEY_DEFAULTS = {"rho": 0.9}
 #: groups whose fingerprint drifts, each with what the drift is attributed to. Two kinds of entry, and the
 #: difference is printed: an **attributed** drift names a measured mechanism, an **open** one names the candidate and
 #: the measurement that rules the others out -- an unattributed drift must not be able to hide behind the table.
 DECLARED_DRIFT: dict[str, dict] = {
-    "circuit_size=1500, support=150, seeds=12, seed0=0, q=0.02": {
+    "circuit_size=1500, support=150, seeds=12, seed0=0, q=0.02, rho=0.9": {
         "status": "attributed",
         "measured_rel": 3.11e-07,
         "why": "the pooling pair `e9_ladder_d1874` / `e79_ladder_d1874_perseed`. Rebuilt today the 12-seed oracle mean "
@@ -68,7 +72,7 @@ DECLARED_DRIFT: dict[str, dict] = {
                "own `--thread-sweep` measures (4.8e-7 to 1.1e-6 per seed at this size), so the thread count of the "
                "process's BLAS is the mechanism",
     },
-    "circuit_size=300, support=30, seeds=3, seed0=0, q=0.02": {
+    "circuit_size=300, support=30, seeds=3, seed0=0, q=0.02, rho=0.9": {
         "status": "OPEN -- not attributed",
         "measured_rel": 6.27e-04,
         "why": "`e13_control3_d952` (09-22 16:09) against `e217_ladder_cs300` (09-26 03:59): the newer artifact's "
@@ -90,6 +94,12 @@ DECLARED_DRIFT: dict[str, dict] = {
                "mechanism nothing has measured",
     },
 }
+
+
+def field(cfg: dict, name: str):
+    """A config field with the runners' default filled in, so `rho` absent and `rho: 0.9` are one configuration."""
+    v = cfg.get(name)
+    return KEY_DEFAULTS.get(name) if v is None and name in KEY_DEFAULTS else v
 
 
 def bits(value: float) -> int:
@@ -121,7 +131,7 @@ def fingerprints(root: Path = RUNS) -> dict:
                 continue
             excess = ((block.get("diagonal(EWC)") or {}).get("analytic") or {}).get("excess_mean")
             out[a["name"]] = {
-                "key": ", ".join(f"{f}={cfg.get(f)!r}" for f in KEY_FIELDS),
+                "key": ", ".join(f"{f}={field(cfg, f)!r}" for f in KEY_FIELDS),
                 "topology": topo,
                 "oracle": sorted(vals),
                 "bases_stating_it": bases,
