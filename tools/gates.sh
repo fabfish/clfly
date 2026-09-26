@@ -58,4 +58,6 @@ run e257 python -m experiments.e257_audit_on_means --json-out runs/e257_audit_on
 run e258 python -m experiments.e258_floor_task_draw_band --json-out runs/e258_floor_task_draw_band.json
 run e259 python -m experiments.e259_c2b_null_power --json-out runs/e259_c2b_null_power.json
 run e260 python -m experiments.e260_domain_in_the_readers --json-out runs/e260_domain_in_the_readers.json
+run e261 python -m experiments.e261_three_rep_floor_measured --json-out runs/e261_three_rep_floor_measured.json
+
 echo "ALL DONE"
