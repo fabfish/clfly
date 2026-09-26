@@ -83,8 +83,14 @@ def propagator_rank(solver, support: np.ndarray, n: int) -> dict:
 
 
 def measure(size: int, support: int, rho: float, topologies=TOPOLOGIES, seeds: int = 3, seed0: int = 0,
-            q: float = 0.02) -> dict:
-    """One (size, rho) row: the task geometry's rank and the propagator's, for every topology."""
+            q: float = 0.02, control_draws: int = 0) -> dict:
+    """One (size, rho) row: the task geometry's rank and the propagator's, for every topology.
+
+    `control_draws` adds the matched-random control every biological measurement in this project owes: the
+    propagator's rank on `control_draws` supports of the SAME SIZE drawn uniformly from the circuit's neurons. If the
+    biological supports' collapse is a property of `G` rather than of those supports, the two must agree; if it does
+    not, the reading is about which neurons the analysis chose.
+    """
     from clfly.connectome import annotate, circuits, graph, rewiring, tasks
 
     conn = graph.build()
@@ -119,6 +125,17 @@ def measure(size: int, support: int, rho: float, topologies=TOPOLOGIES, seeds: i
             union = np.unique(np.concatenate(supports)) if supports else np.array([], dtype=int)
             row.update(propagator_rank(solver, union, int(circ.net.n_neurons)))
             row["seeds_measured"] = seeds
+            if control_draws:
+                n = int(circ.net.n_neurons)
+                controls = []
+                for d in range(control_draws):
+                    rng_c = np.random.default_rng(seed0 + 1000 * d + 1)
+                    pick = rng_c.choice(n, size=len(union), replace=False)
+                    controls.append(propagator_rank(solver, np.sort(pick), n)["propagator_effective_rank"])
+                row["control_effective_rank"] = float(np.mean(controls))
+                row["control_draws_values"] = [float(v) for v in controls]
+                row["control_over_biological"] = (float(np.mean(controls) / row["propagator_effective_rank"])
+                                                  if row["propagator_effective_rank"] else float("nan"))
         except Exception as exc:                                  # a singular factorisation, a failed solve
             error = f"{type(exc).__name__}: {exc}"[:120]
         row["error"] = error
@@ -149,16 +166,20 @@ def report(rows: list[dict], stored: dict | None = None) -> int:
     for size in sorted({r["size"] for r in rows}):
         cells = sorted([r for r in rows if r["size"] == size], key=lambda r: r["rho"])
         print(f"\n   cs {size}  ({cells[0]['neurons']} neurons, support {cells[0]['support']})")
-        print(f"      {'topology':12} {'rho':>7} {'task':>8} {'prop':>8} {'top':>7} {'support':>8}")
+        print(f"      {'topology':12} {'rho':>7} {'task':>8} {'prop':>8} {'top':>7} {'support':>8}"
+              + ("   control   ctrl/bio" if any(c.get('control_effective_rank') is not None
+                                                for r in cells for c in r['topologies'].values()) else ""))
         for r in cells:
             for topo in TOPOLOGIES:
                 c = r["topologies"].get(topo, {})
                 if not c or c.get("effective_rank") is None:
                     print(f"      {topo:12} {r['rho']:>7.4g}   UNMEASURABLE {c.get('error') or ''}")
                     continue
+                ctrl = c.get("control_effective_rank")
                 print(f"      {topo:12} {r['rho']:>7.4g} {c['effective_rank']:>8.2f} "
                       f"{c['propagator_effective_rank']:>8.2f} {c['propagator_top_share']:>7.3f} "
-                      f"{c['support_size']:>8}")
+                      f"{c['support_size']:>8}"
+                      + (f" {ctrl:>9.2f} {c['control_over_biological']:>7.2f}" if ctrl is not None else ""))
     if stored is not None:
         print("\n== does the task side reproduce e231's own numbers? ==")
         checked = mismatched = 0
@@ -187,6 +208,9 @@ def main(argv=None) -> int:
     ap.add_argument("--seeds", type=int, default=3)
     ap.add_argument("--seed0", type=int, default=0)
     ap.add_argument("--q", type=float, default=0.02)
+    ap.add_argument("--control-draws", type=int, default=0,
+                    help="matched-random controls: the propagator's rank on this many uniformly drawn supports "
+                         "of the same size, so that a collapse can be attributed to G rather than to the support")
     ap.add_argument("--json-out", type=Path, default=None)
     args = ap.parse_args(argv)
     grid = [float(x) for x in args.grid.split(",") if x.strip()]
@@ -194,7 +218,8 @@ def main(argv=None) -> int:
     for size in [int(s) for s in args.sizes.split(",") if s.strip()]:
         support = args.support or SIZES.get(size, max(1, size // 10))
         for rho in grid:
-            row = measure(size, support, rho, seeds=args.seeds, seed0=args.seed0, q=args.q)
+            row = measure(size, support, rho, seeds=args.seeds, seed0=args.seed0, q=args.q,
+                          control_draws=args.control_draws)
             rows.append(row)
             print(f"   cs {size} rho {rho:<6.4g} " + "  ".join(
                 f"{t} task {(row['topologies'][t].get('effective_rank') or float('nan')):.1f}"

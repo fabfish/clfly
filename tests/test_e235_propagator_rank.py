@@ -73,3 +73,17 @@ def test_the_report_names_an_unmeasurable_cell_rather_than_printing_a_number(cap
     assert e235.report([row]) == len(e235.TOPOLOGIES)
     out = capsys.readouterr().out
     assert "UNMEASURABLE" in out and "unmeasurable cells: 4" in out
+
+
+def test_the_control_is_size_matched_reproducible_and_off_by_default():
+    """The matched-random control: `control_draws` supports of the SAME SIZE, drawn uniformly, so that a collapse can
+    be attributed to `G` rather than to the neurons the analysis chose. It must be reproducible (a fixed stream) and
+    absent unless asked for -- a silently added control would double the cost of every run."""
+    plain = e235.measure(300, 30, 0.9, topologies=("real",), seeds=1)
+    assert "control_effective_rank" not in plain["topologies"]["real"]
+    a = e235.measure(300, 30, 0.9, topologies=("real",), seeds=1, control_draws=2)["topologies"]["real"]
+    b = e235.measure(300, 30, 0.9, topologies=("real",), seeds=1, control_draws=2)["topologies"]["real"]
+    assert len(a["control_draws_values"]) == 2
+    assert a["control_effective_rank"] == b["control_effective_rank"], "the control stream is fixed, not random"
+    assert abs(a["control_over_biological"] - a["control_effective_rank"] / a["propagator_effective_rank"]) < 1e-12
+    assert 0.3 < a["control_over_biological"] < 3.0, "the live grid's whole range is 0.75 to 1.38"
