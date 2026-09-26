@@ -1,6 +1,6 @@
 # The pooled −0.70 decomposes into nothing: the spread is neither level-ordered between families nor inside them
 
-*2026-09-26 15:45. Runs: **none new** — this reads the corpus through `experiments/e246_spread_volatility_by_family.py`,
+*2026-09-26 15:12. Runs: **none new** — this reads the corpus through `experiments/e246_spread_volatility_by_family.py`,
 which builds its groups from `e244`'s reader, written as `runs/e246_spread_volatility_by_family.json`. JSON-only,
 seconds.*
 

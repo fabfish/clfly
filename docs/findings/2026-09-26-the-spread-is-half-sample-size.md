@@ -1,6 +1,6 @@
 # The spread is half sample size: count-matching the drift that the last three fires read
 
-*2026-09-26 16:15. Runs: **none new** — `experiments/e247_count_matched_spread.py` re-reads the corpus's per-drawing
+*2026-09-26 15:25. Runs: **none new** — `experiments/e247_count_matched_spread.py` re-reads the corpus's per-drawing
 excesses and ranks, written as `runs/e247_count_matched_spread.json`. JSON-only, seconds.*
 
 ## 1. The thing all three fires shared

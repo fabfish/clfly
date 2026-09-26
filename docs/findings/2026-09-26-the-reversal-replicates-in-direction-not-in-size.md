@@ -1,6 +1,6 @@
 # The reversal replicates in direction and not in size — which puts it in kind 1, not kind 0
 
-*2026-09-26 15:20. Runs: `e2_topology_gap` at `--circuit-size 300 --support 30 --seeds 3 --seed0 0 -q 0.02
+*2026-09-26 15:03. Runs: `e2_topology_gap` at `--circuit-size 300 --support 30 --seeds 3 --seed0 0 -q 0.02
 --topologies swap0.5,swap2,signshuffle --no-realized --rewire-seed {3,4}` — two runs, one cell each, both exit 0,
 ~7 min per run, written as `runs/e245_cs300_kind0_rs3.json` and `_rs4.json`. Read by `e244` re-run unchanged
 (`runs/e244_drawing_spread_by_kind.json`).*

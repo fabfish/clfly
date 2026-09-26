@@ -1,6 +1,6 @@
 # Registered: the no-destruction rung at a second cell, and whether `e244`'s reversal is the pattern
 
-*2026-09-26 14:50, registered before its runs. Runs: `e2_topology_gap` at `--circuit-size 300 --support 30 --seeds 3
+*2026-09-26 14:43, registered before its runs. Runs: `e2_topology_gap` at `--circuit-size 300 --support 30 --seeds 3
 --seed0 0 -q 0.02 --topologies swap0.5,swap2,signshuffle --no-realized --rewire-seed {3,4}` — **two runs, one cell
 each**, to be written as `e245_cs300_kind0_rs3.json` and `_rs4.json`. Two runs, not one, because a spread needs two
 drawings and one run is one drawing.*

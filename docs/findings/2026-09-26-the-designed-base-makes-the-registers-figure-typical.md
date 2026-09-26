@@ -1,6 +1,6 @@
 # The designed base makes the register's figure typical, and doubles the dispersion of its own interval
 
-*2026-09-26 14:45. Runs: `e2_topology_gap` at cs 800, support 80, `rho` the builder's default (the artifacts record
+*2026-09-26 14:43. Runs: `e2_topology_gap` at cs 800, support 80, `rho` the builder's default (the artifacts record
 `config.rho: None`), `--seeds 3 --seed0 0 -q 0.02 --topologies alloy1,inalloy1,erdos_renyi --no-realized --rewire-seed
 {6,7,8}` — three runs, three cells each, one artifact per run (`e243_convention_rs6.json`, `_rs7.json`, `_rs8.json`),
 13:53 to 14:31, ~13 min per run, all exit 0.*

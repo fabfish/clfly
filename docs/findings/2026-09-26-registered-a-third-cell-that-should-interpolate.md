@@ -1,6 +1,6 @@
 # Registered: a third cell that should interpolate the (1, 0) margin
 
-*2026-09-26 17:10, registered before its runs. Runs: `e2_topology_gap` at `--circuit-size 800 --support 20 --seeds 3
+*2026-09-26 15:52, registered before its runs. Runs: `e2_topology_gap` at `--circuit-size 800 --support 20 --seeds 3
 --seed0 0 -q 0.02 --topologies swap0.5,swap2,signshuffle --no-realized --rewire-seed {4,5}` — **two runs, one cell
 each**, to be written as `e249_cs800_sup20_kind0_rs4.json` and `_rs5.json`. Two runs because the base being matched has
 kind 1 and kind 2 at **exactly two excess drawings** at this cell, so two is the count to match and no post-hoc
@@ -56,7 +56,7 @@ two-drawing footing the same two reference cells read
     cs 300/support 30   equal-count-two margin 0.851   (kind-1 rank spreads 2.73x, 2.08x)
     cs 800/support 80   equal-count-two margin 1.660   (kind-1 rank spreads 14.08x, 8.02x)
 
-so T1's interval is drawn on a different scale from the quantity it judges. **T1b, added to the module at 17:20 while
+so T1's interval is drawn on a different scale from the quantity it judges. **T1b, added to the module at 15:52 while
 both runs were still running and no artifact of theirs existed**, restates the prediction on one footing: the new
 cell's equal-count-two margin lies **strictly inside (0.851, 1.660)**. **Falsifier**: outside that interval, which
 would mean the margin is not monotone in the rank contrast over these three cells. The reference values are computed

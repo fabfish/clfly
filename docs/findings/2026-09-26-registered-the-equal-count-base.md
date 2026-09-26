@@ -1,6 +1,6 @@
 # Registered: the equal-count base — six families at three drawings each, one run
 
-*2026-09-26 16:40, registered before its run. Run: `e2_topology_gap` at `--circuit-size 300 --support 30 --seeds 3
+*2026-09-26 15:35, registered before its run. Run: `e2_topology_gap` at `--circuit-size 300 --support 30 --seeds 3
 --seed0 0 -q 0.02 --topologies swap0.5,swap2,signshuffle --no-realized --rewire-seed 5` — **one run, one cell**, to be
 written as `e245_cs300_kind0_rs5.json`. The only other artifact in this line with that name pattern is `e245`'s pair at
 seeds 3 and 4, so the file name keeps the family.*

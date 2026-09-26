@@ -1,6 +1,6 @@
 # The spread does not follow the destruction count
 
-*2026-09-26 14:10. Runs: **none new** — this reads `runs/*.json` (`e208`, `e209_screen_rs0-4`, `e223`, `e226`…`e243`)
+*2026-09-26 14:16. Runs: **none new** — this reads `runs/*.json` (`e208`, `e209_screen_rs0-4`, `e223`, `e226`…`e243`)
 through `experiments/e244_drawing_spread_by_kind.py`, written as `runs/e244_drawing_spread_by_kind.json`. JSON-only,
 seconds.*
 
@@ -110,7 +110,7 @@ pooled statements that the only within-cell test available contradicts, not as s
 convention cell, so the numbers above were re-read on the enlarged base; the verdicts are unchanged and one of them
 sharpens:
 
-| quantity | at 14:10 | re-read at 14:45 |
+| quantity | at 14:10 | re-read at 14:43 |
 |---|---|---|
 | K1 | MET, kind 1 median 1.234×, kind 2 range [1.021, 1.054] | MET, kind 1 median **1.292×**, kind 2 range [1.021, 1.06] |
 | K2 | MET, kind 1's relative spread 0.2102 | MET, **0.2517** |

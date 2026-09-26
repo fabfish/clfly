@@ -1,6 +1,6 @@
 # The equal-count base: the (1, 0) pair is a tie at three drawings, and the two-side family is the last thing standing
 
-*2026-09-26 16:55. Run: `e2_topology_gap` at `--circuit-size 300 --support 30 --seeds 3 --seed0 0 -q 0.02
+*2026-09-26 15:47. Run: `e2_topology_gap` at `--circuit-size 300 --support 30 --seeds 3 --seed0 0 -q 0.02
 --topologies swap0.5,swap2,signshuffle --no-realized --rewire-seed 5` — **one run, one cell, ~7 min, exit 0**, written
 as `runs/e245_cs300_kind0_rs5.json` and read by `experiments/e248_equal_count_base.py`
 (`runs/e248_equal_count_base.json`).*
