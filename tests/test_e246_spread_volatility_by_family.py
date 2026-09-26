@@ -81,9 +81,9 @@ def test_N1_fires_when_a_no_destruction_family_moves_as_much_as_a_one_side_one()
 
 
 def test_the_live_corpus_puts_the_volatility_in_the_one_side_families():
-    """The finding's numbers on the artifact: kind 1's spans 2.43x and 3.04x against 1.04x to 2.00x elsewhere once
+    """The finding's numbers on the artifact: kind 1's spans 2.43x and 3.04x against 1.04x to 2.41x elsewhere once
     `e248`'s third kind-0 drawing is in the census, the rank observable wider still (7.34x, 9.27x), and N3's falsifier
-    fired on a between-family Spearman of -0.486."""
+    fired on a between-family Spearman of -0.371, with six families now at four or more cells."""
     p = Path("runs/e246_spread_volatility_by_family.json")
     if not p.exists():
         return
@@ -92,12 +92,12 @@ def test_the_live_corpus_puts_the_volatility_in_the_one_side_families():
     assert rows["N1"]["verdict"].startswith("MET"), rows["N1"]
     assert rows["N2"]["verdict"].startswith("MET"), rows["N2"]
     assert "2.43" in rows["N1"]["measured"] and "3.04" in rows["N1"]["measured"], rows["N1"]
-    assert "1.04" in rows["N1"]["measured"] and "2.00" in rows["N1"]["measured"], rows["N1"]
+    assert "1.04" in rows["N1"]["measured"] and "2.41" in rows["N1"]["measured"], rows["N1"]
     assert rows["N3"]["verdict"].startswith("FALSIFIER FIRED"), rows["N3"]
-    assert "-0.486" in rows["N3"]["measured"] and "73%" in rows["N3"]["measured"], rows["N3"]
+    assert "-0.371" in rows["N3"]["measured"] and "54%" in rows["N3"]["measured"], rows["N3"]
     between = {b[0]: b for b in d["between"]}
     assert abs(between["erdos_renyi"][1] - 0.14572) < 1e-4, between["erdos_renyi"]
     assert len(between["erdos_renyi"]) == 4 and between["erdos_renyi"][3] == 6, between["erdos_renyi"]
     within = {w[0]: w for w in d["within"]}
-    assert set(within) == {"alloy1", "inalloy1", "erdos_renyi"}, set(within)
-    assert within["alloy1"][2] == 4 and within["alloy1"][3] == 5, within["alloy1"]
+    assert set(within) == {"alloy1", "inalloy1", "erdos_renyi", "swap0.5", "swap2", "signshuffle"}, set(within)
+    assert within["alloy1"][1] == 6 and within["alloy1"][2] == 4, within["alloy1"]
