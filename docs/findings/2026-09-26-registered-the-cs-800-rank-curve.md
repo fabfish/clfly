@@ -2,7 +2,7 @@
 
 *2026-09-26 19:30, registered before its runs. Runs: `e2_topology_gap` at `--circuit-size 800 --support 80 --seeds 3
 --seed0 0 -q 0.02 --topologies alloy1,inalloy1,erdos_renyi --no-realized --rewire-seed 1`, one per `rho` (0.5, 0.7,
-0.8, 0.95, 0.98, 0.99) — **six runs**, to be written as `e256_cs800_rho{050,070,080,095,098,099}_rs1.json`. Six
+0.8, 0.95, 0.98, 0.99) — **six runs**, to be written as `e256_cs800_rho{05,07,08,095,098,099}_rs1.json`. Six
 because cs 800/support 80 carries **one drawing at six of its seven `rho` values**.*
 
 ## 1. What the census just found, and what this tests
