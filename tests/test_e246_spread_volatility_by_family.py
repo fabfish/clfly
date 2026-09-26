@@ -81,7 +81,7 @@ def test_N1_fires_when_a_no_destruction_family_moves_as_much_as_a_one_side_one()
 
 
 def test_the_live_corpus_puts_the_volatility_in_the_one_side_families():
-    """The finding's numbers on the artifact: kind 1's spans 2.43x and 3.04x against 1.04x to 1.94x elsewhere once
+    """The finding's numbers on the artifact: kind 1's spans 2.43x and 3.04x against 1.04x to 2.00x elsewhere once
     `e248`'s third kind-0 drawing is in the census, the rank observable wider still (7.34x, 9.27x), and N3's falsifier
     fired on a between-family Spearman of -0.486."""
     p = Path("runs/e246_spread_volatility_by_family.json")
@@ -92,7 +92,7 @@ def test_the_live_corpus_puts_the_volatility_in_the_one_side_families():
     assert rows["N1"]["verdict"].startswith("MET"), rows["N1"]
     assert rows["N2"]["verdict"].startswith("MET"), rows["N2"]
     assert "2.43" in rows["N1"]["measured"] and "3.04" in rows["N1"]["measured"], rows["N1"]
-    assert "1.04" in rows["N1"]["measured"] and "1.94" in rows["N1"]["measured"], rows["N1"]
+    assert "1.04" in rows["N1"]["measured"] and "2.00" in rows["N1"]["measured"], rows["N1"]
     assert rows["N3"]["verdict"].startswith("FALSIFIER FIRED"), rows["N3"]
     assert "-0.486" in rows["N3"]["measured"] and "73%" in rows["N3"]["measured"], rows["N3"]
     between = {b[0]: b for b in d["between"]}

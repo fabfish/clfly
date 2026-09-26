@@ -107,7 +107,7 @@ def test_the_live_census_orders_when_pooled_and_reverses_at_both_comparable_cell
     assert rows["K1"]["verdict"].startswith("MET"), rows["K1"]
     assert rows["K2"]["verdict"].startswith("MET"), rows["K2"]
     assert rows["K3"]["verdict"].startswith("FALSIFIER FIRED"), rows["K3"]
-    assert "6 of 8" in rows["K3"]["measured"], rows["K3"]
+    assert "7 of 9" in rows["K3"]["measured"], rows["K3"]
     kinds: dict = {}
     for g in d["groups"]:
         if g["excess_spread"] is not None:
@@ -117,12 +117,16 @@ def test_the_live_census_orders_when_pooled_and_reverses_at_both_comparable_cell
     assert median(cell[1]) > median(cell[0]), "the reversal: the one-side kind is the looser one inside the cell"
     assert median(cell[2]) < min(median(cell[0]), median(cell[1])), "the two-side kind is tightest there"
     # and the second cell, where the reversal is 47x smaller -- the direction replicates, the magnitude does not
-    assert sorted(kinds[(300, 30, 0.9)]) == [0, 1, 2], sorted(kinds[(300, 30, 0.9)])
     small = kinds[(300, 30, 0.9)]
+    assert sorted(small) == [0, 1, 2], sorted(small)
     assert median(small[1]) > median(small[0]), small
     assert median(small[1]) / median(small[0]) < 1.1, "inside the registered null band, not a second reversal"
     assert median(cell[1]) / median(cell[0]) > 1.5, "and the convention cell's margin is the one that is large"
-    # kind 0 is the stable rung across the two cells and kind 1 is the volatile one -- the reading, pinned
+    # the third cell e249 bought: there the NO-destruction rung is the looser one, the pooled K1 direction
+    third = kinds[(800, 20, 0.9)]
+    assert sorted(third) == [0, 1, 2], sorted(third)
+    assert median(third[0]) > median(third[1]), "cs 800/support 20 gives the pooled direction at matched counts"
+    # kind 0 is the stable rung across the cells and kind 1 is the volatile one -- the reading, pinned
     assert abs(median(cell[0]) / median(small[0]) - 1.0) < 0.1, (median(cell[0]), median(small[0]))
-    assert {tuple(g["cell"]) for g in d["groups"] if g["kind"] == 0} == {(800, 80, 0.9), (300, 30, 0.9)}
+    assert {tuple(g["cell"]) for g in d["groups"] if g["kind"] == 0} == {(800, 80, 0.9), (300, 30, 0.9), (800, 20, 0.9)}
     assert d["control"] and all(c["excess_spread"] == 1.0 for c in d["control"]), d["control"]
