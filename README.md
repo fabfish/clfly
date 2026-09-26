@@ -246,7 +246,13 @@ python -m clfly.lgcl.repro            # all published anchors
 python -m clfly.lgcl.repro --json     # machine-readable, for the metric loop
 python -m clfly.lgcl.probes           # mechanism experiments
 pytest -q                             # regression gate (connectome tests skip without data)
+bash tools/gates.sh                   # the full gate: the suite plus every experiment carrying a registered claim
 ```
+
+`tools/gates.sh` is the sweep the analysis line is run under — 40 units, each writing its output to
+`/tmp/gate_<name>.log` and printing only its own exit code, so a silent run means every registered claim in
+`docs/research_plan.md` still computes on the corpus in `runs/`. That corpus is gitignored: a fresh clone has
+none of it, and the readers report `REFUSED` rather than a number when their inputs are absent.
 
 Fetch the connectome (420 MB, gitignored, never redistributed):
 
