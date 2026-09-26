@@ -62,4 +62,6 @@ run e261 python -m experiments.e261_three_rep_floor_measured --json-out runs/e26
 
 run e262 python -m experiments.e262_replicate_order_is_not_a_variable --json-out runs/e262_replicate_order_is_not_a_variable.json
 
+run e263 python -m experiments.e263_what_the_pairing_shares --json-out runs/e263_what_the_pairing_shares.json
+
 echo "ALL DONE"
