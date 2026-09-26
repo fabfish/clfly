@@ -1,5 +1,9 @@
 """E257 -- re-arming `e230`'s audit on its means, now that drawing the corpus has emptied its subject.
 
+**`e230`'s own verdict moved to this column at 21:00**, so this module is now the *registration* of that change
+and the report of what it found rather than the only place the means are judged; `e230` prints both columns and
+declares on the means, and the two modules read the same 42 families.
+
 `e230` asks whether a family's between-`rho` rank contrast is larger than its own drawing scatter, and it reads that
 contrast from the **single-drawing** rho cells the record quotes. `e255` and `e256` then drew the whole `rho` grid at
 both sizes, so no ladder family has a single-drawing rho group left: the audit's as-read column is undefined for them

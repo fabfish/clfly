@@ -15,11 +15,23 @@ is enough, and this audit asks it with the same artifacts the claim came from:
     python -m experiments.e230_rank_draw_census
     python -m experiments.e230_rank_draw_census --json-out runs/e230_rank_draw_census.json
 
-The verdict per family is **RESOLVABLE** when the single-drawing between-`rho` contrast exceeds the family's own
-within-`rho` scatter, and **NOT RESOLVABLE** when it does not -- a negative result about a claim, which is the useful
-kind. The exit code is the number of families that are not resolvable **and** are not declared in
-`DECLARED_UNRESOLVABLE` with a reason; a declared family is one whose volatility is now part of the corpus's
-preconditions rather than a surprise for the next claim.
+The verdict per family is **RESOLVABLE** when the between-`rho` contrast exceeds the family's own within-`rho`
+scatter, and **NOT RESOLVABLE** when it does not -- a negative result about a claim, which is the useful kind. The exit
+code is the number of families that are not resolvable **and** are not declared in `DECLARED_UNRESOLVABLE` with a
+reason; a declared family is one whose volatility is now part of the corpus's preconditions rather than a surprise for
+the next claim. A family with fewer than two `rho` groups has **no contrast** and owes no verdict, and the report
+states the audit's reach.
+
+**The verdict moved to the MEANS column at 2026-09-26 21:00, and this is why.** The contrast was read from the
+single-drawing `rho` cells the record quotes, which is the reading that made this audit a claim about *design* rather
+than about the substrate. `e255` and `e256` then drew the whole `rho` grid at both sizes, so the ladder families -- the
+ones whose `rho` contrasts the mechanism readings are made of -- have **no single-drawing rho group left**: the as-read
+column is undefined for them, they left the table, and the audit silently absorbed an unresolvable family
+(cs 800 `alloy1`) for a session before `e257` re-read the same families on the means and found it again. So the
+**means** column is now the verdict -- it reaches 11 of the 42 families against the as-read column's 5 -- and the
+as-read column is kept, printed and no longer judged, as a diagnostic and as a record of what the corpus once
+supported. The declarations are re-derived on the means: cs 800 `alloy1` (7.84 against 16.44, a ratio of 0.48), and
+the two cs-300 swap rungs (0.92 and 0.73).
 
 **What it cannot do**: it audits one statistic (`effective_rank`) and not the penalty, so "the rank is unresolvable"
 does not by itself say a *penalty* contrast is; the within-scatter is computed at `rho = 0.9` only, because that is
@@ -44,10 +56,14 @@ REF_RHO = 0.9
 #: than counted: the corpus now knows the scatter, and the entry is what makes the next claim on that family a
 #: decision rather than an accident.
 DECLARED_UNRESOLVABLE: dict[tuple, str] = {
-    # declared 2026-09-26 18:20 when e253 put a second drawing at rho 0.95 and 0.98, and still declared after e255 and
-    # e256 drew the rest of the grid: their contrasts as read stay inside their own scatters
-    (300, "swap0.5"): "its rho contrast as read is 4.05x against its own within-scatter 8.77x",
-    (300, "swap2"): "its rho contrast as read is 1.18x against its own within-scatter 7.77x",
+    # cs 800 alloy1 was declared on the as-read column on 2026-09-26 18:20, un-declared at 19:20 when e256's
+    # drawings took its last single-drawing rho group away -- and re-declared at 21:00 on the MEANS column, which is
+    # now the verdict: its contrast is 7.84x against its own scatter 16.44x, a ratio of 0.48, so it fails BOTH readings
+    (800, "alloy1"): "its between-rho contrast on the means is 7.84x against its own 16.44x scatter at rho 0.9 -- the "
+                     "two-sided family fails both readings, which is why its 19:20 un-declaration was bookkeeping "
+                     "rather than a resolution (see e257)",
+    (300, "swap0.5"): "its rho contrast on the means is 8.10x against its own within-scatter 8.77x",
+    (300, "swap2"): "its rho contrast on the means is 5.65x against its own within-scatter 7.77x",
 }
 # and THREE entries have been removed as the corpus thickened, which is this audit's third state (see the module's
 # notes): cs 300 alloy1 and inalloy1 were un-declared when e255 drew rho 0.5, 0.7 and 0.8, and cs 800 alloy1 at
@@ -105,35 +121,45 @@ def families(rows: list[dict]) -> list[dict]:
                     "rho_groups": {rho: g for rho, g in sorted(within.items())},
                     "within_at_ref": ref["spread"], "drawings_at_ref": ref["n"],
                     "between_single": between_single, "between_mean": between_mean,
-                    "resolvable": (None if between_single is None or ref["spread"] is None
-                                   else between_single > ref["spread"])})
+                    # the VERDICT is the means column since 2026-09-26 21:00 (see the docstring): the as-read column
+                    # needs a single-drawing rho group, and drawing the grid took that away for the families that
+                    # matter most, so it is kept as a diagnostic and judged no longer
+                    "resolvable": (None if between_mean is None or ref["spread"] is None
+                                   else between_mean > ref["spread"]),
+                    "as_read_resolvable": (None if between_single is None or ref["spread"] is None
+                                           else between_single > ref["spread"])})
     out.sort(key=lambda f: (str(f["circuit_size"]), str(f["topology"])))
     return out
 
 
 def report(fams: list[dict]) -> int:
     print("== the task geometry's effective rank: within-rho scatter against the between-rho contrasts ==")
-    print(f"   ({len(fams)} (size, topology) families; `within` is the spread across drawings at rho = {REF_RHO}, "
-          f"`between` the ratio of")
-    print("    the largest to the smallest rank over the rho values -- `as read` uses the single-drawing cells the")
-    print("    record quotes, `on means` uses each rho group's mean)")
-    print(f"   {'size':>5} {'topology':12} {'drawings':>8} {'within':>9} {'between(as read)':>17} "
-          f"{'between(means)':>15}  verdict")
-    offenders = []
+    print(f"   ({len(fams)} (size, topology) families; `within` is the spread across drawings at rho = {REF_RHO} and")
+    print("    the between-rho contrast is the ratio of the largest to the smallest rank over the rho values, taken")
+    print("    ON MEANS -- that is the verdict since 2026-09-26 21:00; 'as read' uses the single-drawing cells the")
+    print("    record quotes and is kept as a diagnostic, because drawing the grid took those cells away)")
+    print(f"   {'size':>5} {'topology':12} {'rhos':>4} {'drawings':>8} {'within':>9} {'between(means)':>15} "
+          f"{'between(as read)':>17}  verdict")
+    offenders, no_contrast = [], []
     for f in fams:
-        if f["between_single"] is None:
-            continue
-        verdict = ("RESOLVABLE" if f["resolvable"] else "NOT RESOLVABLE")
         declared = (f["circuit_size"], f["topology"]) in DECLARED_UNRESOLVABLE
-        print(f"   {f['circuit_size']:>5} {f['topology']:12} {f['drawings_at_ref']:>8} "
-              f"{f['within_at_ref']:>9.2f} {f['between_single']:>17.2f} "
-              f"{(f['between_mean'] if f['between_mean'] is not None else float('nan')):>15.2f}  {verdict}"
-              + ("  [DECLARED]" if declared else ""))
-        if not f["resolvable"] and not declared:
+        if f["between_mean"] is None:
+            verdict = "NO CONTRAST"
+            no_contrast.append(f)
+        else:
+            verdict = "RESOLVABLE" if f["resolvable"] else "NOT RESOLVABLE"
+        single = f"{f['between_single']:.2f}" if f["between_single"] is not None else "-"
+        print(f"   {f['circuit_size']:>5} {f['topology']:12} {len(f['rho_groups']):>4} {f['drawings_at_ref']:>8} "
+              f"{(f['within_at_ref'] if f['within_at_ref'] is not None else float('nan')):>9.2f} "
+              f"{(f['between_mean'] if f['between_mean'] is not None else float('nan')):>15.2f} {single:>17}  "
+              f"{verdict}" + ("  [DECLARED]" if declared else ""))
+        if verdict == "NOT RESOLVABLE" and not declared:
             offenders.append(f)
     for f in offenders:
-        print(f"   NOT RESOLVABLE AND NOT DECLARED: cs {f['circuit_size']} {f['topology']} -- its single-drawing rho "
-              f"contrast {f['between_single']:.2f}x is inside its own scatter {f['within_at_ref']:.2f}x")
+        print(f"   NOT RESOLVABLE AND NOT DECLARED: cs {f['circuit_size']} {f['topology']} -- its between-rho contrast "
+              f"on the means {f['between_mean']:.2f}x is inside its own scatter {f['within_at_ref']:.2f}x")
+    print(f"   ({len(no_contrast)} of {len(fams)} families carry a single rho group, so neither reading applies to "
+          f"them and no verdict is owed; the audit's reach is {len(fams) - len(no_contrast)} of {len(fams)})")
     for key, why in DECLARED_UNRESOLVABLE.items():
         if not any((f["circuit_size"], f["topology"]) == key for f in fams):
             print(f"   NOTE: declared family cs {key[0]} {key[1]} is not in the corpus")

@@ -77,10 +77,13 @@ def test_a_resolvable_family_with_a_wide_between_contrast_passes():
     # cs 300 alloy1 was declared unresolvable at 1.51x against a 2.73x scatter, and e255's low-rho drawings put it
     # back INSIDE the audit: every rho group there now has two drawings, so the as-read column is undefined for it and
     # the verdict is read off means instead
+    # since the 21:00 fold the VERDICT is the means column: cs 300 alloy1 is RESOLVABLE on its means (12.11 against
+    # 2.73) while its as-read column, which e255's drawings emptied, carries no verdict at all
     f = fams[(300, "alloy1")]
-    assert f["between_single"] is None and f["resolvable"] is None, f
+    assert f["between_single"] is None and f["as_read_resolvable"] is None, f
+    assert f["resolvable"] is True, f
     assert all(g["n"] >= 2 for g in f["rho_groups"].values()), f["rho_groups"]
-    assert all(x["between_single"] is None or x["resolvable"] is not None for x in fams.values()),         "a family is either audited or out of scope, never both"
+    assert all(x["resolvable"] is None or x["between_mean"] is not None for x in fams.values()),         "a verdict implies a contrast"
 
 
 def test_the_live_corpus_has_only_declared_unresolvable_families():
@@ -92,13 +95,13 @@ def test_the_live_corpus_has_only_declared_unresolvable_families():
     assert e230.main([]) == 0
 
 
-def test_the_cs_800_ladder_families_have_left_the_audit_s_scope():
-    """`e243`'s three designed drawings once made this family the audit's margin-narrowing example; `e256` then drew
-    every remaining cs-800 rho cell, so no rho group there has a single drawing and the as-read column -- which is what
-    the verdict is computed from -- is undefined for all of them. The audit cannot see cs 800's ladder families at all
-    any more, which is its third state rather than a verdict."""
+def test_the_cs_800_ladder_families_are_judged_on_their_means():
+    """`e243`'s three designed drawings once made this family the audit's margin-narrowing example, and `e256` then
+    drew every remaining cs-800 rho cell so its as-read column went undefined. Since the 21:00 fold the verdict comes
+    from the means instead, and this family is RESOLVABLE there -- 50.54x against its own 8.02x scatter -- which is the
+    question the audit was built to ask and could not ask for one session."""
     fams = {(f["circuit_size"], f["topology"]): f for f in e230.families(e230.rows_of())}
     f = fams[(800, "inalloy1")]
-    assert f["between_single"] is None and f["resolvable"] is None, f
-    assert all(g["n"] >= 2 for g in f["rho_groups"].values()), f["rho_groups"]
+    assert f["between_single"] is None and f["as_read_resolvable"] is None, f
+    assert f["resolvable"] is True and f["between_mean"] > 4 * f["within_at_ref"], f
     assert f["within_at_ref"] > 4.0, "the family's own scatter is still what e243 widened"
