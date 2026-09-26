@@ -40,7 +40,10 @@ The exit code is the number of claims **REFUSED** because a kind has no family m
 
 **What it cannot do**: the spans compare families whose cells are not the same set, so a family measured over six cells
 has more room to move than one measured over two -- stated, not corrected for, and the reason N1 asks for disjoint
-ranges rather than a threshold; a family's spread at a cell is itself a ratio of two or three drawings; the levels are
+ranges rather than a threshold; **and `e247` shows that disjointness does not survive count-matching**, since a spread
+is a max-over-min and a cell with eight drawings has more room than one with two: at a fixed two-drawing budget the
+kind-1 range (1.83x to 2.36x) and the others (1.00x to 1.82x) are separated by 1.004x, so N1 stands only on the
+all-drawings budget; a family's spread at a cell is itself a ratio of two or three drawings; the levels are
 means over drawings whose own scatter the spread measures, so the two quantities are not independent; `rho` is 0.9
 throughout (`config.rho: None` in every artifact, which every reader maps to the default); and nothing here is a new
 measurement.
