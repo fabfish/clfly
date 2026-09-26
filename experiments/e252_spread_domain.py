@@ -54,8 +54,9 @@ from clfly.bench.artifacts import write_json
 from experiments import e244_drawing_spread_by_kind as e244
 from experiments import e246_spread_volatility_by_family as e246
 from experiments import e247_count_matched_spread as e247
+from experiments.domain_rule import T, cell_scatters as _cell_scatters, domain as _domain
+from experiments.domain_rule import filter_fam as _filter_fam, filter_gs as _filter_gs
 
-T = 4.0
 IN_MAX = 3.34
 OUT_MIN = 4.15
 CLAIMS = (
@@ -78,30 +79,12 @@ CLAIMS = (
 DEMOTED = {"K1", "R1", "R2"}
 
 
-def cell_scatters(fam: dict) -> dict:
-    """Each cell's families and their own drawing scatter -- only families with two or more positive excesses."""
-    out: dict = {}
-    for f, cells in fam.items():
-        for cell, d in cells.items():
-            e = [v for v in d["excess"] if v > 0]
-            if len(e) > 1:
-                out.setdefault(cell, {})[f] = max(e) / min(e)
-    return out
-
-
-def domain(cells: dict, t: float = T) -> tuple[set, set]:
-    """Cells in and out: a cell is in when every family measured there scatters by at most `t`."""
-    inside = {c for c, fams in cells.items() if max(fams.values()) <= t}
-    outside = set(cells) - inside
-    return inside, outside
-
-
-def filtered(gs: list[dict], cells: set) -> list[dict]:
-    return [g for g in gs if g["cell"] in cells]
-
-
-def filtered_fam(fam: dict, cells: set) -> dict:
-    return {f: {c: d for c, d in rows.items() if c in cells} for f, rows in fam.items()}
+# the rule lives in `domain_rule` now, because the three readers apply it themselves; the names stay here because this
+# module's artifact and its tests are read through them
+cell_scatters = _cell_scatters
+domain = _domain
+filtered = _filter_gs
+filtered_fam = _filter_fam
 
 
 def verdicts(cells: set, gs: list[dict], fam: dict) -> dict:

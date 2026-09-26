@@ -60,6 +60,7 @@ from pathlib import Path
 from statistics import median
 
 from clfly.bench.artifacts import write_json
+from experiments import domain_rule
 from experiments.e244_drawing_spread_by_kind import CONTROL, _draws, kind_of
 from experiments.e246_spread_volatility_by_family import spearman
 
@@ -286,8 +287,11 @@ def report(fam: dict) -> int:
     print("\n== the cell's shape against the count-matched spread ==")
     share = spearman([c[3] for c in cov], [c[2] for c in cov])
     size = spearman([c[4] for c in cov], [c[2] for c in cov])
-    print(f"   {len(cov)} groups: Spearman(spread, support share) {share:+.3f}   Spearman(spread, circuit size) "
-          f"{size:+.3f}")
+    # a corpus too small for a rank correlation is not a crash: the covariate columns report `nan` like the spans do
+    def fmt(v):
+        return "nan" if v is None else f"{v:+.3f}"
+    print(f"   {len(cov)} groups: Spearman(spread, support share) {fmt(share)}   Spearman(spread, circuit size) "
+          f"{fmt(size)}")
     print("   (both are near zero -- the drift is not the support share and not the size)")
 
     print("\n== the registered claims, R1-R5 ==")
@@ -304,14 +308,30 @@ def main(argv=None) -> int:
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--runs", type=Path, default=Path("runs"))
     ap.add_argument("--json-out", type=Path, default=None)
+    ap.add_argument("--domain", action="store_true",
+                    help="also read every claim on the declared domain's cells only (the rule in domain_rule)")
     args = ap.parse_args(argv)
     fam = per_cell(args.runs)
+    inside = outside = None
+    if args.domain:
+        inside, outside = domain_rule.corpus(args.runs)
     if args.json_out:
-        write_json(args.json_out, {"families": {f: {str(c): r for c, r in rows.items()} for f, rows in fam.items()},
-                                   "table": {f: {str(c): r for c, r in rows.items()}
-                                             for f, rows in matched_table(fam, "excess").items()},
-                                   "claims": judge(fam)})
+        payload = {"families": {f: {str(c): r for c, r in rows.items()} for f, rows in fam.items()},
+                   "table": {f: {str(c): r for c, r in rows.items()}
+                             for f, rows in matched_table(fam, "excess").items()},
+                   "claims": judge(fam)}
+        if inside is not None:
+            filtered = domain_rule.filter_fam(fam, inside)
+            payload["claims_domain"] = judge(filtered)
+            payload["table_domain"] = {f: {str(c): r for c, r in rows.items()}
+                                       for f, rows in matched_table(filtered, "excess").items()}
+            payload["domain"] = sorted(str(c) for c in inside)
+            payload["out_of_domain"] = sorted(str(c) for c in outside)
+        write_json(args.json_out, payload)
         print(f"wrote {args.json_out}")
+    if inside is not None:
+        print("\n== the same claims, read inside the declared domain ==")
+        print(domain_rule.statement(judge(fam), judge(domain_rule.filter_fam(fam, inside))))
     return report(fam)
 
 

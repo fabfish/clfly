@@ -58,7 +58,8 @@ from pathlib import Path
 from statistics import mean
 
 from clfly.bench.artifacts import write_json
-from experiments.e244_drawing_spread_by_kind import KIND_NAMES, groups as e244_groups
+from experiments import domain_rule
+from experiments.e244_drawing_spread_by_kind import KIND_NAMES, RUNS, groups as e244_groups
 
 CLAIMS = (
     ("N1", "the cross-cell volatility is the one-side families' (excess)",
@@ -247,15 +248,31 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0],
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--json-out", type=Path, default=None)
+    ap.add_argument("--domain", action="store_true",
+                    help="also read every claim on the declared domain's cells only (the rule in domain_rule)")
     args = ap.parse_args(argv)
     gs, control = e244_groups()
+    inside = outside = None
+    if args.domain:
+        inside, outside = domain_rule.corpus(RUNS)
     if args.json_out:
-        write_json(args.json_out, {"families": {f: [list(g["cell"]) for g in rows] for f, rows in by_family(gs).items()},
-                                   "between": between(by_family(gs))[0],
-                                   "pooled": pooled(gs),
-                                   "within": within(by_family(gs)),
-                                   "claims": judge(gs), "control": [c["family"] for c in control]})
+        payload = {"families": {f: [list(g["cell"]) for g in rows] for f, rows in by_family(gs).items()},
+                   "between": between(by_family(gs))[0],
+                   "pooled": pooled(gs),
+                   "within": within(by_family(gs)),
+                   "claims": judge(gs), "control": [c["family"] for c in control]}
+        if inside is not None:
+            filtered = domain_rule.filter_gs(gs, inside)
+            payload["claims_domain"] = judge(filtered)
+            payload["families_domain"] = {f: [list(g["cell"]) for g in rows]
+                                          for f, rows in by_family(filtered).items()}
+            payload["domain"] = sorted(str(c) for c in inside)
+            payload["out_of_domain"] = sorted(str(c) for c in outside)
+        write_json(args.json_out, payload)
         print(f"wrote {args.json_out}")
+    if inside is not None:
+        print("\n== the same claims, read inside the declared domain ==")
+        print(domain_rule.statement(judge(gs), judge(domain_rule.filter_gs(gs, inside))))
     return report(gs)
 
 

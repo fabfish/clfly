@@ -64,6 +64,7 @@ from pathlib import Path
 from statistics import median
 
 from clfly.bench.artifacts import write_json
+from experiments import domain_rule
 
 RUNS = Path("runs")
 KIND_NAMES = {0: ("swap", "signshuffle"), 1: ("alloy", "inalloy"), 2: ("erdos_renyi",)}
@@ -261,13 +262,27 @@ def main(argv=None) -> int:
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--runs", type=Path, default=RUNS)
     ap.add_argument("--json-out", type=Path, default=None)
+    ap.add_argument("--domain", action="store_true",
+                    help="also read every claim on the declared domain's cells only (the rule in domain_rule)")
     args = ap.parse_args(argv)
     gs, control = groups(args.runs)
+    # the domain is read off the corpus this run was pointed at, so a --runs the reader cannot see cannot be filtered
+    inside = outside = None
+    if args.domain:
+        inside, outside = domain_rule.corpus(args.runs)
     if args.json_out:
-        write_json(args.json_out, {"groups": [{**g, "cell": list(g["cell"])} for g in gs],
-                                   "control": [{**g, "cell": list(g["cell"])} for g in control],
-                                   "claims": judge(gs)})
+        payload = {"groups": [{**g, "cell": list(g["cell"])} for g in gs],
+                   "control": [{**g, "cell": list(g["cell"])} for g in control],
+                   "claims": judge(gs)}
+        if inside is not None:
+            payload["claims_domain"] = judge(domain_rule.filter_gs(gs, inside))
+            payload["domain"] = sorted(str(c) for c in inside)
+            payload["out_of_domain"] = sorted(str(c) for c in outside)
+        write_json(args.json_out, payload)
         print(f"wrote {args.json_out}")
+    if inside is not None:
+        print("\n== the same claims, read inside the declared domain ==")
+        print(domain_rule.statement(judge(gs), judge(domain_rule.filter_gs(gs, inside))))
     return report(gs, control)
 
 

@@ -107,3 +107,28 @@ def test_the_live_corpus_halves_the_quoted_spreads_and_shares_the_noise():
     assert "+0.756" in rows["R5"]["measured"], rows["R5"]
     cell = d["table"]["alloy1"]["(800, 80, 0.9)"]
     assert cell["n"] == 8 and abs(cell["all"] - 3.34) < 0.01 and abs(cell["pair_median"] - 1.64) < 0.01, cell
+
+
+def test_the_domain_flag_writes_both_tables_and_leaves_the_claims_key_alone(tmp_path, capsys):
+    """The count-matched table is the reader's own; the flag adds a filtered copy of it and a second reading of the
+    claims, and the `table` a downstream reader keys on is unchanged."""
+    root = tmp_path / "runs"
+    for rw, ex in ((0, 0.05), (1, 0.052)):
+        payload = {"config": {"circuit_size": 800, "support": 80, "rho": 0.9, "seeds": 3, "rewire_seed": rw},
+                   "topologies": {"alloy1": {"diagonal(EWC)": {"analytic": {"excess_mean": ex}},
+                                             "geometry": {"effective_rank": 30.0}},
+                                  "erdos_renyi": {"diagonal(EWC)": {"analytic": {"excess_mean": 0.10 + 0.001 * rw}},
+                                                  "geometry": {"effective_rank": 90.0}}}}
+        (root / f"a{rw}.json").parent.mkdir(parents=True, exist_ok=True)
+        (root / f"a{rw}.json").write_text(json.dumps(payload), encoding="utf-8")
+    out_a, out_b = tmp_path / "plain.json", tmp_path / "flagged.json"
+    codes = [e247.main(["--runs", str(root), "--json-out", str(out_a)]),
+             e247.main(["--runs", str(root), "--json-out", str(out_b), "--domain"])]
+    assert codes[0] == codes[1], "the flag changes no exit code"
+    d = json.loads(out_b.read_text(encoding="utf-8"))
+    assert d["claims"] == json.loads(out_a.read_text(encoding="utf-8"))["claims"]
+    assert d["domain"] == ["(800, 80, 0.9)"] and d["out_of_domain"] == [], d["domain"]
+    assert [r["id"] for r in d["claims_domain"]] == [r["id"] for r in d["claims"]]
+    assert d["table"]["alloy1"]["(800, 80, 0.9)"]["n"] == 2, "the unfiltered table is the one the reader computes"
+    assert d["table_domain"]["alloy1"]["(800, 80, 0.9)"]["all"] == d["table"]["alloy1"]["(800, 80, 0.9)"]["all"]
+    assert "the same claims, read inside the declared domain" in capsys.readouterr().out

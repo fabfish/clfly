@@ -130,3 +130,33 @@ def test_the_live_census_orders_when_pooled_and_reverses_at_every_comparable_cel
     assert abs(median(cell[0]) / median(small[0]) - 1.0) < 0.1, (median(cell[0]), median(small[0]))
     assert {tuple(g["cell"]) for g in d["groups"] if g["kind"] == 0} == {(800, 80, 0.9), (300, 30, 0.9), (300, 30, 0.99), (800, 20, 0.9), (400, 40, 0.9)}
     assert d["control"] and all(c["excess_spread"] == 1.0 for c in d["control"]), d["control"]
+
+
+def test_the_domain_flag_adds_a_second_reading_and_changes_the_first_in_nothing(tmp_path, capsys):
+    """A corpus with nothing to exclude: the flag writes `claims_domain` beside `claims`, the two agree row for row,
+    and the statement says so. This is the additive half of the fold, on a corpus the rule cannot fire on."""
+    _corpus(tmp_path, (0.040, 0.041))
+    out = tmp_path / "e244.json"
+    assert e244.main(["--runs", str(tmp_path), "--json-out", str(out), "--domain"]) == 0
+    d = json.loads(out.read_text(encoding="utf-8"))
+    assert [r["id"] for r in d["claims_domain"]] == [r["id"] for r in d["claims"]]
+    assert d["claims_domain"] == d["claims"], "nothing is excluded, so the two readings are the same rows"
+    assert d["domain"] and d["out_of_domain"] == [], (d["domain"], d["out_of_domain"])
+    text = capsys.readouterr().out
+    assert "the same claims, read inside the declared domain" in text and "changes none of the 3 claims" in text, text
+
+
+def test_a_cell_the_domain_excludes_leaves_the_reader_its_claim_ids_and_not_their_old_words(tmp_path, capsys):
+    """One cell, scattered fortyfold past the bar: the domain empties this reader's corpus, and what it reports is
+    three REFUSED rows with K1 to K3's ids rather than the excluded cell's verdicts -- the hole the fold closes."""
+    for rw, ex in ((0, 0.005), (1, 0.200)):
+        _artifact(tmp_path / f"only{rw}.json", size=800, support=80, rewire_seed=rw,
+                  tops={"alloy1": (ex, 30.0), "swap2": (0.020, 5.0), "erdos_renyi": (0.100, 90.0)})
+    out = tmp_path / "e244.json"
+    assert e244.main(["--runs", str(tmp_path), "--json-out", str(out), "--domain"]) == 0
+    d = json.loads(out.read_text(encoding="utf-8"))
+    assert d["domain"] == [] and len(d["out_of_domain"]) == 1, (d["domain"], d["out_of_domain"])
+    assert [r["id"] for r in d["claims_domain"]] == [r["id"] for r in d["claims"]]
+    assert all(r["verdict"].startswith("REFUSED") for r in d["claims_domain"]), d["claims_domain"]
+    text = capsys.readouterr().out
+    assert "inside the declared domain (3 of 3 claims read here)" in text and "K1 REFUSED" in text, text

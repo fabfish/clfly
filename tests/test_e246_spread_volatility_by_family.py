@@ -101,3 +101,34 @@ def test_the_live_corpus_puts_the_volatility_in_the_one_side_families():
     within = {w[0]: w for w in d["within"]}
     assert set(within) == {"alloy1", "inalloy1", "erdos_renyi", "swap0.5", "swap2", "signshuffle"}, set(within)
     assert within["alloy1"][1] == 18 and within["alloy1"][2] == 9, within["alloy1"]
+
+
+def _corpus_at(root: Path, spreads: tuple[float, float]) -> None:
+    """Two drawings of one cell carrying all three kinds -- the shape `e246` needs, and where `runs/` must be for a
+    reader whose CLI takes no `--runs`."""
+    root.mkdir(parents=True, exist_ok=True)
+    for rw, spread in zip((0, 1), spreads):
+        (root / f"a{rw}.json").write_text(json.dumps({
+            "config": {"circuit_size": 800, "support": 80, "rho": 0.9, "seeds": 3, "rewire_seed": rw},
+            "topologies": {t: {"diagonal(EWC)": {"analytic": {"excess_mean": ex}},
+                               "geometry": {"effective_rank": rk}} for t, (ex, rk) in
+                           {"swap0.5": (spread, 5.0), "alloy1": (1.0, 30.0), "erdos_renyi": (10.0, 90.0)}.items()}}),
+            encoding="utf-8")
+
+
+def test_the_domain_flag_reads_the_corpus_the_reader_reads_and_keeps_every_claim(tmp_path, monkeypatch, capsys):
+    """`e246` takes no `--runs` -- its corpus is `runs/` under the working directory -- so the domain is read there
+    too, and the flag adds `families_domain` and a second reading without touching `families` or the claims' ids."""
+    _corpus_at(tmp_path / "runs", (1.0, 1.5))
+    monkeypatch.chdir(tmp_path)
+    out_a, out_b = tmp_path / "plain.json", tmp_path / "flagged.json"
+    codes = [e246.main(["--json-out", str(out_a)]), e246.main(["--json-out", str(out_b), "--domain"])]
+    assert codes[0] == codes[1], "the flag changes no exit code"
+    d = json.loads(out_b.read_text(encoding="utf-8"))
+    plain = json.loads(out_a.read_text(encoding="utf-8"))
+    assert d["claims"] == plain["claims"], "and no claim moves in the unflagged column"
+    assert d["domain"] == ["(800, 80, 0.9)"] and d["out_of_domain"] == [], d["domain"]
+    assert [r["id"] for r in d["claims_domain"]] == [r["id"] for r in d["claims"]]
+    assert set(d["families_domain"]) <= set(d["families"]), "the filtered view names families, not new rows"
+    text = capsys.readouterr().out
+    assert "the same claims, read inside the declared domain" in text, text
