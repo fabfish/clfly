@@ -95,9 +95,10 @@ def test_the_same_reversal_without_the_four_other_cells_breaks_the_pooled_K1(tmp
     assert rows["K3"]["verdict"].startswith("FALSIFIER FIRED"), rows["K3"]
 
 
-def test_the_live_census_orders_when_pooled_and_reverses_inside_the_one_cell():
-    """The finding's two numbers, pinned on the artifact: K1 ordered with disjoint ranges, K3's one reversal at
-    cs 800/sup 80, and that cell being the only one that carries a no-destruction construction at all."""
+def test_the_live_census_orders_when_pooled_and_reverses_at_both_comparable_cells():
+    """The findings' numbers, pinned on the artifact: K1 ordered with disjoint ranges, K3's reversal at both cells that
+    carry a no-destruction construction, and the margins -- +2.2% at cs 300/support 30 and +104.4% at cs 800/support
+    80 -- which is why kind 0's stability and kind 1's volatility, not kind 0's looseness, is the reading."""
     p = Path("runs/e244_drawing_spread_by_kind.json")
     if not p.exists():
         return
@@ -106,7 +107,7 @@ def test_the_live_census_orders_when_pooled_and_reverses_inside_the_one_cell():
     assert rows["K1"]["verdict"].startswith("MET"), rows["K1"]
     assert rows["K2"]["verdict"].startswith("MET"), rows["K2"]
     assert rows["K3"]["verdict"].startswith("FALSIFIER FIRED"), rows["K3"]
-    assert "6 of 7" in rows["K3"]["measured"] and "800/sup 80" in rows["K3"]["measured"], rows["K3"]
+    assert "6 of 8" in rows["K3"]["measured"], rows["K3"]
     kinds: dict = {}
     for g in d["groups"]:
         if g["excess_spread"] is not None:
@@ -115,5 +116,13 @@ def test_the_live_census_orders_when_pooled_and_reverses_inside_the_one_cell():
     assert sorted(cell) == [0, 1, 2], sorted(cell)
     assert median(cell[1]) > median(cell[0]), "the reversal: the one-side kind is the looser one inside the cell"
     assert median(cell[2]) < min(median(cell[0]), median(cell[1])), "the two-side kind is tightest there"
-    assert {tuple(g["cell"]) for g in d["groups"] if g["kind"] == 0} == {(800, 80, 0.9)}
+    # and the second cell, where the reversal is 47x smaller -- the direction replicates, the magnitude does not
+    assert sorted(kinds[(300, 30, 0.9)]) == [0, 1, 2], sorted(kinds[(300, 30, 0.9)])
+    small = kinds[(300, 30, 0.9)]
+    assert median(small[1]) > median(small[0]), small
+    assert median(small[1]) / median(small[0]) < 1.1, "inside the registered null band, not a second reversal"
+    assert median(cell[1]) / median(cell[0]) > 1.5, "and the convention cell's margin is the one that is large"
+    # kind 0 is the stable rung across the two cells and kind 1 is the volatile one -- the reading, pinned
+    assert abs(median(cell[0]) / median(small[0]) - 1.0) < 0.1, (median(cell[0]), median(small[0]))
+    assert {tuple(g["cell"]) for g in d["groups"] if g["kind"] == 0} == {(800, 80, 0.9), (300, 30, 0.9)}
     assert d["control"] and all(c["excess_spread"] == 1.0 for c in d["control"]), d["control"]
