@@ -123,10 +123,26 @@ def test_rho_is_read_from_the_config_and_a_missing_one_is_the_builders_default(t
     assert e229.cell(root / "e228_rhocs300.json")["rho"] == 0.9
 
 
-def test_the_live_reader_refuses_until_the_sweep_is_complete():
-    """The gate is the refusal count: while `e228`'s cells are still being written, three claims are refused and the
-    reader must not report a verdict it cannot compute."""
+def test_each_claim_is_refused_only_while_its_OWN_cells_are_missing(tmp_path):
+    """The three claims do not need the same cells: R1 and R2 are cs-300 statements and R3 alone needs cs 800, so a
+    half-finished design carries the verdicts the finished half can already support."""
+    root = write_runs(tmp_path, full_design({0.5: (0.02, 0.06), 0.99: (0.2, 0.1)}, {}))
+    cells = [c for c in (e229.cell(p) for p in sorted(root.glob("e228_rho*_cs*.json"))) if c is not None]
+    verdicts = {v["id"]: v["verdict"] for v in e229.judge(cells, e229.references(root))}
+    assert verdicts["R1"].startswith("MET") and verdicts["R2"].startswith("MET")
+    assert verdicts["R3"].startswith("REFUSED") and "cs 800" in verdicts["R3"], verdicts["R3"]
+
+
+def test_the_live_reader_refuses_only_the_claims_whose_cells_are_absent():
+    """The live state, whatever it is: the refusal count must be the number of claims whose own grid is missing, and
+    the reader must never report a verdict it cannot compute."""
     cells = [c for c in (e229.cell(p) for p in sorted(e229.RUNS.glob(e229.TEST_GLOB))) if c is not None]
-    verdicts = e229.judge(cells, e229.references())
-    expected = 3 if len(cells) < 16 else 0
-    assert sum("REFUSED" in v["verdict"] for v in verdicts) == expected, (len(cells), verdicts)
+    sizes = {c["circuit_size"]: {d["rho"] for d in cells if d["circuit_size"] == c["circuit_size"]}
+             for c in cells}
+    refs = e229.references()
+    need300 = not {0.5, 0.99} <= sizes.get(300, set())
+    need800 = not {0.5, 0.99} <= sizes.get(800, set())
+    expected = (2 if need300 else 0) + (1 if need800 else 0)
+    verdicts = e229.judge(cells, refs)
+    assert sum("REFUSED" in v["verdict"] for v in verdicts) == expected, (sizes, verdicts)
+    assert len(verdicts) == 3

@@ -163,7 +163,12 @@ def references(directory: Path = RUNS) -> dict:
 
 
 def judge(cells: list[dict], refs: dict) -> list[dict]:
-    """R1-R3 as verdicts, REFUSED rather than guessed whenever the design or a reference is incomplete."""
+    """R1-R3 as verdicts, REFUSED rather than guessed whenever THAT claim's own requirements are unmet.
+
+    The three claims do not need the same cells: R1 and R2 are statements about the cs-300 grid (where the
+    `rho = 0.9` member is the reference artifact), and only R3 needs the cs-800 cells. Refusing all three together
+    would let an incomplete half of the design hide a verdict the other half can already carry.
+    """
     by_size = {}
     for c in cells:
         by_size.setdefault(c["circuit_size"], {})[c["rho"]] = c
@@ -172,46 +177,50 @@ def judge(cells: list[dict], refs: dict) -> list[dict]:
         return [{"id": c[0], "verdict": f"REFUSED -- the rho = 0.9 reference for {absent} could not be read from "
                                         f"its own artifacts, and a claim against a remembered number is not a "
                                         f"claim"} for c in CLAIMS]
-    missing = []
-    for size in (300, 800):
-        # the rho = 0.9 cell of BOTH sizes is the reference artifact, not a cell of the sweep
-        got = set(by_size.get(size, {})) | {0.9}
-        if not set(RHO_GRID) <= got:
-            missing.append(f"cs {size}: rho {sorted(set(RHO_GRID) - got)}")
-    if missing:
-        return [{"id": c[0], "verdict": f"REFUSED -- the design is incomplete: {'; '.join(missing)}"}
-                for c in CLAIMS]
-
-    grid300 = {rho: by_size[300][rho]["top_step"] for rho in RHO_GRID if rho in by_size[300]}
-    grid300[0.9] = refs["cs300"]["top_step"]
-    order = [grid300[r] for r in RHO_GRID]                     # rho ascending: 0.5, 0.9, 0.99
-    lo, hi = min(order), max(order)
-    span = hi / lo if lo else float("inf")
-    r1 = ("MET -- the range covers cs 800's level" if hi >= R1_COVER else
-          "FALSIFIER FIRED -- within 1.5x of itself at all three rho" if span < R1_FALSIFIER else
-          f"null band -- spans {span:.2f}x, wider than 1.5x but short of cs 800's {R1_COVER:.2f}x")
-    monotone_fall = all(order[i] > order[i + 1] for i in range(len(order) - 1))
-    monotone_rise = all(order[i] < order[i + 1] for i in range(len(order) - 1))
-    r2 = ("MET -- the top step falls as rho rises" if monotone_fall else
-          "FALSIFIER FIRED -- the reverse ordering: it rises with rho" if monotone_rise else
-          "null band -- non-monotone across the three rho")
-    ref800 = refs["cs800"]["top_step"]
-    ratios = {rho: by_size[800][rho]["top_step"] / ref800 for rho in (0.5, 0.99)}
-    off = min(abs(r - 1.0) for r in ratios.values())
-    r3 = (f"MET -- the new cells are {min(ratios.values()):.2f}x-{max(ratios.values()):.2f}x of the reference"
-          if off >= R3_BAR - 1 else
-          "FALSIFIER FIRED -- within 1.2x of the on-disk value" if off < R3_FALSIFIER - 1 else
-          "null band -- between 1.2x and 1.5x of the reference")
-    return [
-        {"id": "R1", "measured": f"cs-300 top steps {', '.join(f'{r}: {grid300[r]:.3f}x' for r in RHO_GRID)} "
-                                 f"(span {span:.2f}x)",
-         "verdict": r1},
-        {"id": "R2", "measured": f"rho ascending -> {', '.join(f'{v:.3f}x' for v in order)}",
-         "verdict": r2},
-        {"id": "R3", "measured": f"cs-800 new cells {', '.join(f'{r}: {by_size[800][r]["top_step"]:.3f}x' for r in (0.5, 0.99))} "
-                                 f"against the reference {ref800:.3f}x",
-         "verdict": r3},
-    ]
+    # the rho = 0.9 cell of BOTH sizes is the reference artifact, not a cell of the sweep
+    missing300 = sorted(set(RHO_GRID) - (set(by_size.get(300, {})) | {0.9}))
+    missing800 = sorted(set(RHO_GRID) - (set(by_size.get(800, {})) | {0.9}))
+    need300 = f"cs 300: rho {missing300}" if missing300 else None
+    need800 = f"cs 800: rho {missing800}" if missing800 else None
+    out = []
+    if need300:
+        out += [{"id": two[0], "verdict": f"REFUSED -- this claim needs {need300} and the design is incomplete"}
+                for two in CLAIMS[:2]]
+    if need800:
+        out.append({"id": "R3", "verdict": f"REFUSED -- this claim needs {need800} and the design is incomplete"})
+    if not need300:
+        grid300 = {rho: by_size[300][rho]["top_step"] for rho in RHO_GRID if rho in by_size[300]}
+        grid300[0.9] = refs["cs300"]["top_step"]
+        order = [grid300[r] for r in RHO_GRID]                 # rho ascending: 0.5, 0.9, 0.99
+        lo, hi = min(order), max(order)
+        span = hi / lo if lo else float("inf")
+        out.append({"id": "R1",
+                    "measured": f"cs-300 top steps {', '.join(f'{r}: {grid300[r]:.3f}x' for r in RHO_GRID)} "
+                                f"(span {span:.2f}x)",
+                    "verdict": "MET -- the range covers cs 800's level" if hi >= R1_COVER else
+                               "FALSIFIER FIRED -- within 1.5x of itself at all three rho" if span < R1_FALSIFIER
+                               else f"null band -- spans {span:.2f}x, wider than 1.5x but short of cs 800's "
+                                    f"{R1_COVER:.2f}x"})
+        monotone_fall = all(order[i] > order[i + 1] for i in range(len(order) - 1))
+        monotone_rise = all(order[i] < order[i + 1] for i in range(len(order) - 1))
+        out.append({"id": "R2",
+                    "measured": f"rho ascending -> {', '.join(f'{v:.3f}x' for v in order)}",
+                    "verdict": "MET -- the top step falls as rho rises" if monotone_fall else
+                               "FALSIFIER FIRED -- the reverse ordering: it rises with rho" if monotone_rise else
+                               "null band -- non-monotone across the three rho"})
+    if not need800:
+        ref800 = refs["cs800"]["top_step"]
+        ratios = {rho: by_size[800][rho]["top_step"] / ref800 for rho in (0.5, 0.99)}
+        off = min(abs(r - 1.0) for r in ratios.values())
+        out.append({"id": "R3",
+                    "measured": f"cs-800 new cells "
+                                f"{', '.join(f'{r}: {by_size[800][r]['top_step']:.3f}x' for r in (0.5, 0.99))} "
+                                f"against the reference {ref800:.3f}x",
+                    "verdict": (f"MET -- the new cells are {min(ratios.values()):.2f}x-{max(ratios.values()):.2f}x "
+                                f"of the reference" if off >= R3_BAR - 1 else
+                                "FALSIFIER FIRED -- within 1.2x of the on-disk value" if off < R3_FALSIFIER - 1 else
+                                "null band -- between 1.2x and 1.5x of the reference")})
+    return sorted(out, key=lambda r: r["id"])
 
 
 def report(cells: list[dict], refs: dict) -> int:
