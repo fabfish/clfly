@@ -51,6 +51,10 @@ size* as the saturated separation. A different drawing could therefore show a mu
 is that **within** a drawing the separation is systematic in `rho`, and what remains open is whether it survives the
 drawing lottery.
 
+## 3b. Correction: the sign inversion was two drawings
+
+The lottery (`e232`, three drawings of the null at each size) measured this section's *sign inverts with circuit size* reading directly: at cs 300 the `alloy1`/`inalloy1` ratio at `rho` 0.9 is 0.62x, **1.78x** and **0.31x** across drawings 0, 1 and 2 (mean 1.05x, both signs), and at cs 800 it is 10.10x, 1.06x and 0.23x. So the sign is not stable **within** a size either, and the size-inversion is withdrawn: what it measured was one drawing at each size. P3's verdict stands as registered -- the separation is systematic *within* the curve it measured -- and the lottery answers the next question the other way (`docs/findings/2026-09-26-the-in-out-asymmetry-is-a-drawing-not-the-substrate.md`).
+
 ## 4. The two new results the completed grid gives
 
 - **The asymmetry's SIGN inverts with circuit size.** At cs 800 the ratio runs 1.10× → 15.7×, i.e. the family whose
