@@ -68,13 +68,12 @@ def test_an_unresolvable_family_that_is_not_declared_is_the_exit_code(tmp_path, 
 
 
 def test_a_resolvable_family_with_a_wide_between_contrast_passes():
-    """The widest rho contrast left on the live corpus is cs 800 `inalloy1`'s 45x, against an 8x scatter -- and cs 300
-    `alloy1`, which this audit called resolvable at 25x, then unresolvable at 1.51x, is now resolvable again with
-    every rho group at two drawings: a declaration is a statement about the corpus's current drawings, not a verdict
-    about the family."""
+    """The audit is down to five auditable families and the widest contrast left among them is cs 800 `real`'s 5.6x
+    against a 1.01x scatter: the ladder families have all left its scope as their cells were drawn, which is what
+    happens to a design that reads single-drawing cells."""
     fams = {(f["circuit_size"], f["topology"]): f for f in e230.families(e230.rows_of())}
-    assert fams[(800, "inalloy1")]["resolvable"] is True
-    assert fams[(800, "inalloy1")]["between_single"] > 5 * fams[(800, "inalloy1")]["within_at_ref"]
+    assert fams[(800, "real")]["resolvable"] is True
+    assert fams[(800, "real")]["between_single"] > 5 * fams[(800, "real")]["within_at_ref"]
     # cs 300 alloy1 was declared unresolvable at 1.51x against a 2.73x scatter, and e255's low-rho drawings put it
     # back INSIDE the audit: every rho group there now has two drawings, so the as-read column is undefined for it and
     # the verdict is read off means instead
@@ -93,12 +92,13 @@ def test_the_live_corpus_has_only_declared_unresolvable_families():
     assert e230.main([]) == 0
 
 
-def test_the_cs_800_inalloy_family_is_resolvable_which_is_what_the_directional_claim_needs():
-    """The side of the cs-800 directional reading that has to hold: the collapsing family must beat its own scatter.
-    `e243`'s three designed drawings widened this family's own scatter from 4.14x to 8.02x, so the margin is 5.6x
-    where it was 10.8x -- still resolvable, and the narrowing is the point of pinning it here."""
+def test_the_cs_800_ladder_families_have_left_the_audit_s_scope():
+    """`e243`'s three designed drawings once made this family the audit's margin-narrowing example; `e256` then drew
+    every remaining cs-800 rho cell, so no rho group there has a single drawing and the as-read column -- which is what
+    the verdict is computed from -- is undefined for all of them. The audit cannot see cs 800's ladder families at all
+    any more, which is its third state rather than a verdict."""
     fams = {(f["circuit_size"], f["topology"]): f for f in e230.families(e230.rows_of())}
     f = fams[(800, "inalloy1")]
-    assert f["resolvable"] is True, f
-    assert f["within_at_ref"] > 4.14, "the designed drawings must have widened the scatter, or this pin is stale"
-    assert f["between_single"] > 5 * f["within_at_ref"], f
+    assert f["between_single"] is None and f["resolvable"] is None, f
+    assert all(g["n"] >= 2 for g in f["rho_groups"].values()), f["rho_groups"]
+    assert f["within_at_ref"] > 4.0, "the family's own scatter is still what e243 widened"

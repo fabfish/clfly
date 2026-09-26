@@ -107,7 +107,7 @@ def test_the_live_census_orders_when_pooled_and_reverses_at_every_comparable_cel
     assert rows["K1"]["verdict"].startswith("null band"), rows["K1"]  # e255's six stable low-rho groups pulled kind 1 back
     assert rows["K2"]["verdict"].startswith("MET"), rows["K2"]  # the relative form orders again with e255's groups in
     assert rows["K3"]["verdict"].startswith("FALSIFIER FIRED"), rows["K3"]
-    assert "14 of 17" in rows["K3"]["measured"], rows["K3"]
+    assert "18 of 23" in rows["K3"]["measured"], rows["K3"]
     kinds: dict = {}
     for g in d["groups"]:
         if g["excess_spread"] is not None:

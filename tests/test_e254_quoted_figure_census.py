@@ -96,15 +96,16 @@ def test_the_live_census_reports_the_cs_300_close_out_and_the_cs_800_exposure():
     verdicts = {f["verdict"] for f in d["figures"]}
     assert verdicts <= {"SAFE", "DECOMPOSED", "STILL EXPOSED"}, verdicts
     # e255 closed the cs-300 exposure; extending the registry with the cs-800 figures then exposed two more
+    # e256 drew all six cs-800 rho cells, so the exposure is closed and every figure is SAFE or DECOMPOSED
     exposed = [f for f in d["figures"] if f["verdict"] == "STILL EXPOSED"]
-    assert len(d["figures"]) == 15, len(d["figures"])
-    assert {f["name"] for f in exposed} == {"the-rank-curve-at-cs-800", "the-size-effect-changes-sign-with-rho"}, exposed
-    assert len([f for f in d["figures"] if f["verdict"] == "DECOMPOSED"]) == 6, d["figures"]
+    assert exposed == [] and len(d["figures"]) == 15, (exposed, len(d["figures"]))
+    assert len([f for f in d["figures"] if f["verdict"] == "DECOMPOSED"]) == 8, d["figures"]
     assert len([f for f in d["figures"] if f["verdict"] == "SAFE"]) == 7, d["figures"]
     rows_e = {r["id"]: r for r in d["claims"]}
-    for cid in ("E1", "E2", "E3"):
-        assert rows_e[cid]["verdict"].startswith("MET"), rows_e[cid]
-    assert "6 of its 7 rho values" in rows_e["E3"]["measured"], rows_e["E3"]
+    # the E-claims' "at least two exposed" direction now fires, which is the work being done rather than a failure
+    for cid in ("E1", "E3"):
+        assert rows_e[cid]["verdict"].startswith("FALSIFIER FIRED"), rows_e[cid]
+    assert rows_e["E2"]["verdict"].startswith("MET"), rows_e["E2"]
     rows = {r["id"]: r for r in d["claims"]}
     assert rows["C1"]["verdict"].startswith("FALSIFIER FIRED"), rows["C1"]
     assert rows["C2"]["verdict"].startswith("MET"), rows["C2"]

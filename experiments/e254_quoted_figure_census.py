@@ -96,10 +96,10 @@ REGISTRY = (
     # added 2026-09-26 19:20: the three cs 800 figures this registry did not name, which is the blind spot e255 left
     ("the-rank-curve-at-cs-800", "the same fall as cs 300's, over the same rho grid at the other size",
      [((800, 80, r), f) for r in (0.5, 0.7, 0.8, 0.9, 0.95, 0.98, 0.99)
-      for f in ("alloy1", "erdos_renyi")], False),
+      for f in ("alloy1", "erdos_renyi")], True),   # e256's six drawings; the fall survived and the levels move by 20x
     ("the-size-effect-changes-sign-with-rho", "cs 800 over cs 300 reads 1.13x at rho 0.5, 2.14x at 0.9 and 0.06x at 0.99",
      [((800, 80, r), f) for r in (0.5, 0.9, 0.99) for f in ("alloy1", "erdos_renyi")] +
-     [((300, 30, r), f) for r in (0.5, 0.9, 0.99) for f in ("alloy1", "erdos_renyi")], False),
+     [((300, 30, r), f) for r in (0.5, 0.9, 0.99) for f in ("alloy1", "erdos_renyi")], True),  # its cs-800 inputs by e256
     ("the-two-side-level-is-flat-across-sizes", "Erdos-Renyi at cs 800 and at cs 300, both at rho 0.9",
      [((800, 80, 0.9), "erdos_renyi"), ((300, 30, 0.9), "erdos_renyi")], False),
 )

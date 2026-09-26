@@ -44,14 +44,17 @@ REF_RHO = 0.9
 #: than counted: the corpus now knows the scatter, and the entry is what makes the next claim on that family a
 #: decision rather than an accident.
 DECLARED_UNRESOLVABLE: dict[tuple, str] = {
-    (800, "alloy1"): "twelve drawings at rho 0.9 span 1.72-28.35 (16.44x) in effective_rank, and the rho contrast the "
-                     "mechanism reading quotes for this family at cs 800 is 21.01 against the 1.29 of another family "
-                     "at rho 0.99 -- a single-drawing contrast of the same size as the family's own scatter",
-    # declared 2026-09-26 18:20 when e253 put a second drawing at rho 0.95 and 0.98, and still declared after e255 drew
-    # the low-rho end: their contrasts as read stay inside their own scatters
+    # declared 2026-09-26 18:20 when e253 put a second drawing at rho 0.95 and 0.98, and still declared after e255 and
+    # e256 drew the rest of the grid: their contrasts as read stay inside their own scatters
     (300, "swap0.5"): "its rho contrast as read is 4.05x against its own within-scatter 8.77x",
     (300, "swap2"): "its rho contrast as read is 1.18x against its own within-scatter 7.77x",
 }
+# and THREE entries have been removed as the corpus thickened, which is this audit's third state (see the module's
+# notes): cs 300 alloy1 and inalloy1 were un-declared when e255 drew rho 0.5, 0.7 and 0.8, and cs 800 alloy1 at
+# 2026-09-26 20:20 when e256 did the same at cs 800 -- all of them now have EVERY rho group at two or more drawings,
+# so `between_single` is undefined for them and they leave the table rather than staying declared. A declaration is a
+# statement about the corpus's current drawings and not a verdict about the family, and this audit's scope is emptied
+# as its cells are drawn: five of its forty-two families are still auditable.
 # and two entries were REMOVED 2026-09-26 19:05: cs 300 alloy1 and inalloy1 were declared at 18:20 (their contrasts had
 # collapsed to 1.51x and 1.31x) and e255's drawings at rho 0.5, 0.7 and 0.8 took away the last single-drawing rho
 # groups at cs 300, so this audit's as-read column is not computable for them at all and they leave the table rather
