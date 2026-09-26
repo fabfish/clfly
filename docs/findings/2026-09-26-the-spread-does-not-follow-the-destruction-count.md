@@ -103,3 +103,22 @@ whose level is near zero cannot spread far in absolute terms, though the relativ
 `rho` above 0.9 cells carry one drawing per family and are absent from the census entirely; and nothing here is a new
 measurement — every number comes from artifacts already on the plan's rows. The K1/K2 "MET" verdicts are recorded as
 pooled statements that the only within-cell test available contradicts, not as support for the ladder.
+
+## 7. Re-read on the three designed drawings of `e243` (14:45)
+
+`e243`'s three runs landed after this finding was pushed. They carry three more drawings of each family at the
+convention cell, so the numbers above were re-read on the enlarged base; the verdicts are unchanged and one of them
+sharpens:
+
+| quantity | at 14:10 | re-read at 14:45 |
+|---|---|---|
+| K1 | MET, kind 1 median 1.234×, kind 2 range [1.021, 1.054] | MET, kind 1 median **1.292×**, kind 2 range [1.021, 1.06] |
+| K2 | MET, kind 1's relative spread 0.2102 | MET, **0.2517** |
+| K3 | FALSIFIER, 6 of 7 cell-pairs, reversal 2.29× against 1.45× | FALSIFIER, 6 of 7, reversal **2.96×** against 1.45× |
+
+**The reversal widens rather than dissolving.** The family whose spread moved is `inalloy1` — 1.24× over three
+drawings to **2.58×** over six, because two of the designed drawings are the highest `inalloy1` values ever measured
+at this cell — so a designed base **confirms this finding's central negative on new drawings**, where the original
+argument rested only on a pooling one. The `real` control is unchanged (still exactly 1.0, `e223`'s two artifacts),
+and the within-cell ordering at cs 800/support 80 is still 2 < 0 < 1. The full before-and-after, with the designed
+drawings' own values, is in `docs/findings/2026-09-26-the-designed-base-makes-the-registers-figure-typical.md`.

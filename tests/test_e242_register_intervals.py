@@ -40,16 +40,17 @@ def test_a_cell_without_drawings_is_refused(capsys):
 
 
 def test_the_live_artifact_brackets_the_convention_cell():
-    """The live distributions the finding quotes: 30 and 18 pairs, the register's figures at the 20th and 33rd
-    percentile, and the two spellings' gap inside both IQRs."""
+    """The live distributions the finding quotes -- 72 and 54 pairs once `e243`'s three designed drawings are in the
+    census, with the register's 2.76x inside the central half (R1 MET) and the two spellings' gap inside both IQRs."""
     p = Path("runs/e242_register_intervals.json")
     if not p.exists():
         return
     d = json.loads(p.read_text(encoding="utf-8"))
     conv = next(r for r in d["cells"] if list(r["cell"]) == list(e242.CONVENTION))
     a, i = conv["erdos_renyi/alloy1"], conv["erdos_renyi/inalloy1"]
-    assert a["n"] == 30 and i["n"] == 18, (a["n"], i["n"])
-    assert a["q25"] <= e242.DECLARED["erdos_renyi/alloy1"] <= a["q75"] or a["min"] < e242.DECLARED["erdos_renyi/alloy1"]
+    assert a["n"] >= 72 and i["n"] >= 54, (a["n"], i["n"])
+    assert a["q25"] <= e242.DECLARED["erdos_renyi/alloy1"] <= a["q75"]
     assert i["q25"] <= e242.DECLARED["erdos_renyi/inalloy1"] <= i["q75"]
     verdicts = {c["id"]: c["verdict"] for c in d["claims"]}
+    assert verdicts["R1"].startswith("MET"), verdicts["R1"]
     assert verdicts["R2"].startswith("MET"), verdicts["R2"]

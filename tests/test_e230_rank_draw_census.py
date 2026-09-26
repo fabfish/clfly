@@ -83,7 +83,11 @@ def test_the_live_corpus_has_one_unresolvable_family_and_it_is_declared():
 
 
 def test_the_cs_800_inalloy_family_is_resolvable_which_is_what_the_directional_claim_needs():
-    """The side of the cs-800 directional reading that has to hold: the collapsing family must beat its own scatter."""
+    """The side of the cs-800 directional reading that has to hold: the collapsing family must beat its own scatter.
+    `e243`'s three designed drawings widened this family's own scatter from 4.14x to 8.02x, so the margin is 5.6x
+    where it was 10.8x -- still resolvable, and the narrowing is the point of pinning it here."""
     fams = {(f["circuit_size"], f["topology"]): f for f in e230.families(e230.rows_of())}
     f = fams[(800, "inalloy1")]
-    assert f["resolvable"] is True and f["between_single"] > 10 * f["within_at_ref"]
+    assert f["resolvable"] is True, f
+    assert f["within_at_ref"] > 4.14, "the designed drawings must have widened the scatter, or this pin is stale"
+    assert f["between_single"] > 5 * f["within_at_ref"], f

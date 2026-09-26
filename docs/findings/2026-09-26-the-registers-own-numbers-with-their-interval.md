@@ -58,3 +58,24 @@ rather than a claim here.
 - **A claim's implementation is as fallible as the claim.** The first version of R2 compared the spellings' *ratio*
   (1.09) against the distributions' *relative* IQR (0.26) and fired the falsifier on that unit error; the fix is in the
   module and the incident is recorded here rather than quietly repaired.
+
+## Update 2026-09-26 14:45 — re-read on `e243`'s designed base
+
+Three designed drawings then landed at the same cell (`e243`, `rewire_seed` 6, 7 and 8), taking the base to **8
+`alloy1`, 6 `inalloy1` and 9 `erdos_renyi` drawings — 72 and 54 pairs**, and this module was re-run on them:
+
+| spelling | pairs | min | q25 | median | q75 | max | where the register's figure falls |
+|---|---|---|---|---|---|---|---|
+| ER ÷ `alloy1`, accidental base | 30 | 1.404 | 3.016 | 3.45 | 3.896 | 4.947 | at the 20.0th percentile |
+| ER ÷ `alloy1`, enlarged base | 72 | 1.396 | **1.986** | 3.285 | 3.715 | 4.947 | at the **37.5th** percentile |
+| ER ÷ `inalloy1`, accidental base | 18 | 2.714 | 2.820 | 3.10 | 3.368 | 3.537 | at the 33.3rd percentile |
+| ER ÷ `inalloy1`, enlarged base | 54 | 1.294 | **1.434** | 2.791 | 3.099 | 3.537 | at the 66.7th percentile |
+
+**R1 flips from its null band to MET and R2 stays MET.** The median moves 3.45× to 3.285× (a factor of 1.05) while
+q25 moves 3.016× to 1.986× (a factor of **1.52**), so what the accidental five-drawing base got wrong about this cell
+was its **shape** and not its centre — and it is the shape that this finding's percentile reading was read off. The
+register's 2.76× is inside the central half on the enlarged base, i.e. **typical of the cell rather than a low draw
+of it**; the interval this record should carry here is **3.285× [1.986, 3.715]** for the `alloy1` spelling and
+**2.791× [1.434, 3.099]** for the `inalloy1` one, and by the mean-spelling form the register uses the enlarged base
+reads **2.51×**, below the 2.76× it is compared against. Full write-up:
+`docs/findings/2026-09-26-the-designed-base-makes-the-registers-figure-typical.md`.
