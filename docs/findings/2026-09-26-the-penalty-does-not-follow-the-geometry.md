@@ -31,6 +31,32 @@ reproduced over six grid points). The **excess rises** from `rho` 0.7 to 0.9 in 
 curves' shapes disagree at the first two steps, where the rank is still ~20 dimensions and the excess climbs by a
 factor of 2–20.
 
+## 1b. The cs-800 half, and it is sharper than cs 300
+
+The last four cells landed at 11:50 and the design is complete. `e234` now judges E1 on **both** sizes, and the
+falsifier fires with **nineteen sign disagreements** (nine at cs 300, ten at cs 800):
+
+| cs 800 | 0.7 | 0.8 | 0.9 | 0.95 | 0.98 | 0.99 |
+|---|---|---|---|---|---|---|
+| `real` rank / excess | 63.3 / 0.0021 | 57.4 / 0.0074 | 50.2 / **0.0183** | 37.3 / 0.0170 | 16.9 / 0.0116 | 11.8 / 0.0069 |
+| `alloy1` rank / excess | 45.8 / 0.0643 | 32.8 / 0.0830 | 24.3 / 0.1007 | 22.1 / 0.1086 | 21.2 / 0.1128 | 21.0 / **0.1140** |
+| `inalloy1` rank / excess | 36.7 / 0.0821 | 15.2 / **0.0830** | 2.4 / 0.0421 | 1.4 / 0.0190 | 1.3 / 0.0134 | 1.3 / 0.0131 |
+| `erdos_renyi` rank / excess | 58.0 / 0.1044 | 49.1 / **0.1425** | 27.9 / 0.1419 | 11.8 / 0.0985 | 5.3 / 0.0582 | 4.2 / 0.0475 |
+
+**Every rank falls monotonically; no excess does.** And the excess's *shape* is family-specific in a way cs 300's
+single peak hid:
+
+- **`alloy1` rises monotonically across the whole grid** (0.0643 → 0.1140) while its rank falls 45.8 → 21.0 — five
+  disagreements out of five steps, the cleanest anti-correlation in the design;
+- `real` and `erdos_renyi` peak and then fall (0.0183 at `rho` 0.9, 0.1425 at 0.8), like cs 300;
+- `inalloy1` peaks at 0.8 and collapses **6.3×** (0.0830 → 0.0131) while its rank collapses **25×** (36.7 → 1.29) —
+  so *after its peak* this family's two curves do co-move, and the verdict is about the signs over the whole grid
+  rather than about a universal decoupling.
+
+The peak locations differ **by family at the same size** (`real` 0.9, `erdos_renyi` 0.8, `inalloy1` 0.8, `alloy1`
+nowhere inside the grid), so even *"the penalty peaks at `rho` ≈ 0.9"* is a family-specific statement rather than a
+property of the substrate.
+
 ## 2. And the two-side advantage is a LATE effect, not a high-`rho` one
 
 **E2 FALSIFIER FIRED.** The Erdős–Rényi ÷ `alloy1` excess ratio at cs 300 is **1.91×** at `rho` 0.95, **5.53×** at
@@ -60,7 +86,7 @@ is `e229`'s finding at one point, now visible as a curve.
   verdict is safe — it is about each topology's own curve against its own rank, which the lottery showed *is*
   drawing-robust — while **any point-to-point comparison between two topologies at one `rho` inherits the drawing
   lottery** and is not resolved by this design.
-- **The cs-800 half is unmeasured as this is written** (four runs in flight), so E1's "both sizes" clause is judged on
-  the cs-300 families plus the two cs-800 points that exist.
+- **The cs-800 half is complete** (its four cells landed at 11:50), and E1's "both sizes" clause is
+  therefore judged on all eight families: nineteen disagreements of forty-eight steps.
 - **`rho` mixes propagation depth with weight scale**, and the excess's dependence on weight scale is not held fixed.
 - **Six points, one size pair**: a peak location of "≈ 0.9" is bracketed by 0.8 and 0.95, not resolved.
