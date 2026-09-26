@@ -31,6 +31,12 @@ mean on this machine.
 **What it cannot do**: it sees only artifacts that carry a `real` block with an `analytic` block; it compares one
 number per artifact, so a task change that leaves the oracle's mean unchanged is invisible; and a fingerprint that
 agrees says the inputs agree, **not** that the artifacts' methods agree.
+
+**The drift that stays open, and what narrowed it.** `--task-thread-sweep` takes the step the oracle sweep takes as
+given (the circuit and the Jacobians `build_tasks` assembles) and `--neighbour-sweep` asks whether the deviant's value
+is a neighbouring configuration's. Together with the rebuilds they leave the cs-300 drift unexplained but bounded: the
+circuit is identical at every thread count and across processes, the task builder's own thread class moves the oracle
+by 2.11e-6, and no configuration in a window of supports, seed offsets and `q` values reproduces the deviant.
 """
 
 from __future__ import annotations
@@ -66,14 +72,22 @@ DECLARED_DRIFT: dict[str, dict] = {
         "status": "OPEN -- not attributed",
         "measured_rel": 6.27e-04,
         "why": "`e13_control3_d952` (09-22 16:09) against `e217_ladder_cs300` (09-26 03:59): the newer artifact's "
-               "tasks differ from the reproducible ones by 6.3e-4. Rebuilt today the oracle reproduces **e13**'s "
-               "value to the last bit -- the older one again -- and the thread sweep at this size spans only "
-               "3.5e-6 to 7.1e-6 per seed, i.e. this deviation is **100x the whole measured thread class**, so the "
-               "thread count is ruled out. The code path is not the candidate either: every commit between the two "
-               "epochs that touches the task or circuit path is a comment or an added function, and the cs-800 group "
-               "straddling the same window agrees to the bit. What is left is the SUBSTRATE this run saw -- which "
-               "neurons the tight cs-300 budget admits, or the shared support draw -- and it is recorded as open with "
-               "that candidate list rather than attributed to a mechanism nothing has measured",
+               "tasks differ from the reproducible ones by 6.3e-4. Three measurements narrow it and none attributes "
+               "it. (1) Rebuilt today the oracle reproduces **e13**'s value to the last bit -- the older one again. "
+               "(2) The CIRCUIT is not the candidate: `--task-thread-sweep` prints the same `neuron_sha1` at every "
+               "thread count, and repeated processes give the same circuit, so the neurons the tight budget admits "
+               "are reproducible. (3) The ARITHMETIC is not the candidate either: the sweep shows the Jacobians do "
+               "differ across thread counts (so the task builder, not just the oracle, is in the thread class) but "
+               "the oracle moves only 2.11e-6 and the basis-dependent ewc_mean 1.46e-7 -- an order below the oracle "
+               "sweep's own class and ~300x below this drift. `--neighbour-sweep` rules out the fourth: no "
+               "configuration in a window of supports {10,20,30}, seed0 {0,1,2} and q {0.0125,0.02,0.05} reproduces "
+               "the deviant's value (the nearest is q=0.0125 at 9.2e-4), so it is not a transcription error in the "
+               "config this window covers. Every commit between the two epochs that touches the task or circuit path "
+               "is inert for values (`434b512`'s `circuits.py` hunk is a comment; its `tasks.py` hunk drops two "
+               "values that select 0 neurons), the cs-800 group straddling the same window is bit-exact, and the "
+               "data files are untouched since 09-20. What is left is the support draw / whatever else the deviant "
+               "run saw that the config does not name, and it is recorded as open rather than attributed to a "
+               "mechanism nothing has measured",
     },
 }
 
@@ -212,6 +226,121 @@ def oracle_at(circuit_size: int, support: int, seeds: int, seed0: int, q: float)
     return 0
 
 
+def tasks_at(circuit_size: int, support: int, seeds: int, seed0: int, q: float) -> int:
+    """The child mode of `--task-thread-sweep`: what this process's **task builder** produces, before any basis.
+
+    The oracle is what the previous sweep varied, and it takes the tasks as given -- so this one fingerprints the
+    step above it: the circuit's neuron set and the Jacobians `build_tasks` assembles from it.
+    """
+    import hashlib
+    import os
+
+    import numpy as np
+
+    from clfly.bench import analytic
+    from clfly.connectome import annotate, circuits, graph, tasks
+    from clfly.lgcl.bases import Diagonal
+
+    conn = graph.build()
+    ann = annotate.load_annotations()
+    circ = circuits.extract(conn, ann, hops=0, max_neurons=circuit_size)
+    seqs = [tasks.build_tasks(circ, support_size=support, q=q, seed=s).sequence for s in range(seed0, seed0 + seeds)]
+    print(json.dumps({
+        "threads": os.environ.get("OMP_NUM_THREADS"),
+        "n_neurons": int(circ.n_neurons),
+        "neuron_sha1": hashlib.sha1(np.asarray(circ.net.root_ids, dtype=np.int64).tobytes()).hexdigest()[:12],
+        "j_sha1": [hashlib.sha1(np.asarray(s.J[k]).tobytes()).hexdigest()[:12] for s in seqs for k in range(s.T)],
+        "oracle_mean": float(np.mean([analytic.expected_oracle(s, 1.0)["final_avg_error"] for s in seqs])),
+        "ewc_mean": analytic.analytic_excess(seqs, Diagonal(seqs[0].d))["ewc_mean"]}))
+    return 0
+
+
+def fingerprint_values(root: Path = RUNS) -> list[dict]:
+    """Every artifact's own fingerprint value, so a rebuild can be matched to the artifact it reproduces."""
+    return [{"artifact": name, "oracle": row["oracle"][0]}
+            for name, row in fingerprints(root).items() if len(row["oracle"]) == 1]
+
+
+def task_thread_sweep(counts: list[str], circuit_size: int, support: int, seeds: int, seed0: int, q: float,
+                      stored: list[dict]) -> int:
+    """Run the task builder at each thread count and compare -- the step the oracle sweep takes as given."""
+    import os
+
+    runs = {}
+    for c in counts:
+        full = dict(os.environ)
+        if c == "default":
+            full.pop("OMP_NUM_THREADS", None)
+        else:
+            full["OMP_NUM_THREADS"] = c
+        out = subprocess.run([sys.executable, "-m", "experiments.e227_oracle_fingerprint_census", "--tasks-at",
+                              "--circuit-size", str(circuit_size), "--support", str(support), "--seeds", str(seeds),
+                              "--seed0", str(seed0), "--q", str(q)],
+                             capture_output=True, text=True, env=full, check=True)
+        runs[c] = json.loads([ln for ln in out.stdout.splitlines() if ln.startswith("{")][-1])
+        print(f"   OMP_NUM_THREADS={c:>7}  neurons {runs[c]['n_neurons']}  neuron_sha1 {runs[c]['neuron_sha1']}  "
+              f"oracle {runs[c]['oracle_mean']!r}  ewc {runs[c]['ewc_mean']!r}")
+    base = next(iter(runs))
+    for other in list(runs)[1:]:
+        same_neurons = runs[base]["neuron_sha1"] == runs[other]["neuron_sha1"]
+        same_j = runs[base]["j_sha1"] == runs[other]["j_sha1"]
+        do = abs(runs[base]["oracle_mean"] - runs[other]["oracle_mean"]) / abs(runs[base]["oracle_mean"])
+        de = abs(runs[base]["ewc_mean"] - runs[other]["ewc_mean"]) / abs(runs[base]["ewc_mean"])
+        print(f"   {base} vs {other}: same circuit={same_neurons}, same Jacobians={same_j}; "
+              f"oracle moves {do:.2e}, the basis-dependent ewc_mean {de:.2e}")
+    for label, r in runs.items():
+        exact = [row["artifact"] for row in stored if row["oracle"] == r["oracle_mean"]]
+        nearest = min(stored, key=lambda row: abs(row["oracle"] - r["oracle_mean"]))
+        rel = abs(nearest["oracle"] - r["oracle_mean"]) / abs(nearest["oracle"])
+        print(f"   {label}: " + (f"reproduces `{', '.join(exact)}` TO THE LAST BIT" if exact else
+                                 f"nearest stored value is `{nearest['artifact']}` at {rel:.2e} relative"))
+    return 0
+
+
+def neighbour_sweep(window_supports: tuple[int, ...], seed0s: tuple[int, ...], qs: tuple[float, ...],
+                    circuit_size: int, support: int, seeds: int, q: float, group: dict) -> int:
+    """Is the deviant value a NEIGHBOURING configuration's value?
+
+    The forensic version of "the artifact's config is not the config of its run": rebuild the declared configuration
+    and a small window around it, and ask whether the deviant fingerprint (the group value the declared config does
+    NOT reproduce) appears anywhere in the window. A match would make the drift a provenance defect -- a
+    transcription error in the config -- rather than an arithmetic one; no match leaves the arithmetic standing.
+    """
+    import numpy as np
+
+    from clfly.bench import analytic
+    from clfly.connectome import annotate, circuits, graph, tasks
+    from clfly.lgcl.bases import Diagonal
+
+    conn = graph.build()
+    ann = annotate.load_annotations()
+    circ = circuits.extract(conn, ann, hops=0, max_neurons=circuit_size)
+    grid = ([{"support": support, "seed0": 0, "q": q}]
+            + [{"support": s, "seed0": 0, "q": q} for s in window_supports]
+            + [{"support": support, "seed0": s, "q": q} for s in seed0s]
+            + [{"support": support, "seed0": 0, "q": v} for v in qs])
+    deviant, hits = None, []
+    for cell in grid:
+        seqs = [tasks.build_tasks(circ, support_size=cell["support"], q=cell["q"], seed=s).sequence
+                for s in range(cell["seed0"], cell["seed0"] + seeds)]
+        oracle = float(np.mean([analytic.expected_oracle(s, 1.0)["final_avg_error"] for s in seqs]))
+        if cell == grid[0]:
+            reproduced = [v for v in group["oracle_values"] if v == oracle]
+            deviant = max((v for v in group["oracle_values"] if v not in reproduced), key=lambda v: abs(v - oracle))
+            print(f"      the declared configuration reproduces {reproduced or 'NOTHING in the group'}; the deviant "
+                  f"value is {deviant!r}")
+        exact = [row for row, v in zip(group["artifacts"], group["oracle_values"]) if v == oracle]
+        rel = abs(oracle - deviant) / abs(deviant)
+        print(f"      support {cell['support']:>4} seed0 {cell['seed0']} q {cell['q']:<7} oracle {oracle!r}  "
+              + (f"REPRODUCES the stored value of `{exact[0]}`" if exact and oracle == deviant else f"{rel:.2e} from the deviant"))
+        if oracle == deviant and cell != grid[0]:
+            hits.append(cell)
+    print("   " + (f"the deviant value IS a neighbouring configuration's: {hits}" if hits else
+                   "no neighbouring configuration in this window reproduces the deviant's value, so within this "
+                   "window the drift is not a transcription error in the config"))
+    return 0
+
+
 def thread_sweep(counts: list[str], circuit_size: int, support: int, seeds: int, seed0: int, q: float) -> int:
     """Run this module at each thread count and compare the per-seed values -- the mechanism, measured."""
     runs = {}
@@ -253,6 +382,14 @@ def main(argv=None) -> int:
     p.add_argument("--thread-sweep", default=None,
                    help="comma-separated OMP_NUM_THREADS values (or `default`) to run the oracle under, in children")
     p.add_argument("--oracle-at", action="store_true", help="child mode: print this process's per-seed oracle values")
+    p.add_argument("--tasks-at", action="store_true",
+                   help="child mode: print what this process's task builder makes (circuit, Jacobians, oracle, ewc)")
+    p.add_argument("--task-thread-sweep", default=None,
+                   help="run the TASK BUILDER at each thread count, in children -- the step the oracle sweep takes "
+                        "as given, and where a drawn circuit or an ill-conditioned weight transform would show up")
+    p.add_argument("--neighbour-sweep", action="store_true",
+                   help="rebuild a small window of configurations around this one: is the deviant value a NEIGHBOUR's "
+                        "(a config transcription error) or nowhere in the window (an arithmetic difference)")
     p.add_argument("--circuit-size", type=int, default=1500)
     p.add_argument("--support", type=int, default=150)
     p.add_argument("--seeds", type=int, default=4)
@@ -262,6 +399,8 @@ def main(argv=None) -> int:
 
     if args.oracle_at:
         return oracle_at(args.circuit_size, args.support, args.seeds, args.seed0, args.q)
+    if args.tasks_at:
+        return tasks_at(args.circuit_size, args.support, args.seeds, args.seed0, args.q)
 
     res = census(args.runs)
     n = report(res)
@@ -269,6 +408,20 @@ def main(argv=None) -> int:
         print("\n== the mechanism: the oracle's own arithmetic, by thread count ==")
         n += thread_sweep([c.strip() for c in args.thread_sweep.split(",")],
                           args.circuit_size, args.support, args.seeds, args.seed0, args.q)
+    if args.task_thread_sweep:
+        print("\n== one step higher: the TASK BUILDER, by thread count ==")
+        n += task_thread_sweep([c.strip() for c in args.task_thread_sweep.split(",")],
+                               args.circuit_size, args.support, args.seeds, args.seed0, args.q,
+                               fingerprint_values(args.runs))
+    if args.neighbour_sweep:
+        print("\n== is the deviant value a NEIGHBOURING configuration's? ==")
+        key = ", ".join(f"{f}={v!r}" for f, v in (("circuit_size", args.circuit_size), ("support", args.support),
+                                                  ("seeds", args.seeds), ("seed0", args.seed0), ("q", args.q)))
+        group = next((g for g in res["groups"] if g["key"] == key), None)
+        if group is None:
+            raise SystemExit(f"no group in the corpus has the key {key!r}")
+        n += neighbour_sweep((10, 20), (1, 2), (0.05, 0.0125), args.circuit_size, args.support, args.seeds,
+                             args.q, group)
     if args.rebuild:
         print("\n== the declared group's tasks, rebuilt from the connectome ==")
         r = rebuild(args.circuit_size, args.support, args.seeds, args.seed0, args.q)

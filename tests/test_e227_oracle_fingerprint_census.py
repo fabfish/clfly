@@ -14,6 +14,8 @@ import ast
 import json
 from pathlib import Path
 
+import pytest
+
 from experiments import e227_oracle_fingerprint_census as e227
 
 
@@ -97,3 +99,30 @@ def test_the_excess_amplifies_the_fingerprints_own_spread(tmp_path):
                             artifact("b.json", CFG, 0.500001, excess=0.0105)])
     g = e227.census(root)["groups"][0]
     assert (max(g["excess_values"]) - min(g["excess_values"])) / g["excess_values"][0] > 10 * g["rel_spread"]
+
+
+def test_the_task_builder_child_mode_reports_the_circuit_the_jacobians_and_both_numbers(capsys):
+    """The step above the oracle: a child that fingerprints `build_tasks` itself, so a drawn circuit or a
+    thread-dependent weight transform cannot hide behind the oracle sweep."""
+    assert e227.main(["--tasks-at", "--circuit-size", "300", "--support", "3", "--seeds", "1"]) == 0
+    row = json.loads([ln for ln in capsys.readouterr().out.splitlines() if ln.startswith("{")][-1])
+    assert row["n_neurons"] > 0 and len(row["neuron_sha1"]) == 12 and len(row["j_sha1"]) >= 1
+    assert isinstance(row["oracle_mean"], float) and isinstance(row["ewc_mean"], float)
+
+
+def test_the_neighbour_sweep_rules_out_the_window_it_measures(capsys):
+    """A deviant that no neighbouring configuration reproduces is not a transcription error *within the window* --
+    which is what makes the remaining candidate the run rather than the record. A tiny window keeps the test cheap;
+    the rebuilds are real (cs 300, one seed, support 3)."""
+    group = {"artifacts": ["deviant.json", "reproducible.json"], "oracle_values": [0.5, 0.6]}
+    assert e227.neighbour_sweep((4,), (1,), (0.03,), 300, 3, 1, 0.02, group) == 0
+    out = capsys.readouterr().out
+    assert "the deviant value is" in out
+    assert ("no neighbouring configuration in this window reproduces the deviant's value" in out
+            or "IS a neighbouring configuration's" in out)
+
+
+def test_the_neighbour_sweep_refuses_a_configuration_the_corpus_does_not_carry():
+    """The deviant's value comes from the corpus, so a key the corpus does not carry must stop rather than guess."""
+    with pytest.raises(SystemExit):
+        e227.main(["--neighbour-sweep", "--circuit-size", "999", "--support", "3", "--seeds", "1"])

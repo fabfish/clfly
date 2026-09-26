@@ -79,8 +79,19 @@ is a code change:
   values that select **0 neurons**);
 - the cs-800 group straddling the same window agrees **to the bit**, so nothing global moved.
 
-What remains is the **substrate** `e217`'s run saw: which neurons the tight cs-300 budget admits, or the shared
-support draw. It is recorded as **OPEN -- not attributed**, with that candidate list, rather than attributed to a
+What remains is the **substrate** `e217`'s run saw, and three further measurements (this fire's second half) narrow
+that to one candidate without closing it:
+
+| probe | result |
+|---|---|
+| repeated processes at cs 300 | **identical circuit** (`neuron_sha1` `9af5a4080159` in every run) — the tight budget's neuron set is reproducible |
+| `--task-thread-sweep default,1` | **same circuit, different Jacobians** — the task builder *is* in the thread class — but the oracle moves only **2.11e-6** and the basis-dependent `ewc_mean` **1.46e-7** |
+| `--neighbour-sweep` (supports 10/20/30, seed0 0/1/2, q 0.0125/0.02/0.05) | **no neighbour reproduces the deviant** — nearest is `q = 0.0125` at 9.2e-4, then `seed0 = 1` at 2.2e-3 |
+
+So the circuit is out, the arithmetic's thread class is an order *below* the oracle sweep's own class and ~300× below
+this drift, and the value is not a neighbouring configuration's (which would have made it a transcription error
+rather than an arithmetic one). What is left is the support draw -- whatever else that run saw that its config does
+not name. It stays recorded as **OPEN -- not attributed**, with that one candidate, rather than attributed to a
 mechanism nothing has measured. It also **corrects a reading of `e225`**: that census declared the cs-300 pair
 "MATERIAL across families", and its cross-family declaration is what kept it out of the exit code. The pair is
 confounded on **two** axes: different families *and* tasks that differ by 6.3e-4 -- and with the fingerprint's
@@ -106,5 +117,11 @@ measured amplification (149.6× here) the input difference cannot be separated f
   what they computed with them.
 - The drifts are **one pair each**, so the ulp distribution of "a run that deviated" is unmeasured; the thread class
   is measured at two sizes and two settings, not swept.
+- **The neighbour sweep covers a window, not the space**: supports {10, 20, 30}, seed offsets {0, 1, 2} and
+  q ∈ {0.0125, 0.02, 0.05} at one circuit size. A transcription error outside that window -- a different circuit
+  size, a different assembly set, a different runner -- would not appear in it.
+- **A near-miss is not a match.** The neighbour sweep's nearest value (9.2e-4 away) is a *different* configuration
+  that lands close by; the test is bit-equality, precisely because "close" is how a drift gets mistaken for a
+  reproduction.
 - Drift B is **open**. Nothing in this audit says the new run is wrong -- only that its tasks are not the ones the
   code produces today, at a scale 100× the arithmetic's own.
