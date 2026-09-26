@@ -551,7 +551,7 @@ neurons a task engages moves the one-side level mildly (1.42× over an eightfold
 doubling at cs 400) and does not organise the top step at all (non-monotone in support), the support at cs 400
 leaves the top step at 1.14–1.27×, the sign pattern is excluded, and the number of destroyed degree sequences is
 what *creates* the ladder rather than what moves its step — so the mechanism is open on a variable nobody has
-varied (`docs/findings/2026-09-26-the-circuit-size-sets-the-one-side-level.md`). **And the two-side level is
+varied (`docs/findings/2026-09-26-the-circuit-size-sets-the-one-side-level.md`). **And the one scalar every cell of this table shares had never been moved**: the task builder's assembly geometry (`stable_weights`' target spectral radius, `0.9`), which can be varied at a *fixed* circuit size — the one comparison the size dependence has never had. A one-seed smoke test at cs `300` gives `real` 0.031800 and Erdős–Rényi 0.154173 at `rho` `0.9` against `real` 0.000315 and Erdős–Rényi 0.023982 at `rho` `0.5`: the floor collapses 100× while the top rung falls 6.4×, so the ratio moves 16× from one scalar at one size, and the size dependence is therefore being tested against that scalar rather than against another size (`docs/findings/2026-09-26-registered-the-assembly-geometry-against-the-top-step.md`). **And the two-side level is
 the reproducible one at every size**: Erdős–Rényi spans 1.03–1.05× across drawings at cs 300, 400 and 800 while
 the destroyed-one-side constructions span 1.06–1.49× (and 3.34× at cs 800 over five drawings), so the
 construction with nothing left to lose is the stable one and the one-side nulls are where the draw matters
