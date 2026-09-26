@@ -31,6 +31,12 @@ unmeasurable" would report a number anyway.
 statement about the top step; one drawing per cell (`--rewire-seed` defaults to `seed0`, as in the runner), so a
 family whose drawing scatter is wide — `alloy1` at cs 800 is 16.44x (`e230`) — cannot be read from a single curve;
 and `rho` rescales the whole weight matrix, so the curve mixes propagation depth with weight scale.
+
+**Its artifact is not a benchmark cell.** The payload is `{"rows": …, "verify": …, "grid": …}` with **no `config`
+block**, deliberately: a cell of this corpus is a run of a benchmark whose tasks carry an analytic arm, a realized arm
+and a `real`/null block, and this is a measurement of the task geometry alone. Artifacts without a `config` are
+skipped by the audits that enumerate cells (`e103`'s loader requires one), which is what keeps this instrument's
+output out of censuses it does not belong to — and it means a reader of this file has to read `rows`, not `topologies`.
 """
 
 from __future__ import annotations
