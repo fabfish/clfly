@@ -27,6 +27,15 @@ be computed there and **the kind-0 rung has never been drawn off `rho` 0.9 at al
   at or below 0.851 — no rise at all, so the margin does not move with the one axis that holds everything else fixed,
   and the four-cell relation is about which cell it is rather than about the geometry. **Null**: above 0.851 but below
   0.90, i.e. a rise inside the noise this corpus has already measured for two-drawing spreads.
+- **V1b — the same claim on the equally-drawn pair, added at 17:15 while the runs were in flight and before any
+  artifact existed.** Writing this module's own table exposed that this cell can be read on a footing **no earlier base
+  could use**: because all six families are drawn by the same two runs, the margin computed from **each family's two
+  newest drawings** — seeds 3 and 4 for every family — is **equally drawn** as well as equally counted. Every earlier
+  base in this line took each family's first two drawings whenever they happened to exist, which is why "equal-count
+  but not equally drawn" has been a repeated caveat since `e248`. So V1b restates V1 on that pair: the equally-drawn
+  margin is **above 0.851** too. **Falsifier**: at or below it. The reference cell's own margin is still the
+  unequally-drawn one, so the two margins being compared are not built the same way and that is stated rather than
+  hidden.
 - **V2 — the driver moves too.** At `rho` 0.99 the cell's kind-1 rank spreads are **above** the 2.73× and 2.08× it
   reads at `rho` 0.9 — the near-collapsed geometry scattering more across drawings than the rho-0.9 one. **Falsifier**:
   below either, in which case the driver and the margin move in opposite directions along this axis and the four-cell
