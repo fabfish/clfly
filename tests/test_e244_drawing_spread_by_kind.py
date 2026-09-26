@@ -104,10 +104,10 @@ def test_the_live_census_orders_when_pooled_and_reverses_at_every_comparable_cel
         return
     d = json.loads(p.read_text(encoding="utf-8"))
     rows = {r["id"]: r for r in d["claims"]}
-    assert rows["K1"]["verdict"].startswith("null band"), rows["K1"]  # the rho-0.99 cell overlaps kind 2 and 0
-    assert rows["K2"]["verdict"].startswith("MET"), rows["K2"]
+    assert rows["K1"]["verdict"].startswith("FALSIFIER FIRED"), rows["K1"]  # kind 1's median now exceeds kind 0's
+    assert rows["K2"]["verdict"].startswith("FALSIFIER FIRED"), rows["K2"]  # the relative form flips with kind 1 too
     assert rows["K3"]["verdict"].startswith("FALSIFIER FIRED"), rows["K3"]
-    assert "9 of 12" in rows["K3"]["measured"], rows["K3"]
+    assert "11 of 14" in rows["K3"]["measured"], rows["K3"]
     kinds: dict = {}
     for g in d["groups"]:
         if g["excess_spread"] is not None:

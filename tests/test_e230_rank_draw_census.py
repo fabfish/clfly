@@ -68,14 +68,19 @@ def test_an_unresolvable_family_that_is_not_declared_is_the_exit_code(tmp_path, 
 
 
 def test_a_resolvable_family_with_a_wide_between_contrast_passes():
-    """cs 300 `alloy1` on the live corpus: a 25x contrast over four drawings that span 2.7x."""
+    """The widest rho contrast left on the live corpus is cs 800 `inalloy1`'s 45x, against a 8x scatter -- and cs 300
+    `alloy1`, whose 25x contrast this audit once called resolvable, is NOT any more: `e253`'s second drawing at rho
+    0.95 and 0.98 collapsed it to 1.51x, inside its own 2.73x scatter."""
     fams = {(f["circuit_size"], f["topology"]): f for f in e230.families(e230.rows_of())}
-    assert fams[(300, "alloy1")]["resolvable"] is True
-    assert fams[(300, "alloy1")]["between_single"] > 5 * fams[(300, "alloy1")]["within_at_ref"]
+    assert fams[(800, "inalloy1")]["resolvable"] is True
+    assert fams[(800, "inalloy1")]["between_single"] > 5 * fams[(800, "inalloy1")]["within_at_ref"]
+    assert fams[(300, "alloy1")]["resolvable"] is False
+    assert fams[(300, "alloy1")]["between_single"] < fams[(300, "alloy1")]["within_at_ref"]
 
 
-def test_the_live_corpus_has_one_unresolvable_family_and_it_is_declared():
-    """The gate: the audit must be green because the one family it cannot resolve is declared with its scatter."""
+def test_the_live_corpus_has_only_declared_unresolvable_families():
+    """The gate: the audit must be green because every family it cannot resolve is declared with its scatter -- five
+    of them since `e253` added a second drawing at two cs-300 rho values."""
     fams = e230.families(e230.rows_of())
     unres = {(f["circuit_size"], f["topology"]) for f in fams if f["resolvable"] is False}
     assert unres == set(e230.DECLARED_UNRESOLVABLE), (unres, set(e230.DECLARED_UNRESOLVABLE))
