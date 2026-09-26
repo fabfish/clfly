@@ -45,8 +45,10 @@ falsifier fired is a result, not an error, and exits 0.
 
 **What it cannot do**: the drawings are the corpus's accidental ones and they are unevenly distributed across kinds
 (kind 0 exists at two cells, three families at each, and kind 2 is only ever `erdos_renyi`); kind and level are
-**collinear** across this corpus, since `erdos_renyi` has both the highest excess and the tightest spread, so nothing
-here separates "destroys more degree structure" from "sits at a higher penalty"; a level near zero cannot spread far in
+**entangled** across this corpus, `erdos_renyi` having both the highest excess and the tightest spread — though `e246`
+measures that entanglement and finds the ordering **weak** between families (−0.371 over the six family means, because
+the loosest family sits at a middle level), so it is two extremes rather than an ordered axis, and nothing here
+separates "destroys more degree structure" from "sits at a higher penalty"; a level near zero cannot spread far in
 absolute terms; and nothing here is
 a new measurement.
 """
