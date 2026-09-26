@@ -546,7 +546,7 @@ circuit-size dependent**: at cs 300 and cs 400 the same four cells give mean top
 each (worst drawing 1.28×) against this table's 2.76× and 3.02×, because the one-side level rises steeply as the
 circuit shrinks (0.047 at cs 800 against 0.122–0.139 at cs 300–400) while the two-side level barely moves
 (0.142–0.157) — so "Erdős–Rényi is a separate regime" is true at cs 800 and the separation narrows to about 10%
-at cs 400, which is why the table's contrast should be quoted with its circuit size. **And the top step's size dependence is not explained by anything this line has varied**: the share of the
+at cs 400, which is why the table's contrast should be quoted with its circuit size — **and with its cell**: re-testing the cross-family contrasts on the corpus's own drawings (a drawing being a distinct `rewire_seed`) puts the median two-side advantage at **1.12× to 2.22×** at cs 300/support 30, cs 400/support 40, cs 400/support 80, cs 800/support 20 and cs 800/support 160, and at **3.45×** only at cs 800/support 80 — so *"a separate regime"* is a property of that one cell. **And the top step's size dependence is not explained by anything this line has varied**: the share of the
 neurons a task engages moves the one-side level mildly (1.42× over an eightfold change at cs 800, 1.16× over a
 doubling at cs 400) and does not organise the top step at all (non-monotone in support), the support at cs 400
 leaves the top step at 1.14–1.27×, the sign pattern is excluded, and the number of destroyed degree sequences is
