@@ -120,4 +120,6 @@ run e291 python -m experiments.e291_what_the_suite_bought --json-out runs/e291_w
 
 run e292 python -m experiments.e292_the_readout_sets_the_floor_share --json-out runs/e292_the_readout_sets_the_floor_share.json
 
+run e293 python -m experiments.e293_how_many_draws_a_draw_sd_needs --json-out runs/e293_how_many_draws_a_draw_sd_needs.json
+
 echo "ALL DONE"
