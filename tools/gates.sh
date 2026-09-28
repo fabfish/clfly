@@ -132,4 +132,6 @@ run e297 python -m experiments.e297_the_ordering_of_the_arms --json-out runs/e29
 
 run e298 python -m experiments.e298_the_recommendation_needs_a_comparator --json-out runs/e298_the_recommendation_needs_a_comparator.json
 
+run e299 python -m experiments.e299_the_front_page_claim --json-out runs/e299_the_front_page_claim.json
+
 echo "ALL DONE"
