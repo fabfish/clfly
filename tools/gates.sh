@@ -80,4 +80,6 @@ run e271 python -m experiments.e271_the_pairing_is_not_uniformly_a_gain --json-o
 
 run e266 python -m experiments.e266_matched_settings_read --json-out runs/e266_matched_settings_read.json
 
+run e272 python -m experiments.e272_the_budget_the_ordering_needs --json-out runs/e272_the_budget_the_ordering_needs.json
+
 echo "ALL DONE"
