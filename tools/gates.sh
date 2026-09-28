@@ -112,4 +112,6 @@ run e286 python -m experiments.e286_the_fall_is_not_the_samples_size --json-out 
 
 run e287 python -m experiments.e287_the_rejections_and_the_prefix --json-out runs/e287_the_rejections_and_the_prefix.json
 
+run e289 python -m experiments.e289_the_share_is_solved_for --json-out runs/e289_the_share_is_solved_for.json
+
 echo "ALL DONE"
