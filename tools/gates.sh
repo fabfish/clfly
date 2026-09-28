@@ -130,4 +130,6 @@ run e296 python -m experiments.e296_the_matched_random_control --json-out runs/e
 
 run e297 python -m experiments.e297_the_ordering_of_the_arms --json-out runs/e297_the_ordering_of_the_arms.json
 
+run e298 python -m experiments.e298_the_recommendation_needs_a_comparator --json-out runs/e298_the_recommendation_needs_a_comparator.json
+
 echo "ALL DONE"

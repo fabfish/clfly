@@ -785,7 +785,11 @@ The headline this corrects is our own. "Granularity beats biology" came from the
 ladder, where the biological deltas (0.0015–0.0048) were smaller than the granularity
 trend. On the ladder the deltas are larger than any annotation rung's — and *that* is the part
 that survives the correction below. The practical recommendation is **"pool the rarest cell
-types and anchor there"**, a device any vocabulary supports, needing no new ontology.
+types and anchor there"**, a device any vocabulary supports, needing no new ontology; **scoped 2026-09-29**: better
+than the diagonal on `final_accuracy` (8 of that arm pair's 9 resolved comparisons, up to 10.45σ) and better than a
+matched random partition on `mean_forgetting` at both of that pair's forty-replicate resolved comparisons, and not
+the other way round in either case
+(`docs/findings/2026-09-29-which-metric-selects-the-basis.md`, `docs/findings/2026-09-29-the-matched-random-control.md`).
 
 **And the curve's shape does not survive.** Every σ in this subsection, and in the five-rung
 table above, treats the matched-random control as a fixed quantity. It is a **single draw** from
@@ -953,7 +957,9 @@ one.
 
 This answers the founding question at a level below the annotation ladder: the wiring
 has preferred directions, and they are a better place to anchor a Fisher matrix than
-the neuron coordinate basis is. The caveat is that the rotation is estimated from the
+the neuron coordinate basis is (and **scoped 2026-09-29**: on `accuracy`, with the corpus's forgetting ranking
+putting the coordinate basis first of the five arms --
+`docs/findings/2026-09-29-the-ordering-of-the-arms.md`). The caveat is that the rotation is estimated from the
 same connectome that generates the tasks, so it is a favourable case; and a rotated
 diagonal needs `d(d−1)/2` rotation numbers, shared across tasks and computed once.
 
@@ -2352,7 +2358,10 @@ draws of the realisation.
   coarse *because* it has few groups. That is also why the annotation vocabulary crowds near the
   diagonal, so the recommendation is to **anchor at the coarsest granularity the arithmetic allows
   you to distinguish (≈0.5–0.7 constrained, i.e. 4–10 groups)** and to report the coarse end's fine
-  structure as unmeasurable (`docs/findings/2026-09-22-coarse-end-is-arithmetic.md`).
+  structure as unmeasurable (`docs/findings/2026-09-22-coarse-end-is-arithmetic.md`); **scoped 2026-09-29**: against
+  the diagonal this holds on `accuracy` and not on `forgetting`, and against a matched random partition it holds on
+  `forgetting` only where forty replicates have the power
+  (`docs/findings/2026-09-29-the-matched-random-control.md`).
 - **The ladder replicates in form but not in number.** Re-run at **d = 1874 with support 150**
   (12 seeds), it shows the same broad interior maximum rather than a monotone trend, and its per-seed
   structure is **at least as robust as at d = 1307**: `e79` re-ran the identical configuration with
