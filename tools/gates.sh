@@ -102,4 +102,6 @@ run e282 python -m experiments.e282_the_coverage_of_the_series --json-out runs/e
 
 run e283 python -m experiments.e283_the_registry_it_names --json-out runs/e283_the_registry_it_names.json
 
+run e284 python -m experiments.e284_the_last_row_without_an_artifact --json-out runs/e284_the_last_row_without_an_artifact.json
+
 echo "ALL DONE"
