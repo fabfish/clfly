@@ -1864,7 +1864,7 @@ found no artifact for
 (`docs/findings/2026-09-23-the-frozen-body-control-is-in-no-artifact.md` §2).
 
 **That headline result had no artifact, and the artifact has now been produced.** The census
-in `e62` found that every one of the 77 stored runs used 16 stored stimuli per task and 16
+in `e62` found that every one of the 77 stored runs used 16 [CORRECTED 2026-09-29 by `e279`: the clause is true of an EPOCH of the line -- the artifacts carrying a replay field now number **167**, of which **144** use 16/16, **16** record a different setting (**14** at 96/8, one at 96/16, one at 96/48) and **7** leave the batch unrecorded, so an eighth of the population is outside the clause; the sentence's own paragraph names the pool-96 configuration that superseded it, so the two clauses are about different epochs and neither notices the other (`docs/findings/2026-09-29-every-one-of-the-77-was-an-epoch.md`)] stored stimuli per task and 16
 replayed samples per step, so the pool-96 / per-step-8 configuration — the source of *every*
 pool-96 number in this subsection — existed nowhere on disk, and the nearest instance that
 did exist gave the contrast at −1.17σ with signs `+----`. Rather than argue about the

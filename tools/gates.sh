@@ -92,4 +92,6 @@ run e277 python -m experiments.e277_a_count_is_not_a_scope --json-out runs/e277_
 
 run e278 python -m experiments.e278_on_disk_is_not_a_definition --json-out runs/e278_on_disk_is_not_a_definition.json
 
+run e279 python -m experiments.e279_every_one_of_the_77 --json-out runs/e279_every_one_of_the_77.json
+
 echo "ALL DONE"
