@@ -130,7 +130,8 @@ def test_the_live_table_closes_the_lead_and_finds_no_seed_anywhere():
     assert min(rows, key=lambda n: rows[n]["p"]) == "cell_class/mean_forgetting", rows
     assert max(rows, key=lambda n: abs(rows[n]["half_z"])) == "cross/mean_forgetting", rows
     assert max(abs(r["half_z"]) for r in rows.values()) < 2.0
-    assert d["seed_census"]["named"] == [] and d["seed_census"]["records"] == 5366, d["seed_census"]
+    assert d["seed_census"]["named"] == [], d["seed_census"]
+    assert d["seed_census"]["records"] >= 5366, "the corpus grows; the scan is a lower bound"
     assert d["rerun"]["replicates_identical"] is True and d["rerun"]["clock_ratio"] < 0.9, d["rerun"]
     claims = {r["id"]: r for r in d["claims"]}
     for cid in ("N1", "N2", "N3", "N4", "N5"):

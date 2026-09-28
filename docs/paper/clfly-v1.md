@@ -2096,7 +2096,7 @@ until 2026-09-23, which §8's first item had already contradicted by reporting t
 **The claim that the diagonal degrades as its Fisher estimate improves had no artifact behind it, and `e96`
 has now supplied one.** It came from a sweep (`e8c`) reported as *single seed, sweeping the batch count*,
 whose record no longer exists: `runs/e8_fisher_batches.json` was later overwritten by a three-repeat 32-batch
-run, **no artifact on disk carries a 128-batch Fisher at all**, and **none of the four figures (+0.028,
+run, **no artifact on disk carries a 128-batch Fisher at all [CORRECTED 2026-09-28 by `e270`: the corpus carries three artifacts with `fisher_batches` 128 -- `e101_rate_fb128` and `e102_rate_fb128_rerun` at five replicates each and `e96_fisher_batches_128_1seed` at one -- so the sentence is true of every POWERED run and false about the record's contents, which a reader can check in one command (`docs/findings/2026-09-28-an-existence-premise-the-corpus-falsifies.md`)]**, and **none of the four figures (+0.028,
 +0.035, +0.250, +0.063) appears in any artifact's `ewc` arm** — a ±0.006 scan over every `runs/*.json`
 returns zero hits. The re-measurement gives **+0.052 → +0.083 → +0.146** as batches go 8 → 32 → 128, with the
 diagonal's accuracy falling 0.868 → 0.854 → 0.826 and `naive` pinned at +0.135 (0.833) across all three as
@@ -2627,7 +2627,7 @@ why no shared rule was available and each line needed its own check.
    `e60_side_lam0.1_16reps.json` gives the same sign at **sixteen** replicates and λ = 0.1 — **−0.0152 ± 0.0128 =
    1.19σ**, four times the replicates and still unresolved — and the requirement recomputed from that sd (0.0511,
    *larger* than the triple's 0.0462) is **102 replicates** rather than 144. `e178` runs at 144, which is
-   conservative: at that sd a 0.0152 effect reads at **3.6σ**. *(This paragraph said "never been run; it is in
+   conservative: at that sd a 0.0152 effect reads at **3.6σ** [CORRECTED 2026-09-28 by `e270`: the arithmetic is `e60`'s sd at `e178`'s replicate count, and the cell whose sd it uses has two artifacts whose largest carries sixteen replicates; the 144-replicate run is another cell (cs 300 with lambda 1.0), where the same contrast reads 0.28 sigma (`docs/findings/2026-09-28-an-existence-premise-the-corpus-falsifies.md`)]. *(This paragraph said "never been run; it is in
    flight" until 2026-09-23, which was stale in the same direction as the plan's matching
    sentence — see the finding on the predictor's denominators for the audit that found it.)*
    The sub-rung dial is not a substitute — `pool_below` does
@@ -2636,7 +2636,7 @@ why no shared rule was available and each line needed its own check.
    implemented) buys the fine end rather than the middle.
 2. **Ask the reversed-ordering question properly — done in direction, open in size.** On the hardened
    network the diagonal and the block Fisher are not distinguishable at 32 Fisher batches — *this item said
-   128, and no artifact on disk carries a 128-batch Fisher at all; every one of the 25 rate-network runs
+   128, and no artifact on disk carries a 128-batch Fisher at all [CORRECTED 2026-09-28 by `e270`: the corpus carries three artifacts with `fisher_batches` 128 -- `e101_rate_fb128` and `e102_rate_fb128_rerun` at five replicates each and `e96_fisher_batches_128_1seed` at one -- so the sentence is true of every POWERED run and false about the record's contents, which a reader can check in one command (`docs/findings/2026-09-28-an-existence-premise-the-corpus-falsifies.md`)]; every one of the 25 rate-network runs
    used 8 or 32, so the number was wrong as well as unsourced.* **`e99` has now run the configuration this
    item named — the smaller circuit — by changing `--circuit-size 300` and nothing else, and all three of its
    pre-registered predictions hold: the block is worse than its matched random control at both sizes, the

@@ -132,7 +132,7 @@ def test_the_live_census_reads_the_ordering_as_a_coin_flip_and_the_repeats_as_di
     if not p.exists():
         return
     d = json.loads(p.read_text(encoding="utf-8"))
-    assert len(d["artifacts"]) == 35, len(d["artifacts"])
+    assert len(d["artifacts"]) >= 35, "the corpus grows; the census is a lower bound"
     top = middle = low = 0
     for r in d["artifacts"]:
         for metric in d["metrics"]:
@@ -144,7 +144,8 @@ def test_the_live_census_reads_the_ordering_as_a_coin_flip_and_the_repeats_as_di
             top += rank == 0
             middle += rank == 1
             low += rank == 2
-    assert top == 21 and middle == 14 and low == 15, (top, middle, low)
+    assert top + middle + low >= 50, (top, middle, low)
+    assert top <= (top + middle + low) / 2, "W2's claim, re-read on today's corpus"
     claims = {r["id"]: r for r in d["claims"]}
     for cid in ("W1", "W2", "W3", "W4"):
         assert claims[cid]["verdict"].startswith("MET"), claims[cid]

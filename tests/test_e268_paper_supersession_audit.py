@@ -77,4 +77,4 @@ def test_the_live_registry_is_now_corrected_in_the_paper():
     assert "0 stale of 3" in claims["Q1"]["measured"], claims["Q1"]
     assert claims["Q2"]["verdict"].startswith("MET") and claims["Q3"]["verdict"].startswith("MET"), claims
     paper = Path("docs/paper/clfly-v1.md").read_text(encoding="utf-8")
-    assert paper.count("CORRECTED 2026-09-28") == 3, paper.count("CORRECTED 2026-09-28")
+    assert paper.count("CORRECTED 2026-09-28") >= 3, "later units add their own corrections"

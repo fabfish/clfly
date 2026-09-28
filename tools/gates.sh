@@ -74,4 +74,6 @@ run e268 python -m experiments.e268_paper_supersession_audit --json-out runs/e26
 
 run e269 python -m experiments.e269_the_price_of_a_held_out_item --json-out runs/e269_the_price_of_a_held_out_item.json
 
+run e270 python -m experiments.e270_an_existence_premise_falsified --json-out runs/e270_an_existence_premise_falsified.json
+
 echo "ALL DONE"
