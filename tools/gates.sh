@@ -64,4 +64,6 @@ run e262 python -m experiments.e262_replicate_order_is_not_a_variable --json-out
 
 run e263 python -m experiments.e263_what_the_pairing_shares --json-out runs/e263_what_the_pairing_shares.json
 
+run e264 python -m experiments.e264_the_third_arm --json-out runs/e264_the_third_arm.json
+
 echo "ALL DONE"
