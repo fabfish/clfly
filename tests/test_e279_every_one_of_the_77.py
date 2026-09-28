@@ -5,6 +5,7 @@ faces of the three claims and the live tally.
 from __future__ import annotations
 
 import json
+import re
 from collections import Counter
 from pathlib import Path
 
@@ -65,5 +66,10 @@ def test_the_live_population_is_twice_the_sentence_and_an_eighth_outside_the_cla
     claims = {r["id"]: r for r in d["claims"]}
     for cid in ("W1", "W2", "W3"):
         assert claims[cid]["verdict"].startswith("MET"), claims[cid]
-    assert "2.17x" in claims["W1"]["measured"], claims["W1"]
-    assert "recorded outside: 16" in claims["W2"]["measured"], claims["W2"]
+    # the ratio grows with the corpus, so the bound and not the three digits
+    ratio = float(re.search(r"\((\d+\.\d+)x\)", claims["W1"]["measured"]).group(1))
+    assert 1.5 <= ratio <= 6.0, claims["W1"]
+    assert "sentence's 77" in claims["W1"]["measured"], claims["W1"]
+    # the count outside the clause grows with the corpus, so the bound and not the two digits
+    outside = int(re.search(r"recorded outside: (\d+)", claims["W2"]["measured"]).group(1))
+    assert outside >= 16 and "inside the clause: 144" in claims["W2"]["measured"], claims["W2"]

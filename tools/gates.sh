@@ -106,4 +106,6 @@ run e284 python -m experiments.e284_the_last_row_without_an_artifact --json-out 
 
 run e275 python -m experiments.e275_the_suite_makes_it_visible --json-out runs/e275_the_suite_makes_it_visible.json
 
+run e285 python -m experiments.e285_two_runs_one_model --json-out runs/e285_two_runs_one_model.json
+
 echo "ALL DONE"

@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import json
 import math
+import re
 from pathlib import Path
 
 from experiments import e267_the_test_set_the_benchmark_would_need as e267
@@ -92,7 +93,12 @@ def test_the_live_census_prices_the_three_configurations_that_cannot_see_themsel
     d = json.loads(p.read_text(encoding="utf-8"))
     rows = d["matrices"]
     assert len(rows) >= 98, "the corpus grows; the census is a lower bound"
-    assert {r["n_eval"] for r in rows} == {144}, "the corpus reads one suite size"
+    # The corpus used to read one suite size. `e275` bought a second one on 2026-09-29 (600 items, on the
+    # configuration with the largest requirement), so the property is now that 144 is in use and any other
+    # size is a LARGER suite -- which is the direction e267's whole argument runs in.
+    sizes = {r["n_eval"] for r in rows}
+    assert 144 in sizes and all(s >= 144 for s in sizes), sizes
+    assert sum(1 for r in rows if r["n_eval"] != 144) <= 4, "one run, two matrices, and room for the next one"
     assert sum(1 for r in rows if r["any_over"]) >= 31, "the count grows with the corpus"
     assert sum(1 for r in rows if r["any_over"]) / len(rows) >= 0.2, "S1's share, re-read today"
     whole = sorted((r for r in rows if r["all_over"]), key=lambda r: -r["needed"])
@@ -104,4 +110,9 @@ def test_the_live_census_prices_the_three_configurations_that_cannot_see_themsel
     claims = {r["id"]: r for r in d["claims"]}
     for cid in ("S1", "S2", "S3"):
         assert claims[cid]["verdict"].startswith("MET"), claims[cid]
-    assert "31 of " in claims["S1"]["measured"], claims["S1"]  # the denominator grows with the corpus
+    # both numbers grow with the corpus, so the reading is pinned as a shape and a bound
+    m = re.search(r"(\d+) of (\d+) matrices", claims["S1"]["measured"])
+    assert m, claims["S1"]
+    n_over, n_all = int(m.group(1)), int(m.group(2))
+    assert n_over >= 31 and n_all >= 98 and n_over / n_all >= 0.2, claims["S1"]
+    assert f"{n_over} of {n_all} matrices" in claims["S1"]["measured"], claims["S1"]

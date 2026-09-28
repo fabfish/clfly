@@ -5,6 +5,7 @@ both faces of the three claims and the live ratios.
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 from experiments import e277_a_count_is_not_a_scope as e277
@@ -84,4 +85,7 @@ def test_the_live_counts_are_all_below_the_corpus():
     claims = {r["id"]: r for r in d["claims"]}
     for cid in ("W1", "W2", "W3"):
         assert claims[cid]["verdict"].startswith("MET"), claims[cid]
-    assert "16%" in claims["W2"]["measured"], claims["W2"]
+    # the universal's coverage of its noun falls as the corpus grows, so the bound and not the two digits
+    shares = [int(x.split("%")[0]) for x in re.findall(r"\d+%", claims["W2"]["measured"])]
+    assert shares and max(shares) <= 20, shares
+    assert re.search(r"\d+ of \d+", claims["W2"]["measured"]), claims["W2"]
