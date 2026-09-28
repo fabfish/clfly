@@ -118,4 +118,6 @@ run e290 python -m experiments.e290_the_floor_is_not_an_independent_draw --json-
 
 run e291 python -m experiments.e291_what_the_suite_bought --json-out runs/e291_what_the_suite_bought.json
 
+run e292 python -m experiments.e292_the_readout_sets_the_floor_share --json-out runs/e292_the_readout_sets_the_floor_share.json
+
 echo "ALL DONE"
