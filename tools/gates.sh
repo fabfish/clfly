@@ -88,4 +88,6 @@ run e274 python -m experiments.e274_the_leader_is_not_bought_either --json-out r
 
 run e276 python -m experiments.e276_replay_against_the_penalty --json-out runs/e276_replay_against_the_penalty.json
 
+run e277 python -m experiments.e277_a_count_is_not_a_scope --json-out runs/e277_a_count_is_not_a_scope.json
+
 echo "ALL DONE"
