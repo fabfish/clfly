@@ -82,4 +82,6 @@ run e266 python -m experiments.e266_matched_settings_read --json-out runs/e266_m
 
 run e272 python -m experiments.e272_the_budget_the_ordering_needs --json-out runs/e272_the_budget_the_ordering_needs.json
 
+run e273 python -m experiments.e273_the_pairing_falls_with_the_overlap --json-out runs/e273_the_pairing_falls_with_the_overlap.json
+
 echo "ALL DONE"
