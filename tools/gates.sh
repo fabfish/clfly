@@ -86,4 +86,6 @@ run e273 python -m experiments.e273_the_pairing_falls_with_the_overlap --json-ou
 
 run e274 python -m experiments.e274_the_leader_is_not_bought_either --json-out runs/e274_the_leader_is_not_bought_either.json
 
+run e276 python -m experiments.e276_replay_against_the_penalty --json-out runs/e276_replay_against_the_penalty.json
+
 echo "ALL DONE"
