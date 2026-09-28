@@ -68,4 +68,6 @@ run e264 python -m experiments.e264_the_third_arm --json-out runs/e264_the_third
 
 run e265 python -m experiments.e265_the_arm_ladder_over_the_corpus --json-out runs/e265_the_arm_ladder_over_the_corpus.json
 
+run e267 python -m experiments.e267_the_test_set_the_benchmark_would_need --json-out runs/e267_the_test_set_the_benchmark_would_need.json
+
 echo "ALL DONE"
