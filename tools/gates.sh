@@ -70,4 +70,6 @@ run e265 python -m experiments.e265_the_arm_ladder_over_the_corpus --json-out ru
 
 run e267 python -m experiments.e267_the_test_set_the_benchmark_would_need --json-out runs/e267_the_test_set_the_benchmark_would_need.json
 
+run e268 python -m experiments.e268_paper_supersession_audit --json-out runs/e268_paper_supersession_audit.json
+
 echo "ALL DONE"
