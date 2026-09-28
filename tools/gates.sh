@@ -110,4 +110,6 @@ run e285 python -m experiments.e285_two_runs_one_model --json-out runs/e285_two_
 
 run e286 python -m experiments.e286_the_fall_is_not_the_samples_size --json-out runs/e286_the_fall_is_not_the_samples_size.json
 
+run e287 python -m experiments.e287_the_rejections_and_the_prefix --json-out runs/e287_the_rejections_and_the_prefix.json
+
 echo "ALL DONE"

@@ -30,10 +30,18 @@ The three, all at forty replicates:
 | `e115_r300_40reps.json` → `e119_r300_test480.json` | 144 → 1440 | x10 | 1 | — |
 | `e140_r32_methods_frozenbias_40reps.json` → `e275_frozenbias_suite600_40reps.json` | 144 → 600 | x4.17 | 5 | `support_draw`, `support_seed`, `fisher_from`, `save_fisher` |
 
-**X1 MET — the weak rule is not sufficient and the training fields are what select.** Twenty-five of the
-twenty-eight candidates are the corpus's four days of runner changes: artifacts that share a shape and a suite size
-and did not train the same models. That is the same class of defect `e285` documented about records and `e284` about
-flags, and here it is the reason a pairing rule cannot be built out of config keys alone.
+**X1 MET — the weak rule is not sufficient and the training fields are what select.** The other twenty-five candidates
+share a shape and a suite size and did not train the same models, which is why a pairing rule cannot be built out of
+config keys alone.
+
+> **Corrected 2026-09-29 01:05.** This paragraph said the twenty-five are *"the corpus's four days of runner
+> changes"*, which was written from the counts and never from the rejections. `e287` reads them, and they are a
+> **replicate-count mismatch**: `repeats` differs in **24 of the 25**, and the read-out draw in 23 (19 of those
+> recorded on one side only), with `frozen_body` in 3 and five other keys once each. The distinction matters because
+> the runner seeds its replicates `seed0 + 100 * r`, so two runs of one configuration at different replicate counts
+> **share their first replicates by construction** — the length mismatch is not a difference in the training, and
+> pairing on the shared prefix turns three of the rejections into further sample swaps.
+> (`docs/findings/2026-09-29-the-rejections-and-the-prefix.md`)
 
 ## 3. The designed test: the fall goes the wrong way
 
