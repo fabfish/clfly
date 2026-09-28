@@ -1,5 +1,10 @@
 # The suite is being bought: one of the three configurations that cannot see its own spread, re-run
 
+> **Read 2026-09-29 00:15:** all three registered falsifiers fired. Z1's column is held-out and could not have held;
+> the column that is on the training set is identical at 5 of 5 arms. Z2's failure is the denominator's movement, not
+> the suite's. Z3 is met for eight of the ten arm-by-metric fractions.
+> (`docs/findings/2026-09-29-the-suite-bought-eight-of-ten.md`)
+
 *2026-09-28 23:35. Runs: **one launched** — `e8_rate_network` at the `e140_r32_methods_frozenbias_40reps`
 configuration (cs 800, `readout_size` 32, `lam` 0.003, `--frozen-bias`, five arms, forty replicates, `--seed0 0`) with
 the held-out suite raised from 48 to **200** per task, its artifact to be written as

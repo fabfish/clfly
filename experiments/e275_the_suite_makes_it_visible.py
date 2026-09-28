@@ -34,6 +34,25 @@ so a fraction near the boundary of 1 is a factor-of-1.1 statement and not a shar
 because the *replicate spread* is itself a draw between two runs and not only the floor moved; `frozen_bias` removes
 most of the training variance, so this is the easiest case in which to see the floor at all; and the run is one seed
 sequence, so it is a replicate of the configuration's *visible* spread and not of the configuration's claim.
+
+**READ 2026-09-29 00:15 -- all three falsifiers fired, and only the third is a fact about the suite.** The run took
+**2.75 h** against the older suite's **5.55 h**, so the four-times-larger suite cost less than the one it replaced.
+
+- **Z1 fired on the wrong column, and the claim it was written to test holds.** `learned` is the diagonal of the
+  retention matrix, and `e8_rate_network.evaluate()` computes every cell of that matrix on `task.u_test` / `y_test`,
+  so `learned` is a **held-out** quantity that must move when the held-out suite moves. The column that is on the
+  training set is `losses`, and on it **5 of 5 arms are identical** to the bit -- with `RateTask.make()` building the
+  training split from its own RNG stream (`default_rng(seed + 1000 + 0)`) and `n_test` appearing nowhere in the
+  training path. So the experiment is the suite's and the control was the error; `control()` is that instrument,
+  labelled in the report as not a registered claim.
+- **Z2 fired, and it is a statement about the scaling law rather than about the suite.** Every arm's fraction fell by
+  a factor of **0.41 to 1.09** where `1/n_eval` predicts **0.24** -- 1.4x to 4.5x too little -- which cannot be a
+  defect of the run: the denominator is a *measured* variance that itself contains part of the floor, because both
+  metrics are means over the tasks while the numerator is a per-decision floor. A ratio that falls by `1/n_eval`
+  requires the training-driven variance to dominate, and at this configuration it does not.
+- **Z3 fired on two of the ten fractions.** `replay/final_accuracy` is **1.43**, *above* its old 1.31 -- the 1/n_eval
+  model cannot produce a rise at all, so that arm's replicate spread fell faster than the floor -- and
+  `ewc/mean_forgetting` sits at **1.0026**. The other eight are below 1, where five of ten sat at or above 1.10.
 """
 
 from __future__ import annotations
@@ -50,8 +69,9 @@ from clfly.bench.artifacts import duration_seconds, write_json
 OLD = "runs/e140_r32_methods_frozenbias_40reps.json"
 NEW = "runs/e275_frozenbias_suite600_40reps.json"
 METRICS = ("final_accuracy", "mean_forgetting")
-#: The training column the control reads, and the suite the new run asks for.
+#: The column Z1 named as the training column, and the column that is actually measured on the training set.
 TRAINING = "learned"
+TRAINING_ON_THE_SET = "losses"
 WANTED_SUITE = 600
 CLAIMS = (
     ("Z1", "the training did not move",
@@ -100,13 +120,39 @@ def fractions(d: dict) -> dict:
 
 
 def training_rows(d: dict, arm: str) -> list:
+    """The column Z1 named. Kept as it was registered, and it is not a training column -- see `control`."""
     return [r.get(TRAINING) for r in d["methods"][arm]["replicates"]]
+
+
+def loss_rows(d: dict, arm: str) -> list:
+    """The per-replicate per-task losses, which the runner accumulates on `task.u_train`."""
+    return [r.get(TRAINING_ON_THE_SET) for r in d["methods"][arm]["replicates"]]
+
+
+def control(old: dict, new: dict) -> dict:
+    """The control Z1 wanted, on the column that can carry it -- **written after the data landed, and not a
+    registered claim.**
+
+    Z1 named `learned` as the training column. It is not one: `learned` is the diagonal of the retention matrix,
+    and `e8_rate_network.evaluate()` computes every cell of that matrix on `task.u_test` / `task.y_test`. So Z1's
+    column is a held-out quantity and it has to move when the held-out suite moves. The column that is on the
+    training set is `losses`, and `RateTask.make()` builds the training split from its own RNG stream
+    (`default_rng(seed + 1000 + 0)`) with `n_test` appearing nowhere in it, so this is the column that decides
+    whether the two runs are the same experiment.
+    """
+    shared = [a for a in old["arms"] if a in new["arms"]]
+    differ = [a for a in shared if old["losses"][a] != new["losses"][a]]
+    return {"arms": len(shared), "identical": len(shared) - len(differ), "differing": differ,
+            "verdict": "MET -- the training is identical on the column measured on the training set"
+                       if shared and not differ else
+                       "FAILED -- the training moved, and with it the comparison"}
 
 
 def reading(d: dict) -> dict:
     return {"n_eval": (d.get("evaluation_noise") or {}).get("n_eval"), "n": len(d["methods"][arms(d)[0]]["replicates"]),
             "arms": arms(d), "fractions": fractions(d), "seconds": duration_seconds(d),
             "training": {a: training_rows(d, a) for a in arms(d)},
+            "losses": {a: loss_rows(d, a) for a in arms(d)},
             "metrics": {m: {a: [r[m] for r in d["methods"][a]["replicates"]] for a in arms(d)} for m in METRICS}}
 
 
@@ -160,18 +206,23 @@ def report(old: dict, new: dict) -> int:
                   f"{r['seconds'] / 3600 if r['seconds'] else float('nan'):.2f} h")
             for key, f in sorted(r["fractions"].items()):
                 print(f"      {key:34} fraction {f:6.2f}")
-        print("\n   the training column, arm by arm: "
+        print("\n   the column Z1 named, arm by arm: "
               + ", ".join(f"{a} {'identical' if old['training'].get(a) == new['training'].get(a) else 'DIFFERS'}"
                           for a in old["arms"]))
+        c = control(old, new)
+        print(f"\n   the column that is on the training set ({TRAINING_ON_THE_SET}), arm by arm: "
+              f"{c['identical']} of {c['arms']} identical, differing {c['differing'] or 'none'}")
+        print(f"      -> {c['verdict']}")
+        print("      (not one of the registered claims: this is the instrument Z1 wanted, written after the data)")
     print("\n== the registered claims, Z1-Z3 ==")
     j = judge(old, new)
     for c, row in zip(CLAIMS, j):
         print(f"      {row['id']}: {row['measured']}  -> {row['verdict']}")
         print(f"          the claim was: {c[2]}")
         print(f"          and its {c[3]}")
-    print("\n   (a configuration whose whole run-to-run spread sat inside its test set's own noise, bought a "
-          "four-times-larger")
-    print("    suite for the price e269 measured, with the training held identical so the comparison is the suite's)")
+    print("\n   (the suite was bought and it bought most of what it was bought for -- eight of ten fractions are below")
+    print("    one where five of ten sat at or above 1.10 -- but the registered control read a held-out column, so its")
+    print("    verdict is about the instrument, and the registered scaling law is refuted)")
     return sum("REFUSED" in row["verdict"] for row in j)
 
 
@@ -189,6 +240,7 @@ def main(argv=None) -> int:
                                    "new_n_eval": new["n_eval"] if new else None,
                                    "fractions_old": old["fractions"] if old else None,
                                    "fractions_new": new["fractions"] if new else None,
+                                   "control_on_the_training_set": control(old, new) if old and new else None,
                                    "claims": judge(old, new)})
         print(f"wrote {args.json_out}")
     return report(old, new)

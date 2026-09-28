@@ -104,4 +104,6 @@ run e283 python -m experiments.e283_the_registry_it_names --json-out runs/e283_t
 
 run e284 python -m experiments.e284_the_last_row_without_an_artifact --json-out runs/e284_the_last_row_without_an_artifact.json
 
+run e275 python -m experiments.e275_the_suite_makes_it_visible --json-out runs/e275_the_suite_makes_it_visible.json
+
 echo "ALL DONE"

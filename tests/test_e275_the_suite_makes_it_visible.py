@@ -11,7 +11,7 @@ from pathlib import Path
 from experiments import e275_the_suite_makes_it_visible as e275
 
 
-def _art(path: Path, n_eval=144, n=4, fraction=2.0, arms=("naive", "ewc"), train=None):
+def _art(path: Path, n_eval=144, n=4, fraction=2.0, arms=("naive", "ewc"), train=None, losses=None):
     """A stand-in run: each arm's replicates spread so that its floor is `fraction` of its own variance."""
     payload = {"config": {"circuit_size": 800, "test": n_eval // 3}, "evaluation_noise": {"n_eval": n_eval},
                "methods": {}}
@@ -20,7 +20,8 @@ def _art(path: Path, n_eval=144, n=4, fraction=2.0, arms=("naive", "ewc"), train
         mean = sum(xs) / len(xs)
         v = sum((x - mean) ** 2 for x in xs) / (n - 1)
         payload["methods"][a] = {"replicates": [{"final_accuracy": v, "mean_forgetting": v,
-                                                 "learned": (train or [0.9, 0.9, 0.9])} for v in xs]}
+                                                 "learned": (train or [0.9, 0.9, 0.9]),
+                                                 "losses": (losses or [1.0, 0.5, 0.25])} for v in xs]}
         payload["evaluation_noise"][a] = {"binomial_sem": math.sqrt(fraction * v)}
     path.write_text(json.dumps(payload), encoding="utf-8")
     return payload
@@ -43,6 +44,23 @@ def test_the_fraction_reader_and_the_training_column(tmp_path):
     for key, f in r["fractions"].items():
         assert abs(f - 2.0) < 1e-9, (key, f)
     assert r["training"]["naive"] == [[0.9, 0.9, 0.9]] * 4, r["training"]
+    assert r["losses"]["naive"] == [[1.0, 0.5, 0.25]] * 4, r["losses"]
+
+
+def test_the_control_reads_the_column_that_is_on_the_training_set(tmp_path):
+    """The instrument Z1 wanted: the runner's `losses` are accumulated on `task.u_train`, so they are the column
+    that decides whether the two runs are the same experiment, where the registered column is held-out."""
+    a, b = tmp_path / "a.json", tmp_path / "b.json"
+    _art(a, n_eval=144)
+    _art(b, n_eval=600)
+    da = json.loads(a.read_text(encoding="utf-8"))
+    db = json.loads(b.read_text(encoding="utf-8"))
+    c = e275.control(e275.reading(da), e275.reading(db))
+    assert c["verdict"].startswith("MET") and c["identical"] == 2 and not c["differing"], c
+    _art(b, n_eval=600, losses=[1.0, 0.5, 0.20])
+    db = json.loads(b.read_text(encoding="utf-8"))
+    c = e275.control(e275.reading(da), e275.reading(db))
+    assert c["verdict"].startswith("FAILED") and len(c["differing"]) == 2, c
 
 
 def _reading(n_eval=144, n=40, fraction=2.086):
@@ -68,7 +86,9 @@ def test_the_three_claims_read_both_faces():
     assert e275.judge(old, None)[0]["verdict"].startswith("REFUSED")
 
 
-def test_the_live_pair_reads_the_suite_if_the_run_has_landed():
+def test_the_live_pair_reads_the_suite_now_that_the_run_has_landed():
+    """The read of 2026-09-29: all three registered falsifiers fired, the control on the training column holds at
+    5 of 5 arms, and eight of ten fractions are below one where five of ten sat at or above 1.10."""
     p = Path("runs/e275_the_suite_makes_it_visible.json")
     if not p.exists():
         return
@@ -79,5 +99,13 @@ def test_the_live_pair_reads_the_suite_if_the_run_has_landed():
         return
     assert d["old_n_eval"] == 144 and d["new_n_eval"] == 600, (d["old_n_eval"], d["new_n_eval"])
     for cid in ("Z1", "Z2", "Z3"):
-        assert claims[cid]["verdict"].startswith("MET"), claims[cid]
-    assert all(v < 1.0 for v in d["fractions_new"].values()), d["fractions_new"]
+        assert claims[cid]["verdict"].startswith("FALSIFIER FIRED"), claims[cid]
+    # the training column Z1 named is held-out and moved; the one on the training set did not
+    c = d["control_on_the_training_set"]
+    assert c["identical"] == c["arms"] == 5 and not c["differing"], c
+    assert c["verdict"].startswith("MET"), c
+    # eight of ten below one, and the two that are not are named
+    below = [k for k, v in d["fractions_new"].items() if v < 1.0]
+    assert len(below) == 8 and len(d["fractions_new"]) == 10, d["fractions_new"]
+    assert d["fractions_new"]["replay/final_accuracy"] > d["fractions_old"]["replay/final_accuracy"], d["fractions_new"]
+    assert max(d["fractions_new"].values()) < max(d["fractions_old"].values()), d["fractions_new"]
