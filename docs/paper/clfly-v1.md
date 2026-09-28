@@ -2636,7 +2636,7 @@ why no shared rule was available and each line needed its own check.
    implemented) buys the fine end rather than the middle.
 2. **Ask the reversed-ordering question properly — done in direction, open in size.** On the hardened
    network the diagonal and the block Fisher are not distinguishable at 32 Fisher batches — *this item said
-   128, and no artifact on disk carries a 128-batch Fisher at all [CORRECTED 2026-09-28 by `e270`: the corpus carries three artifacts with `fisher_batches` 128 -- `e101_rate_fb128` and `e102_rate_fb128_rerun` at five replicates each and `e96_fisher_batches_128_1seed` at one -- so the sentence is true of every POWERED run and false about the record's contents, which a reader can check in one command (`docs/findings/2026-09-28-an-existence-premise-the-corpus-falsifies.md`)]; every one of the 25 rate-network runs
+   128, and no artifact on disk carries a 128-batch Fisher at all [CORRECTED 2026-09-28 by `e270`: the corpus carries three artifacts with `fisher_batches` 128 -- `e101_rate_fb128` and `e102_rate_fb128_rerun` at five replicates each and `e96_fisher_batches_128_1seed` at one -- so the sentence is true of every POWERED run and false about the record's contents, which a reader can check in one command (`docs/findings/2026-09-28-an-existence-premise-the-corpus-falsifies.md`)]; every one of the 25 rate-network runs [CORRECTED 2026-09-29 by `e277`: the count is a scope and not a setting -- the corpus now carries **161** artifacts of that line by its configuration signature, so the universal names **25 of 161**, i.e. **16%** of what its noun covers, and the sentence reads as a statement about all of it (`docs/findings/2026-09-29-a-count-is-not-a-scope.md`)]
    used 8 or 32, so the number was wrong as well as unsourced.* **`e99` has now run the configuration this
    item named — the smaller circuit — by changing `--circuit-size 300` and nothing else, and all three of its
    pre-registered predictions hold: the block is worse than its matched random control at both sizes, the
@@ -2971,7 +2971,7 @@ The artifacts are **strict JSON**, and the two claims this paragraph used to mak
 wrong. It said **seven** rate-network artifacts were written in the non-conformant form and that **every
 writer** now goes through `clfly.bench.artifacts.write_json`. Measured (`e98`):
 
-- **13 of 216 artifacts (6.0%)** were refused by a strict parser, and only **eight** of them are
+- **13 of 216 artifacts (6.0%)** were refused by a strict parser [CORRECTED 2026-09-29 by `e277`: the denominator is the corpus as it stood -- `runs/` now holds **529** artifacts, so this rate is over a denominator that has grown **2.45x** and the counts in this sentence are a reading at a date rather than a property of the record (`docs/findings/2026-09-29-a-count-is-not-a-scope.md`)], and only **eight** of them are
   rate-network — the other five (`e36`, `e38`, `e53`, `e56`, `e59`) carry `NaN` from a ratio rather than
   from a retention matrix. So "seven rate-network" undercounted by six and mis-described two of them.
 - Of **72** modules under `experiments/` and `clfly/`, **32 write artifacts with `json.dump` directly** and

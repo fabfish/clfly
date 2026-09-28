@@ -96,4 +96,6 @@ run e279 python -m experiments.e279_every_one_of_the_77 --json-out runs/e279_eve
 
 run e280 python -m experiments.e280_the_positive_control --json-out runs/e280_the_positive_control.json
 
+run e281 python -m experiments.e281_the_correction_ledger --json-out runs/e281_the_correction_ledger.json
+
 echo "ALL DONE"
