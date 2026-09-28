@@ -126,4 +126,6 @@ run e294 python -m experiments.e294_the_pairing_in_the_corpus --json-out runs/e2
 
 run e295 python -m experiments.e295_which_metric_selects_the_basis --json-out runs/e295_which_metric_selects_the_basis.json
 
+run e296 python -m experiments.e296_the_matched_random_control --json-out runs/e296_the_matched_random_control.json
+
 echo "ALL DONE"
