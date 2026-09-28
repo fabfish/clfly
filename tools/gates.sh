@@ -94,4 +94,6 @@ run e278 python -m experiments.e278_on_disk_is_not_a_definition --json-out runs/
 
 run e279 python -m experiments.e279_every_one_of_the_77 --json-out runs/e279_every_one_of_the_77.json
 
+run e280 python -m experiments.e280_the_positive_control --json-out runs/e280_the_positive_control.json
+
 echo "ALL DONE"
