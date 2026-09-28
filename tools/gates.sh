@@ -66,4 +66,6 @@ run e263 python -m experiments.e263_what_the_pairing_shares --json-out runs/e263
 
 run e264 python -m experiments.e264_the_third_arm --json-out runs/e264_the_third_arm.json
 
+run e265 python -m experiments.e265_the_arm_ladder_over_the_corpus --json-out runs/e265_the_arm_ladder_over_the_corpus.json
+
 echo "ALL DONE"
