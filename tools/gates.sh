@@ -124,4 +124,6 @@ run e293 python -m experiments.e293_how_many_draws_a_draw_sd_needs --json-out ru
 
 run e294 python -m experiments.e294_the_pairing_in_the_corpus --json-out runs/e294_the_pairing_in_the_corpus.json
 
+run e295 python -m experiments.e295_which_metric_selects_the_basis --json-out runs/e295_which_metric_selects_the_basis.json
+
 echo "ALL DONE"
