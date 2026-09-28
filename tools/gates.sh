@@ -78,4 +78,6 @@ run e270 python -m experiments.e270_an_existence_premise_falsified --json-out ru
 
 run e271 python -m experiments.e271_the_pairing_is_not_uniformly_a_gain --json-out runs/e271_the_pairing_is_not_uniformly_a_gain.json
 
+run e266 python -m experiments.e266_matched_settings_read --json-out runs/e266_matched_settings_read.json
+
 echo "ALL DONE"
