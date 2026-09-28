@@ -27,6 +27,12 @@ rather than remembered. Its result is whatever the catalogue says -- and the rea
 categories apart is that only one of them is a defect: `one term` is a fair summary of a lopsided effect,
 `cancelling` and `hidden` are the two shapes in which the printed number is not the effect.
 
+**The catalogue is a tuple and therefore a snapshot, bounded by the day it was last edited** -- 2026-09-24, when it
+went from 22 rows to 27. `e283` measures that snapshot against the corpus: 62 artifacts here carry an arm at forty
+replicates and this registry names 14 of them, so a contrast the record quotes from an artifact outside it is a
+contrast this unit does not decompose until a row is added
+(`docs/findings/2026-09-28-the-registry-it-names.md`).
+
     python -m experiments.e151_pertask_contrast_audit
     python -m experiments.e151_pertask_contrast_audit --json-out runs/e151_pertask_audit.json
 

@@ -100,4 +100,6 @@ run e281 python -m experiments.e281_the_correction_ledger --json-out runs/e281_t
 
 run e282 python -m experiments.e282_the_coverage_of_the_series --json-out runs/e282_the_coverage_of_the_series.json
 
+run e283 python -m experiments.e283_the_registry_it_names --json-out runs/e283_the_registry_it_names.json
+
 echo "ALL DONE"
