@@ -98,4 +98,6 @@ run e280 python -m experiments.e280_the_positive_control --json-out runs/e280_th
 
 run e281 python -m experiments.e281_the_correction_ledger --json-out runs/e281_the_correction_ledger.json
 
+run e282 python -m experiments.e282_the_coverage_of_the_series --json-out runs/e282_the_coverage_of_the_series.json
+
 echo "ALL DONE"
