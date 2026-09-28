@@ -90,4 +90,6 @@ run e276 python -m experiments.e276_replay_against_the_penalty --json-out runs/e
 
 run e277 python -m experiments.e277_a_count_is_not_a_scope --json-out runs/e277_a_count_is_not_a_scope.json
 
+run e278 python -m experiments.e278_on_disk_is_not_a_definition --json-out runs/e278_on_disk_is_not_a_definition.json
+
 echo "ALL DONE"

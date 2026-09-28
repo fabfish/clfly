@@ -1952,7 +1952,7 @@ has a history rather than a cause: `e62` and `e84` re-measured the *replay* arm 
 was asking about them. **The two EWC cells and four of the `naive` cells have since been measured (`e104`, eight
 runs of a few minutes each), which is why the table above has no "no artifact" left in it except the deliberate
 empties.** Two cells the summary rested on were the worst: the hardened row's EWC cell (+0.010 ± 0.010) is
-**below every one of the 17 diagonal arms on disk**, whose minimum is +0.0208, and its `naive` cell
+**below every one of the 17 diagonal arms on disk**, whose minimum is +0.0208 [CORRECTED 2026-09-29 by `e278`: "on disk" is not an enumerator -- under the plain reading, every artifact's `topologies[*]["diagonal(EWC)"]["analytic"]["excess_mean"]` under `runs/`, the population is **262** entries over 13 arm names, its minimum is **0.00022** (`e228_rho05_cs300`, the `real` arm) and **20** entries are below this cell's +0.010, so the clause below is false as read and unsayable as written; the fix is the enumerator, not a corrected count (`docs/findings/2026-09-29-on-disk-is-not-a-definition.md`)], and its `naive` cell
 (+0.066 ± 0.019) is matched by no artifact, where seven artifacts of that configuration agree on
 +0.0729 ± 0.0151. **So the sentence "replay beats EWC wherever both work — 4.2σ against 2.6σ on the hardened
 configuration" was computed against a `naive` no run contains**, and §1 already prints the same contrast
