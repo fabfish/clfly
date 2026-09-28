@@ -108,4 +108,6 @@ run e275 python -m experiments.e275_the_suite_makes_it_visible --json-out runs/e
 
 run e285 python -m experiments.e285_two_runs_one_model --json-out runs/e285_two_runs_one_model.json
 
+run e286 python -m experiments.e286_the_fall_is_not_the_samples_size --json-out runs/e286_the_fall_is_not_the_samples_size.json
+
 echo "ALL DONE"
