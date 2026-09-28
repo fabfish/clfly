@@ -116,4 +116,6 @@ run e289 python -m experiments.e289_the_share_is_solved_for --json-out runs/e289
 
 run e290 python -m experiments.e290_the_floor_is_not_an_independent_draw --json-out runs/e290_the_floor_is_not_an_independent_draw.json
 
+run e291 python -m experiments.e291_what_the_suite_bought --json-out runs/e291_what_the_suite_bought.json
+
 echo "ALL DONE"
