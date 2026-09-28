@@ -72,4 +72,6 @@ run e267 python -m experiments.e267_the_test_set_the_benchmark_would_need --json
 
 run e268 python -m experiments.e268_paper_supersession_audit --json-out runs/e268_paper_supersession_audit.json
 
+run e269 python -m experiments.e269_the_price_of_a_held_out_item --json-out runs/e269_the_price_of_a_held_out_item.json
+
 echo "ALL DONE"
