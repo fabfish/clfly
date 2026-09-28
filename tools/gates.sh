@@ -76,4 +76,6 @@ run e269 python -m experiments.e269_the_price_of_a_held_out_item --json-out runs
 
 run e270 python -m experiments.e270_an_existence_premise_falsified --json-out runs/e270_an_existence_premise_falsified.json
 
+run e271 python -m experiments.e271_the_pairing_is_not_uniformly_a_gain --json-out runs/e271_the_pairing_is_not_uniformly_a_gain.json
+
 echo "ALL DONE"
