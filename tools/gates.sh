@@ -114,4 +114,6 @@ run e287 python -m experiments.e287_the_rejections_and_the_prefix --json-out run
 
 run e289 python -m experiments.e289_the_share_is_solved_for --json-out runs/e289_the_share_is_solved_for.json
 
+run e290 python -m experiments.e290_the_floor_is_not_an_independent_draw --json-out runs/e290_the_floor_is_not_an_independent_draw.json
+
 echo "ALL DONE"
