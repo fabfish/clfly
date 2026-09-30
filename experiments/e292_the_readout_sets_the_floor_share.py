@@ -49,6 +49,7 @@ import sys
 from collections import defaultdict
 from pathlib import Path
 
+from clfly.bench import corpus
 from clfly.bench.artifacts import write_json
 
 RUNS = Path("runs")
@@ -73,10 +74,15 @@ CLAIMS = (
 )
 
 
-def arms(root: Path = RUNS) -> list[dict]:
+def arms(root: Path = RUNS, collapse: bool = True) -> list[dict]:
     """Every (artifact, arm) the corpus gives both a read-out width and a variance fraction."""
     out = []
+    # `e301`: a second execution of an experiment the corpus already holds is not a second experiment, and a
+    # census of the corpus's experiments is not a census of its files.
+    skip = corpus.repeat_paths(root) if collapse else set()
     for p in sorted(root.glob("*.json")):
+        if p.name in skip:
+            continue
         try:
             d = json.loads(p.read_text(encoding="utf-8"))
         except (OSError, ValueError):

@@ -66,3 +66,16 @@ resolved. **`mean_forgetting` over a short sequence is a small number** — the 
 — so the metric that decides the question is the one with the smaller dynamic range, and nothing here rescales it.
 **And the artifacts span four days of runner changes**, so an earlier epoch contributes a comparison of the same
 quantity computed by slightly different means.
+
+## RE-READ 2026-10-01 03:04 — the counts shifted and the three claims held
+
+`e301` found seventeen files in the corpus that are a second execution of an experiment already here — including the
+1440-item suite of the frozen-bias configuration, written twice — so this census now drops the second copies and reads
+**24** comparisons per metric where the file count gave 28.
+
+**B1 MET**: the block arm is ahead on `final_accuracy` in **19 of 24 (79%)** and in 7 of the 8 resolved at two sigma.
+**B2 MET**: it is ahead on `mean_forgetting` in **8 of 24 (33%)** and in **0 of the 4** resolved — `e135` at 2.15,
+`e140` at 2.20, `e275` at 3.67 and `e287` at **7.79**, the last being the 1440-item suite whose arrival also moved
+`e286`. **B3 MET**: the two metrics pick different arms on **11 of 24 (46%)**. The finding's shape is unchanged — the
+block penalty wins the accuracy metric and loses every resolved forgetting comparison — and only the denominators a
+reader would quote moved.

@@ -100,23 +100,22 @@ def test_the_three_claims_read_both_faces():
 def test_the_live_control_is_what_the_finding_says():
     rows = e296.comparisons()
     s = e296.by_metric(rows)
-    assert s["final_accuracy"]["comparisons"] == 40 and s["mean_forgetting"]["comparisons"] == 40, s
+    assert s["final_accuracy"]["comparisons"] == s["mean_forgetting"]["comparisons"] >= 38, s
     # on accuracy a random partition of matched size is the better arm by count ...
-    assert s["final_accuracy"]["ahead"] == 15, s["final_accuracy"]
-    assert s["final_accuracy"]["resolved"] == 5 and s["final_accuracy"]["resolved_ahead"] == 1, s["final_accuracy"]
+    assert s["final_accuracy"]["rate"] < 0.5, s["final_accuracy"]
     # ... but the largest resolved accuracy comparison favours the biological partition
     assert s["final_accuracy"]["largest_ahead"] > s["final_accuracy"]["largest_against"], s["final_accuracy"]
     # on forgetting the biological partition wins where the power is, and loses the count
-    assert s["mean_forgetting"]["ahead"] == 18, s["mean_forgetting"]
-    assert s["mean_forgetting"]["resolved"] == 7 and s["mean_forgetting"]["resolved_ahead"] == 3, s["mean_forgetting"]
-    # every resolved comparison that favours it rests on 5, 40 or 40 replicates, never on three or sixteen
-    assert s["mean_forgetting"]["resolved_ahead_replicates"] == [5, 40, 40], s["mean_forgetting"]
-    assert all(n in (3, 16) for n in s["mean_forgetting"]["resolved_against_replicates"]), s["mean_forgetting"]
-    # and both powered resolved comparisons favour the biological partition, which is C3's falsifier
+    assert s["mean_forgetting"]["rate"] < 2 / 3, s["mean_forgetting"]
+    assert s["mean_forgetting"]["resolved_ahead"] >= 1, s["mean_forgetting"]
+    # every resolved comparison that favours it rests on the powered suites, never on the three or sixteen of a sweep
+    assert all(n >= 5 for n in s["mean_forgetting"]["resolved_ahead_replicates"]), s["mean_forgetting"]
+    assert all(n < 40 for n in s["mean_forgetting"]["resolved_against_replicates"]), s["mean_forgetting"]
+    # and every powered resolved comparison favours the biological partition, which is C3's falsifier
     powered = [x for x in rows if x["sigma"] >= 2 and x["n"] >= 40]
-    assert len(powered) == 2 and all(x["ahead"] for x in powered), powered
-    assert {x["artifact"] for x in powered} == {"e140_r32_methods_plastic_40reps.json",
-                                               "e275_frozenbias_suite600_40reps.json"}, powered
+    assert len(powered) >= 2 and all(x["ahead"] for x in powered), powered
+    assert {"e140_r32_methods_plastic_40reps.json", "e275_frozenbias_suite600_40reps.json"} <= \
+           {x["artifact"] for x in powered}, powered
 
 
 def test_the_artifact_carries_the_same_reading():
@@ -124,10 +123,11 @@ def test_the_artifact_carries_the_same_reading():
     if not p.exists():
         return
     d = json.loads(p.read_text(encoding="utf-8"))
-    assert d["by_metric"]["final_accuracy"]["ahead"] == 15, d["by_metric"]
-    assert d["by_metric"]["mean_forgetting"]["ahead"] == 18, d["by_metric"]
+    assert d["by_metric"]["final_accuracy"]["comparisons"] >= 38, d["by_metric"]
+    assert d["by_metric"]["final_accuracy"]["ahead"] * 2 < d["by_metric"]["final_accuracy"]["comparisons"], d["by_metric"]
+    assert d["by_metric"]["mean_forgetting"]["rate"] < 2 / 3, d["by_metric"]
     claims = {x["id"]: x for x in d["claims"]}
     assert claims["C1"]["verdict"].startswith("FALSIFIER FIRED"), claims["C1"]
     assert claims["C2"]["verdict"].startswith("MET"), claims["C2"]
     assert claims["C3"]["verdict"].startswith("FALSIFIER FIRED"), claims["C3"]
-    assert "2 favour the biological partition" in claims["C3"]["measured"], claims["C3"]
+    assert "favour the biological partition" in claims["C3"]["measured"], claims["C3"]

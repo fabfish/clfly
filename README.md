@@ -7,12 +7,14 @@ odours with food, navigate by landmarks, and dodge looming threats — sequentia
 without its olfactory memories being erased by its navigation lessons. Artificial
 networks are famously bad at exactly this.
 
-> **Scoped 2026-09-29.** Both sentences above state an *absence*, and an absence is a bound: the corpus measures it in
-> **64 of its 294 arms** — `mean_forgetting` indistinguishable from zero at two sigma, **eight of them at forty
-> replicates** with a bound under ±0.003 against a baseline whose median is **+0.073** — and measures the opposite in
-> the other **230**, up to **24.9σ**. So the absence is a result about particular configurations, not yet a property
-> of the fly these sentences describe
-> (`docs/findings/2026-09-29-the-front-page-claim.md`).
+> **Scoped 2026-09-29, re-read 2026-10-01.** Both sentences above state an *absence*, and an absence is a bound: the
+> corpus measures it in **55 of its 271 arms** — `mean_forgetting` indistinguishable from zero at two sigma, **eight
+> of them at forty replicates** with a bound under ±0.003 against a baseline whose median is **+0.073** — and measures
+> the opposite in the other **216**, up to **24.9σ**. So the absence is a result about particular configurations, not
+> yet a property of the fly these sentences describe. The denominators moved on 2026-10-01 because `e301` found
+> seventeen files in `runs/` that are a **second execution** of an experiment already in the corpus, and this census
+> now counts experiments rather than files; no verdict moved
+> (`docs/findings/2026-09-29-the-front-page-claim.md`, `docs/findings/2026-10-01-the-corpus-holds-repeats.md`).
 
 This repository asks a narrow, answerable version of that question:
 

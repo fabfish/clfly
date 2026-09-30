@@ -85,3 +85,16 @@ are compared over the keys both sides record**, so a pair that differs only in a
 nothing and lands in the `(unrecorded)` rows, which count a key per side rather than per pair. **The prefix pairs are
 three five-replicate configurations**, so nothing generalises beyond them. And **the third sample is being trained**:
 the confound section says what it is for, and no number from it appears here.
+
+## RE-READ 2026-10-01 03:04 — the census shrank to experiments and all three claims held
+
+`e301` found the corpus holding seventeen files that are a second copy of an experiment already in it, so `e286`'s
+census now counts experiments and this unit inherits the shorter list: candidates **23**, sample swaps on the full
+lists **5**, rejections **18**.
+
+**Y1 MET**, `repeats` in **17 of 18 (94%)** — the corrected clause this unit wrote about `e286`'s prose is unchanged.
+**Y2 MET**: the prefix pairing still recovers `e109_second_order_r128` to `e119_r128_test480` and
+`e112_readout300_plastic` to `e119_r300_test480`, both x10 at a prefix of five, so the unit reads five full-list swaps
+plus two prefixes. **Y3 MET**: **4 of 4** prefix comparisons have an interval containing one, sd ratios **0.485 to
+1.726** against the 95% factor of **9.60** at four degrees of freedom, and the run this unit's finding pointed at —
+the 1440-item suite launched beside it — has since landed and is what `e286`'s X2 to X4 now turn on.

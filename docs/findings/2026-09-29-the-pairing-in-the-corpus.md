@@ -51,3 +51,12 @@ nothing here corrects for that. **The two counts at two sigma are counts of stor
 runner's formula, and a contrast at 2.1 sigma is one replicate from crossing. **And nothing here re-reads the
 paper**: which of its printed sigmas came from the unpaired convention is a question for a reader with both numbers in
 front of them.
+
+## RE-READ 2026-10-01 03:04 — the counts shifted and the three claims held
+
+`e301` found seventeen files in `runs/` that are a second execution of an experiment already in the corpus, so this
+census now reads **64 matched-pair blocks** where the file count gave 68. **P1 MET**: **57 of 64** correlations are
+positive, median **+0.325**, and the paired sem is the smaller in 57 of them at a median ratio **0.833**. **P2 MET**:
+**7 of 64** are negative, from −0.500, and all seven have the paired sem larger. **P3 MET**: **12** contrasts resolve
+at two sigma under the paired sem against **3** under the unpaired one — the convention decides what resolves, at the
+same margin as before.

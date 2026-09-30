@@ -57,3 +57,18 @@ are not forty configurations.** **A σ below two is not equality**, and 35 of 40
 forgetting comparisons are unresolved. **And the largest resolved accuracy comparison is the least stable one**: it is
 an `e102` batch-count variant whose sign the plan row already reports as unstable, which is why C3 is stated at forty
 replicates rather than at five.
+
+## RE-READ 2026-10-01 03:04 — the counts shifted and the verdicts did not
+
+`e301` found seventeen files in the corpus that are a second execution of an experiment already here, so this census
+now drops the second copies and reads **38** comparisons per metric where the file count gave 42. The two copies of
+the 1440-item suite had been casting two votes each in the well-powered list; they now cast one.
+
+**C1 FIRED**: the biological partition is ahead on `final_accuracy` in **15 of 38 (39%)**, so the matched random
+control is the better arm by count — the same conclusion the two copies gave. **C2 MET**: it is ahead on
+`mean_forgetting` in **16 of 38 (42%)**. **C3 FIRED**: **4** comparisons resolve at two sigma with forty or more
+replicates and **all four** favour the biological partition — `e140_r32_methods_plastic_40reps` on forgetting at 2.08,
+`e275_frozenbias_suite600_40reps` on forgetting at 2.19, and `e287_frozenbias_suite1440_40reps` on accuracy at 2.31 and
+on forgetting at 4.06 — and every resolved comparison against it rests on fewer than forty replicates. The cycle this
+finding reported is unchanged: the block penalty beats the diagonal on accuracy and loses to it on forgetting, and
+beats its matched random control on forgetting while losing to it on accuracy by count.

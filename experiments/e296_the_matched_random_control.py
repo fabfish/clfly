@@ -56,6 +56,7 @@ import statistics
 import sys
 from pathlib import Path
 
+from clfly.bench import corpus
 from clfly.bench.artifacts import write_json
 
 RUNS = Path("runs")
@@ -111,11 +112,19 @@ def contrast(d: dict, a: str, b: str, metric: str, minimum: int = MIN_REPLICATES
             "ahead": (mean > 0) if HIGHER_IS_BETTER[metric] else (mean < 0)}
 
 
-def comparisons(root: Path = RUNS, pair=(A, B)) -> list[dict]:
-    """Every artifact that ran both arms of `pair`, one row per metric."""
+def comparisons(root: Path = RUNS, pair=(A, B), collapse: bool = True) -> list[dict]:
+    """Every artifact that ran both arms of `pair`, one row per metric.
+
+    ``collapse`` drops the corpus's second copies of an experiment it already holds (`e301`), so that a
+    configuration executed twice does not cast two votes in a count. The second copy carries the first copy's
+    numbers, so the count moves and the rate does not.
+    """
     a, b = pair
     out = []
+    skip = corpus.repeat_paths(root) if collapse else set()
     for p in sorted(root.glob("*.json")):
+        if p.name in skip:
+            continue
         d = load(p)
         if d is None:
             continue

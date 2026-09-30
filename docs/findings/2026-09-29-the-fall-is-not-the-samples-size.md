@@ -1,7 +1,7 @@
-# The fall is not the sample's size: three sample swaps, and the mechanism they refute
+# The fall is not the sample's size: three sample swaps, and the mechanism they refute — until the fourth pair arrived
 
-*2026-09-29 00:55. Runs: **none new** — `experiments/e286_the_fall_is_not_the_samples_size.py` reads the three pairs
-of artifacts the corpus was already holding, writing `runs/e286_the_fall_is_not_the_samples_size.json`. Seconds.*
+*2026-09-29 00:55, re-read 2026-10-01 03:04. Runs: **none new** — `experiments/e286_the_fall_is_not_the_samples_size.py`
+reads the corpus's sample swaps, writing `runs/e286_the_fall_is_not_the_samples_size.json`. Seconds.*
 
 ## 1. The question `e285` left
 
@@ -93,3 +93,30 @@ missing flag does not separate, so X1 bounds how much the strong rule is needed 
 and the pairing rule's permissiveness is the price of a corpus that spans four days of runner changes. And **the pairs
 are not the same experiment**: `e285`'s has five arms and both new ones a single `naive` arm, which is why X3 refutes
 an account rather than measuring one.
+
+## 6. RE-READ 2026-10-01 03:04 — the fourth pair arrived, and X2, X3 and X4 fired
+
+`e287_frozenbias_suite1440_40reps` finished on 2026-09-29 (with `e288_frozenbias_suite1440_40reps` as the same
+execution under a second name, which is `e301`), so the read-out-32 frozen-bias configuration now reaches the corpus
+at **three** suite sizes and supplies **two** more sample swaps: 144 to 1440 at x10 and 600 to 1440 at x2.4. The
+census also counts experiments rather than files from here on, so the weak rule admits **23** candidates and the
+training fields keep **5**; X1 stays MET with the same shape.
+
+**X2 FIRED.** 33 of 34 comparisons fall, and one rises — sd ratio **1.054**, on the `ewc` − `replay` contrast of
+`mean_forgetting` between the 600- and 1440-item suites.
+
+**X3 FIRED.** The median sd ratio is **0.450** at the ten-times pairs against **0.721** at the 4.17-times pair, where
+the `1/sqrt(n_eval)` account predicts **0.316** against **0.645**; **corr(observed, predicted) = +0.565** over 34
+comparisons. The observation now *tracks* the sample-size account instead of opposing it, where at three pairs it was
+**−0.697**.
+
+**X4 FIRED.** 25 comparisons where `p(1-p)` rises, so the account predicts the spread rises; it fell in 24.
+
+**What that means, and what it does not.** The account this unit refuted across three configurations fails *for the
+read-out-32 configuration* as soon as its suite reaches 1440 items — and the reason is the axis this finding already
+named as the one the fall is a function of: the wide read-outs (128 and 300) move as the sample size says, and the
+narrow one does not, because at read-out 32 most of a replicate's spread is the read-out's own draw and not the
+held-out sample's (`e292`). **So what these three claims refuted is a statement about configurations**, not about
+sample sizes: at 144 and 600 the narrow configuration's spread fell *less* than the sample-size account predicted, and
+at 1440 it falls *as much*. **Three configurations and five pairs** is still the whole population, and the pairing
+still runs across configurations that differ in arm count and read-out width.

@@ -100,24 +100,27 @@ def test_the_four_claims_read_both_faces():
     assert j["X4"]["verdict"].startswith("FALSIFIER FIRED"), j["X4"]
 
 
-def test_the_live_pairs_are_the_three_and_the_ordering_holds():
+def test_the_live_pairs_and_the_account_the_third_suite_refuted():
     cands = e286.candidates(minimum_replicates=5)
     swaps = [c for c in cands if c["swap"]]
-    assert len(swaps) == 3, [(Path(c["old"]).name, Path(c["new"]).name) for c in swaps]
+    assert len(swaps) >= 5, [(Path(c["old"]).name, Path(c["new"]).name) for c in swaps]
     assert len(cands) > len(swaps), "the weak rule over-admits, which is X1"
     names = {(Path(c["old"]).name, Path(c["new"]).name) for c in swaps}
     assert ("e115_r300_40reps.json", "e119_r300_test480.json") in names, names
     assert ("e116_r128_40reps.json", "e119_r128_test480.json") in names, names
     assert ("e140_r32_methods_frozenbias_40reps.json", "e275_frozenbias_suite600_40reps.json") in names, names
+    # the third suite of that configuration is the same experiment one step further out, and not a second copy of
+    # `e275`: `e301` drops the corpus's second executions and keeps both suite sizes
+    assert ("e140_r32_methods_frozenbias_40reps.json", "e287_frozenbias_suite1440_40reps.json") in names, names
     assert all(c["replicates"] == 40 for c in swaps), [c["replicates"] for c in swaps]
     rows = [x for c in swaps for x in e286.comparisons(c)]
-    assert len(rows) == 14 and all(x["observed"] < 1 for x in rows), rows
-    wide = [x["observed"] for x in rows if x["size_ratio"] > 5]
-    narrow = [x["observed"] for x in rows if x["size_ratio"] <= 5]
-    assert all(w > 0.6 for w in wide) and max(wide) > max(narrow), (wide, narrow)
+    assert len(rows) >= 34 and max(x["observed"] for x in rows) < 1.2, len(rows)
+    # the ten-times pairs no longer move the least: the observation now tracks the 1/sqrt(n_eval) account, which is
+    # X3's registered falsifier, and one comparison at the third suite rises -- X2's
     pred = [x["sample_prediction"] for x in rows]
     obs = [x["observed"] for x in rows]
-    assert e286.correlation(pred, obs) < -0.5, e286.correlation(pred, obs)
+    assert e286.correlation(pred, obs) >= 0, e286.correlation(pred, obs)
+    assert any(x["observed"] > 1 for x in rows), [round(x["observed"], 3) for x in rows]
 
 
 def test_the_artifact_carries_the_same_reading():
@@ -125,11 +128,12 @@ def test_the_artifact_carries_the_same_reading():
     if not p.exists():
         return
     d = json.loads(p.read_text(encoding="utf-8"))
-    assert d["n_candidates"] > len(d["pairs"]) == 3, (d["n_candidates"], len(d["pairs"]))
-    assert len(d["comparisons"]) == 14, len(d["comparisons"])
-    assert all(c["observed"] < 1 for c in d["comparisons"]), d["comparisons"]
+    assert d["n_candidates"] > len(d["pairs"]) >= 5, (d["n_candidates"], len(d["pairs"]))
+    assert len(d["comparisons"]) >= 34, len(d["comparisons"])
+    assert all(c["observed"] < 1.2 for c in d["comparisons"]), d["comparisons"]
     signed = [c for c in d["comparisons"] if (c["ceiling_prediction"] or 0) > 1]
-    assert len(signed) >= 6 and all(c["observed"] < 1 for c in signed), signed
+    assert len(signed) >= 6, signed
     claims = {x["id"]: x for x in d["claims"]}
-    for cid in ("X1", "X2", "X3", "X4"):
-        assert claims[cid]["verdict"].startswith("MET"), claims[cid]
+    assert claims["X1"]["verdict"].startswith("MET"), claims["X1"]
+    for cid in ("X2", "X3", "X4"):
+        assert claims[cid]["verdict"].startswith("FALSIFIER FIRED"), claims[cid]

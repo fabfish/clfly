@@ -47,6 +47,7 @@ import statistics
 import sys
 from pathlib import Path
 
+from clfly.bench import corpus
 from clfly.bench.artifacts import write_json
 
 README = Path("README.md")
@@ -88,10 +89,15 @@ def absence_claims(text: str) -> list[dict]:
     return out
 
 
-def zeros(root: Path = RUNS, minimum: int = MIN_REPLICATES) -> list[dict]:
+def zeros(root: Path = RUNS, minimum: int = MIN_REPLICATES, collapse: bool = True) -> list[dict]:
     """Every arm with a forgetting and enough replicates, with its distance from zero in sigmas."""
     out = []
+    # `e301`: a second execution of an experiment the corpus already holds is not a second experiment, and a
+    # census of the corpus's experiments is not a census of its files.
+    skip = corpus.repeat_paths(root) if collapse else set()
     for p in sorted(root.glob("*.json")):
+        if p.name in skip:
+            continue
         try:
             d = json.loads(p.read_text(encoding="utf-8"))
         except (OSError, ValueError):

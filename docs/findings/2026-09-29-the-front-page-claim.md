@@ -55,3 +55,13 @@ task forgets and another does not — `e151`'s per-task decomposition is the ins
 use it. **The two-sigma line is a convention**: at one sigma the count rises and at three it falls. **And the README's
 claim is about a fly, while every number here is about a connectome-constrained network on four-way classification
 tasks**: the distance between those two is the whole of the modelling question, and nothing here closes it.
+
+## RE-READ 2026-10-01 03:04 — the population moved from files to experiments
+
+`e301` found seventeen files in `runs/` that are a second execution of an experiment already in the corpus, and this
+census now drops the second copies, so the front page's absence is measured over **271 arms** where the file count gave
+304. **F1** is unchanged: two absence sentences. **F2 MET and smaller**: **55 of 271 arms (20%)** have a forgetting
+indistinguishable from zero at two sigma, still **8 of them at forty replicates** with a smallest bound of **±0.0029**,
+against a baseline whose median is **+0.073**. **F3 MET**: **216 of 271 arms (79%)** resolve away from zero, the
+largest still **24.90 sigma**. Nine of the arms that were inside the line were second copies — that is the whole of the
+movement — and the README's scope blockquote now carries the new denominators with the reason.

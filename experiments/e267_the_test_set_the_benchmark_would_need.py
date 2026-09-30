@@ -47,6 +47,7 @@ import json
 import sys
 from pathlib import Path
 
+from clfly.bench import corpus
 from clfly.bench.artifacts import write_json
 
 METRICS = ("final_accuracy", "mean_forgetting")
@@ -87,10 +88,15 @@ def arms_of(d: dict) -> list[str]:
     return [a for a in meth if isinstance(meth[a], dict) and meth[a].get("replicates")]
 
 
-def census(root: Path = Path("runs")) -> list[dict]:
+def census(root: Path = Path("runs"), collapse: bool = True) -> list[dict]:
     """Every method-comparison artifact's per-metric per-arm floor, as a fraction of its own spread and in items."""
     out = []
+    # `e301`: a second execution of an experiment the corpus already holds is not a second experiment, and a
+    # census of the corpus's experiments is not a census of its files.
+    skip = corpus.repeat_paths(root) if collapse else set()
     for path in sorted(glob.glob(str(root / "*.json"))):
+        if Path(path).name in skip:
+            continue
         try:
             d = json.loads(Path(path).read_text(encoding="utf-8"))
         except (json.JSONDecodeError, UnicodeDecodeError, OSError):

@@ -74,3 +74,12 @@ is over artifacts that record an `evaluation_noise` block, so a run without one 
 methods filter is by the arm names this corpus uses, so a differently-named control is invisible. And nothing here
 enlarges a suite or checks that a larger one would be generated the same way — the cost of the fix is a claim about
 the generator, not a measurement.
+
+## RE-READ 2026-10-01 03:04 — the census counts experiments, and the precondition still bites
+
+`e301` found seventeen files in `runs/` that are a second execution of an experiment already in the corpus, so this
+census drops the second copies: **100 matrices** where the file count gave 108, of which **30** have an arm at or above
+its own floor — **30%**, against the 28% the two extra copies gave. The three configurations that cannot see
+themselves, the implied suites (**165, 300, 1096 items** against the 144 in use) and the bound of **7.6x** are all
+unchanged, and S1, S2 and S3 stay MET. The corpus's non-144 matrices are again **four**, which is the count this
+finding's first reading was taken at.

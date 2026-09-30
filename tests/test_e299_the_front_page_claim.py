@@ -91,7 +91,7 @@ def test_the_live_front_page_and_corpus():
          "arms": e299.zeros()}
     assert len(r["absence_claims"]) == 2, r["absence_claims"]
     at_zero = [x for x in r["arms"] if x["at_zero"]]
-    assert len(r["arms"]) >= 280, len(r["arms"])
+    assert len(r["arms"]) >= 271, len(r["arms"])
     assert len(at_zero) >= 50, len(at_zero)
     assert sum(1 for x in at_zero if x["n"] >= 40) >= 5, at_zero
     # the tightest bound on zero is a few thousandths against a baseline whose median is far larger
@@ -117,5 +117,5 @@ def test_the_artifact_carries_the_same_reading():
     claims = {x["id"]: x for x in d["claims"]}
     for cid in ("F1", "F2", "F3"):
         assert claims[cid]["verdict"].startswith("MET"), claims[cid]
-    assert "64 of 294" in claims["F2"]["measured"], claims["F2"]
-    assert "230 of 294" in claims["F3"]["measured"], claims["F3"]
+    assert "55 of 271" in claims["F2"]["measured"], claims["F2"]
+    assert "216 of 271" in claims["F3"]["measured"], claims["F3"]

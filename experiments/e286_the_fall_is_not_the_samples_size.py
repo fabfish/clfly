@@ -69,6 +69,7 @@ import sys
 from collections import defaultdict
 from pathlib import Path
 
+from clfly.bench import corpus
 from clfly.bench.artifacts import write_json
 
 RUNS = Path("runs")
@@ -150,10 +151,19 @@ def unrecorded_blocks(da: dict, db: dict) -> dict:
     return {"draws": draws, "config_keys": sorted(set(ca) ^ set(cb))}
 
 
-def candidates(root: Path = RUNS, minimum_replicates: int = 5) -> list[dict]:
-    """The weak rule: one shape, two suite sizes, no draw that disagrees, and enough replicates to spread."""
+def candidates(root: Path = RUNS, minimum_replicates: int = 5, collapse: bool = True) -> list[dict]:
+    """The weak rule: one shape, two suite sizes, no draw that disagrees, and enough replicates to spread.
+
+    ``collapse`` drops the corpus's second executions of an experiment it already holds (`e301`): three of the
+    corpus's files are a re-run of a configuration that is already here, and because the census is about
+    **configurations** a duplicated file would weigh its configuration twice. The swap count is a count of
+    *experiments*, which is why `e140` reaches `e275` at x4.17 and `e287` at x10 rather than reaching each twice.
+    """
     groups: dict[str, list[tuple[str, int]]] = defaultdict(list)
+    skip = corpus.repeat_paths(root) if collapse else set()
     for p in sorted(root.glob("*.json")):
+        if p.name in skip:
+            continue
         d = load(p)
         if d is None or not arms(d):
             continue

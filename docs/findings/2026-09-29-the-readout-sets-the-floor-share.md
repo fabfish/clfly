@@ -55,3 +55,15 @@ each of the widest settings, so S3's non-monotonicity rests on widths with four 
 in the population. **And a share is not a cause**: that the fraction rises with the read-out width is consistent with
 the routing story and does not establish it, because a wide read-out also raises the accuracy and `p(1-p)` in the
 numerator moves with the accuracy.
+
+## RE-READ 2026-10-01 03:04 — the counts shifted and one rung left the ladder
+
+`e301` found seventeen files in `runs/` that are a second execution of an experiment already in the corpus, so this
+census now reads **246 arms** where the file count gave 279. **S1 MET**: the narrow plastic arms are **203** with a
+median fraction **0.637** and 25% above one, against **33** wide arms at a median of **1.071** and 52% above one — the
+same level difference as before, at the same medians. **S2 MET**: the ten frozen arms keep a median of **18.18**, a
+factor of **x17.0**. **S3 MET and one rung shorter**: the per-width medians are now **r0 0.449, r32 0.637, r128 0.853,
+r300 1.116, r700 0.757** — **r512 is gone, because two of its six arms were second copies and the width falls below
+the minimum arm count this census prints a rung at**. That is a bookkeeping consequence of the repair and not a
+measurement: the same fractions are in the corpus, and the finding's point — that the share is a level difference and
+not a monotone law — is what S3 already said.

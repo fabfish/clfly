@@ -93,18 +93,21 @@ def test_the_three_claims_read_both_faces():
 
 def test_the_live_reading_is_what_the_finding_says():
     runs = [(label, d) for label, path in e291.SUITES if (d := e291.load(path)) is not None]
-    assert len(runs) == 2, [label for label, _ in runs]
+    assert len(runs) == 3, [label for label, _ in runs]
     rows = e291.contrasts(runs)
-    assert len(rows) == 40, len(rows)                     # ten arm pairs, two metrics, two suites
-    assert all(x["suite"] in {"144", "600"} for x in rows), {x["suite"] for x in rows}
+    assert len(rows) == 60, len(rows)                     # ten arm pairs, two metrics, three suites
+    assert all(x["suite"] in {"144", "600", "1440"} for x in rows), {x["suite"] for x in rows}
     paired = e291.pair_up(rows, [label for label, _ in runs])
-    assert len(paired) == 20, len(paired)
-    assert sum(1 for x in paired if x["sigma_ratio"] > 1) == 19, [round(x["sigma_ratio"], 2) for x in paired]
-    assert sum(1 for x in paired if x["resolved_first"]) == 14, sum(1 for x in paired if x["resolved_first"])
-    assert sum(1 for x in paired if x["resolved_second"]) >= 18, sum(1 for x in paired if x["resolved_second"])
+    assert len(paired) == 40, len(paired)                 # ten arm pairs, two metrics, two consecutive steps
+    assert {x["first"] for x in paired} == {"144", "600"} and {x["second"] for x in paired} == {"600", "1440"}
+    assert sum(1 for x in paired if x["sigma_ratio"] > 1) == 38, [round(x["sigma_ratio"], 2) for x in paired]
+    by_suite = {label: sum(1 for x in rows if x["suite"] == label and x["sigma"] >= 2) for label, _ in runs}
+    assert by_suite == {"144": 14, "600": 18, "1440": 19}, by_suite
     flips = [x for x in paired if not x["sign_kept"]]
-    assert len(flips) == 1 and (flips[0]["a"], flips[0]["b"]) == ("ewc", "replay"), flips
-    assert flips[0]["metric"] == "mean_forgetting" and flips[0]["sigma_first"] < 2, flips[0]
+    assert len(flips) == 2 and {(x["a"], x["b"], x["metric"]) for x in flips} == {
+        ("ewc", "replay", "mean_forgetting")}, flips
+    assert all(x["sigma_first"] < 2 and x["sigma_second"] < 2 for x in flips), flips
+    assert {(x["first"], x["second"]) for x in flips} == {("144", "600"), ("600", "1440")}, flips
     # and the resolved ones are the ones that kept their sign
     assert all(x["sign_kept"] for x in paired if x["resolved_first"])
 
@@ -114,8 +117,8 @@ def test_the_artifact_carries_the_same_reading():
     if not p.exists():
         return
     d = json.loads(p.read_text(encoding="utf-8"))
-    assert len(d["paired"]) == 20, len(d["paired"])
-    assert d["resolved_by_suite"]["144"] == 14, d["resolved_by_suite"]
+    assert d["n_suites"] == 3 and len(d["paired"]) == 40, (d["n_suites"], len(d["paired"]))
+    assert d["resolved_by_suite"] == {"144": 14, "600": 18, "1440": 19}, d["resolved_by_suite"]
     claims = {x["id"]: x for x in d["claims"]}
     assert claims["R1"]["verdict"].startswith("MET"), claims["R1"]
     assert claims["R2"]["verdict"].startswith("MET"), claims["R2"]

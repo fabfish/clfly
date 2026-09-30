@@ -1,40 +1,41 @@
-"""E291 -- what the suite bought: the configuration's own contrasts, at two samples, on the same forty models.
+"""E291 -- what the suite bought: the configuration's own contrasts, at three samples, on the same forty models.
 
 `e275` read what the larger suite did to each *arm's* spread, `e285` and `e286` read the same models at two samples
 and found the spread falling, and `e289` read the paper's decomposition of it. None of them asked the question the
 suite was bought to answer, in the currency the paper prints its claims in: **what happened to the contrasts?** The
-configuration is `e140_r32_methods_frozenbias_40reps` -- five arms, forty replicates -- and its larger-suite twin is
-`e275_frozenbias_suite600_40reps`, trained from the same seeds, so every arm-versus-arm comparison is paired over the
-same forty replicates at both suite sizes and the only thing that moved between the two numbers is the held-out
-sample.
+configuration is `e140_r32_methods_frozenbias_40reps` -- five arms, forty replicates -- and its larger-suite twins are
+`e275_frozenbias_suite600_40reps` and `e287_frozenbias_suite1440_40reps`, trained from the same seeds, so every
+arm-versus-arm comparison is paired over the same forty replicates at all three suite sizes and the only thing that
+moved between the numbers is the held-out sample. (`e288_frozenbias_suite1440_40reps` is the same execution as
+`e287` -- `e301` -- so `SUITES` names the second copy and reads the same numbers either way.)
 
 Twenty contrasts: every pair of the five arms, on both metrics. For each, the paired delta, its sem over the forty
 replicates, and the sigma the paper would print.
 
 Three claims, all **confirmatory** and computed in the exploration that wrote the module:
 
-- **R1 -- the suite sharpens the contrasts.** The paired sigma is larger at the larger suite in most of them, and the
+- **R1 -- the suite sharpens the contrasts.** The paired sigma is larger at the later suite in most of them, and the
   number resolved at two sigma rises. **Falsifier**: fewer than half of the sigmas rise.
-- **R2 -- and nothing that was resolved changes sign.** Every contrast resolved at two sigma in the first suite is
-  resolved in the second and keeps its direction. **Falsifier**: one that is not.
+- **R2 -- and nothing that was resolved changes sign.** Every contrast resolved at two sigma in a suite is resolved
+  in the next and keeps its direction. **Falsifier**: one that is not.
 - **R3 -- and nothing at all changes sign.** The direction of every contrast is a property of the manipulation rather
   than of the sample it was measured on. **Falsifier**: one whose sign flips.
 
 **The two the module reads beyond its claims**: the count resolved at two sigma in each suite, and which contrasts
-sit near the boundary — because the one that flips is the one whose sigma was smallest, and that is the corpus's own
-rule about unresolved contrasts (a sigma below two is a direction nobody measured) applied to a *sample* rather than
-to a seed.
+sit near the boundary — because the ones that flip are the ones whose sigmas were smallest, and that is the corpus's
+own rule about unresolved contrasts (a sigma below two is a direction nobody measured) applied to a *sample* rather
+than to a seed.
 
 **What it cannot do.** *One configuration*, chosen because `e267` gave it the largest requirement, so nothing here
-says the other two behave the same way -- though this is the only configuration in the corpus with a twin at a second
-suite size *and* five arms. *Forty replicates*, so a contrast's sigma carries about 11% of its own value, and a
+says the other two behave the same way -- though this is the only configuration in the corpus with twins at two more
+suite sizes *and* five arms. *Forty replicates*, so a contrast's sigma carries about 11% of its own value, and a
 contrast near two is one replicate away from crossing; R2 is stated over the ones already resolved for that reason.
-*The comparison is between two samples and not between two suites held otherwise equal*: the second sample is the
-same size ratio but a different draw, so the movement includes the draw-to-draw component `e285` measured, and
-nothing here separates a suite's effect from a sample's. *The sigma is the paper's statistic and not a claim*: a
-contrast that rises from 1.3 to 3.5 sigma has become resolvable, and a contrast that falls has not become false.
-*Only the 144- and 600-item suites are read*: the third sample of this configuration is being trained, and the module
-picks it up when its artifact lands because it discovers the suites rather than naming them.
+*The comparison is between samples and not between suites held otherwise equal*: each sample is a different draw, so
+the movement includes the draw-to-draw component `e285` measured, and nothing here separates a suite's effect from a
+sample's. *The sigma is the paper's statistic and not a claim*: a contrast that rises from 1.3 to 3.5 sigma has
+become resolvable, and a contrast that falls has not become false. *And a flip is read between consecutive suites*:
+with three samples of one contrast a sign can move twice by crossing zero, which is the movement this unit reports
+and not two independent failures.
 """
 
 from __future__ import annotations
@@ -48,7 +49,7 @@ from pathlib import Path
 
 from clfly.bench.artifacts import write_json
 
-#: The configuration's twins: label, path. Discovered from the corpus rather than fixed, so a third sample joins.
+#: The configuration's twins: label, path. The third sample is the one `e301` found the corpus had executed twice.
 SUITES = (
     ("144", "runs/e140_r32_methods_frozenbias_40reps.json"),
     ("600", "runs/e275_frozenbias_suite600_40reps.json"),
@@ -194,8 +195,8 @@ def report(r: dict) -> int:
         print(f"      {row['id']}: {row['measured']}  -> {row['verdict']}")
         print(f"          the claim was: {cl[2]}")
         print(f"          and its {cl[3]}")
-    print("\n   (the suite sharpened the contrasts and changed no resolved direction; the one sign it did not keep is")
-    print("    the one whose sigma was smallest, which is the corpus's own rule about unresolved contrasts)")
+    print("\n   (the suite sharpened the contrasts and changed no resolved direction; the signs it did not keep are")
+    print("    the ones whose sigmas were smallest, which is the corpus's own rule about unresolved contrasts")
     return sum("REFUSED" in row["verdict"] for row in j)
 
 

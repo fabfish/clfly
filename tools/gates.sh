@@ -134,4 +134,8 @@ run e298 python -m experiments.e298_the_recommendation_needs_a_comparator --json
 
 run e299 python -m experiments.e299_the_front_page_claim --json-out runs/e299_the_front_page_claim.json
 
+run e300 python -m experiments.e300_the_abstracts_findings --json-out runs/e300_the_abstracts_findings.json
+
+run e301 python -m experiments.e301_the_corpus_holds_repeats --json-out runs/e301_the_corpus_holds_repeats.json
+
 echo "ALL DONE"

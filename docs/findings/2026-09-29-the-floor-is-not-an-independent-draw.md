@@ -68,3 +68,12 @@ dataflow, so a runner that built its suite elsewhere would read differently. **T
 changes**, so a fraction computed under an earlier `evaluation_noise` formula is in the population and nothing here
 separates the formula's epochs. **And neither `e267` nor `e269` is re-run**: what is new is the premise, the count of
 arms where it fails, and the effective count that follows.
+
+## RE-READ 2026-10-01 03:04 — the counts shifted and the three claims held
+
+`e301` found seventeen files in `runs/` that are a second execution of an experiment already in the corpus, so this
+census now reads **246 arms** where the file count gave 279 — and the eighteen arms it drops carried fractions above
+one more often than the corpus average, so **Q2 moves from 85 of 269 (32%) to 77 of 246 (31%)**, still MET. **Q3 moves
+from 31 of 32 artifacts to 29 of 30** with the median ratio **x2.64** and the largest **x7.42**
+(`e102_rate_fb8_omp4.json`) unchanged. Q1 is a line-number claim and does not move. The premise Q2 refutes — that a
+nominal binomial variance cannot exceed the total — is refuted at the same rate as before.
