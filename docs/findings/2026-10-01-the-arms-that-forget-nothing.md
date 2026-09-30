@@ -1,0 +1,61 @@
+# The arms that forget nothing: 50 of the 55 barely learned, and 17 have more left to learn than the corpus's typical arm
+
+*2026-10-01 05:49. Runs: **none new** — `experiments/e305_the_arms_that_forget_nothing.py` joins `e299`'s zero-line
+rows to `e304`'s decomposition on `(artifact, arm)`, writing `runs/e305_the_arms_that_forget_nothing.json`. Seconds.*
+
+## 1. Two readings on the same 271 arms
+
+`e299` scoped the README's front-page claim by counting the arms whose `mean_forgetting` is indistinguishable from
+zero at two sigma — **55 of 271**, eight of them at forty replicates. `e304` then showed what that field *is*: **the
+lost half of the shortfall**, exact, and blind to the half that a task never learned contributes. This unit joins the
+two readings.
+
+**The join drops nothing.** All **271** of `e299`'s arms are among `e304`'s 301, on the same `e301` collapse, so
+every number below is about one population and not a comparison between two.
+
+## 2. The line picks the arms that learned least
+
+| | arms | median unlearned share |
+|---|---|---|
+| inside the two-sigma line | 55 | **0.821** |
+| outside it | 216 | **0.578** |
+
+**C1 MET** — of the 55, **50 (91%) have an unlearned share above a half**, **31 above eight tenths** and **16 above
+nine tenths**. **C2 MET** — the in-line median share is 0.821 against 0.578 outside. An arm the front page would call
+one that does not forget is, eight times in ten, an arm whose shortfall is mostly a task it never learned.
+
+## 3. And a third of them are worse than the typical arm
+
+**C3 MET** — **17 of the 55 (30.9%)** have a shortfall above the corpus's median of **0.0861**. **C4 MET** — **8 of
+the 55** are inside the line because their **lost term is negative**: they got *better* on the tasks they had
+learned, so their entire shortfall is tasks they never had and there is nothing for them to forget.
+
+The sharpest case:
+
+| artifact | arm | `mean_forgetting` | sem | unlearned share | shortfall |
+|---|---|---|---|---|---|
+| `e20b_noisefloor_check.json` | `naive` | **+0.04167** | 0.02621 | **0.954** | **0.6088** |
+| `e20_matchedpair_check.json` | `ewc-block-rand` | +0.02431 | 0.02842 | 0.943 | 0.2824 |
+| `e10_rung_side.json` | `ewc-block` | +0.09722 | 0.06143 | 0.650 | 0.1852 |
+
+The first row is inside the two-sigma line at 1.59 sigma, and its shortfall is **seven times the corpus median**. The
+sentence *"the corpus measures the absence of forgetting in 55 of its arms"* is true; the sentence a reader will
+hear, *"55 of its arms do not forget"*, is false about most of them, and the corpus's own retention matrices are what
+say so.
+
+## 4. What the README's scope does and does not now cover
+
+`e299`'s scope clause says the absence is *"a result about particular configurations, not yet a property of the fly
+these sentences describe"*. That is still true and this unit sharpens it: the particular configurations are, in the
+majority, ones that **barely learned the tasks in the first place**, and the field the absence is measured in cannot
+distinguish "held on to it" from "never had it". The clause should be read with this finding beside it.
+
+## 5. What it cannot do
+
+**The line is a two-sigma bound on a mean over replicates**, so an arm enters it by being noisy as well as by
+forgetting little — `e20b_noisefloor_check`'s sem is 0.02621, the third largest of the 55 — which is why C3 is stated
+about the shortfall and not about the bound. **The share and the mean are computed on the same replicates**, so this
+join is a re-description of one set of numbers and not a second experiment on it. **An arm at a low replicate count
+and one at forty are treated alike**, and `e299` reports that split; this unit names the eight and does not weight by
+power. **And the corpus's arms are not independent configurations**, so 55, 50 and 17 are counts of entries and not
+of experiments, and none of them carries a sampling error.

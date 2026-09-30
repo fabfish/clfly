@@ -144,4 +144,6 @@ run e303 python -m experiments.e303_the_metrics_against_definitions --json-out r
 
 run e304 python -m experiments.e304_the_decomposition_the_block_asked_for --json-out runs/e304_the_decomposition_the_block_asked_for.json
 
+run e305 python -m experiments.e305_the_arms_that_forget_nothing --json-out runs/e305_the_arms_that_forget_nothing.json
+
 echo "ALL DONE"
