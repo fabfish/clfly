@@ -138,4 +138,6 @@ run e300 python -m experiments.e300_the_abstracts_findings --json-out runs/e300_
 
 run e301 python -m experiments.e301_the_corpus_holds_repeats --json-out runs/e301_the_corpus_holds_repeats.json
 
+run e302 python -m experiments.e302_the_benchmark_metrics --json-out runs/e302_the_benchmark_metrics.json
+
 echo "ALL DONE"
