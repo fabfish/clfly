@@ -146,4 +146,6 @@ run e304 python -m experiments.e304_the_decomposition_the_block_asked_for --json
 
 run e305 python -m experiments.e305_the_arms_that_forget_nothing --json-out runs/e305_the_arms_that_forget_nothing.json
 
+run e306 python -m experiments.e306_the_ordering_in_the_other_currency --json-out runs/e306_the_ordering_in_the_other_currency.json
+
 echo "ALL DONE"
