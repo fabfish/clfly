@@ -61,3 +61,20 @@ margins run from 51% to 95% — so a chain built of five of them is a descriptio
 carries no interval, and no verdict here would move if the ordering were read at one sigma instead of a majority.
 **And the shortfall is not a loss**: an arm with much left to learn is not necessarily a bad arm, and a large
 unlearned term says the arm never solved the task, which is a statement about the arm and not about its forgetting.
+
+## 5. RE-READ 2026-10-01 07:21 — the caveat above is wrong and `e308` is the test that says so
+
+§4 attributes this unit's difference from `e297` — `replay` first here, `ewc` first there, on the same field — to its
+**population**, the 301 arms with a readable retention matrix. `e308` holds each of the two differences fixed in turn
+and **the population moves nothing**: restricting `e297`'s own method to the 147 artifacts that carry a readable
+matrix changes no edge and no ordering, on either metric.
+
+What moves the top is the **unit of the vote**. `e297` pools each artifact's replicates into one contrast and takes a
+majority over artifacts; this unit takes one vote per `(artifact, replicate)`. Exactly **two of the ten pairs** flip,
+and they are the two this unit's ordering and `e297`'s place differently: `ewc` against `replay`, and `ewc-block`
+against `ewc-block-rand` — 15 of 26 artifacts against 147 of 271 votes, and 20 of 42 against 339 of 652. Both pairs
+sit within four points of a half under both counts.
+
+Everything else in §4 stands, and R4 is untouched: the recomputed lost term and the stored field agree on all ten
+edges within this population, which is the check that makes this unit's reading the corpus's own field
+(`docs/findings/2026-10-01-the-unit-of-the-vote.md`).

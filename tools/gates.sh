@@ -150,4 +150,6 @@ run e306 python -m experiments.e306_the_ordering_in_the_other_currency --json-ou
 
 run e307 python -m experiments.e307_the_scope_in_the_fields_currency --json-out runs/e307_the_scope_in_the_fields_currency.json
 
+run e308 python -m experiments.e308_the_unit_of_the_vote --json-out runs/e308_the_unit_of_the_vote.json
+
 echo "ALL DONE"

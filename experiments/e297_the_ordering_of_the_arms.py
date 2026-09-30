@@ -109,13 +109,20 @@ def contrast(d: dict, a: str, b: str, metric: str, minimum: int = MIN_REPLICATES
     return {"delta": mean, "sigma": abs(mean) / sem, "n": n, "a_beats": beats(a, b, metric, mean)}
 
 
-def pairs(root: Path = RUNS, minimum_comparisons: int = MIN_COMPARISONS) -> list[dict]:
-    """One row per arm pair, per metric, over every artifact that ran both."""
+def pairs(root: Path = RUNS, minimum_comparisons: int = MIN_COMPARISONS, keep: set | None = None) -> list[dict]:
+    """One row per arm pair, per metric, over every artifact that ran both.
+
+    ``keep`` restricts the corpus to a named set of artifacts, which is what `e308` reads the ordering under: the
+    filter is the only thing that moves between its two readings, so a difference in the order it produces is a
+    difference the population made and not the pairing rule's.
+    """
     out = []
     for a, b in combinations(ARMS, 2):
         for metric in METRICS:
             rows = []
             for p in sorted(root.glob("*.json")):
+                if keep is not None and p.name not in keep:
+                    continue
                 d = load(p)
                 if d is None or not isinstance(d.get("methods"), dict):
                     continue
