@@ -142,4 +142,6 @@ run e302 python -m experiments.e302_the_benchmark_metrics --json-out runs/e302_t
 
 run e303 python -m experiments.e303_the_metrics_against_definitions --json-out runs/e303_the_metrics_against_definitions.json
 
+run e304 python -m experiments.e304_the_decomposition_the_block_asked_for --json-out runs/e304_the_decomposition_the_block_asked_for.json
+
 echo "ALL DONE"

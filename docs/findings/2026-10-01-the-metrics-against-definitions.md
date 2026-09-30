@@ -60,3 +60,21 @@ docstring is not nothing**: a module documented as computing a metric and not co
 a module that never mentions it, and R3 is the arm that sees the difference, over one exhibit. **And this unit
 re-reads `e302`'s five metrics and not the block itself**: the phrases and the spelling table are `e302`'s, so a
 change to the block moves both, and a metric whose repository spelling is in neither table is outside both.
+
+## 5. RE-READ 2026-10-01 05:12 — the module was written, and R3's falsifier fired on purpose
+
+`e304` wrote `clfly/lgcl/metrics.py`, so the reference this unit's R3 rests on now resolves and the reading moves —
+which is the outcome R3 was registered to detect, arriving as a **falsifier that fires because the defect was
+repaired** rather than because the claim was wrong:
+
+- `decompose_forgetting` is no longer prose only: **3 occurrences in code** across 5 in the text.
+- **R1 stays MET** on the one spelling that is still documentation — `observability`, 3 occurrences in the text and
+  0 in code — so the per-task observability spectrum is still implemented nowhere.
+- **R2 stays MET**, unchanged: `backward transfer` and the per-task observability spectrum are the two metrics with
+  no spelling in code, and `decomposed forgetting` is now implemented under **both** its spellings, the prescribed
+  one and the conventional one.
+- **R3 FIRES**: 0 dotted paths are written beside a prose-only spelling, so every module the prose names is on disk.
+
+The unit's R3 was *"one of the prose-only mentions names a module that is not on disk"*, with *"the module it names
+exists"* as its falsifier. It fired within the hour, by the repair it asked for
+(`docs/findings/2026-10-01-the-decomposition-the-block-asked-for.md`).

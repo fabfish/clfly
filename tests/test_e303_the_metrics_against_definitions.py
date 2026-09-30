@@ -105,20 +105,18 @@ def test_the_live_block_is_what_the_finding_says():
     assert r["metrics"] == ["average accuracy", "decomposed forgetting", "backward transfer",
                             "per-task observability spectrum", "pairwise task principal angles"], r["metrics"]
     prose = {(x["metric"], x["spelling"]) for x in r["prose_only"]}
-    assert prose == {("decomposed forgetting", "decompose_forgetting"),
-                     ("per-task observability spectrum", "observability")}, prose
+    assert prose == {("per-task observability spectrum", "observability")}, prose
     assert r["unreadable"] == [], r["unreadable"]
-    # the metric the block prescribes is implemented only through the conventional form it rejects
+    # `e304` wrote the module `e303` found missing, so the prescribed spelling is now real code as well as prose
     impl = {x["metric"]: [y["spelling"] for y in r["spellings"] if y["metric"] == x["metric"] and y["in_code"]]
             for x in r["spellings"] if x["in_code"]}
-    assert impl["decomposed forgetting"] == ["mean_forgetting"], impl
+    assert impl["decomposed forgetting"] == ["decompose_forgetting", "mean_forgetting"], impl
     assert "backward transfer" not in impl and "per-task observability spectrum" not in impl, impl
-    broken = [d for d in r["dangling"] if not d["resolves_to"]]
-    assert [d["spelling"] for d in broken] == ["decompose_forgetting"], r["dangling"]
-    assert broken[0]["names"] == "clfly/lgcl/metrics.py" and not Path(broken[0]["names"]).exists(), broken[0]
+    # and the dangling reference this unit's R3 was registered on is gone, which is R3's falsifier firing on purpose
+    assert r["dangling"] == [], r["dangling"]
     claims = {x["id"]: x["verdict"] for x in e303.judge(r)}
-    for cid in ("R1", "R2", "R3"):
-        assert claims[cid].startswith("MET"), claims[cid]
+    assert claims["R1"].startswith("MET") and claims["R2"].startswith("MET"), claims
+    assert claims["R3"].startswith("FALSIFIER FIRED"), claims["R3"]
 
 
 def test_the_artifact_carries_the_same_reading():
@@ -127,8 +125,9 @@ def test_the_artifact_carries_the_same_reading():
         return
     d = json.loads(p.read_text(encoding="utf-8"))
     assert len(d["metrics"]) == 5 and len(d["spellings"]) == 6, (d["metrics"], d["spellings"])
-    assert [x["spelling"] for x in d["prose_only"]] == ["decompose_forgetting", "observability"], d["prose_only"]
-    assert [x["spelling"] for x in d["dangling"] if not x["resolves_to"]] == ["decompose_forgetting"], d["dangling"]
+    assert [x["spelling"] for x in d["prose_only"]] == ["observability"], d["prose_only"]
+    assert d["dangling"] == [], d["dangling"]
     claims = {x["id"]: x for x in d["claims"]}
-    for cid in ("R1", "R2", "R3"):
-        assert claims[cid]["verdict"].startswith("MET"), claims[cid]
+    assert claims["R1"]["verdict"].startswith("MET"), claims["R1"]
+    assert claims["R2"]["verdict"].startswith("MET"), claims["R2"]
+    assert claims["R3"]["verdict"].startswith("FALSIFIER FIRED"), claims["R3"]
