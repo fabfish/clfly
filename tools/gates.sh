@@ -140,4 +140,6 @@ run e301 python -m experiments.e301_the_corpus_holds_repeats --json-out runs/e30
 
 run e302 python -m experiments.e302_the_benchmark_metrics --json-out runs/e302_the_benchmark_metrics.json
 
+run e303 python -m experiments.e303_the_metrics_against_definitions --json-out runs/e303_the_metrics_against_definitions.json
+
 echo "ALL DONE"

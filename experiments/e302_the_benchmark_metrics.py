@@ -65,6 +65,20 @@ SELF = Path(__file__).name
 #: And this unit's own artifact, for the same reason: it writes the spelling table out, so every declared name
 #: occurs in it as a key and the carried arm would read its own output as the corpus carrying the metric.
 SELF_ARTIFACT = f"{Path(__file__).stem}.json"
+
+
+def is_auditor(path) -> bool:
+    """Whether a module is this unit or reads its spelling table, and so carries every name by construction.
+
+    The exclusion has to be transitive: `e303` re-reads this unit's five metrics, so its docstring contains
+    `backward transfer`, and an arm that only excluded *this* file would take that mention as evidence and lose the
+    one metric the earlier reading found missing. A module that reads the table is not evidence that a name in the
+    table is implemented.
+    """
+    p = Path(path)
+    if p.name == SELF:
+        return True
+    return Path(__file__).stem in p.read_text(encoding="utf-8", errors="replace")
 #: The block introduces its metric list with this token, and the list runs to the paragraph's end.
 METRICS_MARK = "Metrics:"
 #: The block's phrase, the spellings this instrument declares for it, and the corpus's own spelling of the field.
@@ -140,7 +154,7 @@ def code_evidence(spellings: tuple[str, ...], dirs=CODE_DIRS) -> dict[str, int]:
     src = ""
     for d in dirs:
         for p in Path(d).rglob("*.py"):
-            if p.name == SELF:
+            if is_auditor(p):
                 continue
             src += p.read_text(encoding="utf-8", errors="replace") + "\n"
     return {s: src.count(s) for s in spellings}

@@ -74,3 +74,21 @@ record**: a runner that shuffled tasks internally and then wrote the suite's can
 the corpus distinguishes that, so M4 says the order is not a variable the corpus varies and not that the loop iterates
 in the order it writes. **And only artifacts carrying a `tasks` list of named objects are read**, which leaves the
 analytic artifacts outside the order claim.
+
+## 7. RE-READ 2026-10-01 04:37 — the code arm was reading docstrings
+
+`e302`'s code arm counted a declared spelling anywhere in a module's text, and **a docstring is text**. `e303`
+re-reads the same six spellings with every `STRING` and `COMMENT` token removed, and two move:
+
+- **`decompose_forgetting` occurs once, in `clfly/lgcl/model.py`'s docstring, and in no code.** The docstring defers
+  to `clfly.lgcl.metrics.decompose_forgetting`, and **`clfly/lgcl/metrics.py` does not exist**.
+- **`observability` occurs three times, all in prose**, so the per-task observability spectrum is implemented nowhere
+  rather than implemented and unrecorded.
+
+**So M1's answer is bigger than this finding said and M2's is unchanged**: `backward transfer` and the per-task
+observability spectrum are implemented **nowhere**, and the one metric that looks implemented under the block's own
+name is implemented only through `mean_forgetting` — the conventional form the block rejects. The repaired reading is
+**two of five implemented, not four of five**; the carried arm is untouched, because it counts keys in artifacts and
+not words in modules. §5 recorded this unit reading its own spelling table as evidence; `e303` is the same defect one
+level down, with a different module's documentation as the evidence
+(`docs/findings/2026-10-01-the-metrics-against-definitions.md`).
