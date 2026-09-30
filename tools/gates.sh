@@ -148,4 +148,6 @@ run e305 python -m experiments.e305_the_arms_that_forget_nothing --json-out runs
 
 run e306 python -m experiments.e306_the_ordering_in_the_other_currency --json-out runs/e306_the_ordering_in_the_other_currency.json
 
+run e307 python -m experiments.e307_the_scope_in_the_fields_currency --json-out runs/e307_the_scope_in_the_fields_currency.json
+
 echo "ALL DONE"

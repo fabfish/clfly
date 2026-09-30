@@ -15,6 +15,15 @@ networks are famously bad at exactly this.
 > seventeen files in `runs/` that are a **second execution** of an experiment already in the corpus, and this census
 > now counts experiments rather than files; no verdict moved
 > (`docs/findings/2026-09-29-the-front-page-claim.md`, `docs/findings/2026-10-01-the-corpus-holds-repeats.md`).
+>
+> **And the field is half of a quantity.** `mean_forgetting` is exactly `R[j][j] - R[T-1][j]` — the part of a task the
+> arm learned and gave back — and it cannot see the other half, the part the arm never learned at all. On the arms
+> inside the line above, the median unlearned share of the shortfall is **0.821**, and **17 of the 55** have more
+> left to learn than the corpus's typical arm. So *"does not forget"* and *"never learned it"* are the same
+> measurement on most of them, and this clause names the field rather than the retention
+> (`docs/findings/2026-10-01-the-decomposition-the-block-asked-for.md`,
+> `docs/findings/2026-10-01-the-arms-that-forget-nothing.md`,
+> `docs/findings/2026-10-01-the-ordering-in-the-other-currency.md`).
 
 This repository asks a narrow, answerable version of that question:
 
