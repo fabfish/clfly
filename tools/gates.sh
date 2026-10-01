@@ -154,4 +154,6 @@ run e308 python -m experiments.e308_the_unit_of_the_vote --json-out runs/e308_th
 
 run e309 python -m experiments.e309_the_conformance_contract --json-out runs/e309_the_conformance_contract.json
 
+run e310 python -m experiments.e310_the_position_effect --json-out runs/e310_the_position_effect.json
+
 echo "ALL DONE"
