@@ -158,4 +158,6 @@ run e310 python -m experiments.e310_the_position_effect --json-out runs/e310_the
 
 run e311 python -m experiments.e311_the_two_tasks_the_metric_averages --json-out runs/e311_the_two_tasks_the_metric_averages.json
 
+run e312 python -m experiments.e312_the_shortfall_is_the_accuracy --json-out runs/e312_the_shortfall_is_the_accuracy.json
+
 echo "ALL DONE"

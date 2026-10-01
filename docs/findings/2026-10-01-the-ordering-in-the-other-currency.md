@@ -78,3 +78,21 @@ sit within four points of a half under both counts.
 Everything else in §4 stands, and R4 is untouched: the recomputed lost term and the stored field agree on all ten
 edges within this population, which is the check that makes this unit's reading the corpus's own field
 (`docs/findings/2026-10-01-the-unit-of-the-vote.md`).
+
+## 6. RE-READ 2026-10-01 09:41 — R2 is withdrawn, and the third quantity is the accuracy
+
+`e312` tests what this unit's first of three quantities is, and the answer is that it is not a third one:
+
+    shortfall_mean = mean_j (1 - R[T-1][j]) = 1 - final_accuracy
+
+The identity holds in **5581 of 5581** arm-replicates, and on all ten pairs the shortfall's majority edge **is** the
+accuracy's, read each in its own direction. So **R2 is withdrawn as a finding**: *"the arm the corpus ranks
+second-best on forgetting is the arm with the most left to learn"* is the same sentence as `e297`'s A2, *"the
+diagonal is last on accuracy and first on forgetting"*, and `e297` established it three fires earlier.
+
+**R1 stands and is now known to be about two of the corpus's own fields and their difference.** **R4 stands** and is
+what made the correction checkable. **R3 stands and is the unit's real contribution**: the lost ordering against the
+unlearned ordering is the forgetting against the level a task reached *when it was learned*, which is neither the
+accuracy nor the forgetting and which `e310` then measured as a position effect. The currency the corpus lacks is
+`unlearned`, and not a shortfall that turns out to be the accuracy with its sign flipped
+(`docs/findings/2026-10-01-the-shortfall-is-the-accuracy.md`).
