@@ -11,13 +11,22 @@ with the reason a third party needs it, and a census over `runs/`.
     an eval size            says which held-out sample the numbers are on -- the axis `e286` measures
     `final_accuracy`        the accuracy the benchmark reports
     `mean_forgetting`       the forgetting the benchmark reports
-    a retention matrix      the per-task levels, which is what makes the decomposition of `e304` computable
+    a retention matrix      the per-task levels, which make the decomposition of `e304` computable
+    `learned`               the level each task reached when it was learned -- what `e310` reads by position
+    `final_per_task`        the level each task ended at, which is what `final_accuracy` averages
+    `forgetting_per_task`   the lost term per task, which `e304` found is what `mean_forgetting` averages
     a read-out draw         the fingerprint of the read-out the run actually used, which is `e103`'s requirement
     a code revision         the epoch the numbers came from, which is what makes a re-run comparable
 
 Each reason is a sentence about a reader's task and not about tidiness, and the tests name them one at a time. **A
 field a runner records but a reader cannot use is not one of these**: `e205` found three spellings of a duration and
 `e184` found three kinds of citation, so the predicates below read the spelling the corpus's own readers read.
+
+**The last three were added on 2026-10-01** (`e314`), after `e304` and `e312` showed that the decomposition the block
+prescribes is *already written down* per task under those three names, and that the retention matrix is the
+redundancy over them. A contract that asked for the matrix and not the fields was asking a reader to re-derive three
+stored numbers, so the fields joined and the matrix stayed: it is what an independent implementation is checked
+against.
 
 **What this is not.** *It is not a schema*: it says what must be *findable* and not where, so `seed0` under `config`
 and under a top level both count. *It is not complete*: a benchmark that also wants the per-task observability
@@ -67,6 +76,18 @@ def has_retention(d) -> bool:
     return any("retention" in r for r in _replicates(d))
 
 
+def has_learned(d) -> bool:
+    return any("learned" in r for r in _replicates(d))
+
+
+def has_final_per_task(d) -> bool:
+    return any("final_per_task" in r for r in _replicates(d))
+
+
+def has_forgetting_per_task(d) -> bool:
+    return any("forgetting_per_task" in r for r in _replicates(d))
+
+
 def has_readout_draw(d) -> bool:
     return bool(d.get("readout"))
 
@@ -83,6 +104,10 @@ FIELDS = (
     ("final_accuracy", has_accuracy, "the accuracy the benchmark reports"),
     ("mean_forgetting", has_forgetting, "the forgetting the benchmark reports"),
     ("a retention matrix", has_retention, "the per-task levels, which make `e304`'s decomposition computable"),
+    ("learned", has_learned, "the level each task reached when it was learned, which `e310` reads by position"),
+    ("final_per_task", has_final_per_task, "the level each task ended at, which is what `final_accuracy` averages"),
+    ("forgetting_per_task", has_forgetting_per_task,
+     "the lost term per task, which `e304` found is what `mean_forgetting` averages"),
     ("a read-out draw", has_readout_draw, "the fingerprint of the read-out the run actually used"),
     ("a code revision", has_revision, "the epoch the numbers came from"),
 )

@@ -12,11 +12,13 @@ from experiments import e309_the_conformance_contract as e309
 
 
 def _payload(**drop):
-    """A payload carrying all eight fields, with any of them removed or emptied by name."""
+    """A payload carrying all the contract's fields, with any of them removed or replaced by name."""
     p = {"tasks": [{"name": "t0"}, {"name": "t1"}], "config": {"seed0": 0},
          "evaluation_noise": {"n_eval": 144}, "readout": {"subset_sha1": "abc"},
          "code_revision": {"commit": "deadbeef"},
          "methods": {"naive": {"replicates": [{"final_accuracy": 0.9, "mean_forgetting": 0.1,
+                                               "final_per_task": [0.9, 0.9], "learned": [1.0, 1.0],
+                                               "forgetting_per_task": [0.1, 0.1],
                                                "retention": [[1.0, None], [0.9, 0.9]]}]}}}
     for k, v in drop.items():
         if v is None:
@@ -56,7 +58,7 @@ def test_the_census_reports_the_blocks_and_not_only_the_totals(tmp_path):
     (tmp_path / "empty.json").write_text(json.dumps({"summary": {}}), encoding="utf-8")
     c = conformance.census(tmp_path)
     assert c["artifacts"] == 4 and c["conformant"] == 1, c
-    assert dict(c["by_count"]) == {8: 1, 5: 1, 1: 1, 0: 1}, c["by_count"]
+    assert dict(c["by_count"]) == {11: 1, 8: 1, 1: 1, 0: 1}, c["by_count"]
     assert c["gaps"] == [], c["gaps"]
     assert [b["n"] for b in c["blocks"]] == [1, 1, 1, 1], c["blocks"]
     # a payload in the middle is what K4 would fire on

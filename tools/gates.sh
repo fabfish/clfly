@@ -162,4 +162,6 @@ run e312 python -m experiments.e312_the_shortfall_is_the_accuracy --json-out run
 
 run e313 python -m experiments.e313_the_decomposition_is_three_fields --json-out runs/e313_the_decomposition_is_three_fields.json
 
+run e314 python -m experiments.e314_the_contract_with_the_result_block --json-out runs/e314_the_contract_with_the_result_block.json
+
 echo "ALL DONE"

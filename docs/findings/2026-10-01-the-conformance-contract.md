@@ -58,3 +58,23 @@ about a contract, and a different contract gives different numbers. **A predicat
 non-conformant. **Conformance is not quality**: an artifact can carry all eight and be wrong, which is every other
 unit's business. **And the census is over this repository's artifacts on `e301`'s collapse**, so it describes what
 this project has written and not what a fresh run would produce.
+
+## 6. RE-READ 2026-10-01 10:52 — the list is eleven, and the share did not move
+
+`e313` found that the decomposition the block prescribes is already written down per task under `learned`,
+`final_per_task` and `forgetting_per_task`, and that the retention matrix is the redundancy over them. That gap was
+reported in §5 of that finding and left open; `e314` closes it: **the three fields are in the contract and the matrix
+stays**, and the unit's claims are re-run over eleven.
+
+**What moved: nothing.** The artifacts are **552** on the same collapse, **76 (14%)** carry all eleven, the scarcest
+field is still **the read-out draw at 76**, and K1 to K3 hold with the same numbers they held at eight. Adding three
+required fields could only have shrunk the conformant set, and it did not, **because the three ride with the matrix
+they are the cells of** — the fields are carried by **147** artifacts each, more than a quarter.
+
+**What sharpened: K4.** At eight fields the hole was two to four; at eleven it is **two to seven**, and the counts run
+**0, 1, 8, 9, 10, 11**. The record is one of three things — nothing, a seed, or the result block and however much of
+the rest — and never a partial result.
+
+K1's and K4's wordings in this unit are now derived from the contract's length rather than written as "eight", so a
+further addition does not leave them stale
+(`docs/findings/2026-10-01-the-contract-with-the-result-block.md`).

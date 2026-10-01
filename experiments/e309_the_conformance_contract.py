@@ -8,7 +8,7 @@ third party needs it -- and reads the corpus against it.
 
 Four claims, registered before the reading below was taken:
 
-- **K1 -- the contract binds.** The scarcest of the eight fields is carried by under a quarter of the corpus.
+- **K1 -- the contract binds.** The scarcest field is carried by under a quarter of the corpus.
   **Falsifier**: every field carried by a quarter or more.
 - **K2 -- and the binding field is the one the corpus's own methodology line required.** The scarcest field is the
   read-out draw fingerprint. **Falsifier**: another field is scarcer.
@@ -40,7 +40,7 @@ RUNS = Path("runs")
 QUARTER = 0.25
 CLAIMS = (
     ("K1", "the contract binds",
-     "The scarcest of the eight fields is carried by under a quarter of the corpus",
+     "The scarcest field is carried by under a quarter of the corpus",
      "falsifier: every field carried by a quarter or more"),
     ("K2", "and the binding field is the one the corpus's own methodology line required",
      "The scarcest field is the read-out draw fingerprint",
@@ -84,7 +84,7 @@ def judge(r: dict) -> list[dict]:
                            f"FALSIFIER FIRED -- {100 * share:.0f}%"})
 
     gaps = r["gaps"]
-    out.append({"id": "K4", "measured": f"the artifacts' counts of the eight run "
+    out.append({"id": "K4", "measured": f"the artifacts' counts of the {len(r['fields'])} run "
                                         f"{sorted(r['by_count'])}; {len(gaps)} fall between two and four",
                 "verdict": "MET -- the record comes in blocks and not in degrees" if not gaps else
                            f"FALSIFIER FIRED -- counts {gaps}"})
