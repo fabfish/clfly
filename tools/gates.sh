@@ -186,4 +186,6 @@ run e324 python -m experiments.e324_what_the_time_axis_costs --json-out runs/e32
 
 run e325 python -m experiments.e325_the_loop_closes --json-out runs/e325_the_loop_closes.json
 
+run e326 python -m experiments.e326_training_through_the_loop --json-out runs/e326_training_through_the_loop.json
+
 echo "ALL DONE"

@@ -35,6 +35,7 @@ import numpy as np
 from clfly.bench.artifacts import write_json
 from clfly.bench.control import evaluation_noise, paired_contrast
 from clfly.connectome import annotate, circuits, graph
+from clfly.network import env as fly_env
 from clfly.network import tasks as rate_tasks
 from clfly.network.fisher import SynapsePartition
 from clfly.network.model import RateConfig, build_net
@@ -515,7 +516,7 @@ def block_fisher(model, heads, suite, k: int, part, n_batches: int = 8,
 
 
 def run_method(conn_net, suite, method: str, args, seed: int,
-               partitions: dict | None = None) -> dict:
+               partitions: dict | None = None, feedback=None) -> dict:
     """Train sequentially and record the full retention matrix.
 
     ``R[k, j]`` = accuracy on task ``j`` after training through task ``k``, so the
@@ -538,6 +539,10 @@ def run_method(conn_net, suite, method: str, args, seed: int,
     torch.manual_seed(seed)
 
     model = conn_net.torch_model()
+    if feedback is not None:
+        #: `ClosedLoop` passes everything but the forward call through, so the training loop, the Fisher blocks
+        #: and the replay features below are all unedited and all see the same dynamical system.
+        model = fly_env.ClosedLoop(model, feedback)
     shared = bool(getattr(args, "shared_head", False))
     if shared:
         total = sum(t.n_classes for t in suite)
@@ -949,6 +954,19 @@ def main(argv=None) -> int:
                    help="build the suite from `make_sequence_suite`: one symbol for the trial's first half and "
                         "another for the second, labelled by their ordered pair. `--classes` must be a perfect "
                         "square; the alphabet is its root")
+    #: `e322` named a step-varying writer and an environment in the training loop as the two ways to give the
+    #: trial a time axis; `e323` and `e324` took the first and `e325` built the second and measured it frozen.
+    #: These flags are what make it **trainable**: the suite is three cue sets in one world, and the feedback is
+    #: wired into every forward pass by wrapping the module rather than by editing each call site.
+    p.add_argument("--closed-loop", action="store_true",
+                   help="build the suite from `clfly.network.env`: one environment, one cue set per task, and the "
+                        "agent's own last action added to every step's input after step 0")
+    p.add_argument("--no-feedback", action="store_true",
+                   help="with `--closed-loop`, run the identical suite with the loop **unwired**: the same tasks, "
+                        "the same cue sets, the same seeds and no feedback, which is the comparison")
+    p.add_argument("--loop-symbols", type=int, default=2, help="cue symbols per task in the closed loop")
+    p.add_argument("--loop-scale", type=float, default=1.0, help="the feedback channel's strength")
+    p.add_argument("--loop-gain", type=float, default=1.0, help="the action's slope in the action neurons' mean")
     p.add_argument("--json-out", type=Path, default=None)
     args = p.parse_args(argv)
 
@@ -980,6 +998,8 @@ def main(argv=None) -> int:
     #: `--readout-seed`'s default does.
     support_seed = args.seed0 if getattr(args, "support_seed", None) is None else args.support_seed
     support_draw = None
+    env_draw = None
+    feedback = None
     if args.sequence:
         #: Refused rather than rounded: `classes` is the square of the alphabet and a non-square would silently
         #: become a different task from the one the command names.
@@ -1010,6 +1030,26 @@ def main(argv=None) -> int:
             for t in suite).encode()).hexdigest()[:12]
         support_draw = {"draw_seed": int(support_seed), "fingerprint_sha1": sup_hash,
                         "n_per_support": int(len(suite[0].input_neurons))}
+    if args.closed_loop:
+        #: The environment a game needs: one world for the whole suite, three cue sets inside it. The feedback is
+        #: wired into every forward pass by wrapping the module, so training, evaluation, the Fisher blocks and the
+        #: replay features all see the same dynamical system -- and `--no-feedback` runs the identical suite
+        #: unwired, which is what makes the two artifacts one configuration in two loops.
+        loop_env = fly_env.build(circ, readout_subset=rs, seed=args.seed0,
+                                 n_symbols=args.loop_symbols * len(rate_tasks.SUITE_SPECS),
+                                 tau=12, scale=args.loop_scale, gain=args.loop_gain)
+        suite = [fly_env.make_env_task(loop_env, f"loop_{spec[0]}",
+                                       symbols=range(i * args.loop_symbols, (i + 1) * args.loop_symbols),
+                                       n_train=args.train, n_test=args.test,
+                                       readout_neurons=rs if rs is not None else np.arange(circ.n_neurons),
+                                       class_offset=i * args.loop_symbols, seed=i)
+                 for i, spec in enumerate(rate_tasks.SUITE_SPECS)]
+        env_draw = loop_env.summary()
+        #: The loop itself, handed to every replicate so that each one wraps its own freshly-built module. None
+        #: with `--no-feedback`, which is the same suite and the same seeds with the world disconnected.
+        feedback = None if args.no_feedback else loop_env.feedback()
+        suite_label = (f"closed loop: {len(suite)} cue sets in one environment, "
+                       f"feedback {'off' if args.no_feedback else args.loop_scale} at gain {args.loop_gain}")
 
     #: The order the suite is trained in. Applied **after** the support fingerprint, so that fingerprint keeps
     #: identifying the draw rather than the sequence -- two runs of one draw in two orders must agree on it or the
@@ -1073,7 +1113,10 @@ def main(argv=None) -> int:
            # which neurons were chosen, and until this fire nothing recorded the draw at all -- so two artifacts at
            # the same target overlap were "the same configuration" by every check this corpus applies while driving
            # entirely different neurons. None for the default suite, which uses identified circuits.
-           **({"support_draw": support_draw} if support_draw is not None else {})}
+           **({"support_draw": support_draw} if support_draw is not None else {}),
+           # Which environment draw the closed loop used, on the same reasoning as the two above: the three
+           # populations are an RNG draw from `seed0` and `config` records only the scale and the gain.
+           **({"env_draw": env_draw} if env_draw is not None else {})}
     # A heartbeat, because a replicate here is minutes to hours and until this fire a long run was COMPLETELY
     # unobservable: `--json-out` is written once at the end (rule 47 -- the timestamp is the run's end, so a
     # partial artifact would be a lie), which left a six-hour command with no output at all. `e178` was 5.4 h into
@@ -1087,7 +1130,7 @@ def main(argv=None) -> int:
         for r in range(args.repeats):
             r0 = time.time()
             reps.append(run_method(net, suite, method, args, seed=args.seed0 + 100 * r,
-                                   partitions=partitions))
+                                   partitions=partitions, feedback=feedback))
             done += 1
             elapsed = time.time() - t_start
             cpu = time.process_time() - t_cpu0

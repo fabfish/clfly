@@ -102,6 +102,52 @@ def _sha(idx: np.ndarray) -> str:
     return hashlib.sha1(" ".join(str(int(x)) for x in np.sort(np.asarray(idx))).encode()).hexdigest()[:12]
 
 
+def make_env_task(env: CueActionEnv, name: str, symbols, n_train: int, n_test: int,
+                  readout_neurons, class_offset: int = 0, seed: int = 0):
+    """One task inside the environment: the cue drawn from ``symbols``, read out from ``readout_neurons``.
+
+    The task's ``u`` is :meth:`CueActionEnv.cue_input` -- a pulse at step ``0`` and nothing after it -- and its
+    label is the cue. Every task built this way shares the environment, so a suite of them is three cue sets in
+    **one** world and the loop is the same function for all of them; that is what lets a runner wire the feedback
+    in one place rather than per task.
+    """
+    from .tasks import RateTask
+    rng = np.random.default_rng(seed)
+    symbols = np.asarray(symbols, dtype=np.int64)
+    y_tr = rng.choice(symbols, size=n_train)
+    y_te = rng.choice(symbols, size=n_test)
+    return RateTask(name=name,
+                    input_neurons=np.sort(np.concatenate([env.cue_neurons, env.feedback_neurons])),
+                    readout_neurons=np.asarray(readout_neurons), n_classes=len(symbols),
+                    n_neurons=env.n_neurons, tau=env.tau,
+                    u_train=env.cue_input(y_tr), y_train=y_tr - class_offset,
+                    u_test=env.cue_input(y_te), y_test=y_te - class_offset,
+                    class_offset=class_offset)
+
+
+class ClosedLoop:
+    """The model with an environment wired to its own output: a drop-in for every call site in a runner.
+
+    The feedback has to reach **every** forward pass -- training, evaluation, the Fisher blocks, the replay
+    features -- or an arm would be measuring a different dynamical system from the one it trains. Threading a
+    keyword through a dozen call sites is where a unit like this usually goes wrong, so this wraps instead:
+    it is callable like the module and passes everything else through, which means ``model(U, None)`` at each
+    existing site becomes the closed-loop call without being edited.
+    """
+
+    def __init__(self, model, feedback):
+        self.model = model                      # set first: `__getattr__` reads it
+        self.feedback = feedback
+
+    def __call__(self, u, w_in=None):
+        return self.model(u, w_in, feedback=self.feedback)
+
+    def __getattr__(self, name):
+        if name.startswith("__") and name.endswith("__"):
+            raise AttributeError(name)
+        return getattr(self.model, name)
+
+
 def build(circ, readout_subset=None, n_symbols: int = 2, tau: int = 12, n_cue: int = 12,
           n_action: int = 8, n_feedback: int = 12, seed: int = 0, scale: float = 1.0,
           gain: float = 1.0) -> CueActionEnv:
