@@ -152,4 +152,6 @@ run e307 python -m experiments.e307_the_scope_in_the_fields_currency --json-out 
 
 run e308 python -m experiments.e308_the_unit_of_the_vote --json-out runs/e308_the_unit_of_the_vote.json
 
+run e309 python -m experiments.e309_the_conformance_contract --json-out runs/e309_the_conformance_contract.json
+
 echo "ALL DONE"
