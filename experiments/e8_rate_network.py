@@ -1037,6 +1037,13 @@ def main(argv=None) -> int:
     #: artifact in this corpus is a seed-stream comparison: the pair that would be one needs this flag and
     #: `--readout-seed` held while `--seed0` moves. The default is `--seed0`, so every earlier artifact is
     #: unaffected.
+    #: `e343` showed the loop's state divergence is task-orthogonal, which leaves the **latch** hypothesis standing:
+    #: a channel that helps the state hold what a task requires would show up as divergence in the state and
+    #: invariance in accuracy. This flag is the control it needs -- the same label, delivered at the step it is read
+    #: rather than at the first one, so the trial stops being *hold the symbol across the gap*.
+    p.add_argument("--loop-cue-at", type=int, default=0,
+                   help="the step the closed loop delivers its cue at; the last step makes the label readable "
+                        "from the drive and is the no-memory control")
     p.add_argument("--loop-seed", type=int, default=None,
                    help="the environment's population seed for the closed loop; defaults to `--seed0`")
     p.add_argument("--loop-noise", type=float, default=0.0,
@@ -1116,7 +1123,7 @@ def main(argv=None) -> int:
                                  n_symbols=args.loop_symbols * len(rate_tasks.SUITE_SPECS),
                                  tau=12, scale=args.loop_scale, gain=args.loop_gain,
                                  noise=args.loop_noise, world_modes=args.loop_world_modes,
-                                 world_leak=args.loop_world_leak)
+                                 world_leak=args.loop_world_leak, cue_at=args.loop_cue_at)
         suite = [fly_env.make_env_task(loop_env, f"loop_{spec[0]}",
                                        symbols=range(i * args.loop_symbols, (i + 1) * args.loop_symbols),
                                        n_train=args.train, n_test=args.test,

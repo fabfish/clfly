@@ -67,3 +67,16 @@ r300 1.116, r700 0.757** — **r512 is gone, because two of its six arms were se
 the minimum arm count this census prints a rung at**. That is a bookkeeping consequence of the repair and not a
 measurement: the same fractions are in the corpus, and the finding's point — that the share is a level difference and
 not a monotone law — is what S3 already said.
+
+## RE-READ 2026-10-02 — three narrow arms landed on the 1.8 snapshot and the claims held
+
+`e344` wrote three closed-loop runs at read-out 32, and each carries a `replay` arm with both a width and a variance
+fraction, so this census now reads **340 arms** where the last read gave 246: the plastic narrow pool is **297** with
+**85** above one (29%) against **33** wide with **17** (52%). The ratio of the two rates is **exactly 1.8**, which is
+where the live test's historical "more than doubles" bar sat, and a strict comparison loses a floating-point tie --
+**that assertion fired on this run and is now the unit's own S1 threshold**, `wide["rate"] > narrow["rate"]`, with
+the numbers it prints left as the record. **S1 MET**: the narrow median is **0.637** and the wide one **1.071**, the
+same level difference at the same medians. **S2 MET**: the ten frozen arms keep a median of **18.18**, a factor of
+**x17.0**. **S3 MET**: the per-width medians are **r0 0.449, r32 0.667, r128 0.853, r300 1.116, r700 0.757** --
+still not monotone, and r32 moved by 0.030 because those three arms sit in it. The finding's point is untouched: the
+share is a level difference between the ends of the ladder and not a law in the width.

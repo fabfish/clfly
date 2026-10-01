@@ -67,6 +67,11 @@ class CueActionEnv:
     #: sum of the whole action history and not of one step. The endpoint is exact: at one, the recursion is the
     #: identity `w = action` and this is `e332`'s world to the last digit.
     world_leak: float = 1.0
+    #: **when the cue arrives.** Zero is every artifact this repository holds: a pulse at the first step, so the trial
+    #: is *hold the symbol across the gap* and the recurrent state has to carry it. Any later step makes the same
+    #: label readable from the drive at the moment it is read, which is the control the latch hypothesis needs --
+    #: a task that does not have to hold anything.
+    cue_at: int = 0
 
     @property
     def n_symbols(self) -> int:
@@ -84,10 +89,10 @@ class CueActionEnv:
         """
         symbols = np.asarray(symbols, dtype=np.int64)
         u = np.zeros((len(symbols), self.tau, self.n_neurons))
-        u[:, 0, self.cue_neurons] = self.cue_templates[symbols]
+        u[:, self.cue_at, self.cue_neurons] = self.cue_templates[symbols]
         if self.noise:
             r = np.random.default_rng(0) if rng is None else rng
-            u[:, 0, self.cue_neurons] += self.noise * r.standard_normal(
+            u[:, self.cue_at, self.cue_neurons] += self.noise * r.standard_normal(
                 (len(symbols), len(self.cue_neurons)))
         return u
 
@@ -146,7 +151,7 @@ class CueActionEnv:
         return {"tau": self.tau, "n_symbols": self.n_symbols, "n_cue": int(len(self.cue_neurons)),
                 "n_action": int(len(self.action_neurons)), "n_feedback": int(len(self.feedback_neurons)),
                 "scale": self.scale, "gain": self.gain, "noise": self.noise,
-                "world_modes": self.world_modes, "world_leak": self.world_leak,
+                "world_modes": self.world_modes, "world_leak": self.world_leak, "cue_at": self.cue_at,
                 "cue_sha1": _sha(self.cue_neurons), "action_sha1": _sha(self.action_neurons),
                 "feedback_sha1": _sha(self.feedback_neurons),
                 "world_sha1": (_sha(np.ravel(self.world_templates)) if self.world_templates is not None
@@ -209,7 +214,7 @@ class ClosedLoop:
 def build(circ, readout_subset=None, n_symbols: int = 2, tau: int = 12, n_cue: int = 12,
           n_action: int = 8, n_feedback: int = 12, seed: int = 0, scale: float = 1.0,
           gain: float = 1.0, noise: float = 0.0, world_modes: int = 0,
-          world_leak: float = 1.0) -> CueActionEnv:
+          world_leak: float = 1.0, cue_at: int = 0) -> CueActionEnv:
     """Draw the three populations disjointly and the cue templates, all from ``seed``.
 
     ``readout_subset`` is the decoder's own draw and is **not** available to the environment: the action is read off
@@ -227,5 +232,6 @@ def build(circ, readout_subset=None, n_symbols: int = 2, tau: int = 12, n_cue: i
                         feedback_neurons=np.sort(feedback),
                         cue_templates=rng.standard_normal((n_symbols, n_cue)),
                         scale=scale, gain=gain, noise=noise, world_modes=world_modes, world_leak=world_leak,
+                        cue_at=cue_at,
                         world_templates=(rng.standard_normal((world_modes, n_feedback))
                                          if world_modes else None))

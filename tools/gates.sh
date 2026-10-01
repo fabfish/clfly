@@ -222,4 +222,6 @@ run e342 python -m experiments.e342_the_channel_across_strengths --json-out runs
 
 run e343 python -m experiments.e343_a_readout_that_looks --json-out runs/e343_a_readout_that_looks.json
 
+run e344 python -m experiments.e344_the_latch_hypothesis --json-out runs/e344_the_latch_hypothesis.json
+
 echo "ALL DONE"
