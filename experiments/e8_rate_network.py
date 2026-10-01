@@ -968,6 +968,11 @@ def main(argv=None) -> int:
     #: `e328` ended on the ceiling: with deterministic cue patterns a two-symbol task is two fixed vectors, every
     #: arm learns it perfectly, and the only quantity left to move was whether a replicate forgot at all. Noise on
     #: the cue is what turns it into a measurement, and it defaults to zero so every earlier artifact is unaffected.
+    #: `e331` found the ordering surviving the loop on a world whose response is a **scalar report** of the
+    #: agent's action. This is the other kind: the action selects a **state**, so what comes back is a consequence
+    #: the agent picked rather than a number saying what it did.
+    p.add_argument("--loop-world-modes", type=int, default=0,
+                   help="the number of world states the action selects between; 0 keeps the scalar report")
     p.add_argument("--loop-noise", type=float, default=0.0,
                    help="noise on the closed loop's cue, drawn once per example at step 0")
     p.add_argument("--loop-scale", type=float, default=1.0, help="the feedback channel's strength")
@@ -1043,7 +1048,7 @@ def main(argv=None) -> int:
         loop_env = fly_env.build(circ, readout_subset=rs, seed=args.seed0,
                                  n_symbols=args.loop_symbols * len(rate_tasks.SUITE_SPECS),
                                  tau=12, scale=args.loop_scale, gain=args.loop_gain,
-                                 noise=args.loop_noise)
+                                 noise=args.loop_noise, world_modes=args.loop_world_modes)
         suite = [fly_env.make_env_task(loop_env, f"loop_{spec[0]}",
                                        symbols=range(i * args.loop_symbols, (i + 1) * args.loop_symbols),
                                        n_train=args.train, n_test=args.test,

@@ -54,6 +54,13 @@ class CueActionEnv:
     #: deterministic cue patterns a two-symbol task is two fixed vectors and every arm learns it perfectly, which
     #: is the ceiling `e328` ended by naming. A non-zero value makes the cue a noisy measurement.
     noise: float = 0.0
+    #: **the world's response.** Zero keeps the channel a scalar report of the agent's action, which is what every
+    #: loop artifact before this field carried. Two or more replaces it with a **state**: the action selects one of
+    #: this many patterns by a smooth interpolation, so what comes back is a consequence the agent picked rather
+    #: than a number saying what it did. The patterns are drawn from the environment's own seed and recorded in the
+    #: draw, and there is no third option -- the response is either a report or a state.
+    world_modes: int = 0
+    world_templates: np.ndarray | None = None      # (world_modes, len(feedback_neurons))
 
     @property
     def n_symbols(self) -> int:
@@ -96,7 +103,20 @@ class CueActionEnv:
             if t == 0:
                 return torch.zeros_like(x)
             add = torch.zeros_like(x)
-            add[:, out] = (self.scale * self.action(x))[:, None]
+            action = self.action(x)
+            if self.world_modes and self.world_templates is not None:
+                #: a smooth pick between two patterns: at saturation the world shows its state, and in between it
+                #: shows a blend, which is what keeps the loop differentiable through the choice
+                #: centred on the neutral action, so a state of zero shows nothing: `share` runs from 0 to 1 as
+                #: the action runs from -1 to +1 and the blend is taken about its midpoint rather than about the
+                #: first template. Without the centring the world would inject its two patterns' average whenever
+                #: the agent did nothing, which is a consequence reported for no action.
+                share = (1.0 + action) / 2.0
+                tpl = torch.as_tensor(np.asarray(self.world_templates), dtype=x.dtype)
+                blend = share[:, None] * tpl[1] + (1 - share)[:, None] * tpl[0]
+                add[:, out] = self.scale * (blend - (tpl[0] + tpl[1]) / 2.0)
+            else:
+                add[:, out] = (self.scale * action)[:, None]
             return add
 
         return fn
@@ -105,8 +125,11 @@ class CueActionEnv:
         return {"tau": self.tau, "n_symbols": self.n_symbols, "n_cue": int(len(self.cue_neurons)),
                 "n_action": int(len(self.action_neurons)), "n_feedback": int(len(self.feedback_neurons)),
                 "scale": self.scale, "gain": self.gain, "noise": self.noise,
+                "world_modes": self.world_modes,
                 "cue_sha1": _sha(self.cue_neurons), "action_sha1": _sha(self.action_neurons),
-                "feedback_sha1": _sha(self.feedback_neurons)}
+                "feedback_sha1": _sha(self.feedback_neurons),
+                "world_sha1": (_sha(np.ravel(self.world_templates)) if self.world_templates is not None
+                               else None)}
 
 
 def _sha(idx: np.ndarray) -> str:
@@ -164,7 +187,7 @@ class ClosedLoop:
 
 def build(circ, readout_subset=None, n_symbols: int = 2, tau: int = 12, n_cue: int = 12,
           n_action: int = 8, n_feedback: int = 12, seed: int = 0, scale: float = 1.0,
-          gain: float = 1.0, noise: float = 0.0) -> CueActionEnv:
+          gain: float = 1.0, noise: float = 0.0, world_modes: int = 0) -> CueActionEnv:
     """Draw the three populations disjointly and the cue templates, all from ``seed``.
 
     ``readout_subset`` is the decoder's own draw and is **not** available to the environment: the action is read off
@@ -181,4 +204,6 @@ def build(circ, readout_subset=None, n_symbols: int = 2, tau: int = 12, n_cue: i
                         cue_neurons=np.sort(cue), action_neurons=np.sort(action),
                         feedback_neurons=np.sort(feedback),
                         cue_templates=rng.standard_normal((n_symbols, n_cue)),
-                        scale=scale, gain=gain, noise=noise)
+                        scale=scale, gain=gain, noise=noise, world_modes=world_modes,
+                        world_templates=(rng.standard_normal((world_modes, n_feedback))
+                                         if world_modes else None))

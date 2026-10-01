@@ -198,4 +198,6 @@ run e330 python -m experiments.e330_the_cost_needs_the_ceiling --json-out runs/e
 
 run e331 python -m experiments.e331_the_ordering_under_the_loop --json-out runs/e331_the_ordering_under_the_loop.json
 
+run e332 python -m experiments.e332_the_world_answers_with_a_state --json-out runs/e332_the_world_answers_with_a_state.json
+
 echo "ALL DONE"
