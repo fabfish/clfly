@@ -117,8 +117,19 @@ def reading(fwd: Path = FORWARDS, bwd: Path = BACKWARDS) -> dict:
             "contrasts": {k: {"forward": ca[k], "backward": cb[k],
                               "ratio": (abs(ca[k]["delta"]) / abs(cb[k]["delta"]))
                               if cb[k]["delta"] else None} for k in keys},
-            "same_seeds": ([r.get("seed") for r in a["methods"][REPLAY]["replicates"]]
-                           == [r.get("seed") for r in b["methods"][REPLAY]["replicates"]])}
+            #: **The check the first version of this unit did not make.** The replicates carry `method`, `losses`,
+            #: `final_accuracy` and the rest, and **no seed field** -- so a comparison of `r.get("seed")` across
+            #: the two runs was `[None] * n == [None] * n` and could not fail, whatever the runs' seeds were.
+            #: `e324` found it while writing the same check for its own pair of runs. What is recorded is the
+            #: config's `seed0` and `repeats`, which is what identifies the seed schedule, so those are compared
+            #: and the replicate counts are compared with them.
+            "seeds": {"seed0": [a.get("config", {}).get("seed0"), b.get("config", {}).get("seed0")],
+                      "repeats": [a.get("config", {}).get("repeats"), b.get("config", {}).get("repeats")]},
+            "same_seeds": (a.get("config", {}).get("seed0") is not None
+                           and a.get("config", {}).get("seed0") == b.get("config", {}).get("seed0")
+                           and a.get("config", {}).get("repeats") == b.get("config", {}).get("repeats")
+                           and len(a["methods"][REPLAY]["replicates"])
+                           == len(b["methods"][REPLAY]["replicates"]))}
 
 
 def judge(r: dict) -> list[dict]:

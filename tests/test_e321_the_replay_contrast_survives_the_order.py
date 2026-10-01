@@ -21,13 +21,18 @@ def test_the_direction_convention_is_per_metric():
     assert e321.paired([1.0], [0.5], higher_is_better=True)["delta"] is None
 
 
-def _run(names, order="as-built", circuit="MB", sha="abc", gap=0.1, reps=5):
+def _run(names, order="as-built", circuit="MB", sha="abc", gap=0.1, reps=5, seed0=0, repeats=None):
+    #: **No `seed` key in a replicate**, because the real artifacts do not have one: `runs/e317_*.json`'s
+    #: replicates carry `method`, `losses`, `final_accuracy` and the rest and no seed field, and the fixture
+    #: inventing one is what let this unit's seed check be `[None] * n == [None] * n` without any test failing.
     payload = {"tasks": [{"name": n} for n in names], "circuit": circuit,
-               "config": {"task_order": order}, "readout": {"subset_sha1": sha}, "methods": {}}
+               "config": {"task_order": order, "seed0": seed0,
+                          "repeats": reps if repeats is None else repeats},
+               "readout": {"subset_sha1": sha}, "methods": {}}
     for arm, bonus in ((e321.REPLAY, gap), ("ewc", 0.0), ("ewc-block", 0.0), ("ewc-block-rand", 0.0)):
         payload["methods"][arm] = {"replicates": [
-            {"final_accuracy": 0.8 + bonus + 0.01 * i, "mean_forgetting": 0.10 - bonus * 0.5 + 0.002 * i,
-             "seed": 100 * i} for i in range(reps)]}
+            {"final_accuracy": 0.8 + bonus + 0.01 * i, "mean_forgetting": 0.10 - bonus * 0.5 + 0.002 * i}
+            for i in range(reps)]}
     return payload
 
 
@@ -46,6 +51,22 @@ def test_the_reading_pairs_each_contrast_in_both_orders(tmp_path):
     # and a missing run refuses rather than reading one
     bwd.unlink()
     assert e321.reading(fwd, bwd)["runs"] == 0, e321.reading(fwd, bwd)
+
+
+def test_the_seed_check_can_fail(tmp_path):
+    """The check the first version could not make: a differing `seed0` or `repeats` is a differing seed schedule."""
+    names = ("odour_identity", "heading", "odour_input")
+    fwd = tmp_path / "f.json"
+    bwd = tmp_path / "b.json"
+    fwd.write_text(json.dumps(_run(names)), encoding="utf-8")
+    bwd.write_text(json.dumps(_run(names[::-1], order="reverse", seed0=7)), encoding="utf-8")
+    assert e321.reading(fwd, bwd)["same_seeds"] is False, e321.reading(fwd, bwd)["seeds"]
+    bwd.write_text(json.dumps(_run(names[::-1], order="reverse", repeats=3)), encoding="utf-8")
+    r = e321.reading(fwd, bwd)
+    assert r["same_seeds"] is False, r["seeds"]
+    # and a run whose config carries no `seed0` at all is not the same schedule as one that does
+    bwd.write_text(json.dumps(_run(names[::-1], order="reverse", seed0=None)), encoding="utf-8")
+    assert e321.reading(fwd, bwd)["same_seeds"] is False, e321.reading(fwd, bwd)["seeds"]
 
 
 def _reading(forward_ratio=1.0, backward_ratio=1.0, forward_sigma=4.0, backward_sigma=3.0,

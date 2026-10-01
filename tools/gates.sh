@@ -182,4 +182,6 @@ run e322 python -m experiments.e322_the_benchmark_has_no_time_in_it --json-out r
 
 run e323 python -m experiments.e323_the_trial_gets_a_second_half --json-out runs/e323_the_trial_gets_a_second_half.json
 
+run e324 python -m experiments.e324_what_the_time_axis_costs --json-out runs/e324_what_the_time_axis_costs.json
+
 echo "ALL DONE"

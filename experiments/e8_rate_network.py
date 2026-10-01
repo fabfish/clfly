@@ -940,6 +940,15 @@ def main(argv=None) -> int:
     p.add_argument("--task-order", default="as-built",
                    help="the order the suite is trained in: `as-built`, `reverse`, or a comma-separated "
                         "permutation of the suite's indices, e.g. `2,0,1`")
+    #: `e322` measured that every task in this suite delivers a stimulus equal to its first step exactly, so the
+    #: trial's time axis carried nothing; `e323` built the first writer that changes with time and measured it on
+    #: the frozen network. This flag is what makes it **trainable**: the suite builder returns the same `RateTask`
+    #: as the sustained one, so the five arms run on it unchanged. `--classes` must be a perfect square, since the
+    #: alphabet is its root and the label is a pair of symbols.
+    p.add_argument("--sequence", action="store_true",
+                   help="build the suite from `make_sequence_suite`: one symbol for the trial's first half and "
+                        "another for the second, labelled by their ordered pair. `--classes` must be a perfect "
+                        "square; the alphabet is its root")
     p.add_argument("--json-out", type=Path, default=None)
     args = p.parse_args(argv)
 
@@ -971,7 +980,19 @@ def main(argv=None) -> int:
     #: `--readout-seed`'s default does.
     support_seed = args.seed0 if getattr(args, "support_seed", None) is None else args.support_seed
     support_draw = None
-    if args.input_overlap is None:
+    if args.sequence:
+        #: Refused rather than rounded: `classes` is the square of the alphabet and a non-square would silently
+        #: become a different task from the one the command names.
+        if args.input_overlap is not None:
+            raise SystemExit("--sequence and --input-overlap are two different builders; pick one")
+        k = int(round(args.classes ** 0.5))
+        if k * k != args.classes:
+            raise SystemExit(f"--sequence: --classes must be a perfect square, got {args.classes}")
+        seq_common = dict({key: val for key, val in common.items() if key != "n_classes"}, k=k)
+        suite = rate_tasks.make_sequence_suite(circ, shared_head=args.shared_head,
+                                               readout_subset=rs, **seq_common)
+        suite_label = f"sequence, alphabet {k}, class = the ordered pair"
+    elif args.input_overlap is None:
         suite = rate_tasks.make_suite(circ, shared_head=args.shared_head,
                                       readout_subset=rs, **common)
         suite_label = "default (disjoint circuits)"

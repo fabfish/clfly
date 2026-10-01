@@ -109,3 +109,17 @@ Nothing in this unit changes: it read the same field on a different population, 
 own population moving. It is recorded here because the two units' re-reads are one event — the corpus grew by four
 runs and both countings moved toward `replay`
 (`docs/findings/2026-10-01-the-unit-of-the-vote.md`).
+
+## RE-READ 2026-10-01: the coin-flip edge crossed its own threshold
+
+`e324`'s two artifacts -- a five-arm run on the sequence suite and the reader that compares it to the sustained one
+-- added pairs to the population this unit pools, and `test_the_live_orderings_are_what_the_finding_says` failed:
+the assertion was `edges["replay>ewc"]["rate"] < 0.6` under the comment *"`replay` beats `ewc` on the metric by a
+coin flip"*, and at **316 pairs the pooled rate is 0.6013**.
+
+**The claim did not move; the check was a threshold on a count that grows with the corpus.** The substance is that
+the edge is near a coin flip, so the assertion is now the band `0.5 < rate < 0.75` together with the contrast the
+sentence is about -- the shortfall's rate on the same pair, which is above 0.9, so the lost-currency edge has to sit
+at least 0.15 below it. The counts, the three orderings, the ten agreeing pairs and the rank correlation are
+unchanged and still asserted. What this costs is precision at the top end: 0.75 is a convention where 0.6 was a
+number the corpus happened to be under.

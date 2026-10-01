@@ -106,3 +106,23 @@ The assertion in `tests/test_e322_the_benchmark_has_no_time_in_it.py` that pinne
 structural one that replaces the count: one full-slice writer and one step-indexed writer, both in
 `clfly/network/tasks.py`, the sustained builder older than the sequence builder. A third writer must therefore arrive
 as a deliberate change rather than as a drift in a number, which is what the count was there to notice.
+
+## 6. RE-READ 2026-10-01, after `e324` ran the sequence suite: T5 fired too
+
+`e322`'s section 5 above was written when the second writer existed but no artifact used it. `e324` trained the five
+arms on the sequence suite, so `runs/` now holds an artifact whose tasks are named `seq_odour_identity`,
+`seq_heading` and `seq_odour_input` -- names in **neither** of the two families this unit's census knows.
+
+**T5's falsifier FIRED**, and it is the same kind of event as T2's: the claim was a statement about the corpus as it
+stood, the corpus grew a **builder**, and the census reports it rather than absorbing it. That is the instrument
+working. The verdict now reads `FALSIFIER FIRED -- ['seq_heading', 'seq_odour_identity', 'seq_odour_input'] belong to
+neither family`, over 183 artifacts, and the two builders' own counts are unchanged inside it.
+
+What did **not** move: T1 (18 task instances over 6 suite builds and 2 circuit sizes, worst deviation exactly 0 --
+the invariance measurement is about the sustained builders and they are untouched), T3's falsifier on the registered
+denominator, and T4's null.
+
+**The assertion in `tests/test_e322_*.py` is now the structural one**, and it is deliberately two-sided: the names
+the census cannot classify must be exactly the `seq_` family, and the verdict must agree with whether there are any.
+So the next builder to arrive fires it again, and a *reclassification* of the sequence family -- which would be an
+instrument change made after reading -- cannot be slipped in as a green test.

@@ -58,3 +58,24 @@ effect on the whole trajectory. **Six contrasts over three arms are not independ
 replicates, so one unusual `replay` arm moves all six together, which is why T4's factor is a description and not an
 estimate. **And T4's factor of two is a convention**: what the run shows is about three on `ewc-block` and about one
 on the others.
+
+## 5. RE-READ 2026-10-01: T1's seed check could not fail
+
+Found by `e324` while writing the same check for its own pair of runs, and it is a defect in this unit's instrument
+rather than in its result.
+
+**T1 said the two runs share their seeds, and the check behind that sentence was `[None] * n == [None] * n`.**
+`runs/e317_five_as_built.json`'s replicates carry `method`, `losses`, `final_accuracy`, `retention`, `theta_drift` and
+the rest, and **no seed field at all** -- so `[r.get("seed") for r in replicates]` was five `None`s on each side and
+compared equal whatever the two runs' seeds were. The fixture in `tests/test_e321_*.py` had invented a `"seed"` key,
+which is why no test caught it: the fixture described an artifact the corpus does not write.
+
+**The claim itself is still true and is now checked against what the artifacts do record.** What identifies a seed
+schedule here is `config.seed0` and `config.repeats`, so those are compared, together with the replicate counts, and a
+run whose config carries no `seed0` is no longer the same schedule as one that does. `tests/test_e321_*.py` has the
+test that can fail -- a differing `seed0`, a differing `repeats`, and an absent one -- and the fixture no longer
+invents the field. The verdicts T1 to T4 are unchanged: `runs/e317_*.json`'s two runs share `seed0 = 0` and five
+replicates each, and every contrast still favours `replay` in both orders.
+
+**And the same class of defect is worth naming**: a check whose two sides are both empty passes, and a fixture that
+is kinder than the corpus hides it. `e324`'s T1 makes the equivalent check on the config for exactly this reason.
