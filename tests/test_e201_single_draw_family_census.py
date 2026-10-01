@@ -139,5 +139,9 @@ def test_the_live_census_names_the_families_that_deliberately_measure_a_draw():
     assert sum(r["n_artifacts"] for r in singles) >= 187, sum(r["n_artifacts"] for r in singles)
     # the rule is derived from the corpus's own vocabulary, and on the real corpus it names exactly six keys --
     # including the two a handwritten list was missing
+    #: **RE-READ 2026-10-02.** `e340` added `--loop-seed`, the environment's population seed for the closed loop,
+    #: and the census found the seventh key **by itself** -- which is the instrument working and not a claim moving.
+    #: The vocabulary is a fact about the runner's flags and grows with them, so the set is updated and the
+    #: assertion stays exact.
     assert set(res["draw_fields"]) == {"readout_seed", "support_seed", "partition_seed", "rewire_seed",
-                                       "seed_b", "seed_step"}, res["draw_fields"]
+                                       "seed_b", "seed_step", "loop_seed"}, res["draw_fields"]

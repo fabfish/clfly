@@ -70,3 +70,20 @@ believing a claim like the one `e199`'s registration got wrong.
   where 298 carry a top-level `timing_s`, so the audits that key on `timing_s` (`e169`'s scope, `e190`, `e38`) have
   never seen them. It is the same class as this unit, it is small, and it is recorded rather than fixed here so that
   the fix can carry its own measurement of what it changes.
+
+## RE-READ 2026-10-02: a seventh draw field, found by the census rather than added to the list
+
+`e340` added `--loop-seed` -- the environment's population seed for the closed loop, which `e339` measured to be one
+of the three draws `--seed0` was doing at once -- and this census **found it on its own**: the field vocabulary went
+from six keys to **seven**, with `loop_seed` joining `readout_seed`, `support_seed`, `partition_seed`, `rewire_seed`,
+`seed_b` and `seed_step`.
+
+**That is the correction this unit was written for, working.** The finding's whole subject is that a handwritten
+field list was a guess and the vocabulary has to be derived from the corpus's own flags; a new flag being classified
+without an edit is the property that was bought. The live assertion's set is therefore updated by one, and the
+assertion stays **exact** rather than becoming a superset test -- because the vocabulary is a fact about the runner
+and not a count that grows with the corpus.
+
+**And the new field is a draw the corpus had never held before**, which is worth recording beside the census's own
+result: `loop_seed` names the environment's three populations, so `e340`'s clean pair is the **first** artifact in
+this corpus whose two runs hold it fixed while the training seeds move.

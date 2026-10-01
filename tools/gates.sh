@@ -214,4 +214,6 @@ run e338 python -m experiments.e338_the_same_body_asked_both_questions --json-ou
 
 run e339 python -m experiments.e339_is_the_ordering_immune_to_the_redraw --json-out runs/e339_is_the_ordering_immune_to_the_redraw.json
 
+run e340 python -m experiments.e340_the_clean_seed_stream --json-out runs/e340_the_clean_seed_stream.json
+
 echo "ALL DONE"

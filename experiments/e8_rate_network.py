@@ -1032,6 +1032,13 @@ def main(argv=None) -> int:
                    help="the world's transition rule: 1 is instantaneous, below 1 carries its state forward")
     p.add_argument("--loop-world-modes", type=int, default=0,
                    help="the number of world states the action selects between; 0 keeps the scalar report")
+    #: `e339` measured that `--seed0` is three draws at once -- it seeds the training replicates, the read-out
+    #: subset (`--readout-seed` defaults to it) and, through here, the environment's three populations. So no
+    #: artifact in this corpus is a seed-stream comparison: the pair that would be one needs this flag and
+    #: `--readout-seed` held while `--seed0` moves. The default is `--seed0`, so every earlier artifact is
+    #: unaffected.
+    p.add_argument("--loop-seed", type=int, default=None,
+                   help="the environment's population seed for the closed loop; defaults to `--seed0`")
     p.add_argument("--loop-noise", type=float, default=0.0,
                    help="noise on the closed loop's cue, drawn once per example at step 0")
     p.add_argument("--loop-scale", type=float, default=1.0, help="the feedback channel's strength")
@@ -1104,7 +1111,8 @@ def main(argv=None) -> int:
         #: wired into every forward pass by wrapping the module, so training, evaluation, the Fisher blocks and the
         #: replay features all see the same dynamical system -- and `--no-feedback` runs the identical suite
         #: unwired, which is what makes the two artifacts one configuration in two loops.
-        loop_env = fly_env.build(circ, readout_subset=rs, seed=args.seed0,
+        loop_seed = args.seed0 if args.loop_seed is None else args.loop_seed
+        loop_env = fly_env.build(circ, readout_subset=rs, seed=loop_seed,
                                  n_symbols=args.loop_symbols * len(rate_tasks.SUITE_SPECS),
                                  tau=12, scale=args.loop_scale, gain=args.loop_gain,
                                  noise=args.loop_noise, world_modes=args.loop_world_modes,
