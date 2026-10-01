@@ -562,6 +562,10 @@ def run_method(conn_net, suite, method: str, args, seed: int,
     torch.manual_seed(seed)
 
     model = conn_net.torch_model()
+    #: the **unwrapped** module, kept so that a trained body can be read twice: `e337` found the closed loop's
+    #: retention effect changing sign between two seed streams, which means the redraw dominates every unpaired
+    #: measurement of it -- and the way to remove the redraw is to ask the *same* body both questions.
+    bare = model
     if feedback is not None:
         #: `ClosedLoop` passes everything but the forward call through, so the training loop, the Fisher blocks
         #: and the replay features below are all unedited and all see the same dynamical system.
@@ -839,6 +843,13 @@ def run_method(conn_net, suite, method: str, args, seed: int,
         "mean_forgetting": float(np.mean(per_task_forgetting[:-1])) if T > 1 else 0.0,
         "learned": [float(R[j, j]) for j in range(T)],
         "final_per_task": [float(x) for x in final],
+        #: **the paired channel reading.** Every task's final accuracy is taken twice on the one body this
+        #: replicate trained -- once through the loop and once with it unwired -- so the difference is the
+        #: channel's effect on a fixed model rather than a difference between two models.
+        "paired_channel": [{"task": task.name,
+                            "with_loop": float(evaluate(model, heads[0] if shared else heads[j], task, shared)),
+                            "without_loop": float(evaluate(bare, heads[0] if shared else heads[j], task, shared))}
+                           for j, task in enumerate(suite)],
         "losses": losses,
         #: per task, the loss on the stored replay features at the first and the last training iteration; None for
         #: every method that stores nothing, so the field is present whatever arms a run took

@@ -210,4 +210,6 @@ run e336 python -m experiments.e336_the_direction_of_the_update --json-out runs/
 
 run e337 python -m experiments.e337_does_it_replicate_on_another_stream --json-out runs/e337_does_it_replicate_on_another_stream.json
 
+run e338 python -m experiments.e338_the_same_body_asked_both_questions --json-out runs/e338_the_same_body_asked_both_questions.json
+
 echo "ALL DONE"
