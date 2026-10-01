@@ -71,3 +71,16 @@ class is exactly "not localised by the citation beside it", and the column is on
 uv run python -m experiments.e192_paper_numbers                 # 104 sentences, 330 numbers, 0 unsupported
 uv run pytest tests/test_e192_paper_numbers.py -q               # 6 tests, one per rule and one per class
 ```
+
+## RE-READ 2026-10-02: a factor of two on two ratios that both move
+
+The paper and the plan cite their numbers differently -- the plan points at rows and the paper at numbers -- and the
+statement this unit's tests rest on was encoded as `plan_rate > 2 * paper_rate`. Six rows arrived in the plan
+(`e332` to `e337`) and the plan's rate moved to **0.3118** against a bar of **0.3125**: **six ten-thousandths below
+it**, where the same ratios were comfortably above it the day before.
+
+**The bar is a factor on two ratios whose denominators grow with the corpus, so it is a point assertion on a moving
+quantity.** The substance is that the plan cites its rows rather than its numbers materially more often than the
+paper does, which a band states -- 1.5 to 3.0 times -- and a factor of two did not: it fired on the sixth
+ten-thousandth rather than on a change in how the documents are written. Nothing about the audit, the numbers
+checked or the paper's exit code moves.

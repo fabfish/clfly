@@ -208,4 +208,6 @@ run e335 python -m experiments.e335_what_replay_stores --json-out runs/e335_what
 
 run e336 python -m experiments.e336_the_direction_of_the_update --json-out runs/e336_the_direction_of_the_update.json
 
+run e337 python -m experiments.e337_does_it_replicate_on_another_stream --json-out runs/e337_does_it_replicate_on_another_stream.json
+
 echo "ALL DONE"

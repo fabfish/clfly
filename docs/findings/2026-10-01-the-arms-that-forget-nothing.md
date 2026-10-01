@@ -77,3 +77,19 @@ C3's cell is asserted to be **FIRED**, so a future corpus that pushes it back ov
 rather than silently absorbed. The one thing this RE-READ cannot say is whether 0.242 is a *different regime* or the
 same one measured on more arms -- the statistic is a share over a population that grows, and nothing here separates
 a real decline in shortfall-heavy in-line arms from the arithmetic of adding arms.
+
+## RE-READ 2026-10-02: C3's quota crossed back over its bar, which is what a share on a growing corpus does
+
+Six more rows arrived (`e332` to `e337`), and the share C3 is stated on moved from **16 of 66, 0.242** -- the value
+the RE-READ above recorded as FIRED -- to **0.312**. So **C3 reads MET again**: the claim is that at least a quarter
+of the in-line arms have a shortfall above the corpus median, and 0.312 is above it.
+
+**What this pair of readings establishes is not which way the claim points but that the point is moving.** Two
+readings one day apart, on either side of the bar, from arms arriving -- and neither is a statement about the line's
+behaviour, since the population and the statistic's denominator both changed. The test therefore asserts **the
+verdict against the unit's own bar** rather than a fixed direction, and the share inside a band, so neither the bar
+nor the verdict is re-based while a corpus that pushes the share somewhere genuinely different still fires.
+
+The one thing this RE-READ cannot do is what the previous one could not either: separate a real change in the
+population from the arithmetic of a ratio over arms that arrive. A share whose denominator grows is not a
+measurement of the line until the population is held fixed, and nothing here holds it.

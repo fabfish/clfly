@@ -75,3 +75,20 @@ error at this spread is near 0.02 on accuracy and 0.03 on forgetting, so T2 and 
 sigma and resolve 0.03 and not much less. *The rule is one leaky integrator of one scalar action*: no state-to-state
 coupling, nothing the agent can push the world into, and no way for the world to keep a state the agent is not
 currently writing. *And the label is still delivered*: the cue arrives at step 0, so the reward is still not earned.
+
+## RE-READ 2026-10-02: the sign does not survive a redraw of the seed stream
+
+`e337` ran this unit's two worlds again at `--seed0 4` instead of 0, five replicates each and everything else the
+same, and the effect this unit's T2 rode on **reverses**: the carried world makes `replay` forget **0.0771 less** at
+**3.36 sigma** where this unit measured **0.0375 more** at **2.45 sigma**.
+
+**So the 2.45 sigma above is that stream's and not the world's.** The claim as registered is unchanged -- the pair of
+runs really does differ by +0.0375 at 2.45 sigma, and `e337`'s T4 restates exactly that on its own reader -- but the
+sentence it was taken to support, that a transition rule costs `replay` retention, is not supported by it. Two
+resolved measurements of the same manipulation, in opposite directions, at five replicates each.
+
+**What this does not touch**: T1 (one configuration except the rule), T3 (the 2.93% drift difference) and T4 (the
+`leak = 1.0` endpoint reproducing `e332`'s world replicate for replicate) are measurements of the runs and are
+unchanged. What it touches is the *reading* of T2: it is a single-stream difference and not an effect of the world.
+The four accounts `e334` to `e336` excluded are still excluded -- those units measured quantities that genuinely do
+not differ -- but they were excluding mechanisms for an effect this unit's own number cannot establish.
