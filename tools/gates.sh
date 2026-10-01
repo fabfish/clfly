@@ -164,4 +164,6 @@ run e313 python -m experiments.e313_the_decomposition_is_three_fields --json-out
 
 run e314 python -m experiments.e314_the_contract_with_the_result_block --json-out runs/e314_the_contract_with_the_result_block.json
 
+run e315 python -m experiments.e315_the_order_the_runner_never_took --json-out runs/e315_the_order_the_runner_never_took.json
+
 echo "ALL DONE"

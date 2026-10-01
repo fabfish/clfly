@@ -805,6 +805,29 @@ def run_method(conn_net, suite, method: str, args, seed: int,
     }
 
 
+def task_order(spec: str, n_tasks: int) -> list[int]:
+    """The suite indices in the order the spec names them.
+
+    ``as-built`` is the identity and the default, so every artifact written before this flag existed is unaffected
+    and its ``config`` still describes what it ran. ``reverse`` is the full reversal, and anything else is read as a
+    comma-separated permutation. A permutation that is not one -- a repeat, an out-of-range index, a wrong length --
+    is refused here rather than trained, because a suite trained in a mis-specified order would be an artifact whose
+    ``config`` does not describe it.
+    """
+    spec = (spec or "as-built").strip()
+    if spec == "as-built":
+        return list(range(n_tasks))
+    if spec == "reverse":
+        return list(range(n_tasks))[::-1]
+    try:
+        order = [int(x) for x in spec.split(",")]
+    except ValueError:
+        raise SystemExit(f"--task-order: cannot read `{spec}` as a permutation")
+    if sorted(order) != list(range(n_tasks)):
+        raise SystemExit(f"--task-order: `{spec}` is not a permutation of {n_tasks} tasks")
+    return order
+
+
 def main(argv=None) -> int:
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--circuit-size", type=int, default=800)
@@ -909,6 +932,14 @@ def main(argv=None) -> int:
                         "landscape; `runs/` and `*.npz` are gitignored, so this leaves nothing in the repository")
     p.add_argument("--repeats", type=int, default=1,
                    help="independent training runs per method, for a standard error")
+    #: `e310` measured that the position a task sits in predicts the level it reaches by four points of accuracy,
+    #: and `e302`'s M4 found that **no permutation of any suite had ever been run** -- every artifact in the corpus
+    #: records its suite's own naming order, so the block's promise of fixed task orders held trivially. This is the
+    #: flag that makes the order a variable: `as-built` (the default, so every earlier artifact's config is
+    #: unaffected), `reverse`, or an explicit permutation such as `2,0,1` over the suite's own indices.
+    p.add_argument("--task-order", default="as-built",
+                   help="the order the suite is trained in: `as-built`, `reverse`, or a comma-separated "
+                        "permutation of the suite's indices, e.g. `2,0,1`")
     p.add_argument("--json-out", type=Path, default=None)
     args = p.parse_args(argv)
 
@@ -958,6 +989,14 @@ def main(argv=None) -> int:
             for t in suite).encode()).hexdigest()[:12]
         support_draw = {"draw_seed": int(support_seed), "fingerprint_sha1": sup_hash,
                         "n_per_support": int(len(suite[0].input_neurons))}
+
+    #: The order the suite is trained in. Applied **after** the support fingerprint, so that fingerprint keeps
+    #: identifying the draw rather than the sequence -- two runs of one draw in two orders must agree on it or the
+    #: x-axis they are compared on has moved with the manipulation. `as-built` is a no-op.
+    order = task_order(args.task_order, len(suite))
+    suite = [suite[i] for i in order]
+    if order != list(range(len(suite))):
+        print(f"  task order: {args.task_order} -> " + ", ".join(t.name for t in suite))
     net = build_net(circ, RateConfig(seed=args.seed0))
 
     # Synapse partitions for the block-EWC variants, plus the matched random control.

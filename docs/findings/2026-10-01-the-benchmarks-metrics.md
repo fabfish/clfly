@@ -92,3 +92,15 @@ name is implemented only through `mean_forgetting` — the conventional form the
 not words in modules. §5 recorded this unit reading its own spelling table as evidence; `e303` is the same defect one
 level down, with a different module's documentation as the evidence
 (`docs/findings/2026-10-01-the-metrics-against-definitions.md`).
+
+## 8. RE-READ 2026-10-01 11:04 — **M4 has fired**: the corpus now holds a permuted suite
+
+`e315` ran the corpus's **first permutation of a suite** — `ov1_t0, ov1_t1, ov1_t2` forwards and its full reversal —
+so M4's invariant is over: **149 artifacts record a named task list over 6 suites, and one suite records more than
+one order**, the second being the first reversed. M1, M2 and M3 stand unchanged.
+
+That is what M4 was registered to catch and it is a **result, not a regression**: the claim was *"no permutation of
+any suite has ever been run"*, `e310` measured what varying the order would cost, and `e315` varied it. The unit's
+live test now asserts the **shape** of the violation — exactly one suite, two orders, each the other reversed —
+rather than the absence
+(`docs/findings/2026-10-01-the-order-the-runner-never-took.md`).

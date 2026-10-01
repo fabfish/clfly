@@ -95,11 +95,18 @@ def test_the_live_block_is_what_the_finding_says():
     assert set(carried) == {"average accuracy", "decomposed forgetting"}, carried
     assert r["prescribed"] == 0 and r["conventional"] >= 150, (r["prescribed"], r["conventional"])
     assert r["n_orders"] >= 147 and len(r["suites"]) >= 6, (r["n_orders"], len(r["suites"]))
-    assert all(len(v) == 1 for v in r["suites"].values()), r["suites"]
+    # `e315` ran the corpus's first permutation of a suite, so M4 has fired and the claim is now about
+    # the shape of the violation: exactly one suite records two orders, and they are each other reversed
+    two = {k: v for k, v in r["suites"].items() if len(v) > 1}
+    assert len(two) == 1, two
+    pair = list(two.values())[0]
+    assert sorted(pair[0].split(",")) == sorted(pair[1].split(",")), pair
     assert sum(1 for o in r["orders"] if o["seed0"] == 0) >= 140, r["seeds"]
     claims = {x["id"]: x["verdict"] for x in e302.judge(r)}
-    for cid in ("M1", "M2", "M3", "M4"):
+    for cid in ("M1", "M2", "M3"):
         assert claims[cid].startswith("MET"), claims[cid]
+    # M4 was `e302`'s claim about the corpus, and `e315` ended it by running the first permutation
+    assert claims["M4"].startswith("FALSIFIER FIRED"), claims["M4"]
 
 
 def test_the_artifact_carries_the_same_reading():
@@ -110,7 +117,8 @@ def test_the_artifact_carries_the_same_reading():
     assert len(d["metrics"]) == 5, len(d["metrics"])
     assert not any(x["implemented"] for x in d["metrics"] if x["metric"] == "backward transfer"), d["metrics"]
     assert d["prescribed"] == 0 and d["conventional"] >= 150, (d["prescribed"], d["conventional"])
-    assert all(len(v) == 1 for v in d["suites"].values()), d["suites"]
+    assert len({k: v for k, v in d["suites"].items() if len(v) > 1}) == 1, d["suites"]
     claims = {x["id"]: x for x in d["claims"]}
-    for cid in ("M1", "M2", "M3", "M4"):
+    for cid in ("M1", "M2", "M3"):
         assert claims[cid]["verdict"].startswith("MET"), claims[cid]
+    assert claims["M4"]["verdict"].startswith("FALSIFIER FIRED"), claims["M4"]

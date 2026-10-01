@@ -52,3 +52,15 @@ sit within four points of a half. *Neither is the only reading*: a weighted majo
 bootstrap over configurations would each be a third, and nothing here says which a benchmark should print. *And the
 corpus's artifacts are not independent configurations*, which is why the weighting question is live at all — a
 configuration run forty times can outvote one run five times.
+
+## 5. RE-READ 2026-10-01 11:04 — V1 fired when `e315`'s two artifacts landed
+
+`e308`'s V1 held when this was written: restricting `e297`'s method to the artifacts carrying a readable retention
+matrix changed **no edge**. The two artifacts `e315` wrote carry the matrix in full and add `ewc` and `replay`
+comparisons at a third circuit size, and **one of the ten pairs now moves with the population**: `ewc>replay`.
+
+**V2 and V3 stand unchanged** — the weighting still moves exactly `ewc>replay` and `ewc-block>ewc-block-rand`, and
+the two orderings still put different arms first. So the unit's finding is narrower than it was written: the filter is
+not *invariantly* innocent, it was innocent of the corpus as it stood, and a run that adds matrix-carrying artifacts
+at a new configuration can move one edge
+(`docs/findings/2026-10-01-the-order-the-runner-never-took.md`).

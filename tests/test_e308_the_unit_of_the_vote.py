@@ -67,15 +67,19 @@ def test_the_live_reading_is_what_the_finding_says():
     r = e308.reading()
     assert r["n_pairs"] == 10 and r["keep"] >= 147, (r["n_pairs"], r["keep"])
     # the population moved nothing at all, on the corpus's own field and by `e297`'s own method
-    assert r["moved_by_population"] == [], r["moved_by_population"]
+    # V1 fired when `e315`'s two artifacts landed: the retention filter now moves one edge, so the
+    # invariance is a fact about the corpus before that run and not about the filter
+    assert r["moved_by_population"] == ["ewc>replay"], r["moved_by_population"]
     # and the weighting moved exactly the two pairs the two orders place differently
     assert sorted(r["moved_by_weighting"]) == ["ewc-block>ewc-block-rand", "ewc>replay"], r["moved_by_weighting"]
     assert set(r["moved_by_weighting"]) == e308.order_difference(r["order_artifact"], r["order_vote"])
     assert r["order_artifact"] == ["ewc", "replay", "ewc-block-rand", "ewc-block", "naive"], r["order_artifact"]
     assert r["order_vote"] == ["replay", "ewc", "ewc-block", "ewc-block-rand", "naive"], r["order_vote"]
     claims = {x["id"]: x["verdict"] for x in e308.judge(r)}
-    for cid in ("V1", "V2", "V3"):
+    for cid in ("V2", "V3"):
         assert claims[cid].startswith("MET"), claims[cid]
+    # V1 held before `e315` and does not now: one edge moves with the population
+    assert claims["V1"].startswith("FALSIFIER FIRED"), claims["V1"]
 
 
 def test_the_artifact_carries_the_same_reading():
@@ -83,8 +87,9 @@ def test_the_artifact_carries_the_same_reading():
     if not p.exists():
         return
     d = json.loads(p.read_text(encoding="utf-8"))
-    assert d["moved_by_population"] == [], d["moved_by_population"]
+    assert d["moved_by_population"] == ["ewc>replay"], d["moved_by_population"]
     assert sorted(d["moved_by_weighting"]) == ["ewc-block>ewc-block-rand", "ewc>replay"], d["moved_by_weighting"]
     claims = {x["id"]: x for x in d["claims"]}
-    for cid in ("V1", "V2", "V3"):
+    for cid in ("V2", "V3"):
         assert claims[cid]["verdict"].startswith("MET"), claims[cid]
+    assert claims["V1"]["verdict"].startswith("FALSIFIER FIRED"), claims["V1"]
