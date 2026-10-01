@@ -88,3 +88,21 @@ and one unit could: sweep `alpha` at a fixed circuit. **A settled trajectory wou
 T3's firing does not by itself say the benchmark is degenerate -- it says the last step is a snapshot and not a fixed
 point, which is a statement about where the read-out is taken. **And the corpus check is a naming check**: `T5` reads
 task names, so a hypothetical third builder that reused the two families' names would pass it.
+
+## 5. RE-READ 2026-10-01, after `e323` added the second writer
+
+**T2's falsifier FIRED, and the unit's own section 4 predicted the change that did it.** `e323` gives the suite its
+first time-varying stimulus -- `make_sequence_task` in `clfly/network/tasks.py`, whose writer carries an explicit step
+index -- and that is the *second* of the two options section 4 named (*"a temporal task needs either a second writer
+with a time index or an environment in the training loop"*).
+
+The reading is now **two authored sites, one writing along the time axis**, and the effect on this unit's claims is
+exactly one of them: **T2 FIRED** and is reported as FIRED in `runs/e322_the_benchmark_has_no_time_in_it.json`. T1 is
+untouched (18 task instances, worst deviation exactly 0 -- the measurement was never about the count), **T5 is
+untouched** (182 artifacts, none outside the two families), **T3's falsifier is still FIRED** on the registered
+denominator and **T4 still lands on its registered null**.
+
+The assertion in `tests/test_e322_the_benchmark_has_no_time_in_it.py` that pinned `len(authored) == 1` is now the
+structural one that replaces the count: one full-slice writer and one step-indexed writer, both in
+`clfly/network/tasks.py`, the sustained builder older than the sequence builder. A third writer must therefore arrive
+as a deliberate change rather than as a drift in a number, which is what the count was there to notice.

@@ -161,13 +161,23 @@ def test_the_five_claims_read_both_faces():
     assert all(row["verdict"].startswith("REFUSED") for row in e322.judge({"invariance": [], "time_axis": []}))
 
 
-def test_the_tree_really_has_one_authored_writer():
-    """The structural claim, asserted on this repository rather than on a fixture."""
+def test_the_tree_has_exactly_two_authored_writers_one_of_them_timed():
+    """The structural claim, asserted on this repository rather than on a fixture.
+
+    `e322` registered this as *one* site and it held on the day it was taken. `e323` added the second, which is
+    the change that unit's own "what it cannot do" named as the missing half of a temporal task, and the claim
+    fired: it is reported as FIRED in the finding and in the artifact. What the test pins is the **structure**
+    that replaced the count -- one full-slice writer and one with an explicit step index, both in the same module
+    -- so a third writer has to arrive as a deliberate change rather than as an accident of a count.
+    """
     authored = [s for s in e322.scan_stimulus_writers()
                 if any(s["file"].startswith(d + "/") for d in e322.AUTHOR_DIRS)]
-    assert len(authored) == 1, authored
-    assert authored[0]["time_is_full_slice"] is True, authored[0]
-    assert authored[0]["file"].endswith("clfly/network/tasks.py"), authored[0]
+    constant = [s for s in authored if s["time_is_full_slice"]]
+    timed = [s for s in authored if not s["time_is_full_slice"]]
+    assert len(constant) == 1 and len(timed) == 1, authored
+    assert all(s["file"].endswith("clfly/network/tasks.py") for s in authored), authored
+    # the sustained builder is the older of the two, the sequence builder the newer
+    assert constant[0]["line"] < timed[0]["line"], authored
 
 
 def test_the_live_artifact_carries_the_same_reading():
@@ -175,14 +185,21 @@ def test_the_live_artifact_carries_the_same_reading():
     if not p.exists():
         return                      # the artifact is written by the run this unit reads
     d = json.loads(p.read_text(encoding="utf-8"))
+    # the artifact's claims are the ones its own reading produces, so this holds whether the artifact on disk
+    # was written before `e323` added the second writer (T2 MET, one site) or after (T2 FIRED, two)
+    assert {row["id"]: row["verdict"] for row in e322.judge(d)} == \
+           {row["id"]: row["verdict"] for row in d["claims"]}, d["claims"]
     claims = {row["id"]: row["verdict"] for row in d["claims"]}
-    for cid in ("T1", "T2", "T5"):
+    for cid in ("T1", "T5"):
         assert claims[cid].startswith("MET"), claims[cid]
     # T3's falsifier is the finding: the registered denominator is the zero-state first step
     assert claims["T3"].startswith("FALSIFIER FIRED"), claims["T3"]
     # and T4's measured gap lands in the registered null rather than under the window
     assert claims["T4"].startswith(("MET", "NULL")), claims["T4"]
     assert not claims["T4"].startswith("FALSIFIER FIRED"), claims["T4"]
+    # T2's verdict is the one `e323` moves, and it says so in its own measured text
+    if len([s for s in d["scan"] if s["file"].startswith(("clfly/", "experiments/"))]) > 1:
+        assert claims["T2"].startswith("FALSIFIER FIRED"), claims["T2"]
     # the read-out peaks early rather than late, which is what the null above is made of
     rows = [v for x in d["time_axis"] for v in x["tasks"].values()]
     assert rows, d

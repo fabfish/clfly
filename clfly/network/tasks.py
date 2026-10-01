@@ -1,10 +1,19 @@
 """Behavioural task suite for the connectome-constrained rate network.
 
 Each task is a **classification problem delivered to a circuit**: a stimulus is
-injected into a task's input population as a sustained drive, the network runs its
-recurrent dynamics, and a linear decoder reads out a task-specific output population.
-Class identity is carried by a per-class input template plus noise, which is the
-minimal object that gives a task learnable structure without hand-designing features.
+injected into a task's input population, the network runs its recurrent dynamics, and a
+linear decoder reads out a task-specific output population.  Class identity is carried
+by the input templates plus noise, which is the minimal object that gives a task
+learnable structure without hand-designing features.
+
+**Two kinds of stimulus live here, and the difference is the trial's time axis.**
+`make_task` delivers a **sustained** drive -- the same pattern at every one of the
+``tau`` steps -- which is what the assembly and overlap suites are built from.
+`make_sequence_task` delivers a **sequence** -- one sub-stimulus for the first half of
+the trial and another for the second, with the label their ordered pair -- which is the
+first stimulus in this repository that changes with time.  `e322` measured the first
+kind across both older builders, both splits and two circuit sizes and found a
+deviation of exactly zero; the second is what that finding named as missing.
 
 Three design choices that matter for the continual-learning question.
 
@@ -74,29 +83,13 @@ def _population(circ: Circuit, column: str, prefixes: tuple[str, ...],
     return idx
 
 
-def make_task(circ: Circuit, name: str, input_spec: tuple[str, tuple[str, ...]],
-              readout_spec: tuple[str, tuple[str, ...]] | None, n_classes: int = 4,
-              n_train: int = 96, n_test: int = 48, tau: int = 12,
-              noise: float = 1.0, cap: int = 220, seed: int = 0,
-              class_offset: int = 0, readout_all: bool = False,
-              readout_subset: np.ndarray | None = None,
-              input_support: np.ndarray | None = None) -> RateTask:
-    """Build one task: fixed class templates, injected over ``tau`` timesteps.
+def _heads(circ: Circuit, input_spec, readout_spec, cap: int, seed: int,
+           readout_all: bool, readout_subset, input_support) -> tuple[np.ndarray, np.ndarray]:
+    """The two populations a task is defined by: where the stimulus enters, where the state is read out.
 
-    The stimulus is sustained rather than instantaneous, so the network's recurrent
-    dynamics have time to propagate it from the input population to the readout —
-    which is the whole point of using the connectome as the substrate rather than a
-    feedforward readout.
-
-    ``readout_all`` makes the read-out the whole circuit state and is what the
-    **shared-head** (class-incremental) mode uses: with a single decoder serving every
-    task, the tasks can no longer be separated by their read-out population and must
-    differ only in where the stimulus enters.  Labels stay local (``0 .. n_classes-1``)
-    and ``class_offset`` records where they sit in the shared head, so the loss is over
-    the task's own class subset — the standard class-incremental protocol, where the
-    learner never sees a future task's classes.
+    Extracted from :func:`make_task` unchanged when :func:`make_sequence_task` needed the same two draws,
+    because a sequence task differs only in **what** is delivered, never in **where**.
     """
-    rng = np.random.default_rng(seed)
     n = circ.n_neurons
     if input_support is not None:
         inp = np.asarray(input_support, dtype=np.int64)
@@ -110,6 +103,38 @@ def make_task(circ: Circuit, name: str, input_spec: tuple[str, tuple[str, ...]],
     else:
         cols_out, vals_out = readout_spec
         out = _population(circ, cols_out, vals_out, cap=cap, seed=seed + 1)
+    return inp, out
+
+
+def make_task(circ: Circuit, name: str, input_spec: tuple[str, tuple[str, ...]],
+              readout_spec: tuple[str, tuple[str, ...]] | None, n_classes: int = 4,
+              n_train: int = 96, n_test: int = 48, tau: int = 12,
+              noise: float = 1.0, cap: int = 220, seed: int = 0,
+              class_offset: int = 0, readout_all: bool = False,
+              readout_subset: np.ndarray | None = None,
+              input_support: np.ndarray | None = None) -> RateTask:
+    """Build one task: fixed class templates, injected over ``tau`` timesteps.
+
+    The stimulus is sustained rather than instantaneous, so the network's recurrent
+    dynamics have time to propagate it from the input population to the readout —
+    which is the whole point of using the connectome as the substrate rather than a
+    feedforward readout.  **Sustained means constant**: the same pattern is delivered
+    at every one of the ``tau`` steps, which `e322` measured across both builders,
+    both splits and two circuit sizes as a deviation of exactly zero.  The trial's
+    time axis therefore carries no information here; :func:`make_sequence_task` is
+    the builder that gives it one.
+
+    ``readout_all`` makes the read-out the whole circuit state and is what the
+    **shared-head** (class-incremental) mode uses: with a single decoder serving every
+    task, the tasks can no longer be separated by their read-out population and must
+    differ only in where the stimulus enters.  Labels stay local (``0 .. n_classes-1``)
+    and ``class_offset`` records where they sit in the shared head, so the loss is over
+    the task's own class subset — the standard class-incremental protocol, where the
+    learner never sees a future task's classes.
+    """
+    rng = np.random.default_rng(seed)
+    n = circ.n_neurons
+    inp, out = _heads(circ, input_spec, readout_spec, cap, seed, readout_all, readout_subset, input_support)
 
     templates = rng.standard_normal((n_classes, len(inp)))
 
@@ -120,6 +145,66 @@ def make_task(circ: Circuit, name: str, input_spec: tuple[str, tuple[str, ...]],
         stim = templates[y] + noise * r.standard_normal((count, len(inp)))
         u[:, :, inp] = stim[:, None, :]
         return u, y
+
+    u_tr, y_tr = make(n_train, 0)
+    u_te, y_te = make(n_test, 1)
+    return RateTask(name=name, input_neurons=inp, readout_neurons=out,
+                    n_classes=n_classes, n_neurons=n, tau=tau,
+                    u_train=u_tr, y_train=y_tr, u_test=u_te, y_test=y_te,
+                    class_offset=class_offset)
+
+
+def make_sequence_task(circ: Circuit, name: str, input_spec: tuple[str, tuple[str, ...]],
+                       readout_spec: tuple[str, tuple[str, ...]] | None, k: int = 2,
+                       n_train: int = 96, n_test: int = 48, tau: int = 12,
+                       noise: float = 1.0, cap: int = 220, seed: int = 0,
+                       class_offset: int = 0, readout_all: bool = False,
+                       readout_subset: np.ndarray | None = None,
+                       input_support: np.ndarray | None = None) -> RateTask:
+    """Build one task whose trial is a **sequence**: two sub-stimuli, one per half, and the label their pair.
+
+    This is the first builder in the repository that writes a stimulus which **changes with time**, and it is
+    the change `e322`'s own "what it cannot do" named: that unit measured the trial's time axis across both
+    older builders -- assembly and overlap, two circuit sizes, both splits -- and found the stimulus equal to
+    its first step exactly, everywhere, and concluded that a temporal task needs *either a second writer with
+    a time index or an environment in the training loop*. This is the first of the two, chosen because it fits
+    the `(n, tau, n_neurons)` contract the runner already consumes: **no training-loop change is needed to
+    train on it**, only to close a loop around it.
+
+    **Why the label is the ordered pair.** Each example draws two symbols ``a`` and ``b`` from a ``k``-way
+    alphabet and delivers ``a``'s template for the first ``tau // 2`` steps and ``b``'s for the rest, with
+    fresh noise at every step. The class is ``a * k + b``. So the second half's identity is available from
+    the second half's drive alone, and the **first** half's identity is not in the drive any more once the
+    boundary is crossed: a decoder that is to report the pair from the last step has to have carried ``a``
+    there through the recurrent state. A task whose label were the unordered pair, or ``b`` alone, would need
+    no memory and is not what this builds.
+
+    The alphabet is separate from the class count: ``k`` templates, ``k * k`` classes, so ``k = 2`` gives the
+    four classes the runner's default head already has. The same symbol is the same pattern at either
+    position, which is what makes the two halves comparable inside one trial.
+    """
+    rng = np.random.default_rng(seed)
+    n = circ.n_neurons
+    inp, out = _heads(circ, input_spec, readout_spec, cap, seed, readout_all, readout_subset, input_support)
+    half = max(1, tau // 2)
+    n_classes = k * k
+    templates = rng.standard_normal((k, len(inp)))
+
+    def make(count: int, seed_off: int):
+        r = np.random.default_rng(seed + 1000 + seed_off)
+        first = r.integers(0, k, size=count)
+        second = r.integers(0, k, size=count)
+        u = np.zeros((count, tau, n))
+        #: **the second writer**, and the noise is drawn **once per half rather than once per step**: a half has
+        #: to be a constant pattern for the boundary to be the trial's only temporal event, which is what
+        #: :func:`make_task` already does for the whole trial (one draw, broadcast over ``tau``). Resampling it
+        #: per step was the first version's behaviour and made the stimulus vary within a half as well, so it
+        #: measured as a within-half deviation of 5.9 rather than 0 until it was fixed.
+        eps = [noise * r.standard_normal((count, len(inp))) for _ in range(2)]
+        for t in range(tau):
+            symbol, which = (first, 0) if t < half else (second, 1)
+            u[:, t, inp] = templates[symbol] + eps[which]
+        return u, first * k + second
 
     u_tr, y_tr = make(n_train, 0)
     u_te, y_te = make(n_test, 1)
@@ -199,3 +284,19 @@ def make_overlap_suite(circ: Circuit, n_tasks: int = 3, support: int = 80,
                       readout_subset=readout_subset,
                       input_support=sup, **kwargs)
             for i, sup in enumerate(supports)]
+
+
+def make_sequence_suite(circ: Circuit, specs=SUITE_SPECS, k: int = 2, shared_head: bool = False,
+                        readout_subset: np.ndarray | None = None, **kwargs) -> list[RateTask]:
+    """The assembly suite's three circuits, driven by :func:`make_sequence_task` instead of :func:`make_task`.
+
+    Same circuits, same heads, same seeds, same order: the only field that differs from `make_suite` is the kind
+    of stimulus, so a comparison between the two is a comparison of the time axis and not of the substrate. Its
+    task names carry the ``seq`` family so an artifact can be assigned to the right builder without loading it,
+    the way e187 reads the assembly and overlap families apart.
+    """
+    return [make_sequence_task(circ, f"seq_{name}", inspec, outspec, k=k, seed=i,
+                               class_offset=i * k * k,
+                               readout_all=shared_head and readout_subset is None,
+                               readout_subset=readout_subset, **kwargs)
+            for i, (name, inspec, outspec) in enumerate(specs)]

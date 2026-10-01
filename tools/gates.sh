@@ -180,4 +180,6 @@ run e321 python -m experiments.e321_the_replay_contrast_survives_the_order --jso
 
 run e322 python -m experiments.e322_the_benchmark_has_no_time_in_it --json-out runs/e322_the_benchmark_has_no_time_in_it.json
 
+run e323 python -m experiments.e323_the_trial_gets_a_second_half --json-out runs/e323_the_trial_gets_a_second_half.json
+
 echo "ALL DONE"
