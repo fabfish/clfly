@@ -178,4 +178,6 @@ run e320 python -m experiments.e320_the_order_sentence --json-out runs/e320_the_
 
 run e321 python -m experiments.e321_the_replay_contrast_survives_the_order --json-out runs/e321_the_replay_contrast_survives_the_order.json
 
+run e322 python -m experiments.e322_the_benchmark_has_no_time_in_it --json-out runs/e322_the_benchmark_has_no_time_in_it.json
+
 echo "ALL DONE"
