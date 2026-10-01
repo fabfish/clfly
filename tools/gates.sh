@@ -212,4 +212,6 @@ run e337 python -m experiments.e337_does_it_replicate_on_another_stream --json-o
 
 run e338 python -m experiments.e338_the_same_body_asked_both_questions --json-out runs/e338_the_same_body_asked_both_questions.json
 
+run e339 python -m experiments.e339_is_the_ordering_immune_to_the_redraw --json-out runs/e339_is_the_ordering_immune_to_the_redraw.json
+
 echo "ALL DONE"
