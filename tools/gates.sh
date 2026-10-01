@@ -174,4 +174,6 @@ run e318 python -m experiments.e318_the_penalty_switched_off --json-out runs/e31
 
 run e319 python -m experiments.e319_the_penalty_four_times --json-out runs/e319_the_penalty_four_times.json
 
+run e320 python -m experiments.e320_the_order_sentence --json-out runs/e320_the_order_sentence.json
+
 echo "ALL DONE"
