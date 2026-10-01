@@ -140,3 +140,15 @@ corpus that keeps growing one. So the assertion pins the structure that a census
 site writes the same value along the whole time axis, every other one writes along time, and all of them live in
 `clfly/network/` -- and a second *constant* writer is what would fire it. The claim itself, T2 as registered, keeps
 firing as builders arrive, and it is reported that way rather than reclassified.
+
+## 8. RE-READ 2026-10-01, after `e326` and `e327`: a third *family*
+
+The last two units ran the environment's suite, so the corpus now names a **third family of task names** as well as
+a third writer: `loop_odour_identity`, `loop_heading`, `loop_odour_input`, alongside the `seq_*` names `e324`
+introduced and the assembly names the suite is built with. **T5 therefore reports six unclassified names over 189
+artifacts** where section 6 reported three over 183.
+
+The test's assertion is now the general one: the names the census cannot classify are **exactly** the names in its
+own `assembly_names` that are not in `SUITE_SPECS`, and the verdict agrees with whether that set is empty. So a
+fourth family fires it, a reclassification cannot make it green, and the count -- which grows with the corpus -- is
+not what is asserted.

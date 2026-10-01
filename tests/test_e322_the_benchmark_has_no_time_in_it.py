@@ -196,11 +196,12 @@ def test_the_live_artifact_carries_the_same_reading():
     claims = {row["id"]: row["verdict"] for row in d["claims"]}
     assert claims["T1"].startswith("MET"), claims["T1"]
     # T5 is a family census over a corpus that grows builders as well as artifacts: `e323` added the sequence
-    # builder and `e324` ran it, so the claim now reports the `seq_` names as outside the two families it named.
-    # The structural statement is that the names it cannot classify are exactly that family, and that its verdict
-    # agrees with whether there are any.
+    # builder, `e324` ran it and `e326` ran the closed-loop environment's `loop_*` suite. The structural statement
+    # is that the names it cannot classify are exactly the ones outside the suite's own naming, and that its verdict
+    # agrees with whether there are any -- so a reclassification cannot be slipped in as a green test.
     unclassified = d["corpus"]["unclassified"]
-    assert all(str(n).startswith("seq_") for n in unclassified), unclassified
+    outside = {n for n in d["corpus"]["assembly_names"] if n not in set(d["corpus"]["suite_names"])}
+    assert set(unclassified) == outside, (unclassified, outside)
     assert (claims["T5"].startswith("FALSIFIER FIRED") if unclassified else claims["T5"].startswith("MET")), \
         (claims["T5"], unclassified)
     # T3's falsifier is the finding: the registered denominator is the zero-state first step
@@ -221,8 +222,6 @@ def test_the_live_artifact_carries_the_same_reading():
     # the invariance is exact wherever it was measured, and the corpus census grew a builder rather than an error
     assert all(x["worst"] == 0.0 for x in d["invariance"]), d["invariance"]
     assert d["corpus"]["artifacts"] > 0, d["corpus"]
-    assert set(unclassified) == {n for n in d["corpus"]["assembly_names"] if str(n).startswith("seq_")}, \
-        (unclassified, d["corpus"]["assembly_names"])
     # the unbiased denominator is reported beside the registered one and does not settle either
     worst = max(v["last_over_max"] for x in d["time_axis"] for v in x["tasks"].values())
     assert worst > e322.SETTLED, worst

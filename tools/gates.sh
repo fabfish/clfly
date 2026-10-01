@@ -188,4 +188,6 @@ run e325 python -m experiments.e325_the_loop_closes --json-out runs/e325_the_loo
 
 run e326 python -m experiments.e326_training_through_the_loop --json-out runs/e326_training_through_the_loop.json
 
+run e327 python -m experiments.e327_the_feedback_is_a_dose --json-out runs/e327_the_feedback_is_a_dose.json
+
 echo "ALL DONE"
