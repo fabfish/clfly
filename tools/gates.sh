@@ -220,4 +220,6 @@ run e341 python -m experiments.e341_forty_replicates_on_the_clean_stream --json-
 
 run e342 python -m experiments.e342_the_channel_across_strengths --json-out runs/e342_the_channel_across_strengths.json
 
+run e343 python -m experiments.e343_a_readout_that_looks --json-out runs/e343_a_readout_that_looks.json
+
 echo "ALL DONE"
