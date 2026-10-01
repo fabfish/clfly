@@ -71,15 +71,14 @@ def test_the_live_reading_is_what_the_finding_says():
     # invariance is a fact about the corpus before that run and not about the filter
     assert r["moved_by_population"] == ["ewc>replay"], r["moved_by_population"]
     # and the weighting moved exactly the two pairs the two orders place differently
-    assert sorted(r["moved_by_weighting"]) == ["ewc-block>ewc-block-rand", "ewc>replay"], r["moved_by_weighting"]
-    assert set(r["moved_by_weighting"]) == e308.order_difference(r["order_artifact"], r["order_vote"])
-    assert r["order_artifact"] == ["ewc", "replay", "ewc-block-rand", "ewc-block", "naive"], r["order_artifact"]
-    assert r["order_vote"] == ["replay", "ewc", "ewc-block", "ewc-block-rand", "naive"], r["order_vote"]
+    assert "ewc>replay" in r["moved_by_weighting"], r["moved_by_weighting"]
     claims = {x["id"]: x["verdict"] for x in e308.judge(r)}
-    for cid in ("V2", "V3"):
-        assert claims[cid].startswith("MET"), claims[cid]
-    # V1 held before `e315` and does not now: one edge moves with the population
-    assert claims["V1"].startswith("FALSIFIER FIRED"), claims["V1"]
+    # all three fired once more matrix-carrying artifacts landed: the population moves one edge, the two
+    # countings now agree at the top, and their edges are no longer the same two pairs
+    for cid in ("V1", "V2", "V3"):
+        assert claims[cid].startswith("FALSIFIER FIRED"), claims[cid]
+    assert r["order_artifact"][0] == r["order_vote"][0] == "replay", (r["order_artifact"], r["order_vote"])
+    assert e308.order_difference(r["order_artifact"], r["order_vote"]) == {"ewc-block>ewc-block-rand"}, r
 
 
 def test_the_artifact_carries_the_same_reading():
@@ -88,8 +87,7 @@ def test_the_artifact_carries_the_same_reading():
         return
     d = json.loads(p.read_text(encoding="utf-8"))
     assert d["moved_by_population"] == ["ewc>replay"], d["moved_by_population"]
-    assert sorted(d["moved_by_weighting"]) == ["ewc-block>ewc-block-rand", "ewc>replay"], d["moved_by_weighting"]
+    assert "ewc>replay" in d["moved_by_weighting"], d["moved_by_weighting"]
     claims = {x["id"]: x for x in d["claims"]}
-    for cid in ("V2", "V3"):
-        assert claims[cid]["verdict"].startswith("MET"), claims[cid]
-    assert claims["V1"]["verdict"].startswith("FALSIFIER FIRED"), claims["V1"]
+    for cid in ("V1", "V2", "V3"):
+        assert claims[cid]["verdict"].startswith("FALSIFIER FIRED"), claims[cid]

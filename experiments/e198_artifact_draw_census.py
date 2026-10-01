@@ -60,7 +60,9 @@ DRAWS = (
      "`--partition-seed`"),
     ("support_draw", "the overlap suite's SUPPORTS",
      lambda d: (d.get("config") or {}).get("input_overlap") is not None,
-     lambda d: ((d.get("support_draw") or {}).get("fingerprint_sha1")),
+     #: An analysis artifact that reuses a run schema key is not a run, so a probe reads a dict or nothing
+     lambda d: ((d.get("support_draw") or {}).get("fingerprint_sha1")
+                if isinstance(d.get("support_draw"), dict) else None),
      "`--support-seed`"),
 )
 

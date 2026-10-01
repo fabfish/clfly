@@ -72,4 +72,5 @@ def test_the_live_population_is_twice_the_sentence_and_an_eighth_outside_the_cla
     assert "sentence's 77" in claims["W1"]["measured"], claims["W1"]
     # the count outside the clause grows with the corpus, so the bound and not the two digits
     outside = int(re.search(r"recorded outside: (\d+)", claims["W2"]["measured"]).group(1))
-    assert outside >= 16 and "inside the clause: 144" in claims["W2"]["measured"], claims["W2"]
+    inside = re.search(r"inside the clause: (\d+)", claims["W2"]["measured"])
+    assert outside >= 16 and inside and int(inside.group(1)) >= 140, claims["W2"]

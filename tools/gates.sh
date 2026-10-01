@@ -166,4 +166,6 @@ run e314 python -m experiments.e314_the_contract_with_the_result_block --json-ou
 
 run e315 python -m experiments.e315_the_order_the_runner_never_took --json-out runs/e315_the_order_the_runner_never_took.json
 
+run e316 python -m experiments.e316_the_reversal_in_the_other_family --json-out runs/e316_the_reversal_in_the_other_family.json
+
 echo "ALL DONE"

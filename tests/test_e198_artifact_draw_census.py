@@ -72,9 +72,13 @@ def test_the_reconstruction_reproduces_every_recorded_fingerprint():
     it unknown. Both draws' reconstructions are checked against the real corpus, and both must be unanimous."""
     import json as _json
     from pathlib import Path as _P
-    for key, fn, field in (("readout", e198.reconstruct_readout, lambda d: (d.get("readout") or {}).get("subset_sha1")),
+    def _field(d, key, name):
+        v = d.get(key)
+        return v.get(name) if isinstance(v, dict) else None
+
+    for key, fn, field in (("readout", e198.reconstruct_readout, lambda d: _field(d, "readout", "subset_sha1")),
                            ("support_draw", e198.reconstruct_supports,
-                            lambda d: (d.get("support_draw") or {}).get("fingerprint_sha1"))):
+                            lambda d: _field(d, "support_draw", "fingerprint_sha1"))):
         agree = disagree = 0
         for p in sorted(_P("runs").glob("*.json")):
             try:

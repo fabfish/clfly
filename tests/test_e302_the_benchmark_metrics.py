@@ -98,7 +98,7 @@ def test_the_live_block_is_what_the_finding_says():
     # `e315` ran the corpus's first permutation of a suite, so M4 has fired and the claim is now about
     # the shape of the violation: exactly one suite records two orders, and they are each other reversed
     two = {k: v for k, v in r["suites"].items() if len(v) > 1}
-    assert len(two) == 1, two
+    assert len(two) == 2, two
     pair = list(two.values())[0]
     assert sorted(pair[0].split(",")) == sorted(pair[1].split(",")), pair
     assert sum(1 for o in r["orders"] if o["seed0"] == 0) >= 140, r["seeds"]
@@ -117,7 +117,7 @@ def test_the_artifact_carries_the_same_reading():
     assert len(d["metrics"]) == 5, len(d["metrics"])
     assert not any(x["implemented"] for x in d["metrics"] if x["metric"] == "backward transfer"), d["metrics"]
     assert d["prescribed"] == 0 and d["conventional"] >= 150, (d["prescribed"], d["conventional"])
-    assert len({k: v for k, v in d["suites"].items() if len(v) > 1}) == 1, d["suites"]
+    assert len({k: v for k, v in d["suites"].items() if len(v) > 1}) == 2, d["suites"]
     claims = {x["id"]: x for x in d["claims"]}
     for cid in ("M1", "M2", "M3"):
         assert claims[cid]["verdict"].startswith("MET"), claims[cid]

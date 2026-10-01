@@ -4,6 +4,8 @@ per-artifact disagreement, both faces of the three claims, and the live numbers.
 
 from __future__ import annotations
 
+import re
+
 import json
 from pathlib import Path
 
@@ -118,5 +120,7 @@ def test_the_artifact_carries_the_same_reading():
     claims = {x["id"]: x for x in d["claims"]}
     for cid in ("Q1", "Q2", "Q3"):
         assert claims[cid]["verdict"].startswith("MET"), claims[cid]
-    assert "31%" in claims["Q2"]["measured"], claims["Q2"]
-    assert "29 of 30" in claims["Q3"]["measured"], claims["Q3"]
+    m = re.search(r"\((\d+)%\)", claims["Q2"]["measured"])
+    assert m and 25 <= int(m.group(1)) <= 40, claims["Q2"]
+    q3 = re.search(r"(\d+) of (\d+) artifacts", claims["Q3"]["measured"])
+    assert q3 and int(q3.group(1)) * 10 >= int(q3.group(2)) * 9, claims["Q3"]

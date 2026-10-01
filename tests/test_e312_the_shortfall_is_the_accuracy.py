@@ -80,12 +80,12 @@ def test_the_live_reading_is_what_the_finding_says():
     assert r["shortfall_order"] == r["accuracy_order"], (r["shortfall_order"], r["accuracy_order"])
     # and the ends are the ones e306 and e297 each named
     assert r["worst_on_shortfall"] == r["worst_on_accuracy"] == e312.A2_WORST_ON_ACCURACY, r
-    assert r["second_on_forgetting"] == e312.A2_BEST_ON_FORGETTING, r
     assert r["e297_accuracy"][-1] == e312.A2_WORST_ON_ACCURACY, r["e297_accuracy"]
-    assert r["e297_forgetting"][0] == e312.A2_BEST_ON_FORGETTING, r["e297_forgetting"]
     claims = {x["id"]: x["verdict"] for x in e312.judge(r)}
-    for cid in ("X1", "X2", "X3"):
-        assert claims[cid].startswith("MET"), claims[cid]
+    assert claims["X1"].startswith("MET") and claims["X2"].startswith("MET"), claims
+    # X3 fired once the corpus grew: `e297` now puts `replay` first on forgetting, where it put `ewc`
+    assert claims["X3"].startswith("FALSIFIER FIRED"), claims["X3"]
+    assert r["e297_forgetting"][0] == "replay", r["e297_forgetting"]
 
 
 def test_the_artifact_carries_the_same_reading():
@@ -96,5 +96,6 @@ def test_the_artifact_carries_the_same_reading():
     assert d["identity_violations"] == 0 and d["differing_pairs"] == [], d
     assert d["shortfall_order"] == d["accuracy_order"], d
     claims = {x["id"]: x for x in d["claims"]}
-    for cid in ("X1", "X2", "X3"):
-        assert claims[cid]["verdict"].startswith("MET"), claims[cid]
+    assert claims["X1"]["verdict"].startswith("MET"), claims["X1"]
+    assert claims["X2"]["verdict"].startswith("MET"), claims["X2"]
+    assert claims["X3"]["verdict"].startswith("FALSIFIER FIRED"), claims["X3"]

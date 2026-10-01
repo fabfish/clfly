@@ -64,3 +64,21 @@ the two orderings still put different arms first. So the unit's finding is narro
 not *invariantly* innocent, it was innocent of the corpus as it stood, and a run that adds matrix-carrying artifacts
 at a new configuration can move one edge
 (`docs/findings/2026-10-01-the-order-the-runner-never-took.md`).
+
+## 6. RE-READ 2026-10-01 12:04 — all three fired, and the two countings now agree at the top
+
+`e316`'s two artifacts carried the corpus past this unit's reading, and **V1, V2 and V3 have all fired**:
+
+- **V1**: the population moves one edge (`ewc>replay`), as it did after `e315`.
+- **V2**: the two methods now disagree about `ewc>replay` **and** the two orderings differ by one adjacent pair
+  (`ewc-block` against `ewc-block-rand`), so the edge set and the inversion set are no longer the same two.
+- **V3**: the artifact-level method now puts **`replay` first**, as the per-vote method does, so **the two countings
+  agree at the top**.
+
+So this unit's headline — *which arm forgets least is a property of the counting and not of the corpus* — held on the
+corpus as it stood and **does not hold now**: the artifact-level chain moved to `replay > ewc > ewc-block-rand >
+ewc-block > naive` against the per-vote `replay > ewc > ewc-block > ewc-block-rand > naive`, and the disagreement is
+one adjacent pair in the middle rather than the top. What stands is the *method*: a census's answer depends on
+whether an artifact or a replicate is the unit of the vote, and two more runs were enough to move one of the two
+chains
+(`docs/findings/2026-10-01-the-reversal-in-the-other-family.md`).

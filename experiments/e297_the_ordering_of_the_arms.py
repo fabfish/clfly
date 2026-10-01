@@ -95,7 +95,17 @@ def beats(a: str, b: str, metric: str, delta: float) -> bool:
 
 
 def contrast(d: dict, a: str, b: str, metric: str, minimum: int = MIN_REPLICATES) -> dict | None:
-    """The paired difference A minus B over the replicates the two arms share, by position."""
+    """The paired difference A minus B over the replicates the two arms share, by position.
+
+    An arm whose entry carries no `replicates` is not a trained arm: `e315` and `e316` write analysis
+    artifacts that name their per-method rows under a key a reader must be able to tell from this one, and a
+    corpus reader that assumes every `methods` entry is an arm crashes on the first analysis artifact that
+    reuses the name. This returns `None` for one rather than raising.
+    """
+    for arm in (a, b):
+        entry = d["methods"].get(arm)
+        if not isinstance(entry, dict) or not isinstance(entry.get("replicates"), list):
+            return None
     xa = [r[metric] for r in d["methods"][a]["replicates"]]
     xb = [r[metric] for r in d["methods"][b]["replicates"]]
     n = min(len(xa), len(xb))

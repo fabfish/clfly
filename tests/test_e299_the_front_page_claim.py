@@ -4,6 +4,8 @@ distance-from-zero census, both faces of the three claims, and the live numbers.
 
 from __future__ import annotations
 
+import re
+
 import json
 from pathlib import Path
 
@@ -117,5 +119,7 @@ def test_the_artifact_carries_the_same_reading():
     claims = {x["id"]: x for x in d["claims"]}
     for cid in ("F1", "F2", "F3"):
         assert claims[cid]["verdict"].startswith("MET"), claims[cid]
-    assert "55 of 271" in claims["F2"]["measured"], claims["F2"]
-    assert "216 of 271" in claims["F3"]["measured"], claims["F3"]
+    f2 = re.search(r"(\d+) of (\d+) arms", claims["F2"]["measured"])
+    f3 = re.search(r"(\d+) of (\d+) arms", claims["F3"]["measured"])
+    assert f2 and f3 and f2.group(2) == f3.group(2) and int(f2.group(2)) >= 271, claims
+    assert int(f2.group(1)) >= 55 and int(f3.group(1)) >= 216, (f2.group(1), f3.group(1))

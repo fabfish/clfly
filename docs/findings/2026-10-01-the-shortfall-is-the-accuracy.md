@@ -63,3 +63,15 @@ not store** — `unlearned` is `1 - mean(learned)`, `shortfall` is `1 - mean(fin
 What the decomposition contributes is therefore **not a new field but a verification**: the three stored fields agree
 with the matrix per task everywhere, which is what makes a number taken from either one trustworthy
 (`docs/findings/2026-10-01-the-decomposition-is-three-fields.md`).
+
+## 6. RE-READ 2026-10-01 12:04 — X3 has fired: `e297` now puts `replay` first on forgetting
+
+X3 was checked across the units: this unit's second on the forgetting term (`ewc`) against `e297`'s first on its own
+population (`ewc`). **`e316`'s two artifacts moved `e297`'s forgetting chain**, which now orders `replay > ewc >
+ewc-block-rand > ewc-block > naive`, so `e297`'s first on forgetting is **`replay`** and the two ends no longer meet:
+**X3 fires** and the arm this unit ranks second on the metric is no longer the arm `e297` ranks first there.
+
+**X1 and X2 stand unchanged** — the identity and the two orderings are arithmetic and hold at 5581 of 5581 and 10 of
+10 pairs — so what has moved is the **cross-unit** half of the claim: the same arm is still worst on the shortfall and
+worst on accuracy, and the convergence of `e297`'s forgetting chain with the per-vote one is `e308`'s re-read
+(`docs/findings/2026-10-01-the-unit-of-the-vote.md`).

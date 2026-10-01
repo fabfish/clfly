@@ -96,3 +96,16 @@ unlearned ordering is the forgetting against the level a task reached *when it w
 accuracy nor the forgetting and which `e310` then measured as a position effect. The currency the corpus lacks is
 `unlearned`, and not a shortfall that turns out to be the accuracy with its sign flipped
 (`docs/findings/2026-10-01-the-shortfall-is-the-accuracy.md`).
+
+## 7. RE-READ 2026-10-01 12:20 — `e297`'s A2 has fired: the two chains now share their best arm
+
+`e316`'s two artifacts moved `e297`'s chains, and **`e297`'s A2 is now falsified**: it registered that *the arm that
+is best on one metric is not the arm that is best on the other*, and the column that moved is the forgetting one,
+which now orders **`replay > ewc > ewc-block-rand > ewc-block > naive`** against the accuracy chain's `replay >
+ewc-block-rand > ewc-block > naive > ewc`. **`replay` is best on both** — the very arm A2 was written against — so the
+two orders still differ (they are different permutations of the middle three) and the reversal A2 rested on is gone.
+
+Nothing in this unit changes: it read the same field on a different population, and this is `e297`'s claim about its
+own population moving. It is recorded here because the two units' re-reads are one event — the corpus grew by four
+runs and both countings moved toward `replay`
+(`docs/findings/2026-10-01-the-unit-of-the-vote.md`).
