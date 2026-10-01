@@ -172,4 +172,6 @@ run e317 python -m experiments.e317_the_reversal_with_five_arms --json-out runs/
 
 run e318 python -m experiments.e318_the_penalty_switched_off --json-out runs/e318_the_penalty_switched_off.json
 
+run e319 python -m experiments.e319_the_penalty_four_times --json-out runs/e319_the_penalty_four_times.json
+
 echo "ALL DONE"

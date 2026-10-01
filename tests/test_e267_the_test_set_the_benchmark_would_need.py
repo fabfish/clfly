@@ -102,14 +102,20 @@ def test_the_live_census_prices_the_three_configurations_that_cannot_see_themsel
     assert sum(1 for r in rows if r["any_over"]) >= 30, "the count grows with the corpus"
     assert sum(1 for r in rows if r["any_over"]) / len(rows) >= 0.2, "S1's share, re-read today"
     whole = sorted((r for r in rows if r["all_over"]), key=lambda r: -r["needed"])
-    assert [r["artifact"] for r in whole] == ["e84_replay96_taskIL_5reps.json",
-                                              "e140_r32_methods_frozenbias_40reps.json",
-                                              "e167_r32_noise2.0_lam3e-4.json"], whole
-    assert [round(r["needed"]) for r in whole] == [1096, 300, 165], [r["needed"] for r in whole]
-    assert max(r["needed"] for r in whole) / 144 > 7.0
+    # the list grows with the corpus, so what is pinned is that the three long-standing members are still on it
+    # and that the requirement at the top of it is the same order of magnitude
+    named = [r["artifact"] for r in whole]
+    for a in ("e84_replay96_taskIL_5reps.json", "e140_r32_methods_frozenbias_40reps.json",
+              "e167_r32_noise2.0_lam3e-4.json"):
+        assert a in named, (a, named)
+    assert len(whole) <= 12, named
+    assert max(r["needed"] for r in whole) / 144 > 7.0, [r["needed"] for r in whole]
     claims = {r["id"]: r for r in d["claims"]}
-    for cid in ("S1", "S2", "S3"):
+    # S2 has fired: `e319`'s penalty-free runs are matrices whose every arm sits inside its own floor, so the
+    # "rare and named" claim about whole matrices is now false and the named set is reported instead
+    for cid in ("S1", "S3"):
         assert claims[cid]["verdict"].startswith("MET"), claims[cid]
+    assert claims["S2"]["verdict"].startswith("FALSIFIER FIRED"), claims["S2"]
     # both numbers grow with the corpus, so the reading is pinned as a shape and a bound
     m = re.search(r"(\d+) of (\d+) matrices", claims["S1"]["measured"])
     assert m, claims["S1"]
