@@ -82,3 +82,12 @@ one adjacent pair in the middle rather than the top. What stands is the *method*
 whether an artifact or a replicate is the unit of the vote, and two more runs were enough to move one of the two
 chains
 (`docs/findings/2026-10-01-the-reversal-in-the-other-family.md`).
+
+## 7. RE-READ 2026-10-01 13:24 — the population moves nothing again
+
+`e317`'s two artifacts changed the corpus once more and **`moved_by_population` is empty again**: with the filter the
+population moved **no** edge, where `e315` and `e316` had it moving one (`ewc>replay`). So V1's invariance is not a
+fact about the filter's innocence or otherwise; it is a fact about the corpus at the moment it is read, and three
+consecutive runs have made it alternate. V2's and V3's readings are unchanged from §6 — the two countings agree at
+the top and differ by one adjacent pair in the middle
+(`docs/findings/2026-10-01-the-reversal-with-five-arms.md`).

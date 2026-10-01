@@ -131,6 +131,10 @@ def comparisons(root: Path = RUNS, pair=(A, B), collapse: bool = True) -> list[d
         meth = d.get("methods")
         if not isinstance(meth, dict) or a not in meth or b not in meth:
             continue
+        #: An entry without `replicates` is not an arm: an analysis artifact reusing the key is not a run
+        if any(not isinstance(meth.get(k), dict) or not isinstance(meth[k].get("replicates"), list)
+               for k in (a, b)):
+            continue
         cfg = d.get("config") or {}
         for metric in HIGHER_IS_BETTER:
             c = contrast(d, a, b, metric)

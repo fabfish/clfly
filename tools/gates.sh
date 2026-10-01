@@ -168,4 +168,6 @@ run e315 python -m experiments.e315_the_order_the_runner_never_took --json-out r
 
 run e316 python -m experiments.e316_the_reversal_in_the_other_family --json-out runs/e316_the_reversal_in_the_other_family.json
 
+run e317 python -m experiments.e317_the_reversal_with_five_arms --json-out runs/e317_the_reversal_with_five_arms.json
+
 echo "ALL DONE"

@@ -104,13 +104,17 @@ def test_the_live_corpus_is_what_the_finding_says():
     assert s["final_accuracy"]["resolved_ahead"] * 2 > s["final_accuracy"]["resolved"], s["final_accuracy"]
     # B2's shape: it loses forgetting by count and wins none of the resolved ones
     assert s["mean_forgetting"]["rate"] < 0.5, s["mean_forgetting"]
-    assert s["mean_forgetting"]["resolved_ahead"] == 0 and s["mean_forgetting"]["resolved"] >= 3, s["mean_forgetting"]
+    # B2 has fired: `e317`'s reversed run is the corpus's first resolved forgetting comparison where the
+    # block arm is ahead (+0.07500 at 2.60 sigma) while its own forwards run is behind (-0.08333 at 2.64)
+    assert s["mean_forgetting"]["resolved"] >= 3, s["mean_forgetting"]
     d = e295.disagreement(rows)
     assert d["differ"] / d["artifacts"] > 0.25, d
-    # every resolved forgetting comparison has the block arm behind, and one resolved accuracy comparison has it behind
+    # the block arm is behind in every resolved forgetting comparison but one, and that one is the reversed
+    # half of the pair `e317` ran: its forwards run is behind at 2.64 sigma and its reversed run ahead at 2.60
+    ahead = [x for x in rows if x["metric"] == "mean_forgetting" and x["sigma"] >= 2 and x["block_ahead"]]
+    assert [x["artifact"] for x in ahead] == ["e317_five_reverse.json"], ahead
+    # and one resolved accuracy comparison has the block arm behind, which is `e8`'s
     for x in rows:
-        if x["metric"] == "mean_forgetting" and x["sigma"] >= 2:
-            assert not x["block_ahead"], x
         if x["metric"] == "final_accuracy" and x["sigma"] >= 2 and not x["block_ahead"]:
             assert x["artifact"] == "e8_basis.json", x
 
@@ -124,6 +128,6 @@ def test_the_artifact_carries_the_same_reading():
     assert d["by_metric"]["final_accuracy"]["ahead"] * 2 > d["by_metric"]["final_accuracy"]["comparisons"], d["by_metric"]
     assert d["disagreement"]["differ"] / d["disagreement"]["artifacts"] > 0.25, d["disagreement"]
     claims = {x["id"]: x for x in d["claims"]}
-    for cid in ("B1", "B2", "B3"):
-        assert claims[cid]["verdict"].startswith("MET"), claims[cid]
-    assert "0 of the" in claims["B2"]["measured"] and "resolved" in claims["B2"]["measured"], claims["B2"]
+    assert claims["B1"]["verdict"].startswith("MET"), claims["B1"]
+    assert claims["B3"]["verdict"].startswith("MET"), claims["B3"]
+    assert claims["B2"]["verdict"].startswith("FALSIFIER FIRED"), claims["B2"]
