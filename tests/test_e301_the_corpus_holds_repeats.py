@@ -6,10 +6,13 @@ the four bookkeeping keys the comparison ignores, both faces of the three claims
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 from clfly.bench import corpus
 from experiments import e301_the_corpus_holds_repeats as e301
+
+_MISSING = object()
 
 
 def _art(path: Path, n_eval=144, arms=("naive",), rows=5, losses=(1.0, 0.5), shape=None, draws=("readout",)):
@@ -129,8 +132,43 @@ def test_the_live_clusters_are_the_ones_the_finding_names():
     # the canonical member is the alphabetically first, so `e287` is kept and `e288` is the second copy
     assert "e288_frozenbias_suite1440_40reps.json" in corpus.repeat_paths()
     assert "e287_frozenbias_suite1440_40reps.json" not in corpus.repeat_paths()
-    # and every cluster agrees on everything outside the bookkeeping keys
-    assert e301.clusters() and all(not c["differing_paths"] for c in e301.clusters()), e301.clusters()
+    #: **RE-READ 2026-10-02.** This was `all(not c["differing_paths"])` and it is a point assertion on a record
+    #: that gains keys as the runner does: `e336` added `theta_direction` and the two clusters it shares with
+    #: `e334` -- same circuit, same seeds, same leak, a **bit-identical** training -- differ in exactly that key and
+    #: in nothing else. The structural statement is that **every** differing path is one some member of its cluster
+    #: does not record, computed from the payloads, so a cluster that really disagrees inside a shared key still
+    #: fires.
+    def _records(payload, path):
+        """Whether a payload records a dotted path, with lists indexed in brackets."""
+        cur = payload
+        for token in re.findall(r"[^.\[\]]+", path):
+            if isinstance(cur, list):
+                if not token.isdigit() or int(token) >= len(cur):
+                    return False
+                cur = cur[int(token)]
+            elif isinstance(cur, dict):
+                if token not in cur:
+                    return False
+                cur = cur[token]
+            else:
+                return False
+        return True
+
+    def _absent_in_one(members):
+        payloads = []
+        for name in members:
+            try:
+                payloads.append(json.loads((Path("runs") / name).read_text(encoding="utf-8")))
+            except (OSError, ValueError):
+                return None
+        return {p for p in set().union(*[set(c["differing_paths"]) for c in e301.clusters()
+                                         if c["members"] == members])
+                if not all(_records(pay, p) for pay in payloads)}
+
+    dirty = [c for c in e301.clusters()
+             if _absent_in_one(c["members"]) is None
+             or set(c["differing_paths"]) - _absent_in_one(c["members"])]
+    assert e301.clusters() and not dirty, dirty
 
 
 def test_the_artifact_carries_the_same_reading():
@@ -141,8 +179,13 @@ def test_the_artifact_carries_the_same_reading():
     assert len(d["clusters"]) >= 11, len(d["clusters"])
     assert d["n_second_copies"] == len(d["second_copies"]) >= 17, d["second_copies"]
     claims = {x["id"]: x for x in d["claims"]}
-    for cid in ("R1", "R2", "R3"):
+    for cid in ("R1", "R3"):
         assert claims[cid]["verdict"].startswith("MET"), claims[cid]
+    #: **R2's falsifier fired on 2026-10-02**: two clusters differ outside the bookkeeping keys, and both are
+    #: `e334`'s runs against `e336`'s -- same circuit, same seeds, same leak, a bit-identical training, differing in
+    #: exactly the `theta_direction` key that did not exist when `e334` was written. The verdict is reported as it
+    #: stands rather than re-based.
+    assert claims["R2"]["verdict"].startswith("FALSIFIER FIRED"), claims["R2"]
     kept, dropped = d["censuses"]["kept"], d["censuses"]["dropped"]
     for k in ("e286", "e295", "e296"):
         for n, v in kept[k].items():

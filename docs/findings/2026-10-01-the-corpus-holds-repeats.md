@@ -77,3 +77,28 @@ of those fields recorded cannot be called a repeat at all, which is what keeps t
 other choice gives the same numbers, but the *name* a finding cites is a convention. **And a duplicate is not a
 mistake**: ten of the eleven clusters are written up as evidence elsewhere, and this unit can only say that one
 execution is not two.
+
+## RE-READ 2026-10-02: two clusters that differ in a key one member predates
+
+`e336` added `theta_direction` to the per-replicate record, and `e301` promptly found **two new clusters** whose
+members differ outside the four bookkeeping keys:
+
+    e334_replay_instant.json  against  e336_direction_instant.json
+    e334_replay_carry.json    against  e336_direction_carry.json
+
+and the only differing path in either is `methods.replay.replicates[i].theta_direction` -- the key that did not
+exist when `e334`'s artifacts were written. **No `config` field and no result field differs**, which is the same
+thing as saying the two runs of each pair are the same execution: same circuit, same seeds, same leak, and the
+training **bit-identical** across the code change that added the instrument.
+
+**R2's falsifier FIRED** as a consequence: the claim is that every cluster agrees on everything outside the four
+bookkeeping keys, and two of seventeen now do not. The bar is the unit's and the record is what changed, so the
+verdict is reported as it stands rather than re-based, and the live test asserts **FIRED** so a future corpus that
+makes it true again has to be noticed. The structural form of the assertion is what the test now also carries: every
+differing path must be one that a member of its own cluster **does not record**, which is computed from the two
+payloads rather than taken on trust -- so a cluster that really disagrees *inside* a shared key still fires.
+
+The one thing this RE-READ cannot do is separate the two readings of the pair: a replay that reproduces its
+predecessor exactly and a replay that differs only in a key added later are the same file to this instrument, and
+the bit-identity is an inference from the config diff and the arms being equal and not a per-replicate comparison
+here. `e334` and `e336` are that comparison's missing unit.

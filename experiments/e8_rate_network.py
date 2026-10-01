@@ -42,6 +42,20 @@ from clfly.network.model import RateConfig, build_net
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
+#: **The direction of a task's parameter update, in a fixed subspace.** `theta_drift` records the *norm* of
+#: `theta_after - theta_before`, and `e334` and `e335` between them excluded the three accounts that a norm can
+#: speak to -- the stored features fitting worse, the buffer's contents differing, and the body drifting further --
+#: leaving the one they cannot: that the body moved **differently**. Two runs' drift norms are comparable and their
+#: directions are not, so the update is recorded here as a **unit vector sampled at a fixed index set**, drawn from
+#: a constant seed and therefore the same subspace in every run at the same parameter count. The cosine between two
+#: such vectors estimates the cosine between the full updates, and it is the quantity the next reader needs.
+DIRECTION_DIM = 256
+
+
+def direction_basis(n_params: int) -> np.ndarray:
+    rng = np.random.default_rng(20261002)
+    return np.sort(rng.choice(n_params, size=min(DIRECTION_DIM, n_params), replace=False))
+
 
 def train_task(model, heads, suite, k: int, iters: int, lr: float, batch: int,
                seed: int, ewc=None, block_ewc=None, replay: list | None = None,
@@ -574,6 +588,7 @@ def run_method(conn_net, suite, method: str, args, seed: int,
     L = np.full((T, T), np.nan)                            # the retention matrix in LOSS, not accuracy
     losses = []
     replay_losses: list = []
+    directions: list = []
     drifts = []                                            # ||theta after - before|| / ||before|| per task
     bias_norms = []                                        # the bias's absolute movement, which has no relative form
     full_train_losses = []                                 # mean loss over the task's whole train split
@@ -628,6 +643,7 @@ def run_method(conn_net, suite, method: str, args, seed: int,
             block_pen = part.make_penalty(blocks, anchor_b, model.theta, args.lam, torch)
         theta_before = model.theta.detach().cpu().numpy().copy()
         bias_before = model.bias.detach().cpu().numpy().copy()
+        basis = direction_basis(theta_before.size)
         probe: dict = {}
         losses.append(train_task(
             model, heads, suite, k, iters=args.iters, lr=args.lr,
@@ -644,7 +660,14 @@ def run_method(conn_net, suite, method: str, args, seed: int,
         #: recorded for every method and empty for the ones with no replay buffer, so an artifact's shape does not
         #: depend on which arms it ran
         replay_losses.append({"first": probe.get("first"), "last": probe.get("last")})
-        drifts.append(relative_drift(theta_before, model.theta.detach().cpu().numpy()))
+        theta_after = model.theta.detach().cpu().numpy()
+        drifts.append(relative_drift(theta_before, theta_after))
+        #: a unit vector in the fixed subspace, so two runs are comparable on direction as well as on norm
+        step = (theta_after - theta_before).ravel()[basis]
+        norm = float(np.linalg.norm(step))
+        directions.append({"index_sha1": hashlib.sha1(" ".join(str(int(i)) for i in basis).encode()).hexdigest()[:12],
+                           "values": [float(x) for x in (step / norm if norm else step)],
+                           "subspace_norm": norm})
         # The bias starts at exactly zero, so a relative drift is undefined (||before|| = 0) and the honest
         # record is absolute: how far it moved from zero, and how far it moved on this task. Recorded because
         # no EWC penalty in this project covers the bias, so how far it travels is how much of the forgetting
@@ -822,6 +845,9 @@ def run_method(conn_net, suite, method: str, args, seed: int,
         "replay_loss": replay_losses,
         "retention_loss": L.tolist(),
         "theta_drift": drifts,
+        #: per task, the update's direction as a unit vector on a fixed subspace of the parameters, with the norm it
+        #: was normalised by; `theta_drift` is the norm and this is what the norm cannot say
+        "theta_direction": directions,
         "bias_norms": bias_norms,
         "full_train_loss": full_train_losses,
         "interference": interference,
