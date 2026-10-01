@@ -190,4 +190,6 @@ run e326 python -m experiments.e326_training_through_the_loop --json-out runs/e3
 
 run e327 python -m experiments.e327_the_feedback_is_a_dose --json-out runs/e327_the_feedback_is_a_dose.json
 
+run e328 python -m experiments.e328_is_the_middling_loop_worse --json-out runs/e328_is_the_middling_loop_worse.json
+
 echo "ALL DONE"
