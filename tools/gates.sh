@@ -216,4 +216,6 @@ run e339 python -m experiments.e339_is_the_ordering_immune_to_the_redraw --json-
 
 run e340 python -m experiments.e340_the_clean_seed_stream --json-out runs/e340_the_clean_seed_stream.json
 
+run e341 python -m experiments.e341_forty_replicates_on_the_clean_stream --json-out runs/e341_forty_replicates_on_the_clean_stream.json
+
 echo "ALL DONE"

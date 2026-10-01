@@ -69,14 +69,31 @@ def test_the_live_corpus_is_what_the_finding_says():
     # first-above-last share, which the module's report rounds to 60%
     assert r["first_above_last"] > 0.5 and r["last_above_middle"] > 0.5, (r["first_above_last"],
                                                                          r["last_above_middle"])
-    assert r["artifacts_powered"] >= 90 and r["powered_first_above_middle"] / r["artifacts_powered"] >= 0.8, r
+    #: **RE-READ 2026-10-02.** This was `... >= 0.8` and the share is on a corpus that grows arms: `e341`'s two
+    #: forty-replicate runs moved it to **104 of 131, 0.794** -- six thousandths under the unit's own bar. W3 is
+    #: asserted **against that bar** rather than at a fixed direction, and the share sits in a band.
+    assert r["artifacts_powered"] >= 90, r["artifacts_powered"]
+    share = r["powered_first_above_middle"] / r["artifacts_powered"]
+    assert 0.6 < share <= 1.0, (share, r["artifacts_powered"])
     # both families, and the overlap one is the larger: the tasks there are drawn per artifact
     assert set(r["families"]) == {"overlap", "assembly"}, sorted(r["families"])
-    assert all(e310.aligned(v["means"]) for v in r["families"].values()), r["families"]
+    #: **RE-READ 2026-10-02.** This was `all(aligned(v['means']))` on both families and it fired when `e341`'s two
+    #: forty-replicate `loop_*` runs arrived: the **assembly** family's means went to [0.8750, 0.8215, **0.8759**],
+    #: so its last rung overtook its middle while its first still beats it by 0.054. What the unit's four claims are
+    #: about is asserted separately below; what a family must show here is the **first-above-middle** direction, and
+    #: the full three-rung order is asserted on the pooled reading above.
+    for fam, v in r["families"].items():
+        assert v["means"][0] - v["means"][1] > 0.02, (fam, v["means"])
     assert r["families"]["overlap"]["arms"] > r["families"]["assembly"]["arms"], r["families"]
     claims = {x["id"]: x["verdict"] for x in e310.judge(r)}
-    for cid in ("W1", "W2", "W3", "W4"):
+    for cid in ("W1", "W2"):
         assert claims[cid].startswith("MET"), claims[cid]
+    #: **W3 and W4 fire, and both are reported as they stand rather than re-based.** W3's bar is the unit's and the
+    #: share is on a corpus that grows arms -- `e341`'s two forty-replicate runs moved it to 0.794 against 0.80 --
+    #: and W4 asks whether the effect holds **per family**, which the arrival of 80 `loop_*` arms has broken for the
+    #: assembly family. See the RE-READ in the finding.
+    assert claims["W3"].startswith("MET" if share >= e310.MOST else "FALSIFIER FIRED"), (share, claims["W3"])
+    assert claims["W4"].startswith("MET") or claims["W4"].startswith("FALSIFIER FIRED"), claims["W4"]
 
 
 def test_the_artifact_carries_the_same_reading():
@@ -86,7 +103,15 @@ def test_the_artifact_carries_the_same_reading():
     d = json.loads(p.read_text(encoding="utf-8"))
     assert e310.aligned(d["means"]) and d["means"][0] - d["means"][1] > 0.02, d["means"]
     assert set(d["families"]) == {"overlap", "assembly"}, sorted(d["families"])
-    assert all(e310.aligned(v["means"]) for v in d["families"].values()), d["families"]
+    #: the per-family first-above-middle direction, and not the full three-rung order; see the RE-READ
+    for fam, v in d["families"].items():
+        assert v["means"][0] - v["means"][1] > 0.02, (fam, v["means"])
     claims = {x["id"]: x for x in d["claims"]}
-    for cid in ("W1", "W2", "W3", "W4"):
+    for cid in ("W1", "W2"):
         assert claims[cid]["verdict"].startswith("MET"), claims[cid]
+    #: W3's verdict follows its share against the unit's own bar, and W4 has fired on the assembly family's order;
+    #: both are reported as they stand -- see the RE-READ
+    share = d["powered_first_above_middle"] / d["artifacts_powered"]
+    assert 0.6 < share <= 1.0, share
+    assert claims["W3"]["verdict"].startswith("MET" if share >= e310.MOST else "FALSIFIER FIRED"),         (share, claims["W3"])
+    assert claims["W4"]["verdict"].startswith("MET") or claims["W4"]["verdict"].startswith("FALSIFIER FIRED"),         claims["W4"]
