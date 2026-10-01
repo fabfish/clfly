@@ -156,4 +156,6 @@ run e309 python -m experiments.e309_the_conformance_contract --json-out runs/e30
 
 run e310 python -m experiments.e310_the_position_effect --json-out runs/e310_the_position_effect.json
 
+run e311 python -m experiments.e311_the_two_tasks_the_metric_averages --json-out runs/e311_the_two_tasks_the_metric_averages.json
+
 echo "ALL DONE"
