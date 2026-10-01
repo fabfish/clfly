@@ -200,4 +200,6 @@ run e331 python -m experiments.e331_the_ordering_under_the_loop --json-out runs/
 
 run e332 python -m experiments.e332_the_world_answers_with_a_state --json-out runs/e332_the_world_answers_with_a_state.json
 
+run e333 python -m experiments.e333_the_world_gets_a_rule --json-out runs/e333_the_world_gets_a_rule.json
+
 echo "ALL DONE"

@@ -61,6 +61,12 @@ class CueActionEnv:
     #: draw, and there is no third option -- the response is either a report or a state.
     world_modes: int = 0
     world_templates: np.ndarray | None = None      # (world_modes, len(feedback_neurons))
+    #: **the world's transition rule.** One is the instantaneous world `e332` measured: what comes back is the
+    #: consequence of the agent's **last** action and of nothing earlier. Below one the world carries its state
+    #: forward -- ``w_t = (1 - leak) w_{t-1} + leak * action_{t-1}`` -- so the channel at step ``t`` is a decaying
+    #: sum of the whole action history and not of one step. The endpoint is exact: at one, the recursion is the
+    #: identity `w = action` and this is `e332`'s world to the last digit.
+    world_leak: float = 1.0
 
     @property
     def n_symbols(self) -> int:
@@ -99,11 +105,26 @@ class CueActionEnv:
         import torch
         out = torch.as_tensor(np.asarray(self.feedback_neurons), dtype=torch.long)
 
+        carried = {"w": None}
+
         def fn(x, t):
-            if t == 0:
-                return torch.zeros_like(x)
             add = torch.zeros_like(x)
             action = self.action(x)
+            if self.world_modes and self.world_templates is not None:
+                #: **the world resets with the trial**, and that reset is not a detail: a state carried across
+                #: forward passes would keep the previous pass's autograd graph alive and the next backward would
+                #: fail on a freed graph -- which is how the first version of this rule announced itself. It is
+                #: also initialised lazily, so a caller that starts at a step other than zero gets a world at rest
+                #: rather than an exception. The rule is applied before the step's answer, so at ``leak = 1`` what
+                #: step ``t`` shows is the consequence of the action taken from the state carried into it, which is
+                #: `e332`'s world exactly.
+                if t == 0 or carried["w"] is None or carried["w"].shape != action.shape:
+                    carried["w"] = torch.zeros_like(action)
+                if t == 0:
+                    return add
+                carried["w"] = (1.0 - self.world_leak) * carried["w"] + self.world_leak * action
+            elif t == 0:
+                return add
             if self.world_modes and self.world_templates is not None:
                 #: a smooth pick between two patterns: at saturation the world shows its state, and in between it
                 #: shows a blend, which is what keeps the loop differentiable through the choice
@@ -111,7 +132,7 @@ class CueActionEnv:
                 #: the action runs from -1 to +1 and the blend is taken about its midpoint rather than about the
                 #: first template. Without the centring the world would inject its two patterns' average whenever
                 #: the agent did nothing, which is a consequence reported for no action.
-                share = (1.0 + action) / 2.0
+                share = (1.0 + carried["w"]) / 2.0
                 tpl = torch.as_tensor(np.asarray(self.world_templates), dtype=x.dtype)
                 blend = share[:, None] * tpl[1] + (1 - share)[:, None] * tpl[0]
                 add[:, out] = self.scale * (blend - (tpl[0] + tpl[1]) / 2.0)
@@ -125,7 +146,7 @@ class CueActionEnv:
         return {"tau": self.tau, "n_symbols": self.n_symbols, "n_cue": int(len(self.cue_neurons)),
                 "n_action": int(len(self.action_neurons)), "n_feedback": int(len(self.feedback_neurons)),
                 "scale": self.scale, "gain": self.gain, "noise": self.noise,
-                "world_modes": self.world_modes,
+                "world_modes": self.world_modes, "world_leak": self.world_leak,
                 "cue_sha1": _sha(self.cue_neurons), "action_sha1": _sha(self.action_neurons),
                 "feedback_sha1": _sha(self.feedback_neurons),
                 "world_sha1": (_sha(np.ravel(self.world_templates)) if self.world_templates is not None
@@ -187,7 +208,8 @@ class ClosedLoop:
 
 def build(circ, readout_subset=None, n_symbols: int = 2, tau: int = 12, n_cue: int = 12,
           n_action: int = 8, n_feedback: int = 12, seed: int = 0, scale: float = 1.0,
-          gain: float = 1.0, noise: float = 0.0, world_modes: int = 0) -> CueActionEnv:
+          gain: float = 1.0, noise: float = 0.0, world_modes: int = 0,
+          world_leak: float = 1.0) -> CueActionEnv:
     """Draw the three populations disjointly and the cue templates, all from ``seed``.
 
     ``readout_subset`` is the decoder's own draw and is **not** available to the environment: the action is read off
@@ -204,6 +226,6 @@ def build(circ, readout_subset=None, n_symbols: int = 2, tau: int = 12, n_cue: i
                         cue_neurons=np.sort(cue), action_neurons=np.sort(action),
                         feedback_neurons=np.sort(feedback),
                         cue_templates=rng.standard_normal((n_symbols, n_cue)),
-                        scale=scale, gain=gain, noise=noise, world_modes=world_modes,
+                        scale=scale, gain=gain, noise=noise, world_modes=world_modes, world_leak=world_leak,
                         world_templates=(rng.standard_normal((world_modes, n_feedback))
                                          if world_modes else None))

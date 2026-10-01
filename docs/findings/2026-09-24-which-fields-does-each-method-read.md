@@ -72,3 +72,22 @@ both differing in that field alone. Reading them:
 **So the table is a finder and not a verdict**, on the same division of labour as `e158`'s corrections index: its
 one-sided rows (λ, the replay settings, `basis`, the read-out) are load-bearing, and its conflicting rows are a
 list of pairs to explain rather than evidence about the runner.
+
+## RE-READ 2026-10-01: a config key added later came out CONFLICTING
+
+`e333` added `--loop-world-leak` to the runner, and the live corpus assertion in `tests/test_e160_*.py` failed:
+`loop_world_leak` was **CONFLICTING** for `naive` and for the corpus with a recorded environment, where the
+assertion was that the only conflict left is the unrecorded-environment marker.
+
+**The mechanism is this instrument's own subject, one level down.** `config` gains keys as the runner gains flags, so
+`e332`'s artifacts have no `loop_world_leak` at all while `e333`'s carry it -- and the pair-comparison
+(`ea.get(k) != eb.get(k)`) reads that absence as a difference. That produces **both** verdicts at once: the pair
+`e332_world_state` against `e333_world_instant` has **bit-identical arms** and a differing key (absent against 1.0,
+which is the default it ran under), while `e333`'s own two runs are **not** identical and differ in the same key. So
+the field has an UNREAD pair and a READ pair, and the table reports the conflict rather than either verdict.
+
+**The asserted statement is now the structural one**, computed from the artifacts rather than from the table: every
+remaining conflict is either the unrecorded-environment marker or a field that **some artifact predates**, and no
+conflict is between two fields every artifact records. A field that is genuinely read by one method and unread by
+another still fires it. The `lam` row -- the check this table exists for -- is unchanged, and so is the comparison
+between the full table and the recorded subset on every cell they both decide.

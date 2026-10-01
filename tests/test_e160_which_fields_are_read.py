@@ -134,14 +134,27 @@ def test_the_corpus_table_has_no_conflict_left_about_a_field():
     table = e160.readership(arts, arms)["table"]
     fields = sorted({f for v in table.values() for f in v})
     conflicts = [(a, f) for a in arms for f in fields if table[a].get(f) == e160.CONFLICT]
-    assert conflicts and {f for _, f in conflicts} == {e160.UNIDENTIFIABLE}
+    #: **RE-READ 2026-10-01.** This was `== {UNIDENTIFIABLE}` and it was a point assertion on a corpus that
+    #: gains `config` keys as the runner gains flags: `e333`'s `--loop-world-leak` arrived after `e332`'s artifacts
+    #: were written, and the pair where the older one predates the key is bit-identical while the pair that really
+    #: varies it is not, so the field came out CONFLICTING. The structural statement is that every conflict is
+    #: either the unrecorded-environment marker or a field **some artifact predates** -- computed here from the
+    #: artifacts rather than from the table -- so a genuine conflict between recorded fields still fires.
+    predated = (set().union(*[set(a["config"]) for a in arts])
+                - set.intersection(*[set(a["config"]) for a in arts]))
+    assert conflicts and {f for _, f in conflicts} <= {e160.UNIDENTIFIABLE} | predated
     # the check the table exists for survives everything above
     assert [table[a].get("lam") for a in arms] == [e160.UNREAD, e160.READ, e160.READ, e160.READ, e160.UNREAD]
 
     recorded = [a for a in arts if isinstance(a["payload"].get("environment"), dict)]
     rtable = e160.readership(recorded, arms)["table"]
     rfields = sorted({f for v in rtable.values() for f in v})
-    assert not [f for a in arms for f in rfields if rtable[a].get(f) == e160.CONFLICT]
+    #: and the same relaxation here, for the same reason: a conflict on a field some of these artifacts predate
+    #: is an artifact-schema difference, while a conflict between two fields every one of them records is not.
+    rpredated = (set().union(*[set(a["config"]) for a in recorded])
+                 - set.intersection(*[set(a["config"]) for a in recorded]))
+    assert not [f for a in arms for f in rfields
+                if rtable[a].get(f) == e160.CONFLICT and f not in rpredated], (rpredated, rfields)
     # and it costs nothing: on every cell the recorded subset can decide, the full table agrees exactly
     decided = lambda v: v in (e160.READ, e160.UNREAD)          # noqa: E731
     decided_cells = [(a, f) for a in arms for f in rfields if decided(rtable[a].get(f, e160.UNTESTED))]

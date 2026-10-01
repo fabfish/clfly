@@ -971,6 +971,10 @@ def main(argv=None) -> int:
     #: `e331` found the ordering surviving the loop on a world whose response is a **scalar report** of the
     #: agent's action. This is the other kind: the action selects a **state**, so what comes back is a consequence
     #: the agent picked rather than a number saying what it did.
+    #: `e332` gave the world a state and no rule; the endpoint of the rule is its world exactly, so the two runs
+    #: of this flag are the instantaneous world and one that carries its state.
+    p.add_argument("--loop-world-leak", type=float, default=1.0,
+                   help="the world's transition rule: 1 is instantaneous, below 1 carries its state forward")
     p.add_argument("--loop-world-modes", type=int, default=0,
                    help="the number of world states the action selects between; 0 keeps the scalar report")
     p.add_argument("--loop-noise", type=float, default=0.0,
@@ -1048,7 +1052,8 @@ def main(argv=None) -> int:
         loop_env = fly_env.build(circ, readout_subset=rs, seed=args.seed0,
                                  n_symbols=args.loop_symbols * len(rate_tasks.SUITE_SPECS),
                                  tau=12, scale=args.loop_scale, gain=args.loop_gain,
-                                 noise=args.loop_noise, world_modes=args.loop_world_modes)
+                                 noise=args.loop_noise, world_modes=args.loop_world_modes,
+                                 world_leak=args.loop_world_leak)
         suite = [fly_env.make_env_task(loop_env, f"loop_{spec[0]}",
                                        symbols=range(i * args.loop_symbols, (i + 1) * args.loop_symbols),
                                        n_train=args.train, n_test=args.test,
