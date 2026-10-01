@@ -126,3 +126,17 @@ denominator, and T4's null.
 the census cannot classify must be exactly the `seq_` family, and the verdict must agree with whether there are any.
 So the next builder to arrive fires it again, and a *reclassification* of the sequence family -- which would be an
 instrument change made after reading -- cannot be slipped in as a green test.
+
+## 7. RE-READ 2026-10-01, after `e325`: a third writer, and the count is not what is pinned
+
+`e325`'s closed-loop environment writes the cue into its input array, which is a **third** authored subscript store
+into a stimulus-shaped array, and it is a timed one (the cue is at step 0 and nowhere else). So **T2 now reports
+three authored sites, two of them writing along time**, and `tests/test_e322_*.py` no longer asserts a number at
+all.
+
+That is the shape the last three units have converged on, and it is worth stating as a property of the instrument:
+the census can say **which** writers exist and **what kind** each is, and what it cannot do is stay true across a
+corpus that keeps growing one. So the assertion pins the structure that a census can hold -- **exactly one** authored
+site writes the same value along the whole time axis, every other one writes along time, and all of them live in
+`clfly/network/` -- and a second *constant* writer is what would fire it. The claim itself, T2 as registered, keeps
+firing as builders arrive, and it is reported that way rather than reclassified.

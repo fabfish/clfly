@@ -87,3 +87,12 @@ would place the conjunction ceiling differently. **And a boundary the noise redr
 redraws**: when the two symbols coincide the halves differ only by their noise draw, so "the stimulus changes at the
 boundary" is guaranteed by the fresh noise rather than by the symbols, which is what the builder's tests now assert in
 both directions.
+
+## 5. RE-READ 2026-10-01: a third writer joined the two
+
+`e325`'s closed-loop environment writes the cue into its input array, so `clfly/network/` now holds **three**
+authored writers into a stimulus-shaped array: the sustained builder's full-slice broadcast, the sequence builder's
+step-indexed write, and the environment's cue at step 0. Section 3 above described the pair; `e322` now reports
+three sites for T2 and its assertion is the structural one -- one constant writer, the rest timed, all in
+`clfly/network/`. The assertion here is correspondingly the statement of where the sequence writer sits (a timed
+site in the same module, later in the file than the sustained one) rather than how many timed writers there are.

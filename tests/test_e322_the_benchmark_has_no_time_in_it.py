@@ -161,23 +161,27 @@ def test_the_five_claims_read_both_faces():
     assert all(row["verdict"].startswith("REFUSED") for row in e322.judge({"invariance": [], "time_axis": []}))
 
 
-def test_the_tree_has_exactly_two_authored_writers_one_of_them_timed():
+def test_the_tree_has_one_constant_writer_and_the_rest_timed():
     """The structural claim, asserted on this repository rather than on a fixture.
 
-    `e322` registered this as *one* site and it held on the day it was taken. `e323` added the second, which is
-    the change that unit's own "what it cannot do" named as the missing half of a temporal task, and the claim
-    fired: it is reported as FIRED in the finding and in the artifact. What the test pins is the **structure**
-    that replaced the count -- one full-slice writer and one with an explicit step index, both in the same module
-    -- so a third writer has to arrive as a deliberate change rather than as an accident of a count.
+    `e322` registered this as *one* site and it held on the day it was taken. `e323` added a second, writing along
+    the time axis, which is the change that unit's own "what it cannot do" named as the missing half of a temporal
+    task, and the claim fired: it is reported as FIRED in the finding and in the artifact. `e325` added a third, the
+    closed-loop environment's cue, which is timed as well.
+
+    So the assertion is not a count. What it pins is the **structure**: exactly one authored site writes the same
+    value along the whole time axis -- the sustained builder -- and every other authored site writes along time, all
+    of them inside `clfly/network/`. A fourth writer therefore arrives as a timed one (fine, and the census will say
+    so) or as a second constant one (which fires here, deliberately).
     """
     authored = [s for s in e322.scan_stimulus_writers()
                 if any(s["file"].startswith(d + "/") for d in e322.AUTHOR_DIRS)]
     constant = [s for s in authored if s["time_is_full_slice"]]
     timed = [s for s in authored if not s["time_is_full_slice"]]
-    assert len(constant) == 1 and len(timed) == 1, authored
-    assert all(s["file"].endswith("clfly/network/tasks.py") for s in authored), authored
-    # the sustained builder is the older of the two, the sequence builder the newer
-    assert constant[0]["line"] < timed[0]["line"], authored
+    assert len(constant) == 1, authored
+    assert timed, "the builders that change with the step are the point of the last three units"
+    assert constant[0]["file"].endswith("clfly/network/tasks.py"), constant[0]
+    assert all(s["file"].startswith("clfly/network/") for s in authored), authored
 
 
 def test_the_live_artifact_carries_the_same_reading():

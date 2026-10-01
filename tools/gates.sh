@@ -184,4 +184,6 @@ run e323 python -m experiments.e323_the_trial_gets_a_second_half --json-out runs
 
 run e324 python -m experiments.e324_what_the_time_axis_costs --json-out runs/e324_what_the_time_axis_costs.json
 
+run e325 python -m experiments.e325_the_loop_closes --json-out runs/e325_the_loop_closes.json
+
 echo "ALL DONE"

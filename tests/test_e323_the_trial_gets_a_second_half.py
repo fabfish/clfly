@@ -65,16 +65,21 @@ def test_a_larger_alphabet_is_more_classes_and_the_same_two_halves():
 
 
 def test_the_sequence_builder_is_the_second_writer():
-    """`e322`'s scan is what was supposed to notice this, so it is asserted on this repository."""
+    """`e322`'s scan is what was supposed to notice this, so it is asserted on this repository.
+
+    `e325` has since added a third authored writer (the closed-loop environment's cue), so what is pinned here is
+    where the sequence builder sits rather than how many writers there are: a timed site in the same module as the
+    sustained builder, later in the file than it.
+    """
     authored = [s for s in e322.scan_stimulus_writers()
                 if any(s["file"].startswith(d + "/") for d in e322.AUTHOR_DIRS)]
-    constant = [s for s in authored if s["time_is_full_slice"]]
-    timed = [s for s in authored if not s["time_is_full_slice"]]
-    assert len(authored) == 2, authored
-    assert len(constant) == 1 and len(timed) == 1, authored
-    assert all(s["file"].endswith("clfly/network/tasks.py") for s in authored), authored
-    # the constant half of the pair is the sustained builder and the timed one the sequence builder
-    assert constant[0]["line"] < timed[0]["line"], authored
+    sustained = [s for s in authored if s["time_is_full_slice"] and s["file"].endswith("tasks.py")]
+    assert len(sustained) == 1, authored
+    timed = sorted((s for s in authored if not s["time_is_full_slice"] and s["file"].endswith("tasks.py")),
+                   key=lambda s: s["line"])
+    assert timed, authored
+    assert timed[0]["line"] > sustained[0]["line"], (sustained, timed)
+    assert all(s["file"].endswith("clfly/network/tasks.py") for s in sustained + timed), authored
 
 
 def _reading(readout="narrow", within=0.0, boundary=1.0, pair_last=0.80, pair_half=0.26, first_last=0.90,

@@ -143,7 +143,7 @@ def _make_module():
             W = W.index_put((idx[:, 0], idx[:, 1]), self.theta)
             return W
 
-        def forward(self, u, w_in=None):
+        def forward(self, u, w_in=None, feedback=None):
             """Run the recurrence.
 
             ``u`` is ``(batch, tau, n_neurons)`` when ``w_in`` is ``None`` — the
@@ -151,14 +151,26 @@ def _make_module():
             it, so there is no separate input pathway to absorb task-specific
             structure.  Passing ``w_in`` instead lets ``u`` be ``(batch, tau, n_in)``
             for a projected stimulus.
+
+            ``feedback`` closes the loop: it is a callable ``(x, t) -> (batch, n)`` whose
+            value is **added to the step's input**, where ``x`` is the state **before**
+            that step's update.  At ``t = 0`` that state is the zero vector, and the
+            environments in :mod:`clfly.network.env` return zero there, so a loop adds
+            nothing to the first step and the cue stands alone.  It is differentiable,
+            so backprop-through-time crosses the loop exactly as it crosses the
+            recurrence; ``None`` (the default) leaves the computation bit-identical to
+            the open-loop version every artifact in this repository was written by.
             """
             W = self.recurrent()
             x = torch.zeros(u.shape[0], self.mask_shape[0], device=u.device,
                             dtype=u.dtype)
             traj = []
             for t in range(self.tau):
+                inp = u[:, t] @ w_in.T if w_in is not None else u[:, t]
+                if feedback is not None:
+                    inp = inp + feedback(x, t)
                 drive = x @ W.T + self.bias
-                drive = drive + (u[:, t] @ w_in.T if w_in is not None else u[:, t])
+                drive = drive + inp
                 x = (1.0 - self.alpha) * x + self.alpha * torch.tanh(drive)
                 traj.append(x)
             return torch.stack(traj, dim=1)     # (batch, tau, n)
