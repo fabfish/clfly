@@ -194,4 +194,6 @@ run e328 python -m experiments.e328_is_the_middling_loop_worse --json-out runs/e
 
 run e329 python -m experiments.e329_the_environment_gets_a_noisy_cue --json-out runs/e329_the_environment_gets_a_noisy_cue.json
 
+run e330 python -m experiments.e330_the_cost_needs_the_ceiling --json-out runs/e330_the_cost_needs_the_ceiling.json
+
 echo "ALL DONE"
