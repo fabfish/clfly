@@ -49,21 +49,33 @@ class CueActionEnv:
     cue_templates: np.ndarray                 # (n_symbols, len(cue_neurons))
     scale: float = 1.0
     gain: float = 1.0
+    #: noise on the cue, drawn **once per example** at step 0 and never again. Zero is the default so every
+    #: artifact written before this field existed is unaffected, and it is what `e326` to `e328` ran: with
+    #: deterministic cue patterns a two-symbol task is two fixed vectors and every arm learns it perfectly, which
+    #: is the ceiling `e328` ended by naming. A non-zero value makes the cue a noisy measurement.
+    noise: float = 0.0
 
     @property
     def n_symbols(self) -> int:
         return int(self.cue_templates.shape[0])
 
-    def cue_input(self, symbols: np.ndarray) -> np.ndarray:
+    def cue_input(self, symbols: np.ndarray, rng=None) -> np.ndarray:
         """The trial's input array: the cue at step ``0``, **nothing after it**.
 
         The zeros from step ``1`` on are what make the loop load-bearing rather than decorative -- with the cue held
         for the whole trial a decoder that ignored the state could read it off the drive, which is the sustained
         suite's situation and not this one.
+
+        ``rng`` seeds the cue's noise; passing none uses a fixed seed, so a call without one is reproducible, and
+        with ``noise = 0`` this is bit-identical to the version that had no noise at all.
         """
         symbols = np.asarray(symbols, dtype=np.int64)
         u = np.zeros((len(symbols), self.tau, self.n_neurons))
         u[:, 0, self.cue_neurons] = self.cue_templates[symbols]
+        if self.noise:
+            r = np.random.default_rng(0) if rng is None else rng
+            u[:, 0, self.cue_neurons] += self.noise * r.standard_normal(
+                (len(symbols), len(self.cue_neurons)))
         return u
 
     def action(self, x) -> "object":
@@ -92,7 +104,7 @@ class CueActionEnv:
     def summary(self) -> dict:
         return {"tau": self.tau, "n_symbols": self.n_symbols, "n_cue": int(len(self.cue_neurons)),
                 "n_action": int(len(self.action_neurons)), "n_feedback": int(len(self.feedback_neurons)),
-                "scale": self.scale, "gain": self.gain,
+                "scale": self.scale, "gain": self.gain, "noise": self.noise,
                 "cue_sha1": _sha(self.cue_neurons), "action_sha1": _sha(self.action_neurons),
                 "feedback_sha1": _sha(self.feedback_neurons)}
 
@@ -116,12 +128,14 @@ def make_env_task(env: CueActionEnv, name: str, symbols, n_train: int, n_test: i
     symbols = np.asarray(symbols, dtype=np.int64)
     y_tr = rng.choice(symbols, size=n_train)
     y_te = rng.choice(symbols, size=n_test)
+    #: the cue's noise is drawn from the task's own seed, once per example, and independently for the two splits
+    cue_rng = np.random.default_rng(seed + 5000)
     return RateTask(name=name,
                     input_neurons=np.sort(np.concatenate([env.cue_neurons, env.feedback_neurons])),
                     readout_neurons=np.asarray(readout_neurons), n_classes=len(symbols),
                     n_neurons=env.n_neurons, tau=env.tau,
-                    u_train=env.cue_input(y_tr), y_train=y_tr - class_offset,
-                    u_test=env.cue_input(y_te), y_test=y_te - class_offset,
+                    u_train=env.cue_input(y_tr, cue_rng), y_train=y_tr - class_offset,
+                    u_test=env.cue_input(y_te, cue_rng), y_test=y_te - class_offset,
                     class_offset=class_offset)
 
 
@@ -150,7 +164,7 @@ class ClosedLoop:
 
 def build(circ, readout_subset=None, n_symbols: int = 2, tau: int = 12, n_cue: int = 12,
           n_action: int = 8, n_feedback: int = 12, seed: int = 0, scale: float = 1.0,
-          gain: float = 1.0) -> CueActionEnv:
+          gain: float = 1.0, noise: float = 0.0) -> CueActionEnv:
     """Draw the three populations disjointly and the cue templates, all from ``seed``.
 
     ``readout_subset`` is the decoder's own draw and is **not** available to the environment: the action is read off
@@ -167,4 +181,4 @@ def build(circ, readout_subset=None, n_symbols: int = 2, tau: int = 12, n_cue: i
                         cue_neurons=np.sort(cue), action_neurons=np.sort(action),
                         feedback_neurons=np.sort(feedback),
                         cue_templates=rng.standard_normal((n_symbols, n_cue)),
-                        scale=scale, gain=gain)
+                        scale=scale, gain=gain, noise=noise)

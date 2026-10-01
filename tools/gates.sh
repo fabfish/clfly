@@ -192,4 +192,6 @@ run e327 python -m experiments.e327_the_feedback_is_a_dose --json-out runs/e327_
 
 run e328 python -m experiments.e328_is_the_middling_loop_worse --json-out runs/e328_is_the_middling_loop_worse.json
 
+run e329 python -m experiments.e329_the_environment_gets_a_noisy_cue --json-out runs/e329_the_environment_gets_a_noisy_cue.json
+
 echo "ALL DONE"

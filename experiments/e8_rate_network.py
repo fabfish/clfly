@@ -965,6 +965,11 @@ def main(argv=None) -> int:
                    help="with `--closed-loop`, run the identical suite with the loop **unwired**: the same tasks, "
                         "the same cue sets, the same seeds and no feedback, which is the comparison")
     p.add_argument("--loop-symbols", type=int, default=2, help="cue symbols per task in the closed loop")
+    #: `e328` ended on the ceiling: with deterministic cue patterns a two-symbol task is two fixed vectors, every
+    #: arm learns it perfectly, and the only quantity left to move was whether a replicate forgot at all. Noise on
+    #: the cue is what turns it into a measurement, and it defaults to zero so every earlier artifact is unaffected.
+    p.add_argument("--loop-noise", type=float, default=0.0,
+                   help="noise on the closed loop's cue, drawn once per example at step 0")
     p.add_argument("--loop-scale", type=float, default=1.0, help="the feedback channel's strength")
     p.add_argument("--loop-gain", type=float, default=1.0, help="the action's slope in the action neurons' mean")
     p.add_argument("--json-out", type=Path, default=None)
@@ -1037,7 +1042,8 @@ def main(argv=None) -> int:
         #: unwired, which is what makes the two artifacts one configuration in two loops.
         loop_env = fly_env.build(circ, readout_subset=rs, seed=args.seed0,
                                  n_symbols=args.loop_symbols * len(rate_tasks.SUITE_SPECS),
-                                 tau=12, scale=args.loop_scale, gain=args.loop_gain)
+                                 tau=12, scale=args.loop_scale, gain=args.loop_gain,
+                                 noise=args.loop_noise)
         suite = [fly_env.make_env_task(loop_env, f"loop_{spec[0]}",
                                        symbols=range(i * args.loop_symbols, (i + 1) * args.loop_symbols),
                                        n_train=args.train, n_test=args.test,
