@@ -46,7 +46,8 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 def train_task(model, heads, suite, k: int, iters: int, lr: float, batch: int,
                seed: int, ewc=None, block_ewc=None, replay: list | None = None,
                replay_batch: int = 16, shared: bool = False,
-               frozen_body: bool = False, frozen_bias: bool = False):
+               frozen_body: bool = False, frozen_bias: bool = False,
+               replay_probe: dict | None = None):
     """Train on task ``k``; optionally with an EWC penalty or a replay buffer.
 
     ``heads`` is the list of decoders: one per task in the task-incremental default (the
@@ -130,6 +131,14 @@ def train_task(model, heads, suite, k: int, iters: int, lr: float, batch: int,
                     _logits(head, rtraj[sel, -1, :][:, tk.readout_neurons], tk, shared),
                     ry[sel])
             loss = loss + rloss / max(1, len(set(rtask)))
+            #: **what replay is actually scored on.** `e333` measured `replay`'s retention moving in opposite
+            #: directions when the world's response changed twice, and named the mechanism it could not test:
+            #: the stored features are features of a world, so a change to that world's channel leaves them stale
+            #: in a new way. This records the loss on the stored features at the first and the last iteration of
+            #: each task, which is that staleness in the units the arm is trained in, at a cost of two floats.
+            if replay_probe is not None:
+                replay_probe.setdefault("first", float(rloss.item()))
+                replay_probe["last"] = float(rloss.item())
 
         opt.zero_grad()
         loss.backward()
@@ -564,6 +573,7 @@ def run_method(conn_net, suite, method: str, args, seed: int,
     R = np.full((T, T), np.nan)
     L = np.full((T, T), np.nan)                            # the retention matrix in LOSS, not accuracy
     losses = []
+    replay_losses: list = []
     drifts = []                                            # ||theta after - before|| / ||before|| per task
     bias_norms = []                                        # the bias's absolute movement, which has no relative form
     full_train_losses = []                                 # mean loss over the task's whole train split
@@ -618,6 +628,7 @@ def run_method(conn_net, suite, method: str, args, seed: int,
             block_pen = part.make_penalty(blocks, anchor_b, model.theta, args.lam, torch)
         theta_before = model.theta.detach().cpu().numpy().copy()
         bias_before = model.bias.detach().cpu().numpy().copy()
+        probe: dict = {}
         losses.append(train_task(
             model, heads, suite, k, iters=args.iters, lr=args.lr,
             batch=args.batch, seed=seed + k,
@@ -628,7 +639,11 @@ def run_method(conn_net, suite, method: str, args, seed: int,
             block_ewc=block_pen,
             replay=(replay if method == "replay" else None), shared=shared,
             replay_batch=args.replay_batch,
-            frozen_body=args.frozen_body, frozen_bias=getattr(args, "frozen_bias", False)))
+            frozen_body=args.frozen_body, frozen_bias=getattr(args, "frozen_bias", False),
+            replay_probe=probe))
+        #: recorded for every method and empty for the ones with no replay buffer, so an artifact's shape does not
+        #: depend on which arms it ran
+        replay_losses.append({"first": probe.get("first"), "last": probe.get("last")})
         drifts.append(relative_drift(theta_before, model.theta.detach().cpu().numpy()))
         # The bias starts at exactly zero, so a relative drift is undefined (||before|| = 0) and the honest
         # record is absolute: how far it moved from zero, and how far it moved on this task. Recorded because
@@ -802,6 +817,9 @@ def run_method(conn_net, suite, method: str, args, seed: int,
         "learned": [float(R[j, j]) for j in range(T)],
         "final_per_task": [float(x) for x in final],
         "losses": losses,
+        #: per task, the loss on the stored replay features at the first and the last training iteration; None for
+        #: every method that stores nothing, so the field is present whatever arms a run took
+        "replay_loss": replay_losses,
         "retention_loss": L.tolist(),
         "theta_drift": drifts,
         "bias_norms": bias_norms,

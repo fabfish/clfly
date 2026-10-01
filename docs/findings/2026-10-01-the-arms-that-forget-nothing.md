@@ -59,3 +59,21 @@ join is a re-description of one set of numbers and not a second experiment on it
 and one at forty are treated alike**, and `e299` reports that split; this unit names the eight and does not weight by
 power. **And the corpus's arms are not independent configurations**, so 55, 50 and 17 are counts of entries and not
 of experiments, and none of them carries a sampling error.
+
+## RE-READ 2026-10-01: C3's quarter, and the arms `e332` to `e334` added
+
+Five arms arrived in one day -- `e332`'s two-arm runs on the world with a state, `e333`'s two-arm runs on the world
+with a rule, and `e334`'s single-arm probe -- and the in-line share this unit's **C3** is stated on moved from above
+a quarter to **16 of 66, 0.242**. So **C3's falsifier FIRED**: the claim is that at least a quarter of the in-line
+arms have a shortfall above the corpus median, and four arms short of it is what the larger corpus says.
+
+**The bar is the unit's and the corpus is what changed**, so the verdict is reported as FIRED rather than re-based --
+which is the whole point of registering a bar. C1, C2 and C4 are unchanged: the line still holds the arms that
+learned least, still has a median share above the outside arms', still contains arms whose lost term is negative,
+and the exhibit -- an in-line arm whose shortfall is more than five times the corpus median -- still stands.
+
+What the test asserts is now the structure and the verdict: the share sits in a band rather than at a point, and
+C3's cell is asserted to be **FIRED**, so a future corpus that pushes it back over the quarter has to be noticed
+rather than silently absorbed. The one thing this RE-READ cannot say is whether 0.242 is a *different regime* or the
+same one measured on more arms -- the statistic is a share over a population that grows, and nothing here separates
+a real decline in shortfall-heavy in-line arms from the arithmetic of adding arms.

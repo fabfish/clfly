@@ -202,4 +202,6 @@ run e332 python -m experiments.e332_the_world_answers_with_a_state --json-out ru
 
 run e333 python -m experiments.e333_the_world_gets_a_rule --json-out runs/e333_the_world_gets_a_rule.json
 
+run e334 python -m experiments.e334_what_replay_is_scored_on --json-out runs/e334_what_replay_is_scored_on.json
+
 echo "ALL DONE"

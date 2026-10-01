@@ -80,14 +80,23 @@ def test_the_live_join_and_the_four_groups_are_what_the_finding_says():
     assert s["inside_share_above_half"] * 2 > s["inside"], s["inside_share_above_half"]
     assert s["inside_median_share"] > s["outside_median_share"], (s["inside_median_share"],
                                                                   s["outside_median_share"])
-    assert s["inside_above_median_shortfall"] / s["inside"] >= 0.25, s
+    #: **RE-READ 2026-10-01.** This was `>= 0.25` and it is a share on a corpus that grows arms: `e332` to `e334`
+    #: added five-arm, two-arm and single-arm runs, and the in-line share moved to **0.242**, four arms below the
+    #: line. The substance is that the in-line arms are markedly more shortfall-heavy than the outside ones, which
+    #: the comparison below states; the share is now a band rather than a point.
+    assert s["inside_above_median_shortfall"] / s["inside"] > 0.15, s
+    assert s["inside_above_median_shortfall"] / s["inside"] < 0.60, s
     assert s["inside_negative_lost"] >= 5, s
     # the exhibit: an arm inside the line whose shortfall is many times the corpus median
     worst = s["worst_inside"][0]
     assert worst["unlearned_share"] > 0.9 and worst["shortfall_mean"] > 5 * s["median_shortfall"], worst
     claims = {x["id"]: x["verdict"] for x in e305.judge(s)}
-    for cid in ("C1", "C2", "C3", "C4"):
+    for cid in ("C1", "C2", "C4"):
         assert claims[cid].startswith("MET"), claims[cid]
+    #: **the registered claim that the arriving arms pushed under its own bar.** C3 asks whether a quarter of the
+    #: in-line arms sit above the corpus median shortfall and the answer is now **16 of 66, 0.242** -- reported as
+    #: FIRED rather than re-based, because the bar is what the unit registered and the corpus is what changed.
+    assert claims["C3"].startswith("FALSIFIER FIRED"), claims["C3"]
 
 
 def test_the_artifact_carries_the_same_reading():
@@ -97,7 +106,10 @@ def test_the_artifact_carries_the_same_reading():
     d = json.loads(p.read_text(encoding="utf-8"))
     assert d["unjoined"] == [] and d["inside"] >= 55, d["unjoined"]
     assert d["inside_median_share"] > d["outside_median_share"], d
-    assert d["inside_negative_lost"] >= 5 and d["inside_above_median_shortfall"] / d["inside"] >= 0.25, d
+    assert d["inside_negative_lost"] >= 5, d
+    assert 0.15 < d["inside_above_median_shortfall"] / d["inside"] < 0.60, d
     claims = {x["id"]: x for x in d["claims"]}
-    for cid in ("C1", "C2", "C3", "C4"):
+    for cid in ("C1", "C2", "C4"):
         assert claims[cid]["verdict"].startswith("MET"), claims[cid]
+    #: C3's bar is the unit's and the corpus moved under it; the verdict is reported as it stands
+    assert claims["C3"]["verdict"].startswith("FALSIFIER FIRED"), claims["C3"]
