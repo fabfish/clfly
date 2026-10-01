@@ -160,4 +160,6 @@ run e311 python -m experiments.e311_the_two_tasks_the_metric_averages --json-out
 
 run e312 python -m experiments.e312_the_shortfall_is_the_accuracy --json-out runs/e312_the_shortfall_is_the_accuracy.json
 
+run e313 python -m experiments.e313_the_decomposition_is_three_fields --json-out runs/e313_the_decomposition_is_three_fields.json
+
 echo "ALL DONE"

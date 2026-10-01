@@ -51,3 +51,15 @@ is `e308`'s subject, and its V1 established that the population this unit uses c
 three terms are linearly dependent by construction**, so nothing here says which two of them a benchmark should
 report; it says that two of them are the fields the corpus already has, and that the bookkeeping question is which
 one a methods table should print alongside the accuracy.
+
+## 5. RE-READ 2026-10-01 10:14 — the currency the corpus lacks is not `unlearned` either
+
+§3 closes by saying *"the currency the corpus lacks is `unlearned`"*, and `e313` shows that is wrong: the corpus
+writes it, as **`learned`**, in the same payload as the retention matrix, and the matrix's diagonal equals it per task
+in **6096 of 6096** arm-replicates. With §1 above, **no term of the decomposition is a quantity this repository does
+not store** — `unlearned` is `1 - mean(learned)`, `shortfall` is `1 - mean(final_per_task)`, and `lost` is
+`forgetting_per_task`, each checked on 5581 of 5581 rows.
+
+What the decomposition contributes is therefore **not a new field but a verification**: the three stored fields agree
+with the matrix per task everywhere, which is what makes a number taken from either one trustworthy
+(`docs/findings/2026-10-01-the-decomposition-is-three-fields.md`).
