@@ -4,6 +4,8 @@ both faces of the three claims, and the live numbers.
 
 from __future__ import annotations
 
+import re
+
 import json
 from pathlib import Path
 
@@ -104,4 +106,7 @@ def test_the_artifact_carries_the_same_reading():
     claims = {x["id"]: x for x in d["claims"]}
     for cid in ("P1", "P2", "P3"):
         assert claims[cid]["verdict"].startswith("MET"), claims[cid]
-    assert "12 under the paired sem against 3" in claims["P3"]["measured"], claims["P3"]
+    # a count that grows with the corpus is pinned as a ratio: the paired sem resolves more, by roughly three
+    # to one, and never fewer
+    m = re.search(r"(\d+) under the paired sem against (\d+)", claims["P3"]["measured"])
+    assert m and int(m.group(1)) >= 3 * int(m.group(2)) and int(m.group(1)) >= 12, claims["P3"]
