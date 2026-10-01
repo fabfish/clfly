@@ -196,4 +196,6 @@ run e329 python -m experiments.e329_the_environment_gets_a_noisy_cue --json-out 
 
 run e330 python -m experiments.e330_the_cost_needs_the_ceiling --json-out runs/e330_the_cost_needs_the_ceiling.json
 
+run e331 python -m experiments.e331_the_ordering_under_the_loop --json-out runs/e331_the_ordering_under_the_loop.json
+
 echo "ALL DONE"
