@@ -224,4 +224,6 @@ run e343 python -m experiments.e343_a_readout_that_looks --json-out runs/e343_a_
 
 run e344 python -m experiments.e344_the_latch_hypothesis --json-out runs/e344_the_latch_hypothesis.json
 
+run e345 python -m experiments.e345_a_wider_readout --json-out runs/e345_a_wider_readout.json
+
 echo "ALL DONE"
