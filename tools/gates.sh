@@ -282,4 +282,6 @@ run e372 python -m experiments.e372_what_acting_costs --json-out runs/e372_what_
 
 run e373 python -m experiments.e373_the_price_of_acting_across_the_window --json-out runs/e373_the_price_of_acting_across_the_window.json
 
+run e374 python -m experiments.e374_the_tightest_step --json-out runs/e374_the_tightest_step.json
+
 echo "ALL DONE"
