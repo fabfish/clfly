@@ -268,4 +268,6 @@ run e365 python -m experiments.e365_the_interface_knob_as_a_task --json-out runs
 
 run e366 python -m experiments.e366_what_the_probes_gap_is_made_of --json-out runs/e366_what_the_probes_gap_is_made_of.json
 
+run e367 python -m experiments.e367_the_world_the_agent_drives --json-out runs/e367_the_world_the_agent_drives.json
+
 echo "ALL DONE"
