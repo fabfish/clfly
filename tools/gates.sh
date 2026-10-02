@@ -234,4 +234,6 @@ run e348 python -m experiments.e348_can_the_world_be_the_readout --json-out runs
 
 run e349 python -m experiments.e349_the_body_writes_the_cue --json-out runs/e349_the_body_writes_the_cue.json
 
+run e350 python -m experiments.e350_the_world_gets_a_dimension --json-out runs/e350_the_world_gets_a_dimension.json
+
 echo "ALL DONE"

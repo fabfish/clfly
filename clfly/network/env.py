@@ -67,6 +67,20 @@ class CueActionEnv:
     #: sum of the whole action history and not of one step. The endpoint is exact: at one, the recursion is the
     #: identity `w = action` and this is `e332`'s world to the last digit.
     world_leak: float = 1.0
+    #: **the world's dimension.** Zero is the scalar world every artifact in this repository carries: one integrator
+    #: of one action, which is what `e333` named as its own gap -- *"the world's rule is linear and scalar: one leaky
+    #: integrator of one action, with no state-to-state coupling and nothing the agent's actions can push it into"*.
+    #: Above zero the world's state is a **vector** of this many numbers driven by the whole action **population**
+    #: through the fixed map `world_drive`, and it answers through `world_read`:
+    #:
+    #:     w_t = (1 - leak) w_{t-1} + leak * (tanh(gain * x_{t-1}[action]) @ world_drive.T)
+    #:     add[feedback_neurons] = scale * (w_t @ world_read)
+    #:
+    #: Both maps are drawn from the environment's seed and recorded in its draw, so two runs at the same dimension
+    #: are comparable and two at different dimensions are not. Zero leaves every earlier artifact bit-identical.
+    world_dims: int = 0
+    world_drive: np.ndarray | None = None          # (world_dims, len(action_neurons))
+    world_read: np.ndarray | None = None           # (world_dims, len(feedback_neurons))
     #: **when the cue arrives.** Zero is every artifact this repository holds: a pulse at the first step, so the trial
     #: is *hold the symbol across the gap* and the recurrent state has to carry it. Any later step makes the same
     #: label readable from the drive at the moment it is read, which is the control the latch hypothesis needs --
@@ -123,6 +137,25 @@ class CueActionEnv:
             #: forward pass, which overwrites them, exactly as the world itself resets with the trial.
             w = action
             fn.last_action = action
+            if self.world_dims and self.world_drive is not None and self.world_read is not None:
+                #: **the world with a dimension.** The state is a vector, its drive is the whole action population
+                #: through a fixed map rather than the mean through a scalar, and it answers through a second
+                #: fixed map. Everything the scalar world does at one dimension it does here at `world_dims = 1`
+                #: up to the maps, and every earlier artifact is untouched because the default is zero.
+                act = torch.as_tensor(np.asarray(self.action_neurons), dtype=torch.long)
+                drive = torch.tanh(self.gain * x[:, act])                     # (batch, n_action)
+                if t == 0 or carried["w"] is None or carried["w"].shape[0] != drive.shape[0]:
+                    carried["w"] = torch.zeros(drive.shape[0], self.world_dims, dtype=x.dtype)
+                if t == 0:
+                    fn.last_world = carried["w"]
+                    return add
+                p = torch.as_tensor(np.asarray(self.world_drive), dtype=x.dtype)
+                q = torch.as_tensor(np.asarray(self.world_read), dtype=x.dtype)
+                carried["w"] = ((1.0 - self.world_leak) * carried["w"]
+                                + self.world_leak * (drive @ p.T))
+                fn.last_world = carried["w"]
+                add[:, out] = self.scale * (carried["w"] @ q)
+                return add
             if self.world_modes and self.world_templates is not None:
                 #: **the world resets with the trial**, and that reset is not a detail: a state carried across
                 #: forward passes would keep the previous pass's autograd graph alive and the next backward would
@@ -166,10 +199,22 @@ class CueActionEnv:
                 "n_action": int(len(self.action_neurons)), "n_feedback": int(len(self.feedback_neurons)),
                 "scale": self.scale, "gain": self.gain, "noise": self.noise,
                 "world_modes": self.world_modes, "world_leak": self.world_leak, "cue_at": self.cue_at,
+                "world_dims": self.world_dims,
                 "cue_sha1": _sha(self.cue_neurons), "action_sha1": _sha(self.action_neurons),
                 "feedback_sha1": _sha(self.feedback_neurons),
                 "world_sha1": (_sha(np.ravel(self.world_templates)) if self.world_templates is not None
-                               else None)}
+                               else None),
+                #: the two maps of a dimensioned world, fingerprinted on the same reasoning as every other draw here
+                "world_drive_sha1": _fingerprint(self.world_drive),
+                "world_read_sha1": _fingerprint(self.world_read)}
+
+
+def _fingerprint(mat: np.ndarray | None) -> str | None:
+    """A short hash of a float matrix, which `_sha` cannot take: the maps are real-valued, not index sets."""
+    if mat is None:
+        return None
+    import hashlib
+    return hashlib.sha1(np.asarray(mat, dtype=np.float64).tobytes()).hexdigest()[:12]
 
 
 def _sha(idx: np.ndarray) -> str:
@@ -228,12 +273,15 @@ class ClosedLoop:
 def build(circ, readout_subset=None, n_symbols: int = 2, tau: int = 12, n_cue: int = 12,
           n_action: int = 8, n_feedback: int = 12, seed: int = 0, scale: float = 1.0,
           gain: float = 1.0, noise: float = 0.0, world_modes: int = 0,
-          world_leak: float = 1.0, cue_at: int = 0) -> CueActionEnv:
+          world_leak: float = 1.0, cue_at: int = 0, world_dims: int = 0) -> CueActionEnv:
     """Draw the three populations disjointly and the cue templates, all from ``seed``.
 
     ``readout_subset`` is the decoder's own draw and is **not** available to the environment: the action is read off
     a set drawn here, so the agent's action channel and the quantity a probe decodes are not the same neurons. That
     is deliberate -- an action read off the probe's own inputs would make the loop and the read-out one object.
+
+    ``world_dims`` above zero draws a **vector** world instead: its drive map is ``(world_dims, n_action)`` and its
+    answer map ``(world_dims, n_feedback)``, both from this same seed, and the scalar templates are not drawn at all.
     """
     rng = np.random.default_rng(seed)
     pool = np.arange(circ.n_neurons)
@@ -246,6 +294,10 @@ def build(circ, readout_subset=None, n_symbols: int = 2, tau: int = 12, n_cue: i
                         feedback_neurons=np.sort(feedback),
                         cue_templates=rng.standard_normal((n_symbols, n_cue)),
                         scale=scale, gain=gain, noise=noise, world_modes=world_modes, world_leak=world_leak,
-                        cue_at=cue_at,
+                        cue_at=cue_at, world_dims=world_dims,
+                        world_drive=(rng.standard_normal((world_dims, n_action)) / np.sqrt(n_action)
+                                     if world_dims else None),
+                        world_read=(rng.standard_normal((world_dims, n_feedback))
+                                    if world_dims else None),
                         world_templates=(rng.standard_normal((world_modes, n_feedback))
                                          if world_modes else None))
