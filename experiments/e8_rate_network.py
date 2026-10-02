@@ -539,7 +539,7 @@ def block_fisher(model, heads, suite, k: int, part, n_batches: int = 8,
 
 
 def run_method(conn_net, suite, method: str, args, seed: int,
-               partitions: dict | None = None, feedback=None) -> dict:
+               partitions: dict | None = None, feedback=None, world_dims: int = 0) -> dict:
     """Train sequentially and record the full retention matrix.
 
     ``R[k, j]`` = accuracy on task ``j`` after training through task ``k``, so the
@@ -570,12 +570,26 @@ def run_method(conn_net, suite, method: str, args, seed: int,
         #: `ClosedLoop` passes everything but the forward call through, so the training loop, the Fisher blocks
         #: and the replay features below are all unedited and all see the same dynamical system.
         model = fly_env.ClosedLoop(model, feedback)
+    if world_dims and feedback is not None:
+        #: **the earned label**: the head reads the environment's own state, and this wrapper writes it into the
+        #: read-out's columns at the last step -- so the training loop, the Fisher blocks, the gradients and the
+        #: retention evaluations below all read the world without any of them being edited. `bare` stays the
+        #: unwrapped module, and the paired reading below is the one place that has to know.
+        model = fly_env.WorldReadout(model, feedback, world_dims)
     shared = bool(getattr(args, "shared_head", False))
     if shared:
         total = sum(t.n_classes for t in suite)
         heads = [torch.nn.Linear(suite[0].n_readout, total)]
     else:
         heads = [torch.nn.Linear(t.n_readout, t.n_classes) for t in suite]
+
+    def _rest_accuracy(head, task):
+        """A world read-out's unwired reading, exactly: the environment never runs, so the head sees one constant."""
+        with torch.no_grad():
+            rest = torch.zeros(len(task.y_test), world_dims, dtype=torch.float32)
+            logits = _logits(head, rest, task, shared)
+            return float((logits.argmax(dim=1) == torch.from_numpy(task.y_test).long()).float().mean())
+
     fisher = None
     anchor = None
     fisher_b_ = None                                       # the bias's accumulated Fisher, when `--anchor-bias`
@@ -845,10 +859,14 @@ def run_method(conn_net, suite, method: str, args, seed: int,
         "final_per_task": [float(x) for x in final],
         #: **the paired channel reading.** Every task's final accuracy is taken twice on the one body this
         #: replicate trained -- once through the loop and once with it unwired -- so the difference is the
-        #: channel's effect on a fixed model rather than a difference between two models.
+        #: channel's effect on a fixed model rather than a difference between two models. With a **world read-out**
+        #: the unwired reading is exact rather than evaluated: the environment never runs, so the world stays at
+        #: rest and the head sees the same constant input for every example, which is the head's own constant answer.
         "paired_channel": [{"task": task.name,
                             "with_loop": float(evaluate(model, heads[0] if shared else heads[j], task, shared)),
-                            "without_loop": float(evaluate(bare, heads[0] if shared else heads[j], task, shared))}
+                            "without_loop": (_rest_accuracy(heads[0] if shared else heads[j], task)
+                                             if world_dims else
+                                             float(evaluate(bare, heads[0] if shared else heads[j], task, shared)))}
                            for j, task in enumerate(suite)],
         "losses": losses,
         #: per task, the loss on the stored replay features at the first and the last training iteration; None for
@@ -1032,6 +1050,16 @@ def main(argv=None) -> int:
                    help="the world's transition rule: 1 is instantaneous, below 1 carries its state forward")
     p.add_argument("--loop-world-modes", type=int, default=0,
                    help="the number of world states the action selects between; 0 keeps the scalar report")
+    #: `e349` to e354 built a task whose answer exists only in the environment: the head reads the world's own state,
+    #: the world is driven by the agent's own actions, and unwired the world is at rest so the read-out is a
+    #: constant. These two flags are what make that a **corpus** benchmark rather than a local loop -- the world
+    #: gets a state vector, and the runner's own methods, metrics and controls then apply to it. Both default to off
+    #: so every artifact written before them is bit-identical.
+    p.add_argument("--loop-world-dims", type=int, default=0,
+                   help="the world's dimension: above zero its state is a vector driven by the action population")
+    p.add_argument("--readout-from-world", action="store_true",
+                   help="the head reads the environment's final state instead of the model's, which needs "
+                        "`--closed-loop` and a positive `--loop-world-dims`")
     #: `e339` measured that `--seed0` is three draws at once -- it seeds the training replicates, the read-out
     #: subset (`--readout-seed` defaults to it) and, through here, the environment's three populations. So no
     #: artifact in this corpus is a seed-stream comparison: the pair that would be one needs this flag and
@@ -1123,7 +1151,8 @@ def main(argv=None) -> int:
                                  n_symbols=args.loop_symbols * len(rate_tasks.SUITE_SPECS),
                                  tau=12, scale=args.loop_scale, gain=args.loop_gain,
                                  noise=args.loop_noise, world_modes=args.loop_world_modes,
-                                 world_leak=args.loop_world_leak, cue_at=args.loop_cue_at)
+                                 world_leak=args.loop_world_leak, cue_at=args.loop_cue_at,
+                                 world_dims=args.loop_world_dims)
         suite = [fly_env.make_env_task(loop_env, f"loop_{spec[0]}",
                                        symbols=range(i * args.loop_symbols, (i + 1) * args.loop_symbols),
                                        n_train=args.train, n_test=args.test,
@@ -1136,6 +1165,18 @@ def main(argv=None) -> int:
         feedback = None if args.no_feedback else loop_env.feedback()
         suite_label = (f"closed loop: {len(suite)} cue sets in one environment, "
                        f"feedback {'off' if args.no_feedback else args.loop_scale} at gain {args.loop_gain}")
+        if args.readout_from_world:
+            #: **the earned label.** The head reads the environment's own state, so every task's read-out is the
+            #: world's `loop_world_dims` columns -- the array is what sets the head's input width -- and the wrapper
+            #: in `run_method` is what puts the world there. Both flags are required, and a run that asked for this
+            #: without them would be training against the model's own state while believing otherwise.
+            if args.no_feedback:
+                raise SystemExit("--readout-from-world needs the feedback wired, so not --no-feedback")
+            if not args.loop_world_dims:
+                raise SystemExit("--readout-from-world needs a positive --loop-world-dims")
+            for t in suite:
+                t.readout_neurons = np.arange(args.loop_world_dims)
+            suite_label += f", head on the world's {args.loop_world_dims} numbers"
 
     #: The order the suite is trained in. Applied **after** the support fingerprint, so that fingerprint keeps
     #: identifying the draw rather than the sequence -- two runs of one draw in two orders must agree on it or the
@@ -1216,7 +1257,8 @@ def main(argv=None) -> int:
         for r in range(args.repeats):
             r0 = time.time()
             reps.append(run_method(net, suite, method, args, seed=args.seed0 + 100 * r,
-                                   partitions=partitions, feedback=feedback))
+                                   partitions=partitions, feedback=feedback,
+                                   world_dims=args.loop_world_dims if args.readout_from_world else 0))
             done += 1
             elapsed = time.time() - t_start
             cpu = time.process_time() - t_cpu0

@@ -244,4 +244,6 @@ run e353 python -m experiments.e353_the_class_incremental_earned_label --json-ou
 
 run e354 python -m experiments.e354_both_protocols_in_one_module --json-out runs/e354_both_protocols_in_one_module.json
 
+run e355 python -m experiments.e355_the_earned_label_through_the_runner --json-out runs/e355_the_earned_label_through_the_runner.json
+
 echo "ALL DONE"

@@ -270,6 +270,43 @@ class ClosedLoop:
         return getattr(self.model, name)
 
 
+class WorldReadout:
+    """The head reads the **environment's** state instead of the model's: the world's own numbers, at the last step.
+
+    Every call site in a runner computes the head's input as ``traj[:, -1, :][:, task.readout_neurons]`` -- in the
+    training loop, in evaluation, in the Fisher blocks and in the gradients. Writing the world's state into the
+    read-out's columns here means the answer can be read from the environment **without any of those sites being
+    edited**, on the same reasoning :class:`ClosedLoop` uses for the channel, and the two wrappers compose: unwire
+    the loop and the world never moves, so the read-out becomes a constant and the accuracy becomes chance.
+
+    The task's ``readout_neurons`` must be ``arange(world_dims)`` -- the columns this writes -- and its width is what
+    sets the head's input size, so a caller that wants a world read-out gives every task that index array. It wraps
+    a model the environment is **already** wired into (:class:`ClosedLoop`), because an unwired world never moves.
+    """
+
+    def __init__(self, model, feedback, dims: int):
+        self.model = model                      # set first: `__getattr__` reads it
+        self.feedback = feedback
+        self.dims = int(dims)
+
+    def __call__(self, u, w_in=None):
+        #: the inner model already carries the feedback (`ClosedLoop`), so the call passes through and the world is
+        #: read off the same closure afterwards -- `last_world` is the step just computed
+        traj = self.model(u, w_in)
+        w = getattr(self.feedback, "last_world", None)
+        if w is None:
+            return traj
+        #: `clone` keeps the graph, so the gradient still flows into the body through the world
+        out = traj.clone()
+        out[:, -1, :w.shape[1]] = w.to(out.dtype)
+        return out
+
+    def __getattr__(self, name):
+        if name.startswith("__") and name.endswith("__"):
+            raise AttributeError(name)
+        return getattr(self.model, name)
+
+
 def build(circ, readout_subset=None, n_symbols: int = 2, tau: int = 12, n_cue: int = 12,
           n_action: int = 8, n_feedback: int = 12, seed: int = 0, scale: float = 1.0,
           gain: float = 1.0, noise: float = 0.0, world_modes: int = 0,
