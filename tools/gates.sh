@@ -280,4 +280,6 @@ run e371 python -m experiments.e371_the_game_the_agent_can_play --json-out runs/
 
 run e372 python -m experiments.e372_what_acting_costs --json-out runs/e372_what_acting_costs.json
 
+run e373 python -m experiments.e373_the_price_of_acting_across_the_window --json-out runs/e373_the_price_of_acting_across_the_window.json
+
 echo "ALL DONE"
