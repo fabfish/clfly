@@ -260,4 +260,6 @@ run e361 python -m experiments.e361_the_world_memory --json-out runs/e361_the_wo
 
 run e362 python -m experiments.e362_the_cue_at_the_read_step --json-out runs/e362_the_cue_at_the_read_step.json
 
+run e363 python -m experiments.e363_where_the_cue_can_reach_the_world --json-out runs/e363_where_the_cue_can_reach_the_world.json
+
 echo "ALL DONE"

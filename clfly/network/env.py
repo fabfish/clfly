@@ -98,6 +98,11 @@ class CueActionEnv:
     #: into"*). It applies only where a coupling does, so the endpoints stay exact: the uncoupled rule is the linear
     #: one and `K = I` with the saturation off is still the independent integrators.
     world_nonlinear: bool = False
+    #: **where the world's drive is read.** False reads the action population, which is disjoint from the cue's by
+    #: construction. True reads the **cue population itself**, so the neurons carrying the cue are the neurons the
+    #: world listens to -- the manipulation that separates "the cue must cross the weights" from "the drive reads
+    #: the state carried into the step, so anything delivered at that step's input arrives one step late".
+    drive_from_cue: bool = False
     #: **when the cue arrives.** Zero is every artifact this repository holds: a pulse at the first step, so the trial
     #: is *hold the symbol across the gap* and the recurrent state has to carry it. Any later step makes the same
     #: label readable from the drive at the moment it is read, which is the control the latch hypothesis needs --
@@ -236,6 +241,7 @@ class CueActionEnv:
                 "world_drive_sha1": _fingerprint(self.world_drive),
                 "world_read_sha1": _fingerprint(self.world_read),
                 "world_coupled": self.world_coupled is not None, "world_nonlinear": self.world_nonlinear,
+                "drive_from_cue": self.drive_from_cue,
                 "world_coupling_sha1": _fingerprint(self.world_coupled)}
 
 
@@ -353,7 +359,8 @@ def build(circ, readout_subset=None, n_symbols: int = 2, tau: int = 12, n_cue: i
           n_action: int = 8, n_feedback: int = 12, seed: int = 0, scale: float = 1.0,
           gain: float = 1.0, noise: float = 0.0, world_modes: int = 0,
           world_leak: float = 1.0, cue_at: int = 0, world_dims: int = 0,
-          world_coupled: bool = False, world_nonlinear: bool = False) -> CueActionEnv:
+          world_coupled: bool = False, world_nonlinear: bool = False,
+          drive_from_cue: bool = False) -> CueActionEnv:
     """Draw the three populations disjointly and the cue templates, all from ``seed``.
 
     ``readout_subset`` is the decoder's own draw and is **not** available to the environment: the action is read off
@@ -369,13 +376,22 @@ def build(circ, readout_subset=None, n_symbols: int = 2, tau: int = 12, n_cue: i
         pool = np.setdiff1d(pool, np.asarray(readout_subset))
     picked = rng.choice(pool, size=n_cue + n_action + n_feedback, replace=False)
     cue, action, feedback = np.split(picked, [n_cue, n_cue + n_action])
+    if drive_from_cue:
+        #: the world listens to the neurons the cue is written on. The draw is unchanged -- the same three
+        #: populations are picked -- so the two configurations differ in one field and in nothing else.
+        action = cue
     return CueActionEnv(n_neurons=circ.n_neurons, tau=tau,
                         cue_neurons=np.sort(cue), action_neurons=np.sort(action),
                         feedback_neurons=np.sort(feedback),
                         cue_templates=rng.standard_normal((n_symbols, n_cue)),
                         scale=scale, gain=gain, noise=noise, world_modes=world_modes, world_leak=world_leak,
                         cue_at=cue_at, world_dims=world_dims,
-                        world_drive=(rng.standard_normal((world_dims, n_action)) / np.sqrt(n_action)
+                        #: the drive map's width follows the drive's population: the action population is
+                        #: `n_action` wide and the cue's is `n_cue`, so a world listening to the cue needs the
+                        #: wider map -- and with the default source the draw is the same `(world_dims, n_action)`
+                        #: it has always been, so every earlier artifact is bit-identical through this
+                        world_drive=(rng.standard_normal((world_dims, n_cue if drive_from_cue else n_action))
+                                     / np.sqrt(n_cue if drive_from_cue else n_action)
                                      if world_dims else None),
                         world_read=(rng.standard_normal((world_dims, n_feedback))
                                     if world_dims else None),
@@ -383,5 +399,6 @@ def build(circ, readout_subset=None, n_symbols: int = 2, tau: int = 12, n_cue: i
                         #: bit-identical through it -- the conditional short-circuits before consuming the generator
                         world_coupled=(_coupling(rng, world_dims) if (world_coupled and world_dims) else None),
                         world_nonlinear=(world_nonlinear if (world_coupled and world_dims) else False),
+                        drive_from_cue=bool(drive_from_cue),
                         world_templates=(rng.standard_normal((world_modes, n_feedback))
                                          if world_modes else None))
