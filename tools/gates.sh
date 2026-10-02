@@ -258,4 +258,6 @@ run e360 python -m experiments.e360_the_world_gets_a_nonlinearity --json-out run
 
 run e361 python -m experiments.e361_the_world_memory --json-out runs/e361_the_world_memory.json
 
+run e362 python -m experiments.e362_the_cue_at_the_read_step --json-out runs/e362_the_cue_at_the_read_step.json
+
 echo "ALL DONE"
