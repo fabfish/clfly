@@ -274,4 +274,6 @@ run e368 python -m experiments.e368_how_long_the_channel_takes_to_fill --json-ou
 
 run e369 python -m experiments.e369_why_the_cliff_is_where_it_is --json-out runs/e369_why_the_cliff_is_where_it_is.json
 
+run e370 python -m experiments.e370_the_distance_moves_the_cliff --json-out runs/e370_the_distance_moves_the_cliff.json
+
 echo "ALL DONE"
