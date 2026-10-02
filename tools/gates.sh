@@ -238,4 +238,6 @@ run e350 python -m experiments.e350_the_world_gets_a_dimension --json-out runs/e
 
 run e351 python -m experiments.e351_one_number_two_channels --json-out runs/e351_one_number_two_channels.json
 
+run e352 python -m experiments.e352_the_earned_label_suite --json-out runs/e352_the_earned_label_suite.json
+
 echo "ALL DONE"
