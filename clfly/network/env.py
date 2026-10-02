@@ -81,6 +81,17 @@ class CueActionEnv:
     world_dims: int = 0
     world_drive: np.ndarray | None = None          # (world_dims, len(action_neurons))
     world_read: np.ndarray | None = None           # (world_dims, len(feedback_neurons))
+    #: **the world's own dynamics.** None is the rule every artifact in this repository carries: each dimension of
+    #: the state is an independent leaky integrator of the drive, which is what `e333` named as its own gap --
+    #: *"one leaky integrator of one action, with no state-to-state coupling and nothing the agent's actions can push
+    #: it into"*. A `(world_dims, world_dims)` matrix replaces that with
+    #:
+    #:     w_t = (1 - leak) * (w_{t-1} @ K.T) + leak * drive_t
+    #:
+    #: so the world mixes its own dimensions as it carries them, and `K = I` is the uncoupled rule exactly -- which
+    #: is the endpoint the control uses. The matrix is drawn from the environment's seed, scaled so its largest
+    #: singular value is one, and recorded in the draw.
+    world_coupled: np.ndarray | None = None
     #: **when the cue arrives.** Zero is every artifact this repository holds: a pulse at the first step, so the trial
     #: is *hold the symbol across the gap* and the recurrent state has to carry it. Any later step makes the same
     #: label readable from the drive at the moment it is read, which is the control the latch hypothesis needs --
@@ -151,8 +162,15 @@ class CueActionEnv:
                     return add
                 p = torch.as_tensor(np.asarray(self.world_drive), dtype=x.dtype)
                 q = torch.as_tensor(np.asarray(self.world_read), dtype=x.dtype)
-                carried["w"] = ((1.0 - self.world_leak) * carried["w"]
-                                + self.world_leak * (drive @ p.T))
+                if self.world_coupled is None:
+                    carried["w"] = ((1.0 - self.world_leak) * carried["w"]
+                                    + self.world_leak * (drive @ p.T))
+                else:
+                    #: the world's own dynamics: it mixes its dimensions as it carries them, so what comes back is
+                    #: the agent's history through a map the agent does not choose
+                    k = torch.as_tensor(np.asarray(self.world_coupled), dtype=x.dtype)
+                    carried["w"] = ((1.0 - self.world_leak) * (carried["w"] @ k.T)
+                                    + self.world_leak * (drive @ p.T))
                 fn.last_world = carried["w"]
                 add[:, out] = self.scale * (carried["w"] @ q)
                 return add
@@ -206,7 +224,21 @@ class CueActionEnv:
                                else None),
                 #: the two maps of a dimensioned world, fingerprinted on the same reasoning as every other draw here
                 "world_drive_sha1": _fingerprint(self.world_drive),
-                "world_read_sha1": _fingerprint(self.world_read)}
+                "world_read_sha1": _fingerprint(self.world_read),
+                "world_coupled": self.world_coupled is not None,
+                "world_coupling_sha1": _fingerprint(self.world_coupled)}
+
+
+def _coupling(rng, dims: int) -> np.ndarray:
+    """A fixed world coupling whose largest singular value is one.
+
+    The draw is a normal matrix scaled by its own largest singular value, so the world mixes its dimensions as it
+    carries them without either blowing up or decaying to nothing: with the leak doing the forgetting, the coupling
+    is what makes the state a system with its own dynamics rather than a bank of independent integrators.
+    """
+    k = rng.standard_normal((dims, dims)) / np.sqrt(dims)
+    largest = float(np.linalg.svd(k, compute_uv=False)[0])
+    return k / max(1.0, largest)
 
 
 def _fingerprint(mat: np.ndarray | None) -> str | None:
@@ -310,7 +342,8 @@ class WorldReadout:
 def build(circ, readout_subset=None, n_symbols: int = 2, tau: int = 12, n_cue: int = 12,
           n_action: int = 8, n_feedback: int = 12, seed: int = 0, scale: float = 1.0,
           gain: float = 1.0, noise: float = 0.0, world_modes: int = 0,
-          world_leak: float = 1.0, cue_at: int = 0, world_dims: int = 0) -> CueActionEnv:
+          world_leak: float = 1.0, cue_at: int = 0, world_dims: int = 0,
+          world_coupled: bool = False) -> CueActionEnv:
     """Draw the three populations disjointly and the cue templates, all from ``seed``.
 
     ``readout_subset`` is the decoder's own draw and is **not** available to the environment: the action is read off
@@ -336,5 +369,8 @@ def build(circ, readout_subset=None, n_symbols: int = 2, tau: int = 12, n_cue: i
                                      if world_dims else None),
                         world_read=(rng.standard_normal((world_dims, n_feedback))
                                     if world_dims else None),
+                        #: drawn only when it is asked for, so every artifact written before this field is
+                        #: bit-identical through it -- the conditional short-circuits before consuming the generator
+                        world_coupled=(_coupling(rng, world_dims) if (world_coupled and world_dims) else None),
                         world_templates=(rng.standard_normal((world_modes, n_feedback))
                                          if world_modes else None))

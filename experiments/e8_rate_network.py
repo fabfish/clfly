@@ -1057,6 +1057,9 @@ def main(argv=None) -> int:
     #: so every artifact written before them is bit-identical.
     p.add_argument("--loop-world-dims", type=int, default=0,
                    help="the world's dimension: above zero its state is a vector driven by the action population")
+    p.add_argument("--loop-world-coupled", action="store_true",
+                   help="give the world its own dynamics: it mixes its state's dimensions as it carries them, "
+                        "which needs a positive `--loop-world-dims`")
     p.add_argument("--readout-from-world", action="store_true",
                    help="the head reads the environment's final state instead of the model's, which needs "
                         "`--closed-loop` and a positive `--loop-world-dims`")
@@ -1152,7 +1155,7 @@ def main(argv=None) -> int:
                                  tau=12, scale=args.loop_scale, gain=args.loop_gain,
                                  noise=args.loop_noise, world_modes=args.loop_world_modes,
                                  world_leak=args.loop_world_leak, cue_at=args.loop_cue_at,
-                                 world_dims=args.loop_world_dims)
+                                 world_dims=args.loop_world_dims, world_coupled=args.loop_world_coupled)
         suite = [fly_env.make_env_task(loop_env, f"loop_{spec[0]}",
                                        symbols=range(i * args.loop_symbols, (i + 1) * args.loop_symbols),
                                        n_train=args.train, n_test=args.test,
