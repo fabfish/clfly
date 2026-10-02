@@ -262,4 +262,6 @@ run e362 python -m experiments.e362_the_cue_at_the_read_step --json-out runs/e36
 
 run e363 python -m experiments.e363_where_the_cue_can_reach_the_world --json-out runs/e363_where_the_cue_can_reach_the_world.json
 
+run e364 python -m experiments.e364_can_training_beat_the_interface --json-out runs/e364_can_training_beat_the_interface.json
+
 echo "ALL DONE"

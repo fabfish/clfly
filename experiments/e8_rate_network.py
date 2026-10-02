@@ -1060,6 +1060,9 @@ def main(argv=None) -> int:
     p.add_argument("--loop-world-coupled", action="store_true",
                    help="give the world its own dynamics: it mixes its state's dimensions as it carries them, "
                         "which needs a positive `--loop-world-dims`")
+    p.add_argument("--loop-drive-from-cue", action="store_true",
+                   help="point the world's drive at the cue population instead of the action one, so what the world "
+                        "listens to is what the cue is written on; needs a positive `--loop-world-dims`")
     p.add_argument("--loop-world-nonlinear", action="store_true",
                    help="saturate the world's own carry, so its state is bounded and has fixed points; needs "
                         "`--loop-world-coupled` as well")
@@ -1159,7 +1162,8 @@ def main(argv=None) -> int:
                                  noise=args.loop_noise, world_modes=args.loop_world_modes,
                                  world_leak=args.loop_world_leak, cue_at=args.loop_cue_at,
                                  world_dims=args.loop_world_dims, world_coupled=args.loop_world_coupled,
-                                 world_nonlinear=args.loop_world_nonlinear)
+                                 world_nonlinear=args.loop_world_nonlinear,
+                                 drive_from_cue=args.loop_drive_from_cue)
         suite = [fly_env.make_env_task(loop_env, f"loop_{spec[0]}",
                                        symbols=range(i * args.loop_symbols, (i + 1) * args.loop_symbols),
                                        n_train=args.train, n_test=args.test,
