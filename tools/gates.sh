@@ -256,4 +256,6 @@ run e359 python -m experiments.e359_the_world_gets_its_own_dynamics --json-out r
 
 run e360 python -m experiments.e360_the_world_gets_a_nonlinearity --json-out runs/e360_the_world_gets_a_nonlinearity.json
 
+run e361 python -m experiments.e361_the_world_memory --json-out runs/e361_the_world_memory.json
+
 echo "ALL DONE"
