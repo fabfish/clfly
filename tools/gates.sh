@@ -236,4 +236,6 @@ run e349 python -m experiments.e349_the_body_writes_the_cue --json-out runs/e349
 
 run e350 python -m experiments.e350_the_world_gets_a_dimension --json-out runs/e350_the_world_gets_a_dimension.json
 
+run e351 python -m experiments.e351_one_number_two_channels --json-out runs/e351_one_number_two_channels.json
+
 echo "ALL DONE"
