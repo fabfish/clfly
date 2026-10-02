@@ -226,4 +226,6 @@ run e344 python -m experiments.e344_the_latch_hypothesis --json-out runs/e344_th
 
 run e345 python -m experiments.e345_a_wider_readout --json-out runs/e345_a_wider_readout.json
 
+run e346 python -m experiments.e346_does_the_method_contrast_travel --json-out runs/e346_does_the_method_contrast_travel.json
+
 echo "ALL DONE"
