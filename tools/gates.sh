@@ -264,4 +264,6 @@ run e363 python -m experiments.e363_where_the_cue_can_reach_the_world --json-out
 
 run e364 python -m experiments.e364_can_training_beat_the_interface --json-out runs/e364_can_training_beat_the_interface.json
 
+run e365 python -m experiments.e365_the_interface_knob_as_a_task --json-out runs/e365_the_interface_knob_as_a_task.json
+
 echo "ALL DONE"
