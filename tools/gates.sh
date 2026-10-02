@@ -266,4 +266,6 @@ run e364 python -m experiments.e364_can_training_beat_the_interface --json-out r
 
 run e365 python -m experiments.e365_the_interface_knob_as_a_task --json-out runs/e365_the_interface_knob_as_a_task.json
 
+run e366 python -m experiments.e366_what_the_probes_gap_is_made_of --json-out runs/e366_what_the_probes_gap_is_made_of.json
+
 echo "ALL DONE"
