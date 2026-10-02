@@ -80,3 +80,13 @@ same level difference at the same medians. **S2 MET**: the ten frozen arms keep 
 **x17.0**. **S3 MET**: the per-width medians are **r0 0.449, r32 0.667, r128 0.853, r300 1.116, r700 0.757** --
 still not monotone, and r32 moved by 0.030 because those three arms sit in it. The finding's point is untouched: the
 share is a level difference between the ends of the ladder and not a law in the width.
+
+## RE-READ 2026-10-02 — `e358`'s two frozen arms joined the frozen pool and its count fired
+
+`e358` wrote a twenty-replicate run with `--frozen-body` on the earned label, and its two arms carry both a read-out
+width and a variance fraction, so this census now reads **352 arms**. The frozen pool grows from **ten to twelve**,
+every one of them above one, at a median of **18.18** -- the same level the first read found -- while the plastic
+pools move to **307** narrow at a rate of **28.34%** against **33** wide at **51.52%**. The live test's hard-coded
+frozen count of ten fired on this run and is now the unit's own S2 read off the pool: every frozen arm above one, at
+least the ten the first read had, and a frozen median more than ten times the plastic one's. S1, S2 and S3 stay MET
+at the same medians.

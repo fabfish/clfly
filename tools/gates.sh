@@ -250,4 +250,6 @@ run e356 python -m experiments.e356_the_earned_label_at_twenty_replicates --json
 
 run e357 python -m experiments.e357_the_basis_contrast_on_the_earned_label --json-out runs/e357_the_basis_contrast_on_the_earned_label.json
 
+run e358 python -m experiments.e358_the_frozen_body_on_the_earned_label --json-out runs/e358_the_frozen_body_on_the_earned_label.json
+
 echo "ALL DONE"

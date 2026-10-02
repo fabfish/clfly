@@ -93,7 +93,12 @@ def test_the_live_ladder_is_what_the_finding_says():
     #: loses. The bar here is the unit's own S1, which is the level difference the finding's prose is about; the
     #: snapshot itself lives in the numbers this test prints rather than in a threshold the growing corpus crosses.
     assert wide["rate"] > narrow["rate"], (wide["rate"], narrow["rate"])
-    assert frozen["above_one"] == frozen["arms"] == 10 and frozen["median"] > 10, frozen
+    #: the frozen pool is a subset that grows with the corpus, and its hard-coded size fired on 2026-10-02 when
+    #: `e358`'s two frozen arms joined it (ten to twelve). The bars here are the unit's own S2, which is what the
+    #: finding's prose is about: every frozen arm above one, at least the ten the first read had, and the frozen
+    #: median more than ten times the plastic one's.
+    assert frozen["above_one"] == frozen["arms"] and frozen["arms"] >= 10, frozen
+    assert frozen["median"] > 10, frozen
     widths = e292.by_width(rows)
     # r512 lost its arm count to the collapse -- two of its six arms were second copies -- so it falls below the
     # minimum and the ladder runs r0 to r700 (`e301`)

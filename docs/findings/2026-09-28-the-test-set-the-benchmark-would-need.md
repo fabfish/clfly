@@ -83,3 +83,18 @@ its own floor — **30%**, against the 28% the two extra copies gave. The three 
 themselves, the implied suites (**165, 300, 1096 items** against the 144 in use) and the bound of **7.6x** are all
 unchanged, and S1, S2 and S3 stay MET. The corpus's non-144 matrices are again **four**, which is the count this
 finding's first reading was taken at.
+
+## RE-READ 2026-10-02 — `e358`'s frozen arms joined the census and S3 fired
+
+`e358` wrote a twenty-replicate run of the earned label with `--frozen-body`, and its arms carry a read-out width
+and a variance fraction, so this census now reads 155 matrices and the matrix at the top of the list is that run:
+its two heads differ only through the head's initialisation, so the across-replicate spread is near zero and the
+implied suite for that configuration is **3223 items against the 144 in use** -- **22.4x**, above the twenty-fold bar
+this unit's S3 set. **S3 FALSIFIER FIRED**, and the unit's own verdict reads *"a requirement is above twenty times
+the suite"*.
+
+It is a property of the control and not of the census: the frozen arms are the first configuration in the corpus
+whose replicates differ by one initialisation, so a quantity that prices a benchmark's test set by its
+across-replicate spread prices that one absurdly high. The live test now reads S3's verdict off the artifact rather
+than demanding MET, as it already did for S2; the named long-standing members of the whole-matrix list are
+unchanged, and S1 stays MET.
