@@ -284,4 +284,6 @@ run e373 python -m experiments.e373_the_price_of_acting_across_the_window --json
 
 run e374 python -m experiments.e374_the_tightest_step --json-out runs/e374_the_tightest_step.json
 
+run e375 python -m experiments.e375_is_it_the_body --json-out runs/e375_is_it_the_body.json
+
 echo "ALL DONE"
