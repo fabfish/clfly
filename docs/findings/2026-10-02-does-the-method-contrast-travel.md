@@ -81,3 +81,14 @@ why the estimate is unweighted — one substrate, one vote — rather than poole
 already on disk, and a substrate the corpus does not hold is not tested by it. *And `ewc-block` is one penalty*:
 nothing here says `ewc`, `ewc-block-rand` or a different lambda behaves the same, and nothing here touches the basis
 contrast, which the audits left a null.
+
+## RE-READ 2026-10-02 — `e347`'s run joined the corpus and the counts moved by one
+
+`e347` wrote a twenty-replicate run of the `fisher-batches 8` family at `circuit_size = 300`, and it carries both
+arms, so this census now reads **27 experiments**: **21 positive and 6 negative**, with **15 resolving in `replay`'s
+favour and none against** where the first read had fourteen. The artifact-level mean is **+0.0382 at 3.68σ** over the
+twenty-seven, or **+0.0458 at 4.02σ** with a configuration voting once (23 distinct configurations); the
+300-budget subset grows from seven experiments to **eight** and reads **+0.0892 at 4.28σ**; the forgetting contrast
+stays negative at **-0.0492 (3.38σ)**. T1, T3, T4 and T5 stay MET and T2 stays FIRED on the same six negatives, none
+of which is `e347`'s run — that run's own contrast is **+0.0177 at 3.11σ**, on the positive side of the count, which
+is the subject of its own finding.
