@@ -272,4 +272,6 @@ run e367 python -m experiments.e367_the_world_the_agent_drives --json-out runs/e
 
 run e368 python -m experiments.e368_how_long_the_channel_takes_to_fill --json-out runs/e368_how_long_the_channel_takes_to_fill.json
 
+run e369 python -m experiments.e369_why_the_cliff_is_where_it_is --json-out runs/e369_why_the_cliff_is_where_it_is.json
+
 echo "ALL DONE"
