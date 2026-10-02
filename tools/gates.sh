@@ -232,4 +232,6 @@ run e347 python -m experiments.e347_the_family_that_disagrees --json-out runs/e3
 
 run e348 python -m experiments.e348_can_the_world_be_the_readout --json-out runs/e348_can_the_world_be_the_readout.json
 
+run e349 python -m experiments.e349_the_body_writes_the_cue --json-out runs/e349_the_body_writes_the_cue.json
+
 echo "ALL DONE"
