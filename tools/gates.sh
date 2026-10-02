@@ -254,4 +254,6 @@ run e358 python -m experiments.e358_the_frozen_body_on_the_earned_label --json-o
 
 run e359 python -m experiments.e359_the_world_gets_its_own_dynamics --json-out runs/e359_the_world_gets_its_own_dynamics.json
 
+run e360 python -m experiments.e360_the_world_gets_a_nonlinearity --json-out runs/e360_the_world_gets_a_nonlinearity.json
+
 echo "ALL DONE"

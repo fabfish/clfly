@@ -92,6 +92,12 @@ class CueActionEnv:
     #: is the endpoint the control uses. The matrix is drawn from the environment's seed, scaled so its largest
     #: singular value is one, and recorded in the draw.
     world_coupled: np.ndarray | None = None
+    #: **the world's nonlinearity.** False is the linear rule above. True saturates the carry, so the world's own
+    #: dynamics become `w_t = (1 - leak) * tanh(w_{t-1} @ K.T) + leak * drive_t` -- a bounded system with its own
+    #: fixed points, which is the second thing `e333`'s sentence asks for (*"nothing the agent's actions can push it
+    #: into"*). It applies only where a coupling does, so the endpoints stay exact: the uncoupled rule is the linear
+    #: one and `K = I` with the saturation off is still the independent integrators.
+    world_nonlinear: bool = False
     #: **when the cue arrives.** Zero is every artifact this repository holds: a pulse at the first step, so the trial
     #: is *hold the symbol across the gap* and the recurrent state has to carry it. Any later step makes the same
     #: label readable from the drive at the moment it is read, which is the control the latch hypothesis needs --
@@ -167,9 +173,13 @@ class CueActionEnv:
                                     + self.world_leak * (drive @ p.T))
                 else:
                     #: the world's own dynamics: it mixes its dimensions as it carries them, so what comes back is
-                    #: the agent's history through a map the agent does not choose
+                    #: the agent's history through a map the agent does not choose -- and with the nonlinearity on,
+                    #: through a map that saturates, so the state is bounded and has its own fixed points
                     k = torch.as_tensor(np.asarray(self.world_coupled), dtype=x.dtype)
-                    carried["w"] = ((1.0 - self.world_leak) * (carried["w"] @ k.T)
+                    carried_w = carried["w"] @ k.T
+                    if self.world_nonlinear:
+                        carried_w = torch.tanh(carried_w)
+                    carried["w"] = ((1.0 - self.world_leak) * carried_w
                                     + self.world_leak * (drive @ p.T))
                 fn.last_world = carried["w"]
                 add[:, out] = self.scale * (carried["w"] @ q)
@@ -225,7 +235,7 @@ class CueActionEnv:
                 #: the two maps of a dimensioned world, fingerprinted on the same reasoning as every other draw here
                 "world_drive_sha1": _fingerprint(self.world_drive),
                 "world_read_sha1": _fingerprint(self.world_read),
-                "world_coupled": self.world_coupled is not None,
+                "world_coupled": self.world_coupled is not None, "world_nonlinear": self.world_nonlinear,
                 "world_coupling_sha1": _fingerprint(self.world_coupled)}
 
 
@@ -343,7 +353,7 @@ def build(circ, readout_subset=None, n_symbols: int = 2, tau: int = 12, n_cue: i
           n_action: int = 8, n_feedback: int = 12, seed: int = 0, scale: float = 1.0,
           gain: float = 1.0, noise: float = 0.0, world_modes: int = 0,
           world_leak: float = 1.0, cue_at: int = 0, world_dims: int = 0,
-          world_coupled: bool = False) -> CueActionEnv:
+          world_coupled: bool = False, world_nonlinear: bool = False) -> CueActionEnv:
     """Draw the three populations disjointly and the cue templates, all from ``seed``.
 
     ``readout_subset`` is the decoder's own draw and is **not** available to the environment: the action is read off
@@ -372,5 +382,6 @@ def build(circ, readout_subset=None, n_symbols: int = 2, tau: int = 12, n_cue: i
                         #: drawn only when it is asked for, so every artifact written before this field is
                         #: bit-identical through it -- the conditional short-circuits before consuming the generator
                         world_coupled=(_coupling(rng, world_dims) if (world_coupled and world_dims) else None),
+                        world_nonlinear=(world_nonlinear if (world_coupled and world_dims) else False),
                         world_templates=(rng.standard_normal((world_modes, n_feedback))
                                          if world_modes else None))
