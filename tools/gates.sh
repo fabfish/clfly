@@ -270,4 +270,6 @@ run e366 python -m experiments.e366_what_the_probes_gap_is_made_of --json-out ru
 
 run e367 python -m experiments.e367_the_world_the_agent_drives --json-out runs/e367_the_world_the_agent_drives.json
 
+run e368 python -m experiments.e368_how_long_the_channel_takes_to_fill --json-out runs/e368_how_long_the_channel_takes_to_fill.json
+
 echo "ALL DONE"
