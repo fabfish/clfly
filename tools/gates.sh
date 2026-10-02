@@ -240,4 +240,6 @@ run e351 python -m experiments.e351_one_number_two_channels --json-out runs/e351
 
 run e352 python -m experiments.e352_the_earned_label_suite --json-out runs/e352_the_earned_label_suite.json
 
+run e353 python -m experiments.e353_the_class_incremental_earned_label --json-out runs/e353_the_class_incremental_earned_label.json
+
 echo "ALL DONE"
