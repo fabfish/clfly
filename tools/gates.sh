@@ -278,4 +278,6 @@ run e370 python -m experiments.e370_the_distance_moves_the_cliff --json-out runs
 
 run e371 python -m experiments.e371_the_game_the_agent_can_play --json-out runs/e371_the_game_the_agent_can_play.json
 
+run e372 python -m experiments.e372_what_acting_costs --json-out runs/e372_what_acting_costs.json
+
 echo "ALL DONE"
