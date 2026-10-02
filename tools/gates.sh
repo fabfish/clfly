@@ -246,4 +246,6 @@ run e354 python -m experiments.e354_both_protocols_in_one_module --json-out runs
 
 run e355 python -m experiments.e355_the_earned_label_through_the_runner --json-out runs/e355_the_earned_label_through_the_runner.json
 
+run e356 python -m experiments.e356_the_earned_label_at_twenty_replicates --json-out runs/e356_the_earned_label_at_twenty_replicates.json
+
 echo "ALL DONE"
