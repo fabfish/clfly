@@ -230,4 +230,6 @@ run e346 python -m experiments.e346_does_the_method_contrast_travel --json-out r
 
 run e347 python -m experiments.e347_the_family_that_disagrees --json-out runs/e347_the_family_that_disagrees.json
 
+run e348 python -m experiments.e348_can_the_world_be_the_readout --json-out runs/e348_can_the_world_be_the_readout.json
+
 echo "ALL DONE"

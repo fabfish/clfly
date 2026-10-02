@@ -115,6 +115,14 @@ class CueActionEnv:
         def fn(x, t):
             add = torch.zeros_like(x)
             action = self.action(x)
+            #: **the world's own state, readable after the pass.** A read-out that is the environment rather than the
+            #: model needs the world's final state, and until this attribute existed the recursion's state was
+            #: private to this closure. `w` is the carried integrator when there is one and the action itself when
+            #: there is not, since at ``leak = 1`` the recursion is the identity. Both are set on every call, so
+            #: after a forward pass they hold that pass's last step -- and a caller must read them before any other
+            #: forward pass, which overwrites them, exactly as the world itself resets with the trial.
+            w = action
+            fn.last_action = action
             if self.world_modes and self.world_templates is not None:
                 #: **the world resets with the trial**, and that reset is not a detail: a state carried across
                 #: forward passes would keep the previous pass's autograd graph alive and the next backward would
@@ -126,10 +134,14 @@ class CueActionEnv:
                 if t == 0 or carried["w"] is None or carried["w"].shape != action.shape:
                     carried["w"] = torch.zeros_like(action)
                 if t == 0:
+                    fn.last_world = carried["w"]
                     return add
                 carried["w"] = (1.0 - self.world_leak) * carried["w"] + self.world_leak * action
+                w = carried["w"]
             elif t == 0:
+                fn.last_world = w
                 return add
+            fn.last_world = w
             if self.world_modes and self.world_templates is not None:
                 #: a smooth pick between two patterns: at saturation the world shows its state, and in between it
                 #: shows a blend, which is what keeps the loop differentiable through the choice
@@ -145,6 +157,8 @@ class CueActionEnv:
                 add[:, out] = (self.scale * action)[:, None]
             return add
 
+        fn.last_world = None
+        fn.last_action = None
         return fn
 
     def summary(self) -> dict:
