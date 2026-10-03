@@ -93,3 +93,17 @@ nor the verdict is re-based while a corpus that pushes the share somewhere genui
 The one thing this RE-READ cannot do is what the previous one could not either: separate a real change in the
 population from the arithmetic of a ratio over arms that arrive. A share whose denominator grows is not a
 measurement of the line until the population is held fixed, and nothing here holds it.
+
+## RE-READ 2026-10-03: the cap was the wrong shape
+
+`e388` and `e389` added sixteen closed-loop runs to `runs/`, and the in-line share C3 is stated on moved from
+**0.312** to **86 of 141, 0.610** -- past the `< 0.60` upper cap the 2026-10-01 RE-READ had left in both faces of the
+test.
+
+A cap on a ratio whose denominator grows with the corpus is not a statement about the line, which this finding's own
+last paragraph already says. So the cap is gone. What the join test asserts now is the comparison the claim is
+about, computed from the same join rather than pinned to a level: the arms inside the zero-line carry more shortfall
+than the arms outside it, **0.610** against **0.453** -- 86 of 141 against 151 of 333. The artifact face keeps the
+direction and the lower bar, because the stored summary does not carry the outside count, and the verdict-agreement
+assertion is unchanged. **C3 reads MET at 0.610**, against its own bar of a quarter, and the finding's own caveat
+stands: a share whose denominator grows is not a measurement of the line until the population is held fixed.

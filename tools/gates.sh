@@ -312,4 +312,6 @@ run e387 python -m experiments.e387_the_window_as_one_setting --json-out runs/e3
 
 run e388 python -m experiments.e388_the_floor_between_five_and_twenty --json-out runs/e388_the_floor_between_five_and_twenty.json
 
+run e389 python -m experiments.e389_the_interval_at_twenty_replicates --json-out runs/e389_the_interval_at_twenty_replicates.json
+
 echo "ALL DONE"
