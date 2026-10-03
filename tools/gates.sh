@@ -298,4 +298,6 @@ run e380 python -m experiments.e380_what_the_training_built --json-out runs/e380
 
 run e381 python -m experiments.e381_the_representations_retention_matrix --json-out runs/e381_the_representations_retention_matrix.json
 
+run e382 python -m experiments.e382_when_the_world_loses_it --json-out runs/e382_when_the_world_loses_it.json
+
 echo "ALL DONE"
