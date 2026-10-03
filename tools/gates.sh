@@ -304,4 +304,6 @@ run e383 python -m experiments.e383_the_collapse_at_two_step_sizes --json-out ru
 
 run e384 python -m experiments.e384_the_other_end_of_the_window --json-out runs/e384_the_other_end_of_the_window.json
 
+run e385 python -m experiments.e385_the_valleys_shape --json-out runs/e385_the_valleys_shape.json
+
 echo "ALL DONE"

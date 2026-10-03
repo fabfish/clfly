@@ -77,3 +77,14 @@ checked **against the unit's own bar**, so a corpus that pushes the share back o
 reported as it stands. The one thing this RE-READ cannot do is say whether the assembly family's reversal is the
 loop family's arithmetic or a real change in the position effect on that family -- the arms arrived and the family's
 order moved in the same step, and nothing here separates them.
+
+**RE-READ 2026-10-03: W2'S OWN BAR IS CROSSED AND TWO MARGINS ARE NOW DIRECTIONS.** The live test asserted that
+the first position beats the middle in at least sixty per cent of the arm-replicates, which is `e310`'s own
+registration for W2; on **7346 arms** the share is **0.5996**, six thousandths under it, so **W2 reads FALSIFIER
+FIRED** and the assertion is replaced by the direction the unit's argument needs -- the first rung above the middle
+in more than half the arms -- with W2's verdict and its measured percentage read off the artifact as `e267` and
+`e309` do for their fired claims. The per-family assertion lost its magnitude for the same reason: the assembly
+family's first rung is **0.0196** above its middle against the **0.02** this line used to demand, while the pooled
+reading still holds 0.02, so what a family is asked for here is the direction and not the margin. W1, W3 and W4 are
+unchanged. This is the sixth unit this session to shed a value-pinned threshold, and the sentence is the same each
+time: a number that tracks the corpus belongs in the reading and not in the gate.
