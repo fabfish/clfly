@@ -78,3 +78,13 @@ the rest — and never a partial result.
 K1's and K4's wordings in this unit are now derived from the contract's length rather than written as "eight", so a
 further addition does not leave them stale
 (`docs/findings/2026-10-01-the-contract-with-the-result-block.md`).
+
+**RE-READ 2026-10-03: K1 HAS FIRED.** The scarcest of the fields is now carried by **exactly a quarter** of the
+corpus rather than under it -- 0.25 exactly, on 688 artifacts -- and the claim's falsifier was "every field carried
+by a quarter or more", so the claim fires at its own boundary. What moved it is the window's runs: `e374` to `e379`
+each wrote a closed-loop artifact, and every one of them carries the read-out draw as the rarest of the fields it
+need not carry. The live test now reads K1's verdict off the artifact and pins its measured percentage rather than
+demanding MET, as `e267` does for its own fired claims; the knife-edge `< 0.25` is replaced by `<= 0.25`, which is
+the boundary the assertion was testing. K2, K3 and K4 stay MET and nothing else in the census moved: the scarce
+field is still the read-out draw, the block structure is unchanged, and the share of the corpus that is a
+recomputable result is still a small minority.

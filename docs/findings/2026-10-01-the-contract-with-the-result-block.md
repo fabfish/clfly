@@ -47,3 +47,11 @@ denominators. **Adding fields can only shrink the conformant set**, and the fact
 this corpus and not a guarantee: a corpus whose runners recorded the matrix alone would show the drop. **A predicate
 reads one spelling**, unchanged from `e309`. **And conformance is still not quality**: an artifact can carry all
 eleven and be wrong, which is every other unit's business.
+
+**RE-READ 2026-10-03: K1 HAS FIRED, as it has for `e309`.** The scarcest of the eleven fields is carried by
+**exactly a quarter** of the corpus -- 0.25 on 688 artifacts -- where the claim asked for under a quarter and set
+its falsifier at a quarter or more. The window's closed-loop runs (`e374` to `e379`) are what carried the rate to
+the boundary, each of them an artifact that must carry the per-task fields and need not carry the read-out draw.
+The live test reads K1's verdict off the artifact and pins its measured percentage, and K2, K3 and K4 stay MET: the
+read-out draw is still the scarcest of the eleven, the three added fields are still carried well above a quarter,
+and the hole in the record's levels is still two to seven.

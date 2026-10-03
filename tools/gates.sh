@@ -292,4 +292,6 @@ run e377 python -m experiments.e377_was_it_the_step_size --json-out runs/e377_wa
 
 run e378 python -m experiments.e378_the_cue_source_at_the_tight_step --json-out runs/e378_the_cue_source_at_the_tight_step.json
 
+run e379 python -m experiments.e379_what_the_body_did --json-out runs/e379_what_the_body_did.json
+
 echo "ALL DONE"
