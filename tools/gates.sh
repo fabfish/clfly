@@ -308,4 +308,6 @@ run e385 python -m experiments.e385_the_valleys_shape --json-out runs/e385_the_v
 
 run e386 python -m experiments.e386_a_wider_world --json-out runs/e386_a_wider_world.json
 
+run e387 python -m experiments.e387_the_window_as_one_setting --json-out runs/e387_the_window_as_one_setting.json
+
 echo "ALL DONE"
