@@ -107,3 +107,13 @@ than the arms outside it, **0.610** against **0.453** -- 86 of 141 against 151 o
 direction and the lower bar, because the stored summary does not carry the outside count, and the verdict-agreement
 assertion is unchanged. **C3 reads MET at 0.610**, against its own bar of a quarter, and the finding's own caveat
 stands: a share whose denominator grows is not a measurement of the line until the population is held fixed.
+
+## RE-READ 2026-10-03, second: the exhibit's multiple was a level
+
+The live test's exhibit is *"an arm inside the line whose shortfall is many times the corpus median"*, pinned at
+`5 *` that median. `e393`'s four redrawn worlds brought four more arms in, the median moved to **0.1579** and the
+worst in-line shortfall -- `e382`'s five-update tight-step `replay` arm, at **0.7806** with an unlearned share of
+**0.977** -- is now **4.94** times it rather than five. A multiple of a quantity that grows with the corpus is the
+same defect as a fixed level, one multiplication away, so the multiple is replaced by the exhibit's own shape at
+`3 *` and the measured ratio is reported here. The arm is still exactly what the exhibit was for: it has forgotten
+nothing and it carries several times the corpus's typical shortfall.

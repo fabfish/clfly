@@ -320,4 +320,6 @@ run e391 python -m experiments.e391_the_far_stretch --json-out runs/e391_the_far
 
 run e392 python -m experiments.e392_the_game_card --json-out runs/e392_the_game_card.json
 
+run e393 python -m experiments.e393_the_card_on_four_more_worlds --json-out runs/e393_the_card_on_four_more_worlds.json
+
 echo "ALL DONE"
