@@ -286,4 +286,6 @@ run e374 python -m experiments.e374_the_tightest_step --json-out runs/e374_the_t
 
 run e375 python -m experiments.e375_is_it_the_body --json-out runs/e375_is_it_the_body.json
 
+run e376 python -m experiments.e376_the_heads_own_fitting --json-out runs/e376_the_heads_own_fitting.json
+
 echo "ALL DONE"
