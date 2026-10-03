@@ -314,4 +314,6 @@ run e388 python -m experiments.e388_the_floor_between_five_and_twenty --json-out
 
 run e389 python -m experiments.e389_the_interval_at_twenty_replicates --json-out runs/e389_the_interval_at_twenty_replicates.json
 
+run e390 python -m experiments.e390_where_the_climb_starts --json-out runs/e390_where_the_climb_starts.json
+
 echo "ALL DONE"

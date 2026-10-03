@@ -88,3 +88,14 @@ demanding MET, as `e267` does for its own fired claims; the knife-edge `< 0.25` 
 the boundary the assertion was testing. K2, K3 and K4 stay MET and nothing else in the census moved: the scarce
 field is still the read-out draw, the block structure is unchanged, and the share of the corpus that is a
 recomputable result is still a small minority.
+
+## RE-READ 2026-10-03, third: K3 reaches its bar too
+
+The 2026-10-01 RE-READ replaced the knife-edge with `<= 0.25` for K1 and left K3's live assertion at `< 0.25`.
+`e388` to `e390` added twenty-one closed-loop runs to `runs/`, every one of them carrying the full field set, and
+the conformant share crossed a quarter from below: **187 of 740, 0.253**, where K3's bar is a quarter. So **K3 reads
+FALSIFIER FIRED at 25%**, and the same treatment K1 got is now given to it: the verdict is read off the artifact and
+its measured percentage pinned, and the live assertion is that the conformant set is a **minority** rather than most
+of the corpus. K2 and K4 stay MET -- the read-out draw is still the scarcest field and the record still comes in
+blocks -- and the direction the finding states is unchanged: a shared flag is added and the share of the corpus that
+is a recomputable result falls.

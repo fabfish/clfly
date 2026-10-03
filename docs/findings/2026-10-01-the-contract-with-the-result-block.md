@@ -55,3 +55,12 @@ the boundary, each of them an artifact that must carry the per-task fields and n
 The live test reads K1's verdict off the artifact and pins its measured percentage, and K2, K3 and K4 stay MET: the
 read-out draw is still the scarcest of the eleven, the three added fields are still carried well above a quarter,
 and the hole in the record's levels is still two to seven.
+
+## RE-READ 2026-10-03, second: K3 reaches its bar too
+
+The previous RE-READ read K1's verdict off the artifact when the scarcest field reached exactly a quarter. `e388` to
+`e390` added twenty-one closed-loop runs which all carry the full field set, and the same thing has now happened to
+K3: the conformant share is **187 of 740, 0.253**, over the quarter its bar asks for, so **K3 reads FALSIFIER FIRED
+at 25%** and its verdict is read off the artifact with its percentage pinned, as K1's is. K1 still fires at 29%, and
+K2 and K4 stay MET: the fields a reader can use are still not the scarce ones, and the record is still nothing, a
+seed, or the result block and more.
