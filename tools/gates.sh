@@ -294,4 +294,6 @@ run e378 python -m experiments.e378_the_cue_source_at_the_tight_step --json-out 
 
 run e379 python -m experiments.e379_what_the_body_did --json-out runs/e379_what_the_body_did.json
 
+run e380 python -m experiments.e380_what_the_training_built --json-out runs/e380_what_the_training_built.json
+
 echo "ALL DONE"
