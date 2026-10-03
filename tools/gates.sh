@@ -310,4 +310,6 @@ run e386 python -m experiments.e386_a_wider_world --json-out runs/e386_a_wider_w
 
 run e387 python -m experiments.e387_the_window_as_one_setting --json-out runs/e387_the_window_as_one_setting.json
 
+run e388 python -m experiments.e388_the_floor_between_five_and_twenty --json-out runs/e388_the_floor_between_five_and_twenty.json
+
 echo "ALL DONE"
