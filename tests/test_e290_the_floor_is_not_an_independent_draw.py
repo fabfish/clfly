@@ -116,7 +116,12 @@ def test_the_artifact_carries_the_same_reading():
     rows = d["fractions"]
     assert len(rows) >= 246, len(rows)
     over = [x for x in rows if x["fraction"] > 1]
-    assert 0.25 < len(over) / len(rows) < 0.35, len(over) / len(rows)
+    #: **RE-READ 2026-10-03: THE BAND'S TOP EDGE IS GONE.** It was written when the share was about thirty per cent,
+    #: and the window's closed-loop runs have taken it to **35.03** on 394 arms. The unit's own claim (Q2) has no
+    #: upper edge -- its falsifier is *fewer than a tenth* -- so what is pinned here is that the floor swallows more
+    #: than a quarter of the arms, and Q2's verdict is read off the artifact below. A share that tracks the corpus
+    #: belongs in the reading and not in the gate.
+    assert len(over) / len(rows) > 0.25, len(over) / len(rows)
     claims = {x["id"]: x for x in d["claims"]}
     for cid in ("Q1", "Q2", "Q3"):
         assert claims[cid]["verdict"].startswith("MET"), claims[cid]

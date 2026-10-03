@@ -77,3 +77,12 @@ one more often than the corpus average, so **Q2 moves from 85 of 269 (32%) to 77
 from 31 of 32 artifacts to 29 of 30** with the median ratio **x2.64** and the largest **x7.42**
 (`e102_rate_fb8_omp4.json`) unchanged. Q1 is a line-number claim and does not move. The premise Q2 refutes — that a
 nominal binomial variance cannot exceed the total — is refuted at the same rate as before.
+
+**RE-READ 2026-10-03: the live test's band lost its top edge, and nothing else moved.** The stored-artifact test
+bounded the share of arms above their own floor at `0.25 < share < 0.35`, a band written when the share was about
+thirty per cent; the window's closed-loop runs have taken it to **35.03 on 394 arms**, past the edge, while the
+unit's own claim (**Q2**) has no upper edge at all -- its falsifier is *fewer than a tenth*, and it reads MET at
+35.03. The band's top edge was therefore pinning a quantity that grows with the corpus, and it is replaced by the
+claim's own direction, that the floor swallows more than a quarter of the arms, with Q2's verdict read off the
+artifact. Q1 and Q3 are unchanged, and this is the same class of defect `e267`, `e292`, `e309` and `e314` have each
+had to shed: a number that tracks the corpus belongs in the reading and not in the gate.

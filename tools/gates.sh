@@ -300,4 +300,6 @@ run e381 python -m experiments.e381_the_representations_retention_matrix --json-
 
 run e382 python -m experiments.e382_when_the_world_loses_it --json-out runs/e382_when_the_world_loses_it.json
 
+run e383 python -m experiments.e383_the_collapse_at_two_step_sizes --json-out runs/e383_the_collapse_at_two_step_sizes.json
+
 echo "ALL DONE"
