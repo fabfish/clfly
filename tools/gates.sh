@@ -324,4 +324,6 @@ run e393 python -m experiments.e393_the_card_on_four_more_worlds --json-out runs
 
 run e394 python -m experiments.e394_the_card_on_three_more_streams --json-out runs/e394_the_card_on_three_more_streams.json
 
+run e395 python -m experiments.e395_the_far_point_on_more_worlds --json-out runs/e395_the_far_point_on_more_worlds.json
+
 echo "ALL DONE"

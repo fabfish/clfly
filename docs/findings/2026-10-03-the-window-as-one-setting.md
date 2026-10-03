@@ -87,3 +87,16 @@ and says nothing about whether the setting is the right one. *And the horizon is
 checks three artifacts against each other and rolls nothing, so the two cliffs are `e368`'s and the two distances are
 `e369`'s, exactly as those units left them. *And the three traps are quoted*: each is a number in another unit's
 artifact, not a measurement this one makes.
+
+## RE-READ 2026-10-04: the window grew past two of its own clauses
+
+H1 asked the window's defining fields to be constant and H4 asked every window run to carry `seed0 = 0`. Both have
+now been crossed by the units that follow, and **deliberately**: `e393` redrew the engine's draw four times, `e394`
+drew three clean training streams and `e395` took two of the four redrawn worlds to the far point, so `seed0` takes
+**four** values over a window of **73** artifacts against H5's bound of twenty. A window defined by a flag grows with
+the runs that use it, which is what happened here, and the two claims fire for the reason they were written to.
+
+The verdicts are therefore read off the artifact while H2, H3 and H5 stay demanded: the manipulation space is still
+closed -- every field that varies is on the moved-or-followed list -- the horizon is still the artifacts' own, and
+the count is still above its bound. What the window is *about* has changed with it: it was one setting and it is now
+one setting **plus its own redraws**, which is the state the card's second revision describes.
