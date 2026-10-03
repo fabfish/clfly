@@ -306,4 +306,6 @@ run e384 python -m experiments.e384_the_other_end_of_the_window --json-out runs/
 
 run e385 python -m experiments.e385_the_valleys_shape --json-out runs/e385_the_valleys_shape.json
 
+run e386 python -m experiments.e386_a_wider_world --json-out runs/e386_a_wider_world.json
+
 echo "ALL DONE"
