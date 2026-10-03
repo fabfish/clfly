@@ -318,4 +318,6 @@ run e390 python -m experiments.e390_where_the_climb_starts --json-out runs/e390_
 
 run e391 python -m experiments.e391_the_far_stretch --json-out runs/e391_the_far_stretch.json
 
+run e392 python -m experiments.e392_the_game_card --json-out runs/e392_the_game_card.json
+
 echo "ALL DONE"

@@ -65,6 +65,10 @@ SELF = Path(__file__).name
 #: And this unit's own artifact, for the same reason: it writes the spelling table out, so every declared name
 #: occurs in it as a key and the carried arm would read its own output as the corpus carrying the metric.
 SELF_ARTIFACT = f"{Path(__file__).stem}.json"
+#: Modules that publish a benchmark **card** and therefore name the block's metrics by construction. `e392`'s card
+#: lists the game's metrics, and a module that describes a metric is no more evidence that the corpus computes it
+#: than this unit's own spelling table is -- the same defect, one level out.
+CARRIERS = ("e392_the_game_card.py",)
 
 
 def is_auditor(path) -> bool:
@@ -76,7 +80,7 @@ def is_auditor(path) -> bool:
     table is implemented.
     """
     p = Path(path)
-    if p.name == SELF:
+    if p.name == SELF or p.name in CARRIERS:
         return True
     return Path(__file__).stem in p.read_text(encoding="utf-8", errors="replace")
 #: The block introduces its metric list with this token, and the list runs to the paragraph's end.
