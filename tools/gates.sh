@@ -290,4 +290,6 @@ run e376 python -m experiments.e376_the_heads_own_fitting --json-out runs/e376_t
 
 run e377 python -m experiments.e377_was_it_the_step_size --json-out runs/e377_was_it_the_step_size.json
 
+run e378 python -m experiments.e378_the_cue_source_at_the_tight_step --json-out runs/e378_the_cue_source_at_the_tight_step.json
+
 echo "ALL DONE"

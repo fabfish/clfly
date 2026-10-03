@@ -98,3 +98,13 @@ whose replicates differ by one initialisation, so a quantity that prices a bench
 across-replicate spread prices that one absurdly high. The live test now reads S3's verdict off the artifact rather
 than demanding MET, as it already did for S2; the named long-standing members of the whole-matrix list are
 unchanged, and S1 stays MET.
+
+**RE-READ 2026-10-03: the cap on the whole-matrix list is gone, and the membership is what is pinned.** The live
+test bounded the list of matrices whose every arm sits inside its own floor at twelve, a number written on
+2026-09-28 when the list held three. It has been overtaken twice by units that joined it (`e319`'s penalty-free runs,
+`e358`'s frozen arms) and a third time by `e374`, `e375` and `e376`, whose closed-loop arms at the tight step all
+sit inside their own floors -- so the list is thirteen and the cap was measuring the corpus's growth rather than the
+unit's argument. The bound is replaced by the assertion the argument actually needs, that the three long-standing
+members are still on the list, and by the requirement at the top of it being the same order of magnitude; the count
+itself is reported and not capped, since a count that grows with the corpus is asserted as a bound and this one was
+not. S1 stays MET, S2 and S3 stay fired as recorded above, and nothing else in the census moved.
