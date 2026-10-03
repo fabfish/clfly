@@ -65,3 +65,18 @@ asserted -- so the next revision can be diffed against this one instead of re-ar
 - **And a card ages.** The plan's FlyCL v0 was written on 2026-09-25 and described three sustained classification
   tasks a month later than the loop arrived; this one names its revision and the date it was read, which is the only
   defence against the same drift.
+
+## RE-READ 2026-10-04: the card's two absences were closed by the units after it
+
+The card's M1 asked the seed stream to be constant and its M5 asked the cell to carry one world. Both clauses have
+now been **closed by the units that follow it**: `e393` drew four `--loop-seed` worlds and `e394` drew three clean
+`--readout-seed 0 --loop-seed 0` streams, so the window's `seed0` takes **four** values and the cell's three world
+fingerprints take **five**. Those are M1's and M5's own falsifiers, fired -- which is the card working as designed,
+not the corpus going wrong: the absences were measured so that closing them would be visible, and they are.
+
+So the card is at **revision 2**, and what it gains is not the word "conditional" but the two spreads beside the
+numbers they bound: at this cell, at twenty updates and twenty replicates, the trained body spreads **0.0906** across
+four worlds and **0.0396** across four streams, and the cost of the twenty updates spreads **0.0907** and **0.0395**.
+The level is more nearly a property of the game than of the seeds, and the axis that moves it is the world. The
+artifact's M1 and M5 verdicts are read off the artifact from here, as the units that own a crossing do, while M2, M3
+and M4 stay demanded: the loop clause is still carried and the protocol and metric clauses still hold over the cell.

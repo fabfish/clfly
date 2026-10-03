@@ -322,4 +322,6 @@ run e392 python -m experiments.e392_the_game_card --json-out runs/e392_the_game_
 
 run e393 python -m experiments.e393_the_card_on_four_more_worlds --json-out runs/e393_the_card_on_four_more_worlds.json
 
+run e394 python -m experiments.e394_the_card_on_three_more_streams --json-out runs/e394_the_card_on_three_more_streams.json
+
 echo "ALL DONE"
