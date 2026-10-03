@@ -288,4 +288,6 @@ run e375 python -m experiments.e375_is_it_the_body --json-out runs/e375_is_it_th
 
 run e376 python -m experiments.e376_the_heads_own_fitting --json-out runs/e376_the_heads_own_fitting.json
 
+run e377 python -m experiments.e377_was_it_the_step_size --json-out runs/e377_was_it_the_step_size.json
+
 echo "ALL DONE"
