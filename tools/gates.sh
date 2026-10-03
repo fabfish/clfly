@@ -296,4 +296,6 @@ run e379 python -m experiments.e379_what_the_body_did --json-out runs/e379_what_
 
 run e380 python -m experiments.e380_what_the_training_built --json-out runs/e380_what_the_training_built.json
 
+run e381 python -m experiments.e381_the_representations_retention_matrix --json-out runs/e381_the_representations_retention_matrix.json
+
 echo "ALL DONE"
