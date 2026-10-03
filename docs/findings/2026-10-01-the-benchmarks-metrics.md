@@ -104,3 +104,13 @@ any suite has ever been run"*, `e310` measured what varying the order would cost
 live test now asserts the **shape** of the violation — exactly one suite, two orders, each the other reversed —
 rather than the absence
 (`docs/findings/2026-10-01-the-order-the-runner-never-took.md`).
+
+## RE-READ 2026-10-03: a card is not evidence, and the code arm read one
+
+`e392` published the game card, and the card's metric clause names the block's metrics -- `backward transfer` among
+them. This unit's code arm is a substring count over `clfly/` and `experiments/`, so it read a **description** of
+the metric as an implementation of it: M1's absent list emptied and `backward transfer` looked implemented by being
+named. A module that publishes a card carries every name by construction, exactly as this unit's own spelling table
+does, and it is the same defect `e185`'s first version recorded -- a check that matches a word rather than evidence.
+The carriers are now excluded with the auditors, and **M1's absent list is `backward transfer` again**: the metric
+the block names and the repository does not compute.

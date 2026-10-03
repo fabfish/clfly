@@ -99,3 +99,12 @@ powered arms carry the order, so growth cannot cross it in one step. W3's own ve
 its percentage pinned and reads **FALSIFIER FIRED at 60%** against its bar of **0.80**; W2 reads **FALSIFIER FIRED
 at 57%**; W1 stays MET; and W4's per-family reading is unchanged. The sentence this line has now written twice holds:
 a number that tracks the corpus belongs in the reading and not in the gate.
+
+## RE-READ 2026-10-03, second: the artifact face was still carrying the level
+
+The live face shed the `0.6 < share` level in this unit's first RE-READ of the day, and the **artifact** face kept
+it. The gate's own re-run of this unit wrote `runs/e310_the_position_effect.json` with the larger corpus, so that
+stored reader now reads **117 of 196, 0.597** and the pinned level fails on the artifact rather than on the corpus.
+The artifact face now asserts the same structural half as the live one -- a **majority** of the powered arms carry
+the order -- and reads W3's verdict off the artifact against its own bar, which is **FALSIFIER FIRED at 60%** against
+the 0.80 the unit demands. One measurement, two faces of one test, and the level had to be removed from each.

@@ -78,3 +78,11 @@ repaired** rather than because the claim was wrong:
 The unit's R3 was *"one of the prose-only mentions names a module that is not on disk"*, with *"the module it names
 exists"* as its falsifier. It fired within the hour, by the repair it asked for
 (`docs/findings/2026-10-01-the-decomposition-the-block-asked-for.md`).
+
+## RE-READ 2026-10-03: the same carrier defect, one arm over
+
+`e392`'s card names the block's metrics, and this unit counts each spelling twice -- once in a module's whole text
+and once in the source with every string and comment stripped. The card's mention therefore landed in the **prose**
+arm and in none of the code arm, and the prose-only list grew a second entry: `backward transfer`, in the card. That
+is a module describing a metric, not the repository computing one. The carriers are now excluded from the evidence
+with the auditors this unit delegates to, and **the prose-only list is the observability spectrum alone again**.
