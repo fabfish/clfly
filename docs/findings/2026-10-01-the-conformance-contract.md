@@ -99,3 +99,11 @@ its measured percentage pinned, and the live assertion is that the conformant se
 of the corpus. K2 and K4 stay MET -- the read-out draw is still the scarcest field and the record still comes in
 blocks -- and the direction the finding states is unchanged: a shared flag is added and the share of the corpus that
 is a recomputable result falls.
+
+### And the artifact face was still carrying it
+
+The same `< 0.25` survived in `test_the_artifact_carries_the_same_reading`, which reads the stored reader rather
+than the live corpus, and the gate's own re-run of `e309` regenerated that reader with the larger corpus -- **187 of
+740, 0.253**. So the artifact face gets the same treatment as the live one: the bound is a **minority**, a half, and
+K3's verdict is read off the artifact with its measured percentage pinned beside K1's. **K3 reads FALSIFIER FIRED at
+25%** on both faces.

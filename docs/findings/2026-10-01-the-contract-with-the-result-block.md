@@ -64,3 +64,10 @@ K3: the conformant share is **187 of 740, 0.253**, over the quarter its bar asks
 at 25%** and its verdict is read off the artifact with its percentage pinned, as K1's is. K1 still fires at 29%, and
 K2 and K4 stay MET: the fields a reader can use are still not the scarce ones, and the record is still nothing, a
 seed, or the result block and more.
+
+### And the artifact face was still carrying it
+
+As in `e309`, the `< 0.25` survived in the artifact face of the test, and the gate's re-run of this unit wrote the
+stored reader with the larger corpus: **187 of 740, 0.253**. That face now asserts a **minority** and reads K3's
+verdict off the artifact with its percentage pinned, exactly as the live face does. **K3 reads FALSIFIER FIRED at
+25%** on both.

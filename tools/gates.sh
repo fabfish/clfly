@@ -316,4 +316,6 @@ run e389 python -m experiments.e389_the_interval_at_twenty_replicates --json-out
 
 run e390 python -m experiments.e390_where_the_climb_starts --json-out runs/e390_where_the_climb_starts.json
 
+run e391 python -m experiments.e391_the_far_stretch --json-out runs/e391_the_far_stretch.json
+
 echo "ALL DONE"

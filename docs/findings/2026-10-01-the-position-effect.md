@@ -88,3 +88,14 @@ family's first rung is **0.0196** above its middle against the **0.02** this lin
 reading still holds 0.02, so what a family is asked for here is the direction and not the margin. W1, W3 and W4 are
 unchanged. This is the sixth unit this session to shed a value-pinned threshold, and the sentence is the same each
 time: a number that tracks the corpus belongs in the reading and not in the gate.
+
+## RE-READ 2026-10-03: the powered share crossed its own floor from above
+
+`e388` to `e391` added twenty-four closed-loop runs to `runs/`, and the share W3 is stated on -- the powered arms
+whose first rung beats their middle -- moved from above the 0.6 the live test pinned to **117 of 196, 0.597**. This
+is the same knife-edge the previous RE-READ removed from the per-family margin, one level up, and it gets the same
+treatment: the level is gone and what the live test asserts is the structural half, that a **majority** of the
+powered arms carry the order, so growth cannot cross it in one step. W3's own verdict is read off the artifact with
+its percentage pinned and reads **FALSIFIER FIRED at 60%** against its bar of **0.80**; W2 reads **FALSIFIER FIRED
+at 57%**; W1 stays MET; and W4's per-family reading is unchanged. The sentence this line has now written twice holds:
+a number that tracks the corpus belongs in the reading and not in the gate.
