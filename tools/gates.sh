@@ -336,4 +336,6 @@ run e399 python -m experiments.e399_the_rest_of_the_two_hop_class --json-out run
 
 run e400 python -m experiments.e400_five_candidates_for_the_one --json-out runs/e400_five_candidates_for_the_one.json
 
+run e401 python -m experiments.e401_the_heaviest_untrained_draw --json-out runs/e401_the_heaviest_untrained_draw.json
+
 echo "ALL DONE"
