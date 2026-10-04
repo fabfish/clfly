@@ -1083,6 +1083,9 @@ def main(argv=None) -> int:
                         "from the drive and is the no-memory control")
     p.add_argument("--loop-seed", type=int, default=None,
                    help="the environment's population seed for the closed loop; defaults to `--seed0`")
+    p.add_argument("--cue-seed", type=int, default=None,
+                   help="a second seed for the cue population alone; the action and feedback populations and the "
+                        "world's three maps stay the ones `--loop-seed` draws")
     p.add_argument("--loop-noise", type=float, default=0.0,
                    help="noise on the closed loop's cue, drawn once per example at step 0")
     p.add_argument("--loop-scale", type=float, default=1.0, help="the feedback channel's strength")
@@ -1163,7 +1166,8 @@ def main(argv=None) -> int:
                                  world_leak=args.loop_world_leak, cue_at=args.loop_cue_at,
                                  world_dims=args.loop_world_dims, world_coupled=args.loop_world_coupled,
                                  world_nonlinear=args.loop_world_nonlinear,
-                                 drive_from_cue=args.loop_drive_from_cue)
+                                 drive_from_cue=args.loop_drive_from_cue,
+                                 cue_seed=args.cue_seed)
         suite = [fly_env.make_env_task(loop_env, f"loop_{spec[0]}",
                                        symbols=range(i * args.loop_symbols, (i + 1) * args.loop_symbols),
                                        n_train=args.train, n_test=args.test,

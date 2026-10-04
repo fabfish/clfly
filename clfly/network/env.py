@@ -360,7 +360,7 @@ def build(circ, readout_subset=None, n_symbols: int = 2, tau: int = 12, n_cue: i
           gain: float = 1.0, noise: float = 0.0, world_modes: int = 0,
           world_leak: float = 1.0, cue_at: int = 0, world_dims: int = 0,
           world_coupled: bool = False, world_nonlinear: bool = False,
-          drive_from_cue: bool = False) -> CueActionEnv:
+          drive_from_cue: bool = False, cue_seed: int | None = None) -> CueActionEnv:
     """Draw the three populations disjointly and the cue templates, all from ``seed``.
 
     ``readout_subset`` is the decoder's own draw and is **not** available to the environment: the action is read off
@@ -380,6 +380,15 @@ def build(circ, readout_subset=None, n_symbols: int = 2, tau: int = 12, n_cue: i
         #: the world listens to the neurons the cue is written on. The draw is unchanged -- the same three
         #: populations are picked -- so the two configurations differ in one field and in nothing else.
         action = cue
+    if cue_seed is not None and not drive_from_cue:
+        #: **the cue population's own draw, and nothing else's.** A second generator picks the cue's neurons from
+        #: the pool minus the action and feedback populations, and it consumes nothing from `rng`, so the templates,
+        #: the drive, the read map and the coupling are the ones `seed` draws. This is the field the far point's
+        #: failure tracks (`e396`, `e397`), and until it existed the environment could only move the three
+        #: populations and the three maps together. `drive_from_cue` is excluded because there the action population
+        #: *is* the cue population, so moving the cue would move the drive as well.
+        cue_pool = np.setdiff1d(pool, np.concatenate([np.asarray(action), np.asarray(feedback)]))
+        cue = np.random.default_rng(cue_seed).choice(cue_pool, size=n_cue, replace=False)
     return CueActionEnv(n_neurons=circ.n_neurons, tau=tau,
                         cue_neurons=np.sort(cue), action_neurons=np.sort(action),
                         feedback_neurons=np.sort(feedback),

@@ -80,3 +80,12 @@ four configurations.
 - **That the census is now complete.** It reads recorded fields; a line that encodes a draw in a field it does not name
   (as the linear line did until this unit) is invisible to it, and the remedy is per-line knowledge rather than a
   longer list of flag names.
+
+## RE-READ 2026-10-04: an eighth draw field, and the census found it by itself
+
+`e398` added `cue_seed` to the environment and the runner -- a second generator that draws the cue population alone
+-- so the draw-field vocabulary this unit reads off the flags is now eight names rather than seven:
+`readout_seed`, `support_seed`, `partition_seed`, `rewire_seed`, `seed_b`, `seed_step`, `loop_seed` and `cue_seed`.
+The live assertion names all eight and stays exact. Nothing in the unit's argument moves: the vocabulary is a fact
+about the runner's flags, it grows with them, and a census that has to be updated when the engine gains a seed is a
+census that is reading the flags rather than a hand-written list -- which is what this unit was written to be.

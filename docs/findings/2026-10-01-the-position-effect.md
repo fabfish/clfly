@@ -108,3 +108,13 @@ stored reader now reads **117 of 196, 0.597** and the pinned level fails on the 
 The artifact face now asserts the same structural half as the live one -- a **majority** of the powered arms carry
 the order -- and reads W3's verdict off the artifact against its own bar, which is **FALSIFIER FIRED at 60%** against
 the 0.80 the unit demands. One measurement, two faces of one test, and the level had to be removed from each.
+
+## RE-READ 2026-10-04, second: the pooled margin slipped under its own bar
+
+The first RE-READ of 2026-10-03 left the pooled reading as the one place the 0.02 margin still held. It does not any
+more: `e393` to `e398` added arms that draw their own cue populations and engine worlds, and the pooled position
+means are now **0.8010, 0.7812, 0.7928** -- the same order, first > last > middle, with the first **0.0198** above
+the middle rather than the 0.02 the unit asks for. So **W1's falsifier fires on the margin and not on the order**,
+which is precisely what W2's and W3's did and for the same reason: a threshold that tracks a corpus which grows arms
+belongs in the reading. W1's verdict is read off the artifact with its gap pinned, and what the live test asserts is
+the **order** and the direction of the powered share.

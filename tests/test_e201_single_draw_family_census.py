@@ -143,5 +143,8 @@ def test_the_live_census_names_the_families_that_deliberately_measure_a_draw():
     #: and the census found the seventh key **by itself** -- which is the instrument working and not a claim moving.
     #: The vocabulary is a fact about the runner's flags and grows with them, so the set is updated and the
     #: assertion stays exact.
+    #: and the census found the eighth key **by itself** -- `cue_seed`, the engine's per-population seed `e398`
+    #: added -- which is the instrument working and not a claim moving. The vocabulary is a fact about the runner's
+    #: flags and grows with them, so the set is updated and the assertion stays exact.
     assert set(res["draw_fields"]) == {"readout_seed", "support_seed", "partition_seed", "rewire_seed",
-                                       "seed_b", "seed_step", "loop_seed"}, res["draw_fields"]
+                                       "seed_b", "seed_step", "loop_seed", "cue_seed"}, res["draw_fields"]

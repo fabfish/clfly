@@ -330,4 +330,6 @@ run e396 python -m experiments.e396_the_far_point_on_all_five_worlds --json-out 
 
 run e397 python -m experiments.e397_the_two_hop_world --json-out runs/e397_the_two_hop_world.json
 
+run e398 python -m experiments.e398_the_cue_population_alone --json-out runs/e398_the_cue_population_alone.json
+
 echo "ALL DONE"
