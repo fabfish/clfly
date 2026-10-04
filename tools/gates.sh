@@ -334,4 +334,6 @@ run e398 python -m experiments.e398_the_cue_population_alone --json-out runs/e39
 
 run e399 python -m experiments.e399_the_rest_of_the_two_hop_class --json-out runs/e399_the_rest_of_the_two_hop_class.json
 
+run e400 python -m experiments.e400_five_candidates_for_the_one --json-out runs/e400_five_candidates_for_the_one.json
+
 echo "ALL DONE"
