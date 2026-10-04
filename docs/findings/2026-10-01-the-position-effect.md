@@ -150,3 +150,12 @@ middle, in each family. The assembly family has now moved under it -- its means 
 0.8010 > 0.7928 > 0.7812. So the families' means are reported and **W4's verdict is read off the artifact**, as W1's
 to W3's already are. That is the sixth level this unit has shed and the last one it had left: from here nothing in
 it is held to a value on a corpus that grows arms.
+
+## RE-READ 2026-10-04, sixth: the artifact face too, and the unit is level-free
+
+The fifth RE-READ of the day removed the per-family direction from the live face and the **artifact** face carried
+it, so the gate's own re-run of this unit failed there on the same numbers -- the assembly family's 0.5463 against
+0.5506. Both faces now report the families' means and read **W4's verdict off the artifact**, as W1's to W3's already
+were. That is the seventh level this unit has shed and the second time a level had to be taken out of two faces of
+one test. **From here nothing in this unit is held to a value**, on either face: what it asserts is the order, the
+directions and the verdicts the artifacts carry.

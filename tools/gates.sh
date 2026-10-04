@@ -352,4 +352,6 @@ run e407 python -m experiments.e407_five_budgets_on_all_six_worlds --json-out ru
 
 run e408 python -m experiments.e408_six_budgets_on_all_six_worlds --json-out runs/e408_six_budgets_on_all_six_worlds.json
 
+run e409 python -m experiments.e409_the_game_card_revision_two --json-out runs/e409_the_game_card_revision_two.json
+
 echo "ALL DONE"
