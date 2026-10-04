@@ -362,4 +362,6 @@ run e412 python -m experiments.e412_the_aid_turns_on --json-out runs/e412_the_ai
 
 run e413 python -m experiments.e413_the_aid_turns_on_in_every_world --json-out runs/e413_the_aid_turns_on_in_every_world.json
 
+run e414 python -m experiments.e414_the_game_card_revision_three --json-out runs/e414_the_game_card_revision_three.json
+
 echo "ALL DONE"
