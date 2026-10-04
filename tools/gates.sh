@@ -360,4 +360,6 @@ run e411 python -m experiments.e411_the_rehearsal_on_the_six_worlds --json-out r
 
 run e412 python -m experiments.e412_the_aid_turns_on --json-out runs/e412_the_aid_turns_on.json
 
+run e413 python -m experiments.e413_the_aid_turns_on_in_every_world --json-out runs/e413_the_aid_turns_on_in_every_world.json
+
 echo "ALL DONE"
