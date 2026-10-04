@@ -346,4 +346,6 @@ run e404 python -m experiments.e404_the_cue_population_in_the_annotation_table -
 
 run e405 python -m experiments.e405_one_update_on_all_six_worlds --json-out runs/e405_one_update_on_all_six_worlds.json
 
+run e406 python -m experiments.e406_two_updates_on_all_six_worlds --json-out runs/e406_two_updates_on_all_six_worlds.json
+
 echo "ALL DONE"
