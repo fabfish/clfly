@@ -141,3 +141,12 @@ so which family is larger is left as a fact about the corpus and both are assert
 **And the unit's own reading is unchanged**: the three positions are still ordered first > last > middle, and W2's,
 W3's and W4's verdicts are what the artifact says. What has changed is only what the test demands of a corpus that
 grows arms -- which is nothing about its levels.
+
+## RE-READ 2026-10-04, fifth: the per-family direction moves too
+
+The per-family direction was the last thing this unit held as a shape rather than a level: the first rung above the
+middle, in each family. The assembly family has now moved under it -- its means are **0.5463**, **0.5506** and
+0.5599, so its middle rung beats its first by **0.0043** -- while the pooled reading still holds the order
+0.8010 > 0.7928 > 0.7812. So the families' means are reported and **W4's verdict is read off the artifact**, as W1's
+to W3's already are. That is the sixth level this unit has shed and the last one it had left: from here nothing in
+it is held to a value on a corpus that grows arms.

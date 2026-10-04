@@ -350,4 +350,6 @@ run e406 python -m experiments.e406_two_updates_on_all_six_worlds --json-out run
 
 run e407 python -m experiments.e407_five_budgets_on_all_six_worlds --json-out runs/e407_five_budgets_on_all_six_worlds.json
 
+run e408 python -m experiments.e408_six_budgets_on_all_six_worlds --json-out runs/e408_six_budgets_on_all_six_worlds.json
+
 echo "ALL DONE"

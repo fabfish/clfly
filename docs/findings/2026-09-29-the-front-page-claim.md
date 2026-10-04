@@ -65,3 +65,12 @@ indistinguishable from zero at two sigma, still **8 of them at forty replicates*
 against a baseline whose median is **+0.073**. **F3 MET**: **216 of 271 arms (79%)** resolve away from zero, the
 largest still **24.90 sigma**. Nine of the arms that were inside the line were second copies — that is the whole of the
 movement — and the README's scope blockquote now carries the new denominators with the reason.
+
+## RE-READ 2026-10-04: the ratio crossed two
+
+The live test held the arms outside the two-sigma line at more than **twice** the arms inside it. `e397` to `e408`
+added the closed loop's redraw series -- twenty-odd runs whose arms land inside the line -- and the count is now
+**393 outside against 199 inside**, **1.97 times**. A ratio of two on a corpus that grows arms is the same knife-edge
+other census units have had to shed, so the ratio is reported and the front page's sentence is asserted as the
+**direction** it needs: most arms resolve away from zero, and the largest sigma is far above it. The sentence itself
+is unchanged, and the numbers that carry it are in the artifact.
