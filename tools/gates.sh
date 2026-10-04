@@ -342,4 +342,6 @@ run e402 python -m experiments.e402_the_trained_bodies --json-out runs/e402_the_
 
 run e403 python -m experiments.e403_the_far_point_on_the_clean_stream --json-out runs/e403_the_far_point_on_the_clean_stream.json
 
+run e404 python -m experiments.e404_the_cue_population_in_the_annotation_table --json-out runs/e404_the_cue_population_in_the_annotation_table.json
+
 echo "ALL DONE"
