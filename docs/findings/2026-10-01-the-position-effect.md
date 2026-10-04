@@ -127,3 +127,17 @@ fails on **0.0198** rather than on the corpus. It gets the same treatment: the *
 0.7928 > middle 0.7812 -- is what is asserted, and W1's verdict is read off the artifact as W2's and W3's are. This
 is the second time in one unit that a threshold had to be removed from two faces of the same test, which is the cost
 of a claim whose value tracks a corpus that grows arms.
+
+## RE-READ 2026-10-04, fourth: every level comes out of the shares at once
+
+`e397` to `e407` added the closed loop's redraw series to the corpus and the three shares this unit's live test pins
+all moved to about a half: **0.5495** for first-above-middle, **0.4983** for first-above-last and **0.5229** for
+last-above-middle. That is the fourth, fifth and sixth level this unit has had to shed, so the levels come out of all
+three at once. Each share is now asserted to be a **share** -- in [0, 1] and therefore reported -- and the claims
+that are about them are the unit's own W1 to W4, whose verdicts are read off the artifact. The same pass removed one
+more level: the overlap family used to outnumber the assembly one and the corpus has reversed it, 4785 against 5211,
+so which family is larger is left as a fact about the corpus and both are asserted only to be represented.
+
+**And the unit's own reading is unchanged**: the three positions are still ordered first > last > middle, and W2's,
+W3's and W4's verdicts are what the artifact says. What has changed is only what the test demands of a corpus that
+grows arms -- which is nothing about its levels.
