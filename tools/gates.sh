@@ -356,4 +356,6 @@ run e409 python -m experiments.e409_the_game_card_revision_two --json-out runs/e
 
 run e410 python -m experiments.e410_the_benchmarks_own_metric --json-out runs/e410_the_benchmarks_own_metric.json
 
+run e411 python -m experiments.e411_the_rehearsal_on_the_six_worlds --json-out runs/e411_the_rehearsal_on_the_six_worlds.json
+
 echo "ALL DONE"
