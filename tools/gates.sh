@@ -344,4 +344,6 @@ run e403 python -m experiments.e403_the_far_point_on_the_clean_stream --json-out
 
 run e404 python -m experiments.e404_the_cue_population_in_the_annotation_table --json-out runs/e404_the_cue_population_in_the_annotation_table.json
 
+run e405 python -m experiments.e405_one_update_on_all_six_worlds --json-out runs/e405_one_update_on_all_six_worlds.json
+
 echo "ALL DONE"
