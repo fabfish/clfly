@@ -354,4 +354,6 @@ run e408 python -m experiments.e408_six_budgets_on_all_six_worlds --json-out run
 
 run e409 python -m experiments.e409_the_game_card_revision_two --json-out runs/e409_the_game_card_revision_two.json
 
+run e410 python -m experiments.e410_the_benchmarks_own_metric --json-out runs/e410_the_benchmarks_own_metric.json
+
 echo "ALL DONE"
