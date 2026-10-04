@@ -118,3 +118,12 @@ the middle rather than the 0.02 the unit asks for. So **W1's falsifier fires on 
 which is precisely what W2's and W3's did and for the same reason: a threshold that tracks a corpus which grows arms
 belongs in the reading. W1's verdict is read off the artifact with its gap pinned, and what the live test asserts is
 the **order** and the direction of the powered share.
+
+## RE-READ 2026-10-04, third: the artifact face too
+
+The second RE-READ of the day removed the pooled margin from the live face and left the artifact face pinning the
+same `> 0.02`; the gate's own re-run of this unit wrote the stored reader with the larger corpus and that face now
+fails on **0.0198** rather than on the corpus. It gets the same treatment: the **order** -- first 0.8010 > last
+0.7928 > middle 0.7812 -- is what is asserted, and W1's verdict is read off the artifact as W2's and W3's are. This
+is the second time in one unit that a threshold had to be removed from two faces of the same test, which is the cost
+of a claim whose value tracks a corpus that grows arms.

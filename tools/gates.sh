@@ -332,4 +332,6 @@ run e397 python -m experiments.e397_the_two_hop_world --json-out runs/e397_the_t
 
 run e398 python -m experiments.e398_the_cue_population_alone --json-out runs/e398_the_cue_population_alone.json
 
+run e399 python -m experiments.e399_the_rest_of_the_two_hop_class --json-out runs/e399_the_rest_of_the_two_hop_class.json
+
 echo "ALL DONE"
