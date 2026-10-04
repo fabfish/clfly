@@ -340,4 +340,6 @@ run e401 python -m experiments.e401_the_heaviest_untrained_draw --json-out runs/
 
 run e402 python -m experiments.e402_the_trained_bodies --json-out runs/e402_the_trained_bodies.json
 
+run e403 python -m experiments.e403_the_far_point_on_the_clean_stream --json-out runs/e403_the_far_point_on_the_clean_stream.json
+
 echo "ALL DONE"
