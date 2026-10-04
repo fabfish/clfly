@@ -338,4 +338,6 @@ run e400 python -m experiments.e400_five_candidates_for_the_one --json-out runs/
 
 run e401 python -m experiments.e401_the_heaviest_untrained_draw --json-out runs/e401_the_heaviest_untrained_draw.json
 
+run e402 python -m experiments.e402_the_trained_bodies --json-out runs/e402_the_trained_bodies.json
+
 echo "ALL DONE"
