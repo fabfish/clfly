@@ -358,4 +358,6 @@ run e410 python -m experiments.e410_the_benchmarks_own_metric --json-out runs/e4
 
 run e411 python -m experiments.e411_the_rehearsal_on_the_six_worlds --json-out runs/e411_the_rehearsal_on_the_six_worlds.json
 
+run e412 python -m experiments.e412_the_aid_turns_on --json-out runs/e412_the_aid_turns_on.json
+
 echo "ALL DONE"
