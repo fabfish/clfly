@@ -372,4 +372,6 @@ run e417 python -m experiments.e417_the_aid_needs_a_plastic_body --json-out runs
 
 run e418 python -m experiments.e418_the_game_card_revision_four --json-out runs/e418_the_game_card_revision_four.json
 
+run e419 python -m experiments.e419_what_the_buffer_buys --json-out runs/e419_what_the_buffer_buys.json
+
 echo "ALL DONE"
