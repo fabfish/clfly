@@ -364,4 +364,6 @@ run e413 python -m experiments.e413_the_aid_turns_on_in_every_world --json-out r
 
 run e414 python -m experiments.e414_the_game_card_revision_three --json-out runs/e414_the_game_card_revision_three.json
 
+run e415 python -m experiments.e415_the_penalty_on_the_cards_world --json-out runs/e415_the_penalty_on_the_cards_world.json
+
 echo "ALL DONE"
