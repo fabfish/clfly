@@ -386,4 +386,6 @@ run e424 python -m experiments.e424_the_game_card_revision_five --json-out runs/
 
 run e425 python -m experiments.e425_the_trade_follows_the_position --json-out runs/e425_the_trade_follows_the_position.json
 
+run e426 python -m experiments.e426_the_damage_lands_by_arm --json-out runs/e426_the_damage_lands_by_arm.json
+
 echo "ALL DONE"
