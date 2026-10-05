@@ -388,4 +388,6 @@ run e425 python -m experiments.e425_the_trade_follows_the_position --json-out ru
 
 run e426 python -m experiments.e426_the_damage_lands_by_arm --json-out runs/e426_the_damage_lands_by_arm.json
 
+run e427 python -m experiments.e427_most_of_the_aid_needs_a_plastic_bias --json-out runs/e427_most_of_the_aid_needs_a_plastic_bias.json
+
 echo "ALL DONE"
