@@ -402,4 +402,6 @@ run e432 python -m experiments.e432_the_interference_runs_through_the_bias --jso
 
 run e433 python -m experiments.e433_the_penalties_hold_the_weights --json-out runs/e433_the_penalties_hold_the_weights.json
 
+run e434 python -m experiments.e434_the_game_card_revision_seven --json-out runs/e434_the_game_card_revision_seven.json
+
 echo "ALL DONE"
