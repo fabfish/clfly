@@ -370,4 +370,6 @@ run e416 python -m experiments.e416_the_penalty_ledger --json-out runs/e416_the_
 
 run e417 python -m experiments.e417_the_aid_needs_a_plastic_body --json-out runs/e417_the_aid_needs_a_plastic_body.json
 
+run e418 python -m experiments.e418_the_game_card_revision_four --json-out runs/e418_the_game_card_revision_four.json
+
 echo "ALL DONE"
