@@ -366,4 +366,6 @@ run e414 python -m experiments.e414_the_game_card_revision_three --json-out runs
 
 run e415 python -m experiments.e415_the_penalty_on_the_cards_world --json-out runs/e415_the_penalty_on_the_cards_world.json
 
+run e416 python -m experiments.e416_the_penalty_ledger --json-out runs/e416_the_penalty_ledger.json
+
 echo "ALL DONE"
