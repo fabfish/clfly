@@ -392,4 +392,6 @@ run e427 python -m experiments.e427_most_of_the_aid_needs_a_plastic_bias --json-
 
 run e428 python -m experiments.e428_the_game_card_revision_six --json-out runs/e428_the_game_card_revision_six.json
 
+run e429 python -m experiments.e429_the_front_page_gets_the_benchmark --json-out runs/e429_the_front_page_gets_the_benchmark.json
+
 echo "ALL DONE"

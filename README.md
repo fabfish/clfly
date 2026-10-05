@@ -63,6 +63,56 @@ that make the answer mean something.
   the same number of free parameters as the biological basis they replace. If
   cell types win, they win for structural reasons, not capacity.
 
+## The closed-loop benchmark
+
+Everything above is about a **frozen** connectome: the wiring is fixed, only synaptic weights are
+learned, and each task's inputs are written before the model runs. Since 2026-10-01 the repository
+also carries a second, **closed-loop** benchmark, where the agent's own last action is fed back into
+its input, the un-anchored weights move, and the three tasks are taught in a fixed sequence. Its
+definition is a **card** -- a dictionary of clauses, each pointing at the artifact that measured it --
+maintained by revision; the current one is **revision 6**, and every number below is one of its
+clauses.
+
+<!-- e429: the closed-loop card's numbers, checked against its own artifact -->
+| clause | number |
+|---|---|
+| the far-point cells | 12 |
+| the far point's newest task cost | 12 |
+| the oldest task's recovery at the far point | 0.2333 |
+| the newest task's loss at the far point | 0.1031 |
+| the near-point cells | 13 |
+| the near point's newest task cost | 8 |
+| the oldest task's recovery at the near point | 0.0750 |
+| the oldest task's learning term | 0.0 |
+| the newest task's retention term | 0.0 |
+| the middle task's retention over its learning price | 3.99 |
+| the buffer's retention over the penalty's | 7.13 |
+| the two learning prices' gap | 0.0344 |
+| the arm-rolls of the order axis | 16 |
+| the arm-rolls with the first position ahead | 16 |
+| the reversal's largest cost | 0.0694 |
+| the reversal's smallest cost | 0.0028 |
+| the penalty arm-rolls worst in the middle | 9 |
+| the frozen-body cells | 3 |
+| the largest gain on a frozen body | 0.0017 |
+| the frozen bias's share of the buffer's gain | 0.27 |
+| the frozen bias's share of the buffer's cut | 0.27 |
+<!-- end e429 -->
+
+In a sentence: the buffer recovers the oldest task by about a fifth and pays for it on the newest,
+every time, and a penalty buys about a seventh of the same retention for the same price. The order
+the tasks are taught in is a variable rather than a convention -- the same pathway is worth more
+taught first -- and the benchmark's own controls remove all of the aid on a frozen body and three
+quarters of it under a frozen bias.
+
+The card and the units behind each number: `runs/e428_the_game_card_revision_six.json` (the card
+itself), `docs/findings/2026-10-05-the-game-card-revision-six.md` (this revision),
+`docs/findings/2026-10-05-what-the-buffer-buys.md` (the trade),
+`docs/findings/2026-10-05-the-buffer-buys-retention.md` (the split),
+`docs/findings/2026-10-05-the-penalty-buys-a-tenth.md` (the penalty),
+`docs/findings/2026-10-05-the-trade-follows-the-position.md` (the order) and
+`docs/findings/2026-10-05-most-of-the-aid-needs-a-plastic-bias.md` (the controls).
+
 ## Status
 
 The scientific programme is complete. A working paper draft consolidating it is in
