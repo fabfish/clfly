@@ -398,4 +398,6 @@ run e430 python -m experiments.e430_where_the_bias_goes --json-out runs/e430_whe
 
 run e431 python -m experiments.e431_the_bias_ledger --json-out runs/e431_the_bias_ledger.json
 
+run e432 python -m experiments.e432_the_interference_runs_through_the_bias --json-out runs/e432_the_interference_runs_through_the_bias.json
+
 echo "ALL DONE"
