@@ -396,4 +396,6 @@ run e429 python -m experiments.e429_the_front_page_gets_the_benchmark --json-out
 
 run e430 python -m experiments.e430_where_the_bias_goes --json-out runs/e430_where_the_bias_goes.json
 
+run e431 python -m experiments.e431_the_bias_ledger --json-out runs/e431_the_bias_ledger.json
+
 echo "ALL DONE"
