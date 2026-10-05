@@ -376,4 +376,6 @@ run e419 python -m experiments.e419_what_the_buffer_buys --json-out runs/e419_wh
 
 run e420 python -m experiments.e420_the_trade_is_a_constant --json-out runs/e420_the_trade_is_a_constant.json
 
+run e421 python -m experiments.e421_the_trade_turns_on --json-out runs/e421_the_trade_turns_on.json
+
 echo "ALL DONE"
