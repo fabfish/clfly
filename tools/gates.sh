@@ -380,4 +380,6 @@ run e421 python -m experiments.e421_the_trade_turns_on --json-out runs/e421_the_
 
 run e422 python -m experiments.e422_the_buffer_buys_retention --json-out runs/e422_the_buffer_buys_retention.json
 
+run e423 python -m experiments.e423_the_penalty_buys_a_tenth --json-out runs/e423_the_penalty_buys_a_tenth.json
+
 echo "ALL DONE"
