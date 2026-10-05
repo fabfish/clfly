@@ -400,4 +400,6 @@ run e431 python -m experiments.e431_the_bias_ledger --json-out runs/e431_the_bia
 
 run e432 python -m experiments.e432_the_interference_runs_through_the_bias --json-out runs/e432_the_interference_runs_through_the_bias.json
 
+run e433 python -m experiments.e433_the_penalties_hold_the_weights --json-out runs/e433_the_penalties_hold_the_weights.json
+
 echo "ALL DONE"
