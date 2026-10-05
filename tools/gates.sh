@@ -374,4 +374,6 @@ run e418 python -m experiments.e418_the_game_card_revision_four --json-out runs/
 
 run e419 python -m experiments.e419_what_the_buffer_buys --json-out runs/e419_what_the_buffer_buys.json
 
+run e420 python -m experiments.e420_the_trade_is_a_constant --json-out runs/e420_the_trade_is_a_constant.json
+
 echo "ALL DONE"
