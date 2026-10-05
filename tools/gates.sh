@@ -394,4 +394,6 @@ run e428 python -m experiments.e428_the_game_card_revision_six --json-out runs/e
 
 run e429 python -m experiments.e429_the_front_page_gets_the_benchmark --json-out runs/e429_the_front_page_gets_the_benchmark.json
 
+run e430 python -m experiments.e430_where_the_bias_goes --json-out runs/e430_where_the_bias_goes.json
+
 echo "ALL DONE"
