@@ -382,4 +382,6 @@ run e422 python -m experiments.e422_the_buffer_buys_retention --json-out runs/e4
 
 run e423 python -m experiments.e423_the_penalty_buys_a_tenth --json-out runs/e423_the_penalty_buys_a_tenth.json
 
+run e424 python -m experiments.e424_the_game_card_revision_five --json-out runs/e424_the_game_card_revision_five.json
+
 echo "ALL DONE"
