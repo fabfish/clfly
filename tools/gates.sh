@@ -390,4 +390,6 @@ run e426 python -m experiments.e426_the_damage_lands_by_arm --json-out runs/e426
 
 run e427 python -m experiments.e427_most_of_the_aid_needs_a_plastic_bias --json-out runs/e427_most_of_the_aid_needs_a_plastic_bias.json
 
+run e428 python -m experiments.e428_the_game_card_revision_six --json-out runs/e428_the_game_card_revision_six.json
+
 echo "ALL DONE"
