@@ -418,4 +418,6 @@ run e440 python -m experiments.e440_where_the_anchors_movement_goes --json-out r
 
 run e441 python -m experiments.e441_the_anchors_price_under_another_order --json-out runs/e441_the_anchors_price_under_another_order.json
 
+run e442 python -m experiments.e442_the_two_parameters_under_two_orders --json-out runs/e442_the_two_parameters_under_two_orders.json
+
 echo "ALL DONE"
