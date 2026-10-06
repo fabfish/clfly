@@ -422,4 +422,6 @@ run e442 python -m experiments.e442_the_two_parameters_under_two_orders --json-o
 
 run e443 python -m experiments.e443_the_ledger_on_a_second_world --json-out runs/e443_the_ledger_on_a_second_world.json
 
+run e444 python -m experiments.e444_the_decoders_draw --json-out runs/e444_the_decoders_draw.json
+
 echo "ALL DONE"
