@@ -416,4 +416,6 @@ run e439 python -m experiments.e439_the_matched_random_partition_on_the_card --j
 
 run e440 python -m experiments.e440_where_the_anchors_movement_goes --json-out runs/e440_where_the_anchors_movement_goes.json
 
+run e441 python -m experiments.e441_the_anchors_price_under_another_order --json-out runs/e441_the_anchors_price_under_another_order.json
+
 echo "ALL DONE"
