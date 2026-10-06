@@ -406,4 +406,6 @@ run e434 python -m experiments.e434_the_game_card_revision_seven --json-out runs
 
 run e435 python -m experiments.e435_the_front_pages_second_region --json-out runs/e435_the_front_pages_second_region.json
 
+run e436 python -m experiments.e436_the_order_the_world_is_taught_in --json-out runs/e436_the_order_the_world_is_taught_in.json
+
 echo "ALL DONE"

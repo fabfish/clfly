@@ -86,3 +86,12 @@ and once in the source with every string and comment stripped. The card's mentio
 arm and in none of the code arm, and the prose-only list grew a second entry: `backward transfer`, in the card. That
 is a module describing a metric, not the repository computing one. The carriers are now excluded from the evidence
 with the auditors this unit delegates to, and **the prose-only list is the observability spectrum alone again**.
+
+## RE-READ 2026-10-06: the closed-loop suite joins the suites that record two orders
+
+`e436` rolled the card's world -- the closed-loop suite -- both ways, so the corpus now holds a **third** suite whose
+artifacts record two orders, beside the overlap suite (`e315`) and the assembly suite (`e316`, `e317`). This unit's
+live check had carried the count as the exact two those suites gave, which is a count that grows with the corpus rather
+than a claim, so the test now asserts **at least two** and checks **every** such pair's two orders as permutations of
+one task set -- the shape M4 fired into, made robust to the next suite anyone permutes. The claim itself is unchanged:
+M4 is still the falsifier `e315` ended.

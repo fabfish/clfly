@@ -96,11 +96,13 @@ def test_the_live_block_is_what_the_finding_says():
     assert r["prescribed"] == 0 and r["conventional"] >= 150, (r["prescribed"], r["conventional"])
     assert r["n_orders"] >= 147 and len(r["suites"]) >= 6, (r["n_orders"], len(r["suites"]))
     # `e315` ran the corpus's first permutation of a suite, so M4 has fired and the claim is now about
-    # the shape of the violation: exactly one suite records two orders, and they are each other reversed
+    # the shape of the violation: every suite that records two orders records them as permutations of one
+    # task set. RE-READ 2026-10-06: `e436` rolled the closed-loop suite both ways, so the count is now a
+    # bound rather than the two the assembly and overlap suites gave, and every pair is checked.
     two = {k: v for k, v in r["suites"].items() if len(v) > 1}
-    assert len(two) == 2, two
-    pair = list(two.values())[0]
-    assert sorted(pair[0].split(",")) == sorted(pair[1].split(",")), pair
+    assert len(two) >= 2, two
+    for pair in two.values():
+        assert sorted(pair[0].split(",")) == sorted(pair[1].split(",")), pair
     assert sum(1 for o in r["orders"] if o["seed0"] == 0) >= 140, r["seeds"]
     claims = {x["id"]: x["verdict"] for x in e302.judge(r)}
     for cid in ("M1", "M2", "M3"):
@@ -117,7 +119,12 @@ def test_the_artifact_carries_the_same_reading():
     assert len(d["metrics"]) == 5, len(d["metrics"])
     assert not any(x["implemented"] for x in d["metrics"] if x["metric"] == "backward transfer"), d["metrics"]
     assert d["prescribed"] == 0 and d["conventional"] >= 150, (d["prescribed"], d["conventional"])
-    assert len({k: v for k, v in d["suites"].items() if len(v) > 1}) == 2, d["suites"]
+    # RE-READ 2026-10-06: `e436` permuted the closed-loop suite, so the suites recording two orders are a bound
+    # rather than the exact two the overlap and assembly suites gave, and every pair is checked as a permutation.
+    multi = {k: v for k, v in d["suites"].items() if len(v) > 1}
+    assert len(multi) >= 2, multi
+    for pair in multi.values():
+        assert len({tuple(sorted(x.split(","))) for x in pair}) == 1, pair
     claims = {x["id"]: x for x in d["claims"]}
     for cid in ("M1", "M2", "M3"):
         assert claims[cid]["verdict"].startswith("MET"), claims[cid]
