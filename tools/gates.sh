@@ -424,4 +424,6 @@ run e443 python -m experiments.e443_the_ledger_on_a_second_world --json-out runs
 
 run e444 python -m experiments.e444_the_decoders_draw --json-out runs/e444_the_decoders_draw.json
 
+run e445 python -m experiments.e445_the_game_card_revision_eight --json-out runs/e445_the_game_card_revision_eight.json
+
 echo "ALL DONE"
