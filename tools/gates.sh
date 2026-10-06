@@ -404,4 +404,6 @@ run e433 python -m experiments.e433_the_penalties_hold_the_weights --json-out ru
 
 run e434 python -m experiments.e434_the_game_card_revision_seven --json-out runs/e434_the_game_card_revision_seven.json
 
+run e435 python -m experiments.e435_the_front_pages_second_region --json-out runs/e435_the_front_pages_second_region.json
+
 echo "ALL DONE"

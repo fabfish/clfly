@@ -113,6 +113,31 @@ itself), `docs/findings/2026-10-05-the-game-card-revision-six.md` (this revision
 `docs/findings/2026-10-05-the-trade-follows-the-position.md` (the order) and
 `docs/findings/2026-10-05-most-of-the-aid-needs-a-plastic-bias.md` (the controls).
 
+And where an arm spends its movement, the card's **parameters** clause at revision 7
+(`runs/e434_the_game_card_revision_seven.json`), over the 207 paired cells the corpus holds:
+
+<!-- e435: the parameters clause's numbers, checked against the card -->
+| clause | number |
+|---|---|
+| the cells the parameters are pooled over | 207 |
+| the buffer's bias ratio | 0.9461 |
+| the diagonal penalty's bias ratio | 1.5076 |
+| the buffer's drift ratio | 0.9838 |
+| the diagonal penalty's drift ratio | 0.7184 |
+| the buffer's cells with the weights held and the bias pushed | 0.0534 |
+| the diagonal penalty's cells with the weights held and the bias pushed | 0.9091 |
+| the diagonal penalty's bias share of the interference account | 0.9839 |
+| the unpenalised arm's bias share of the interference account | 0.4524 |
+| the frozen side's bias half | 0.0 |
+<!-- end e435 -->
+
+In a sentence: an arm that regularises toward a basis holds the recurrent weights where they are
+and leaves the bias to make the movement, while the arm that stores moves both less than the arm
+that does nothing -- so the two parameters order the arms oppositely, and the corpus's own
+interference account reads the penalised arms through the channel the penalty moved
+(`docs/findings/2026-10-06-the-penalties-hold-the-weights.md`,
+`docs/findings/2026-10-06-the-interference-runs-through-the-bias.md`).
+
 ## Status
 
 The scientific programme is complete. A working paper draft consolidating it is in
