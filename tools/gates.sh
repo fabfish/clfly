@@ -412,4 +412,6 @@ run e437 python -m experiments.e437_three_orders_on_the_world --json-out runs/e4
 
 run e438 python -m experiments.e438_the_penalty_arm_on_the_card --json-out runs/e438_the_penalty_arm_on_the_card.json
 
+run e439 python -m experiments.e439_the_matched_random_partition_on_the_card --json-out runs/e439_the_matched_random_partition_on_the_card.json
+
 echo "ALL DONE"
