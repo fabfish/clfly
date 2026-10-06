@@ -430,4 +430,6 @@ run e446 python -m experiments.e446_the_anchors_price_at_another_position --json
 
 run e447 python -m experiments.e447_the_two_anchors_at_another_position --json-out runs/e447_the_two_anchors_at_another_position.json
 
+run e448 python -m experiments.e448_the_ledger_at_a_wider_world --json-out runs/e448_the_ledger_at_a_wider_world.json
+
 echo "ALL DONE"
