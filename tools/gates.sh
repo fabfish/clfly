@@ -408,4 +408,6 @@ run e435 python -m experiments.e435_the_front_pages_second_region --json-out run
 
 run e436 python -m experiments.e436_the_order_the_world_is_taught_in --json-out runs/e436_the_order_the_world_is_taught_in.json
 
+run e437 python -m experiments.e437_three_orders_on_the_world --json-out runs/e437_the_three_orders_on_the_world.json
+
 echo "ALL DONE"
