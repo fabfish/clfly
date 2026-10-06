@@ -428,4 +428,6 @@ run e445 python -m experiments.e445_the_game_card_revision_eight --json-out runs
 
 run e446 python -m experiments.e446_the_anchors_price_at_another_position --json-out runs/e446_the_anchors_price_at_another_position.json
 
+run e447 python -m experiments.e447_the_two_anchors_at_another_position --json-out runs/e447_the_two_anchors_at_another_position.json
+
 echo "ALL DONE"
