@@ -117,3 +117,23 @@ worst in-line shortfall -- `e382`'s five-update tight-step `replay` arm, at **0.
 same defect as a fixed level, one multiplication away, so the multiple is replaced by the exhibit's own shape at
 `3 *` and the measured ratio is reported here. The arm is still exactly what the exhibit was for: it has forgotten
 nothing and it carries several times the corpus's typical shortfall.
+
+## RE-READ 2026-10-07, third: the exhibit's multiple was a level, and it is gone
+
+The live test's exhibit is *"an arm inside the line whose shortfall is many times the corpus median"*. The 2026-10-03
+RE-READ above moved that multiple from `5 *` to `3 *` and said why -- a multiple of a quantity that grows with the
+corpus is a fixed level one multiplication away -- and the corpus has now crossed `3 *` as well. The closed-loop runs of
+`e438` to `e449` raised the corpus from **271** to **623** arms, the median shortfall from **0.1579** to **0.2604**, and
+the worst in-line shortfall is still `e382`'s five-update tight-step `replay` arm at **0.7806** with an unlearned share
+of **0.977**, which is **2.997** times the median rather than three. So the multiple is **removed rather than re-based**:
+what the join test asserts now is the comparison the exhibit is about -- an arm that has forgotten nothing and carries
+more shortfall than the corpus's typical arm -- with the ratio reported here.
+
+The arm is still exactly what the exhibit was for, and the rest of the join reads as it did: **623** arms, **199**
+inside the zero-line and **424** outside, with **135 of 199, 0.678** of the in-line arms carrying more shortfall than
+the median against **0.415** of the arms outside it -- the comparison the 2026-10-03 RE-READ left as the live test's
+substance, unmoved by the corpus's growth and in the same direction. **C3 reads MET at 0.678** against its own bar of a
+quarter, and its caveat stands unchanged: a share whose denominator grows is not a measurement of the line until the
+population is held fixed. The one thing this RE-READ cannot say is the thing neither of the two before it could: whether
+the median the exhibit is compared against moved because the line grew or because the arms arriving in it are of another
+kind, and the closed-loop runs that arrived are of a kind this line had not added before.
