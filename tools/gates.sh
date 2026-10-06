@@ -414,4 +414,6 @@ run e438 python -m experiments.e438_the_penalty_arm_on_the_card --json-out runs/
 
 run e439 python -m experiments.e439_the_matched_random_partition_on_the_card --json-out runs/e439_the_matched_random_partition_on_the_card.json
 
+run e440 python -m experiments.e440_where_the_anchors_movement_goes --json-out runs/e440_where_the_anchors_movement_goes.json
+
 echo "ALL DONE"
