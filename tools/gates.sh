@@ -426,4 +426,6 @@ run e444 python -m experiments.e444_the_decoders_draw --json-out runs/e444_the_d
 
 run e445 python -m experiments.e445_the_game_card_revision_eight --json-out runs/e445_the_game_card_revision_eight.json
 
+run e446 python -m experiments.e446_the_anchors_price_at_another_position --json-out runs/e446_the_anchors_price_at_another_position.json
+
 echo "ALL DONE"
