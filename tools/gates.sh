@@ -410,4 +410,6 @@ run e436 python -m experiments.e436_the_order_the_world_is_taught_in --json-out 
 
 run e437 python -m experiments.e437_three_orders_on_the_world --json-out runs/e437_the_three_orders_on_the_world.json
 
+run e438 python -m experiments.e438_the_penalty_arm_on_the_card --json-out runs/e438_the_penalty_arm_on_the_card.json
+
 echo "ALL DONE"
