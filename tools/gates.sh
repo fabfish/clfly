@@ -434,4 +434,6 @@ run e448 python -m experiments.e448_the_ledger_at_a_wider_world --json-out runs/
 
 run e449 python -m experiments.e449_the_ledger_at_a_narrower_world --json-out runs/e449_the_ledger_at_a_narrower_world.json
 
+run e450 python -m experiments.e450_the_game_card_revision_nine --json-out runs/e450_the_game_card_revision_nine.json
+
 echo "ALL DONE"
