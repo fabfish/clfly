@@ -458,4 +458,6 @@ run e460 python -m experiments.e460_the_matched_random_anchor_at_eight_columns -
 
 run e461 python -m experiments.e461_the_game_card_revision_thirteen --json-out runs/e461_the_game_card_revision_thirteen.json
 
+run e462 python -m experiments.e462_the_neuron_readout_at_sixteen_columns --json-out runs/e462_the_neuron_readout_at_sixteen_columns.json
+
 echo "ALL DONE"
