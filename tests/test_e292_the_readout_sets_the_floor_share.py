@@ -102,7 +102,12 @@ def test_the_live_ladder_is_what_the_finding_says():
     widths = e292.by_width(rows)
     # r512 lost its arm count to the collapse -- two of its six arms were second copies -- so it falls below the
     # minimum and the ladder runs r0 to r700 (`e301`)
-    assert [x["readout"] for x in widths] == [0, 32, 128, 300, 700], [x["readout"] for x in widths]
+    #: **RE-READ 2026-10-07.** The rungs are a corpus artifact and one arrived: the closed-loop line's neuron read-out
+    #: at **eight** columns (`e458`, `e460`) put six plastic arms at a width the ladder had never carried, so the pinned
+    #: list becomes a containment and an order. The five rungs the finding's medians were taken at are still there and
+    #: the non-monotonicity the unit's S3 is about is unchanged.
+    ladder = [x["readout"] for x in widths]
+    assert ladder == sorted(set(ladder)) and set(ladder) >= {0, 32, 128, 300, 700}, ladder
     assert e292.monotone(widths) is False
 
 

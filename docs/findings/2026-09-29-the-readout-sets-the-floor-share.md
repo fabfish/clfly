@@ -90,3 +90,22 @@ pools move to **307** narrow at a rate of **28.34%** against **33** wide at **51
 frozen count of ten fired on this run and is now the unit's own S2 read off the pool: every frozen arm above one, at
 least the ten the first read had, and a frozen median more than ten times the plastic one's. S1, S2 and S3 stay MET
 at the same medians.
+
+## RE-READ 2026-10-07: the ladder gained a rung at eight columns
+
+The ladder the finding's medians were read off is a corpus artifact, and one rung arrived: the closed-loop line's neuron
+read-out at **eight** columns (`e458`, `e460`) put **six** plastic arms at a width the corpus had never carried, and
+`e292`'s ladder now runs **0**, **8**, **32**, **128**, **300**, **700** with per-width medians of **0.4486**,
+**0.3885**, **0.6058**, **0.8528**, **1.1165** and **0.7568**. The new rung sits between the zero read-out's **0.4486**
+and the thirty-two column one's **0.6058** and below the first, so the non-monotonicity S3 is about is unchanged and the
+live test's pinned rung list becomes a containment and an order rather than an equality: the five rungs the finding's
+medians were actually taken at -- **0**, **32**, **128**, **300** and **700** -- are still in the ladder, and
+`monotone` is still **False**.
+
+The two pools are untouched by the new rung, since it is a **narrow** width: the plastic pool at **32 or fewer** now
+carries the six arms and its median and rate move by less than a hundredth, so **S1** (`wide["median"] > 1.0 >
+narrow["median"]` and `wide["rate"] > narrow["rate"]`) and **S2** (the frozen pool) read as they did. What this RE-READ
+cannot say is whether **eight** is a rung of the same ladder or a different instrument: the closed-loop line's read-out
+at eight columns is the circuit's own neurons under a width the rest of the corpus's ladder reaches by
+`--readout-size`, and the loop's arms are the ones the census pools per width -- so the rung is comparable in the
+census's own unit and not necessarily in its own setting.

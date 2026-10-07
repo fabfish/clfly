@@ -85,3 +85,23 @@ uv run python -m experiments.e187_suite_provenance                      # the sp
 uv run python -m experiments.e187_suite_provenance --json-out ONE.json
 uv run pytest tests/test_e187_suite_provenance.py -q
 ```
+
+## RE-READ 2026-10-07: the overlap family's replicate dominance has been walked past parity
+
+The finding's first sentence is that the corpus's replicates are **overwhelmingly** the overlap suite. That was measured
+at **22x** when `e187` wrote it, `e178`'s 144 assembly-suite replicates moved it to **9.7x**, and this project's own
+closed-loop line has now taken it past parity: the assembly family holds **3035** replicates against the overlap family's
+**3029**, a ratio of **0.998**. Every one of the runs that closed the gap is an assembly-suite run by this unit's own
+classifier -- `e399` to `e460`, the whole closed-loop line -- so the sentence above describes the corpus's **history**
+and not its state, and the live test's strict inequality is **dropped rather than re-based**, as `e305`'s exhibit multiple
+and `e168`'s exposure ratio were, and for the same reason: a comparison of two counts that both grow with the corpus is a
+level one arithmetic away.
+
+What the live test asserts now is the classification, which is what the unit is about: **the two signals never disagree**
+(**0**), both families are counted, the artifact counts sum (**352**), and the overlap family's artifacts -- **137**
+against the assembly family's **215** -- are still a large minority, the **137** being what the `>= 100` bound was always
+meant to keep. So the reversal is in the **replicates** and not in the **artifacts**: the corpus has always had more
+assembly-suite *files* than overlap-suite ones, and what changed on 2026-10-07 is that the closed-loop line gave the
+assembly side more *seeds* as well. The one thing this RE-READ cannot say is whether the closed-loop suite is the assembly
+family in the sense the finding meant: the classifier puts it there by the two signals that never disagree, and the loop's
+tasks are built by a third builder (`fly_env.make_env_task`) that neither of the finding's two families names.
