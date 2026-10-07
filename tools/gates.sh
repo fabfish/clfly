@@ -462,4 +462,6 @@ run e462 python -m experiments.e462_the_neuron_readout_at_sixteen_columns --json
 
 run e463 python -m experiments.e463_the_neuron_readout_at_twenty_four_columns --json-out runs/e463_the_neuron_readout_at_twenty_four_columns.json
 
+run e464 python -m experiments.e464_the_fresh_clone_simulated --json-out runs/e464_the_fresh_clone_simulated.json
+
 echo "ALL DONE"
