@@ -456,4 +456,6 @@ run e459 python -m experiments.e459_the_game_card_revision_twelve --json-out run
 
 run e460 python -m experiments.e460_the_matched_random_anchor_at_eight_columns --json-out runs/e460_the_matched_random_anchor_at_eight_columns.json
 
+run e461 python -m experiments.e461_the_game_card_revision_thirteen --json-out runs/e461_the_game_card_revision_thirteen.json
+
 echo "ALL DONE"
