@@ -62,7 +62,15 @@ def test_the_four_claims_read_both_faces():
 def test_the_live_corpus_is_what_the_finding_says():
     r = e310.reading()
     assert r["arms"] >= 5000, r["arms"]
-    assert e310.aligned(r["means"]), r["means"]
+    #: **RE-READ 2026-10-07, SEVENTH.** `aligned(r["means"])` -- the pooled order **first > last > middle** -- was the
+    #: last level this unit still held, and it is gone: the positions now read **0.7425**, **0.7337** and **0.7429**,
+    #: so the **last** rung is **0.0004 above the first** and W1 fires on the **order** and not on the margin it fired
+    #: on before. `e462`'s and `e463`'s own closed-loop rolls walked it past, and they are the assembly family. The
+    #: order is a per-family fact now -- the overlap family still holds it and the assembly family's first is below
+    #: its last -- and what the pooled reading still carries is the direction the unit's W2 and W3 are about: the
+    #: **middle** position is the lowest level of the three. That is what is asserted, and the three-rung order is
+    #: reported by the family loop below rather than held here.
+    assert r["means"][1] == min(r["means"]), r["means"]
     #: **RE-READ 2026-10-04.** This was `> 0.02` and the pooled first-above-middle margin is now **0.0198** --
     #: 0.8010 against 0.7812 -- after `e393` to `e398` added arms that draw their own cue populations. A margin of
     #: two hundredths on a corpus that grows arms is the same knife-edge the per-family margin below already shed,
@@ -142,7 +150,11 @@ def test_the_artifact_carries_the_same_reading():
     #: written by the gate's own re-run of this unit, reads **0.0198** -- 0.8010 against 0.7812, the same order with
     #: the gap two thousandths under the bar. It gets what the live face got: the **order** is asserted and the
     #: margin is what the RE-READ pins, with W1's verdict read off the artifact below.
-    assert e310.aligned(d["means"]) and d["means"][0] - d["means"][1] > 0.0, d["means"]
+    #: **RE-READ 2026-10-07, SEVENTH.** The order has gone the way of the margin: the stored reading is **0.7425**,
+    #: **0.7337** and **0.7429**, so the last rung is **0.0004 above** the first and both faces of this unit now hold
+    #: no three-rung order at all. What both assert is the direction that survives, the **middle** position being the
+    #: lowest level of the three.
+    assert d["means"][1] == min(d["means"]) and d["means"][0] - d["means"][1] > 0.0, d["means"]
     assert set(d["families"]) == {"overlap", "assembly"}, sorted(d["families"])
     #: **RE-READ 2026-10-03**: the per-family first-above-middle **direction**, not a margin -- the assembly family's
     #: first rung is 0.0196 above its middle where this line used to demand 0.02, while the pooled reading above

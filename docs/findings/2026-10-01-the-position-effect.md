@@ -159,3 +159,19 @@ it, so the gate's own re-run of this unit failed there on the same numbers -- th
 were. That is the seventh level this unit has shed and the second time a level had to be taken out of two faces of
 one test. **From here nothing in this unit is held to a value**, on either face: what it asserts is the order, the
 directions and the verdicts the artifacts carry.
+
+## RE-READ 2026-10-07, seventh: the order goes too, and it is a family fact now
+
+The sixth RE-READ said nothing in this unit is held to a value and that what it asserts is **the order**. The order
+has now gone as the margin went, and by the same route: the closed-loop line's own runs are the **assembly** family
+and they have made it the larger one, so the pooled reading is no longer the overlap family's. The positions read
+**0.7425**, **0.7337** and **0.7429** -- the **last** rung **0.0004 above** the first -- so **W1 now fires on the order
+and not on the gap**, and both faces of this unit assert what survives instead: the **middle** position is the lowest
+level of the three, a direction still carried by **0.009** against the **0.0004** that broke the order. **And the order
+itself is a per-family fact**: the overlap family reads **0.9619 > 0.9385 > 0.9291** and holds it, while the assembly
+family reads **0.5838 < 0.6014 > 0.5922** and does not. So this RE-READ does not withdraw the position effect -- W2 and
+W3 are about the first-above-middle direction and the corpus still reads it at **52%** and **53%**, which is why they
+fired long before this -- it withdraws the **pooled three-rung statement**, which was the overlap family's ordering
+read on a corpus the closed loop now dominates. The **position** still predicts the level; what has moved is which
+suites the prediction is a statement about
+(`docs/findings/2026-10-07-the-neuron-readout-at-twenty-four-columns.md`).

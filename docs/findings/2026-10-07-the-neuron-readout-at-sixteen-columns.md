@@ -75,3 +75,17 @@ is where it is least ahead -- the same direction `e458` found at two points, now
   ladder is the circuit's neurons and the width is not crossed with the source.
 - **And one partition draw**: the matched-random cells are one draw of the same group sizes, so the three basis contrasts
   are three readings of one draw and not of the population.
+
+## RE-READ 2026-10-07
+
+**The pair's standings are not a ladder, and the run of three this unit reported was a fragment.** `e463` drove a
+fourth rung at **twenty-four** columns and the gaps came out **0.0288**, **0.0174**, **0.0007** and **0.0083**: the new
+rung puts the pair **closer together on the diagonal than any other**, so the fall this finding describes has a minimum
+inside it and the word *ladder* in it does not survive. What survives is the sentence the sigmas always supported --
+**every one of the eight standings is under two sigma** (**0.12**, **1.80**, **1.48**, **0.27**, **0.05**, **0.10**,
+**1.03**, **0.59**) -- so the two anchors have no diagonal effect at any of the four widths and **any ordering of their
+gaps orders noise**. The rest of this finding is unaffected: the price's magnitude still falls monotonically for both
+arms with the fourth point in (**DJ4** of `e463`), the pair's prices still part between **24** and **32** columns, and
+the conclusions this unit drew about the wide head are the fourth rung's as well. The three-rung numbers below stand as
+what this unit measured; what is withdrawn is the trend read out of them
+(`docs/findings/2026-10-07-the-neuron-readout-at-twenty-four-columns.md`).

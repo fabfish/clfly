@@ -460,4 +460,6 @@ run e461 python -m experiments.e461_the_game_card_revision_thirteen --json-out r
 
 run e462 python -m experiments.e462_the_neuron_readout_at_sixteen_columns --json-out runs/e462_the_neuron_readout_at_sixteen_columns.json
 
+run e463 python -m experiments.e463_the_neuron_readout_at_twenty_four_columns --json-out runs/e463_the_neuron_readout_at_twenty_four_columns.json
+
 echo "ALL DONE"

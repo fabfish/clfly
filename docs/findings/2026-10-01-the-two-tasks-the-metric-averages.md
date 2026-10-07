@@ -50,3 +50,16 @@ is not an estimate. **For any single artifact the position and the task are the 
 separates `task 0` from `first` — `e310`'s two families are what make the position reading available, and this unit
 does not repeat that argument. **And this unit reads the three-task suites only**: a longer sequence would average
 more positions, and the shape of that mean is a different question.
+
+## RE-READ 2026-10-07
+
+The live test asserted that the two positions the metric averages are the **highest** and the **lowest** level of the
+three, and the highest is no longer the first: the levels read **0.7425**, **0.7337** and **0.7429**, so the **last**
+position is **0.0004 above the first** and the two are a tie. `e462`'s and `e463`'s own closed-loop rolls are what
+walked it past, and they are the assembly family, whose first rung `e310` reads below its last. **Nothing in T1 to T4
+moves**: which two positions the metric averages is structural, and T3 is about the two **lost** terms, which still
+read **0.10480** at the first position against **0.08257** at the second, a factor of **1.269**, so the metric is still
+the mean of the best-learned and the worst-learned task. What this reading holds now is the direction that survives on
+the pooled levels -- the **middle** position is the lowest of the three -- and the three-rung level order is a
+per-family fact rather than a pooled one
+(`docs/findings/2026-10-07-the-neuron-readout-at-twenty-four-columns.md`).
