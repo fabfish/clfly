@@ -448,4 +448,6 @@ run e455 python -m experiments.e455_the_anchors_on_the_neuron_readout --json-out
 
 run e456 python -m experiments.e456_the_matched_random_arm_on_the_neuron_readout --json-out runs/e456_the_matched_random_arm_on_the_neuron_readout.json
 
+run e457 python -m experiments.e457_the_game_card_revision_eleven --json-out runs/e457_the_game_card_revision_eleven.json
+
 echo "ALL DONE"
