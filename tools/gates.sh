@@ -450,4 +450,6 @@ run e456 python -m experiments.e456_the_matched_random_arm_on_the_neuron_readout
 
 run e457 python -m experiments.e457_the_game_card_revision_eleven --json-out runs/e457_the_game_card_revision_eleven.json
 
+run e458 python -m experiments.e458_the_neuron_readout_at_eight_columns --json-out runs/e458_the_neuron_readout_at_eight_columns.json
+
 echo "ALL DONE"
