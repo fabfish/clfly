@@ -442,4 +442,6 @@ run e452 python -m experiments.e452_what_a_fresh_clone_reports --json-out runs/e
 
 run e453 python -m experiments.e453_the_buffer_over_every_anchor --json-out runs/e453_the_buffer_over_every_anchor.json
 
+run e454 python -m experiments.e454_the_game_card_revision_ten --json-out runs/e454_the_game_card_revision_ten.json
+
 echo "ALL DONE"
