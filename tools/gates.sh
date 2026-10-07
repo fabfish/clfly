@@ -440,4 +440,6 @@ run e451 python -m experiments.e451_the_basis_contrast_where_the_effect_is --jso
 
 run e452 python -m experiments.e452_what_a_fresh_clone_reports --json-out runs/e452_what_a_fresh_clone_reports.json
 
+run e453 python -m experiments.e453_the_buffer_over_every_anchor --json-out runs/e453_the_buffer_over_every_anchor.json
+
 echo "ALL DONE"
