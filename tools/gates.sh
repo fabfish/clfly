@@ -444,4 +444,6 @@ run e453 python -m experiments.e453_the_buffer_over_every_anchor --json-out runs
 
 run e454 python -m experiments.e454_the_game_card_revision_ten --json-out runs/e454_the_game_card_revision_ten.json
 
+run e455 python -m experiments.e455_the_anchors_on_the_neuron_readout --json-out runs/e455_the_anchors_on_the_neuron_readout.json
+
 echo "ALL DONE"
