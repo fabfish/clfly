@@ -175,3 +175,25 @@ any other `-rand` comparison now has a classification rather than a caution.**
 - **The pairs count is over artifacts, not over analyses**, and two artifacts from one partition can still differ
   in everything else (read-out draw, λ, arm set), so "comparable through the `-rand` arm" is a necessary and not a
   sufficient condition — rule 46 removes one confound and not the others.
+
+## RE-READ 2026-10-07: the exposure's own bar, reached at exactly half
+
+This finding's title is a count and its claim is a ratio: **31 of 38** artifacts running a `-rand` arm could not say
+which draw of the control they used, and *most users of the control cannot say which*. Every run the project has made
+since `e168` wrote that has added to the denominator as well as to the numerator, because a run under the current runner
+records `partition_draw` while a run from before the flag does not, and the closed-loop line of `e438` to `e456` added
+**24** such artifacts with the draw recorded. The corpus now holds **62** artifacts running a `-rand` arm, **31** of them
+recording the draw and **31** not.
+
+So **the ratio is 1.000 and the claim is false on the corpus**: *most users of the control cannot say which draw they
+used* has been reduced to *half do and half do not*, and it is this line's own runs that did it. The count in the title,
+**31**, is unchanged; what moved is everything it was divided by. The live test's bound is therefore **dropped rather
+than re-based** -- as the 2026-10-03 RE-READ on `e305`'s exhibit multiple was, and for the reason stated there, that a
+multiple of a quantity which grows with the corpus is a level one multiplication away -- and what the test asserts now is
+the arithmetic the census is about, its lower bounds on both counts, and the residue that does not move: **the exposure
+has not been eliminated**, and 31 artifacts still cannot say.
+
+What this RE-READ cannot say is the thing the finding's own §8 already names: an artifact that records no draw is not an
+artifact whose draw is unknown, and `--identify` reconstructs **every one** of them from seven partition-determining
+tuples with zero disagreements, so the 31 are *unstated* rather than *unrecoverable*. The census's subject was always the
+record and not the knowledge, and on 2026-10-07 the record reached parity with its absence.

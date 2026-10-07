@@ -66,7 +66,12 @@ def test_the_corpus_records_the_draw_in_a_fifth_of_the_artifacts_that_need_it():
     # ratio that moves as runs start recording their draws -- which is the point of `e168`'s work and the
     # reason `e178`, landing on 2026-09-25, moved 31/11 to 31/11-with-11-recording. The multiplier started at
     # 3x when the census was written; pinning it makes the test fail as the project succeeds.
-    assert exp["unidentifiable"] > exp["recording_the_draw"], "most users of the control cannot say which"
+    #: **RE-READ 2026-10-07.** It has now done so: the corpus holds **62** artifacts running a `-rand` arm with
+    #: **31** recording the draw, so the ratio is **1.000** and *most cannot say* is **false on the corpus** -- the
+    #: census's own success reached the claim's own bar. The bound is dropped rather than re-based (the arithmetic
+    #: above is what is pinned) and what is asserted is the fact that does not move with the corpus: the exposure
+    #: has not been **eliminated**, and the count is reported by the unit.
+    assert exp["unidentifiable"] > 0, "some users of the control still cannot say which draw they used"
     # the cell_class@800 triple is present, and the *list* is not pinned: the corpus gains fingerprints as new
     # bases and circuits are run with a recorded draw, and the meaningful check is per artifact -- that each
     # artifact's reconstruction reproduces its own recorded value, which `identified_draws` verifies.
