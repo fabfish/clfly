@@ -438,4 +438,6 @@ run e450 python -m experiments.e450_the_game_card_revision_nine --json-out runs/
 
 run e451 python -m experiments.e451_the_basis_contrast_where_the_effect_is --json-out runs/e451_the_basis_contrast_where_the_effect_is.json
 
+run e452 python -m experiments.e452_what_a_fresh_clone_reports --json-out runs/e452_what_a_fresh_clone_reports.json
+
 echo "ALL DONE"
