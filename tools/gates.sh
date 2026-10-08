@@ -472,4 +472,6 @@ run e467 python -m experiments.e467_the_budget_curve_at_eight_columns --json-out
 
 run e468 python -m experiments.e468_the_budget_curve_at_thirty_two_columns --json-out runs/e468_the_budget_curve_at_thirty_two_columns.json
 
+run e469 python -m experiments.e469_the_held_out_cue_set --json-out runs/e469_the_held_out_cue_set.json
+
 echo "ALL DONE"

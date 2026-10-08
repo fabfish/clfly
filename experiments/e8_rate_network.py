@@ -466,6 +466,29 @@ def evaluate(model, readout, task, shared: bool = False) -> float:
         return float((logits.argmax(dim=1) == Y).float().mean())
 
 
+def probe_readout(model, task, ridge: float = 1e-2) -> float:
+    """A **held-out** task's linear decodability from a body, fitted after the sequence and the body frozen.
+
+    A task the sequence never trained on has no decoder, and a per-task decoder is what this benchmark's evaluation
+    uses -- so the one honest way to read such a task is to fit the read-out and nothing else. The probe is a ridge
+    read-out on the same neurons the trained decoders read, fitted on the task's train split and scored on its test
+    split, so the number is the representation's and not a training run's, and it is comparable between two bodies
+    because nothing but their weights differs.
+    """
+    import torch
+
+    with torch.no_grad():
+        Xtr = model(torch.from_numpy(task.u_train).float(), None)[:, -1, :][:, task.readout_neurons].numpy()
+        Xte = model(torch.from_numpy(task.u_test).float(), None)[:, -1, :][:, task.readout_neurons].numpy()
+    Ytr = np.asarray(task.y_train, dtype=int)
+    Yte = np.asarray(task.y_test, dtype=int)
+    A = np.concatenate([Xtr, np.ones((len(Xtr), 1), dtype=Xtr.dtype)], axis=1)
+    B = np.concatenate([Xte, np.ones((len(Xte), 1), dtype=Xte.dtype)], axis=1)
+    onehot = np.eye(task.n_classes)[Ytr]
+    W = np.linalg.solve(A.T @ A + ridge * np.eye(A.shape[1]), A.T @ onehot)
+    return float(((B @ W).argmax(axis=1) == Yte).mean())
+
+
 def diagonal_fisher(model, readout, task, n_batches: int = 8, seed: int = 0,
                     with_bias: bool = False):
     """Diagonal Fisher over the masked recurrent weights, and optionally over the recurrent bias.
@@ -539,7 +562,7 @@ def block_fisher(model, heads, suite, k: int, part, n_batches: int = 8,
 
 
 def run_method(conn_net, suite, method: str, args, seed: int,
-               partitions: dict | None = None, feedback=None, world_dims: int = 0) -> dict:
+               partitions: dict | None = None, feedback=None, world_dims: int = 0, holdout=None) -> dict:
     """Train sequentially and record the full retention matrix.
 
     ``R[k, j]`` = accuracy on task ``j`` after training through task ``k``, so the
@@ -849,8 +872,25 @@ def run_method(conn_net, suite, method: str, args, seed: int,
 
     # The last task cannot be forgotten yet, so it is excluded from the mean; it is
     # reported separately as "how well did it end up learning the final task".
+    #: **the held-out task**, when the run was asked for one: a cue set the sequence never trained on, read by a
+    #: probe fitted on the frozen body **after** the sequence and by the same probe on the **initial** body, which
+    #: is the only comparison a held-out task admits in a benchmark whose evaluation is per-task decoders. The
+    #: initial body is a fresh draw of the connectome rather than a copy of the trained one, so nothing here mutates
+    #: the body the readings above were taken on.
+    holdout_block = None
+    if holdout is not None:
+        torch.manual_seed(seed)
+        fresh = conn_net.torch_model()
+        if feedback is not None:
+            fresh = fly_env.ClosedLoop(fresh, feedback)
+        holdout_block = {"task": holdout.name, "n_train": int(len(holdout.y_train)),
+                         "n_eval": int(len(holdout.y_test)), "ridge": 1e-2,
+                         "before": probe_readout(fresh, holdout),
+                         "after": probe_readout(model, holdout)}
+
     return {
         "method": method,
+        "holdout": holdout_block,
         "retention": R.tolist(),
         "final_accuracy": float(np.nanmean(final)),
         "forgetting_per_task": per_task_forgetting,
@@ -1069,6 +1109,9 @@ def main(argv=None) -> int:
     p.add_argument("--readout-from-world", action="store_true",
                    help="the head reads the environment's final state instead of the model's, which needs "
                         "`--closed-loop` and a positive `--loop-world-dims`")
+    p.add_argument("--loop-holdout", action="store_true",
+                   help="draw a FOURTH cue set in the same world, keep the sequence at three tasks, and read the "
+                        "fourth with a probe on the frozen body at the end -- the benchmark's held-out task")
     #: `e339` measured that `--seed0` is three draws at once -- it seeds the training replicates, the read-out
     #: subset (`--readout-seed` defaults to it) and, through here, the environment's three populations. So no
     #: artifact in this corpus is a seed-stream comparison: the pair that would be one needs this flag and
@@ -1160,7 +1203,8 @@ def main(argv=None) -> int:
         #: unwired, which is what makes the two artifacts one configuration in two loops.
         loop_seed = args.seed0 if args.loop_seed is None else args.loop_seed
         loop_env = fly_env.build(circ, readout_subset=rs, seed=loop_seed,
-                                 n_symbols=args.loop_symbols * len(rate_tasks.SUITE_SPECS),
+                                 n_symbols=args.loop_symbols * (len(rate_tasks.SUITE_SPECS)
+                                                                + (1 if args.loop_holdout else 0)),
                                  tau=12, scale=args.loop_scale, gain=args.loop_gain,
                                  noise=args.loop_noise, world_modes=args.loop_world_modes,
                                  world_leak=args.loop_world_leak, cue_at=args.loop_cue_at,
@@ -1192,6 +1236,26 @@ def main(argv=None) -> int:
             for t in suite:
                 t.readout_neurons = np.arange(args.loop_world_dims)
             suite_label += f", head on the world's {args.loop_world_dims} numbers"
+
+    #: **the held-out task**, when the run was asked for one. It is a fourth cue set in the same world and it is
+    #: built here and handed to `run_method` rather than added to `suite`: the sequence stays three tasks, every
+    #: field above it is unchanged, and the only thing the flag moves is the world's own draw, which has one more
+    #: block of cue templates in it -- so a holdout run is a different *world* from the run beside it and is
+    #: compared within itself and not against `e438`.
+    holdout_task = None
+    if getattr(args, "loop_holdout", False):
+        if not args.closed_loop:
+            raise SystemExit("--loop-holdout needs the closed loop, so not without --closed-loop")
+        n_blocks = len(rate_tasks.SUITE_SPECS)
+        holdout_task = fly_env.make_env_task(
+            loop_env, "loop_holdout",
+            symbols=range(n_blocks * args.loop_symbols, (n_blocks + 1) * args.loop_symbols),
+            n_train=args.train, n_test=args.test,
+            readout_neurons=rs if rs is not None else np.arange(circ.n_neurons),
+            class_offset=n_blocks * args.loop_symbols, seed=n_blocks)
+        if args.readout_from_world:
+            holdout_task.readout_neurons = np.arange(args.loop_world_dims)
+        suite_label += ", with a fourth cue set held out"
 
     #: The order the suite is trained in. Applied **after** the support fingerprint, so that fingerprint keeps
     #: identifying the draw rather than the sequence -- two runs of one draw in two orders must agree on it or the
@@ -1273,7 +1337,8 @@ def main(argv=None) -> int:
             r0 = time.time()
             reps.append(run_method(net, suite, method, args, seed=args.seed0 + 100 * r,
                                    partitions=partitions, feedback=feedback,
-                                   world_dims=args.loop_world_dims if args.readout_from_world else 0))
+                                   world_dims=args.loop_world_dims if args.readout_from_world else 0,
+                                   holdout=holdout_task))
             done += 1
             elapsed = time.time() - t_start
             cpu = time.process_time() - t_cpu0

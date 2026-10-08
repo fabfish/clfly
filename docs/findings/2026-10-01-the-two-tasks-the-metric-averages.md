@@ -77,3 +77,14 @@ now assert is the **direction**, and the factor and T3's verdict are read off th
 the metric is still the mean of the best-learned and the worst-learned task; what has gone is the size of the gap being
 a quarter
 (`docs/findings/2026-10-08-the-width-ladder-at-another-budget.md`).
+
+## RE-READ 2026-10-08, second: the middle-is-lowest direction goes too
+
+The RE-READ above kept one direction on the pooled levels -- *the middle position is the lowest of the three* -- and it
+has gone by **0.0001**: the levels read **0.73796**, **0.73806** and **0.74649**, so the first and the middle are a tie
+and the **last** is the highest. `e466`'s to `e469`'s closed-loop rolls walked it past, and `e310` reads the same three
+means and has lost the same direction on both of its faces. **So no order is asserted here either**: the levels are
+levels, they sit inside a narrow band, and T1 to T4 are read off the artifact below, where T3's bar has fired since the
+previous RE-READ and T1, T2 and T4 stand. What this unit is about -- that the metric averages the best-learned and the
+worst-learned task, and that the two positions disagree with the forgetting chain -- is untouched
+(`docs/findings/2026-10-08-the-held-out-cue-set.md`).

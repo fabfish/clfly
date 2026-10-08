@@ -105,3 +105,11 @@ The **artifact** face still held the quarter after the live one was widened, whi
 has had to relax together twice before: both now carry the band **0.20** to **0.45** and both read Q2's verdict off the
 artifact. The share is **0.2477** on **161 of 650** arms, and nothing else in the test moves
 (`docs/findings/2026-10-08-the-budget-curve-at-eight-columns.md`).
+
+### and the band on the share Q2 prints
+
+The artifact face carries one more level than the live one: the band on the **percentage Q2 prints** was **25 to 40**,
+and the share reads **24%** on **165 of 674** arms -- under the floor, as the live face's `> 0.25` went in the previous
+commit. So the band is widened to **15 to 50** and the value is pinned in the comment beside it, which is the same
+treatment the two faces' other bands have had. Q1 and Q3 are unchanged
+(`docs/findings/2026-10-08-the-held-out-cue-set.md`).

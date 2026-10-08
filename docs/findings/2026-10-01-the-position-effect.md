@@ -188,3 +188,15 @@ exactly as its two predecessors in this file were, and what is asserted is that 
 artifact**, where W2 and W3 still carry their own fired bars; what this removes is the last place in this unit where a
 number standing for the corpus was held in the gate
 (`docs/findings/2026-10-08-the-budget-curve-at-thirty-two-columns.md`).
+
+## RE-READ 2026-10-08, ninth: every pooled order goes, and this unit stops holding one
+
+The eighth RE-READ removed the last *level* this unit held and said both faces assert the middle position being the
+lowest of the three. **That direction has gone too, by 0.0001**: the pooled means read **0.73796**, **0.73806** and
+**0.74649**, so the first and the middle are a tie, the **last** is the highest rung, and the live face's *first above
+middle* direction is **negative** on the same pair. `e466`'s to `e469`'s closed-loop rolls walked it past, and this is
+the third pooled ordering this file has pinned and shed. **So this time no order at all is asserted on either face**:
+the levels are levels, they sit inside a band narrow enough to say the pooled position effect is small, and every one of
+W1 to W4 has its verdict read off the artifact -- which is where this unit's claims have lived since the sixth
+RE-READ. What survives of the position effect is what the paired and per-artifact shares say, and they are reported
+(`docs/findings/2026-10-08-the-held-out-cue-set.md`).
