@@ -86,3 +86,15 @@ unit's own claim (**Q2**) has no upper edge at all -- its falsifier is *fewer th
 claim's own direction, that the floor swallows more than a quarter of the arms, with Q2's verdict read off the
 artifact. Q1 and Q3 are unchanged, and this is the same class of defect `e267`, `e292`, `e309` and `e314` have each
 had to shed: a number that tracks the corpus belongs in the reading and not in the gate.
+
+## RE-READ 2026-10-08: the band's bottom edge goes the way of its top
+
+The RE-READ above replaced the band's **top** edge with the claim's own direction. Its **bottom** edge has now gone the
+same way: the share of arms whose variance fraction is above one read **0.25**, then **0.2477** on **161 of 650** arms,
+three thousandths under the floor -- and `e466`'s six rolls at a hundred updates are what closed it, since a body
+trained to a fifth of the budget has arms whose fraction sits lower. So the band is widened to the shape the finding is
+about -- a substantial minority of the arms and not half of them, **0.20** to **0.45** -- and the share's value is what
+the comment beside it pins. This is the same class of defect as the top edge and as the counts `e267`, `e292`, `e309`
+and `e314` have each had to shed: a number that tracks the corpus belongs in the reading and not in the gate. Q1, Q2
+and Q3 are unchanged
+(`docs/findings/2026-10-08-the-width-ladder-at-another-budget.md`).

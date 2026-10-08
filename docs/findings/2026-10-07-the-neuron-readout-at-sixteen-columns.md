@@ -89,3 +89,14 @@ arms with the fourth point in (**DJ4** of `e463`), the pair's prices still part 
 the conclusions this unit drew about the wide head are the fourth rung's as well. The three-rung numbers below stand as
 what this unit measured; what is withdrawn is the trend read out of them
 (`docs/findings/2026-10-07-the-neuron-readout-at-twenty-four-columns.md`).
+
+## RE-READ 2026-10-08, second: the ladder has a budget
+
+`e466` drove the same three widths at **100 updates** and the far point's two ladders turned out to be the far point's:
+`ewc-block-rand`'s price magnitude **rises** from eight columns to sixteen there (**0.0583** to **0.1396**), so **DI4**'s
+ordering is a statement about a body trained to five hundred updates; and all six standings are **negative** at that
+budget with **two** of them resolving, so *the two arms have no diagonal effect at any of the four widths* is a null at
+five hundred updates rather than a property of the partition. Nothing in this unit's own numbers moves -- the six rolls
+it read are the far point's and its five claims stand on them -- and what this RE-READ adds is the condition its first
+table does not name: **500 updates**, which is `e438`'s `--iters` and what every rung of this line inherits
+(`docs/findings/2026-10-08-the-width-ladder-at-another-budget.md`).

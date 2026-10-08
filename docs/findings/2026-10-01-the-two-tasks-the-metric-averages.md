@@ -63,3 +63,17 @@ the mean of the best-learned and the worst-learned task. What this reading holds
 the pooled levels -- the **middle** position is the lowest of the three -- and the three-rung level order is a
 per-family fact rather than a pooled one
 (`docs/findings/2026-10-07-the-neuron-readout-at-twenty-four-columns.md`).
+
+## RE-READ 2026-10-08: T3's bar is crossed from above, and the factor is the corpus's
+
+The RE-READ above said nothing in T1 to T4 moves. **T3 has now moved.** Its claim is that the first position's lost term
+exceeds the second's **by at least a quarter**, and on **11756** arms the factor reads **1.2408** -- four thousandths
+under the unit's own `GAP` -- so **T3 reads FALSIFIER FIRED** and the quarter is no longer the corpus's. What walked it
+past is this project's own closed-loop line again: `e462`'s, `e463`'s and `e466`'s rolls are arms whose first two
+positions' lost terms are close together, and **`e466`'s six hundred arms at a hundred updates are the last of them**.
+The direction is untouched -- the first position's lost term is still the larger of the two, at **0.10480** against
+**0.08257** before this unit's rolls and at the same pair of means in sign after them -- so what both faces of the test
+now assert is the **direction**, and the factor and T3's verdict are read off the artifact. T1, T2 and T4 stay MET, and
+the metric is still the mean of the best-learned and the worst-learned task; what has gone is the size of the gap being
+a quarter
+(`docs/findings/2026-10-08-the-width-ladder-at-another-budget.md`).

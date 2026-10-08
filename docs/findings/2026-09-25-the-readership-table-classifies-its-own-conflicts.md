@@ -84,3 +84,15 @@ unattributable pair.** The two columns are reported together, sharp and sound, b
   `replay`) are settings `e140`'s C0 controls were justified by. The controls themselves are unaffected — they
   compare two artifacts at one environment — but the *table's* support for them is now weaker, and it would be
   recovered by one pair of runs at a recorded environment.
+
+## RE-READ 2026-10-08: the sharper rule's margin moves down as well as up
+
+The test above holds the sharper rule's margin to a floor, and the floor was **23** cells -- the count of cells the
+environment-blind rule decides and the table's own does not, every one of them resting on a pair whose environment was
+never recorded. The corpus has moved it **down** to **21**: a corpus that gains artifacts can move a cell out of that
+set as easily as into it, because a cell the sharp rule decided and the loose one could not stops being `extra` the
+moment the loose rule can decide it too -- so this is the one count in the file that does not grow with the corpus.
+`e466`'s six rolls at a hundred updates are what moved it. The floor is now a floor in the structural sense (the sharp
+rule decides cells this one cannot) and the **lost** set is unchanged and remains the structural half: exactly one
+cell, `fisher_batches` under `naive`, the one this rule upgrades
+(`docs/findings/2026-10-08-the-width-ladder-at-another-budget.md`).

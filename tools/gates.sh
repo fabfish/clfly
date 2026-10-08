@@ -466,4 +466,6 @@ run e464 python -m experiments.e464_the_fresh_clone_simulated --json-out runs/e4
 
 run e465 python -m experiments.e465_the_eight_that_answered --json-out runs/e465_the_eight_that_answered.json
 
+run e466 python -m experiments.e466_the_width_ladder_at_another_budget --json-out runs/e466_the_width_ladder_at_another_budget.json
+
 echo "ALL DONE"

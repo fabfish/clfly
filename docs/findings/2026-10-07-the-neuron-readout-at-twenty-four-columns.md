@@ -73,3 +73,18 @@ carries, one is monotone at four points for both arms, one is monotone for one a
   arms are four readings of one draw and not of the population.
 - **And the source's axis stays one rung**: the world's own state is only constructible at eight columns, so the whole
   ladder is the circuit's own neurons and the width is not crossed with the source.
+
+## RE-READ 2026-10-08: the null this unit found is the far point's
+
+This finding's sharpest sentence -- *all eight standings are under two sigma, so the two arms have no diagonal effect at
+any of the four widths and any ordering of their gaps orders noise* -- has a condition it does not name, and `e466`
+supplied it: the ladder is measured at **500 updates**, which is `e438`'s `--iters` and what every rung of this line
+inherits. At **100 updates** the same three widths give **six negative standings**, the anchored arm behind `naive` on
+the mean diagonal at every width and for both anchors, and **two of them resolve** -- `ewc-block` at eight columns at
+**-0.0483**, **2.21** sigma, and `ewc-block-rand` at thirty-two at **-0.0424**, **2.00**. The price's magnitude ladder
+goes the same way: `ewc-block-rand`'s magnitudes there are **0.0583**, **0.1396** and **0.0729**, rising at the middle
+rung. So *the basis does nothing to the diagonal* is a fact about a body trained to five hundred updates, and the sign
+of the biological anchor's standing flips between the two budgets (**+0.0017**, **+0.0215**, **+0.0187** against
+**-0.0483**, **-0.0094**, **-0.0243**). Every number below stands as what this unit measured at 500 updates; what is
+withdrawn is the sentence's scope
+(`docs/findings/2026-10-08-the-width-ladder-at-another-budget.md`).
