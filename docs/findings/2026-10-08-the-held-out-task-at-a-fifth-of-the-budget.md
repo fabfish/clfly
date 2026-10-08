@@ -67,3 +67,15 @@ the budget and nothing else, and the same cue set is being read at both.
   sequence's method would learn if the held-out task were trained.
 - **And one held-out draw**: the fourth cue set is the flag's own draw, so a redraw of it is not measured.
 - **And one ridge**: **1e-2** is `e469`'s and not the benchmark's, and a different one would move both columns.
+
+## RE-READ 2026-10-09: the bullet is closed and the shape is not what this unit's sentence implied
+
+The first bullet of *what it cannot do* says *two budgets are not a curve: the budgets between them, where the twelve
+thousandths must actually arrive, are not measured*. `e472` walked them: the baseline's reading runs **0.7594**,
+**0.7625**, **0.7708** and **0.7719** at 100, 200, 350 and 500 updates, so the remainder arrives in three steps of
+**+0.0031**, **+0.0083** and **+0.0010** at **0.14**, **0.59** and **0.08** sigma. **So this unit's *what the rest of
+the budget adds is not separable from a redraw* is true of the whole remainder and of every step in it, while *the
+reading is bought early* is a share (85% by a hundred updates) and not a place** -- the largest increment is in the
+middle, between two hundred and three hundred and fifty, and it is under the bar too. Nothing in this unit's numbers
+moves: the four rolls it read are its own and its four claims stand on them
+(`docs/findings/2026-10-09-the-held-out-reading-across-the-budget.md`).

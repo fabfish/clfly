@@ -478,4 +478,6 @@ run e470 python -m experiments.e470_the_game_card_revision_fourteen --json-out r
 
 run e471 python -m experiments.e471_the_held_out_task_at_a_fifth_of_the_budget --json-out runs/e471_the_held_out_task_at_a_fifth_of_the_budget.json
 
+run e472 python -m experiments.e472_the_held_out_reading_across_the_budget --json-out runs/e472_the_held_out_reading_across_the_budget.json
+
 echo "ALL DONE"
