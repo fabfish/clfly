@@ -476,4 +476,6 @@ run e469 python -m experiments.e469_the_held_out_cue_set --json-out runs/e469_th
 
 run e470 python -m experiments.e470_the_game_card_revision_fourteen --json-out runs/e470_the_game_card_revision_fourteen.json
 
+run e471 python -m experiments.e471_the_held_out_task_at_a_fifth_of_the_budget --json-out runs/e471_the_held_out_task_at_a_fifth_of_the_budget.json
+
 echo "ALL DONE"

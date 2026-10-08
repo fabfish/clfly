@@ -74,3 +74,15 @@ two things the phrase can mean and the one this corpus can draw.
   nulls against the baseline are **0.86** and **0.40** sigma and a redraw could put either above the bar.
 - **And the flag costs one artifact field**: `holdout` is written on every replicate of a holdout run and is `null` on
   every run that does not pass the flag, which is what keeps the runs beside it one configuration with their own kind.
+
+## RE-READ 2026-10-08: the bullet this unit closed, and the reading is front-loaded
+
+The first bullet of *what it cannot do* says *one budget*, since a reading taken after five hundred updates says nothing
+about what a shorter sequence would leave. `e471` ran the same configuration with the **same** world at **100 updates**
+-- the flag's world does not depend on the update count, so the fourth cue set is the same cue set -- and the baseline's
+probe reads **0.7594** there: a paired **+0.0719** at **4.89** sigma against this unit's **+0.0844** at **10.11**. **So
+this unit's whole reading is five sixths of it that arrives in the first fifth of the sequence**, and the remaining four
+hundred updates add **+0.0125** which `e471` reads at **0.89** sigma and cannot separate from a redraw. Nothing in this
+unit's numbers moves -- the four rolls it read are its own and its four claims stand on them -- and what this adds is the
+axis the sentence *the sequence raises the unseen cue set's decodability* was missing
+(`docs/findings/2026-10-08-the-held-out-task-at-a-fifth-of-the-budget.md`).
