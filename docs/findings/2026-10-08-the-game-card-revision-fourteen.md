@@ -71,3 +71,15 @@ benchmark's held-out reading, and this one reports one.
   and WA2 shows the clause agrees with the two rolls and not that the two rolls should be believed.
 - **And the absent list is not a programme**: the three entries left in it -- a reward, a policy, an episode boundary --
   are still absent, and a clause about them is a different unit's job.
+
+## RE-READ 2026-10-09: the clause carries one draw's change
+
+The clause's bearing is the sequence's contribution -- the baseline's trained minus initial reading, **+0.0844** at
+**10.11** sigma -- and `e474` has since drawn the held-out cue set four times: the same quantity runs **+0.0719**,
+**+0.0688**, **+0.1031** and **+0.0073**, a spread of **0.0958** with four of the six pairs of draws resolving. **So the
+number this clause carries is one draw's**, and the card's sentence that *what the sequence adds is the last two thirds
+of the decodability* is one draw's sentence: on the fourth cue set the sequence's contribution is **+0.0073** at
+**0.53** sigma, which is nothing this corpus can see. The clause's **form** is untouched and was the right one -- it
+carries the initial reading beside the trained one, which is what makes a reader able to see that the level is a draw's
+-- and what it now needs is a reader who knows the change is a draw's too
+(`docs/findings/2026-10-09-the-held-out-level-across-four-draws.md`).

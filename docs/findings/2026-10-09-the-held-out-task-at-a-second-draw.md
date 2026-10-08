@@ -67,3 +67,16 @@ either way, and what the two draws share is what the sequence adds to it.
   diagonal are not measured at either draw.
 - **And a redraw is not a new task**: the fourth cue set is the same four symbols in the same world with its own
   examples, so *another draw* means another sample of one task and not another task.
+
+## RE-READ 2026-10-09: the sentence is withdrawn, and two draws agreed by coincidence
+
+This finding's headline -- *the level is the sample's and the change is the task's* -- is **withdrawn**, and it is the
+first sentence of this line's held-out work that a later unit has had to take back. `e474` drew the held-out cue set
+**twice more** (seeds **11** and **19**) and the four draws' baseline changes run **+0.0719**, **+0.0688**, **+0.1031**
+and **+0.0073** at **4.89**, **5.77**, **9.08** and **0.53** sigma: a spread of **0.0958** against the level's
+**0.1281**, with **four of the six pairs of draws resolving**, the widest at **5.07** sigma. **So the two draws this
+unit had -- 3 and 7, which agreed to 0.19 sigma -- agreed by coincidence**, and the change is the draw's as much as the
+level is (only **1.34x** less). What survives of this unit: the flag draws nothing else, the level's spread does exceed
+the change's, and the fourth draw is the first on which the sequence's own contribution to the unseen cue set does not
+resolve at all (**+0.0073** at **0.53** sigma). Nothing in this unit's numbers moves -- the four rolls it read are its
+own (`docs/findings/2026-10-09-the-held-out-level-across-four-draws.md`).
