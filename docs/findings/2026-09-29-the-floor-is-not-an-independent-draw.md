@@ -98,3 +98,10 @@ the comment beside it pins. This is the same class of defect as the top edge and
 and `e314` have each had to shed: a number that tracks the corpus belongs in the reading and not in the gate. Q1, Q2
 and Q3 are unchanged
 (`docs/findings/2026-10-08-the-width-ladder-at-another-budget.md`).
+
+### and the artifact face too
+
+The **artifact** face still held the quarter after the live one was widened, which is the same pair of faces this unit
+has had to relax together twice before: both now carry the band **0.20** to **0.45** and both read Q2's verdict off the
+artifact. The share is **0.2477** on **161 of 650** arms, and nothing else in the test moves
+(`docs/findings/2026-10-08-the-budget-curve-at-eight-columns.md`).

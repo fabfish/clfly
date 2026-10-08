@@ -468,4 +468,6 @@ run e465 python -m experiments.e465_the_eight_that_answered --json-out runs/e465
 
 run e466 python -m experiments.e466_the_width_ladder_at_another_budget --json-out runs/e466_the_width_ladder_at_another_budget.json
 
+run e467 python -m experiments.e467_the_budget_curve_at_eight_columns --json-out runs/e467_the_budget_curve_at_eight_columns.json
+
 echo "ALL DONE"

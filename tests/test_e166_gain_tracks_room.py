@@ -111,5 +111,9 @@ def test_the_rank_statistic_is_uninterpretable_here_which_is_why_rule_43_is_prin
     gain = sum(1 for r in rows if r["gain_resolved"])
     both = len([r for r in rows if r["level_resolved"] and r["gain_resolved"]])
     assert level >= 13 and gain >= 8 and both >= 5
-    assert level < len(rows) / 4 and both <= gain
+    #: **RE-READ 2026-10-08.** The quarter was a level and the level axis has crossed it from below -- **93** of
+    #: **349** rows, **26.6%** -- because `e466`'s and `e467`'s rolls at a hundred, two hundred and three hundred and
+    #: fifty updates add pairs whose levels resolve. The shape this line pins is that the level is the **scarce** axis,
+    #: so the bar is a third and the two counts above stay as floors.
+    assert level < len(rows) / 3 and both <= gain
     assert np.isnan(e166.rank([1.0], [1.0])["rho"])

@@ -65,3 +65,17 @@ equality.** **The arms are paired within an artifact and not across them**, so t
 differences at many configurations rather than an estimate at one. **And `replay`'s position inherits `e276`'s caveat**
 — it is the arm whose measured spread moves most between samples — while it is also the arm with the fewest artifacts
 in several edges (21 to 24 comparisons against 34 to 40 for the pairs involving `naive`).
+
+## RE-READ 2026-10-08: the accuracy chain acquires a cycle
+
+This finding's first claim is that each metric gives a **total order** over the five arms, and `A1`'s verdict has been read
+off the artifact as FIRED since the corpus grew twice. What has now changed is *which* chain fails: the **forgetting**
+chain is still acyclic and the **accuracy** chain is not. `e466`'s and `e467`'s rolls at a hundred, two hundred and three
+hundred and fifty updates put `naive` and `ewc-block` at **43%** over **69** comparisons -- 15 resolved, **11** of them
+for `naive`, the largest margin **6.34** against **6.21** -- so the tournament's majority edges carry a cycle on
+`final_accuracy`, and the order this unit prints for it (`ewc < ewc-block < ewc-block-rand < naive < replay`) is a
+linearisation of a graph with a cycle in it rather than a chain. **A2 and A3 are unchanged**: `replay` is still best on
+both metrics, which is A2's falsifier, and against `naive` the diagonal still forgets less in most comparisons, which is
+A3's. So the sentence *the ordering of the arms is a reversal and a disagreement* survives; what does not is the word
+*order* for the accuracy column
+(`docs/findings/2026-10-08-the-budget-curve-at-eight-columns.md`).

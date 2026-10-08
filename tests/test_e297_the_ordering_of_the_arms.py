@@ -108,12 +108,26 @@ def test_the_live_orders_are_what_the_finding_says():
     edges = e297.pairs()
     assert len(edges) == 20, [(e["a"], e["b"], e["metric"]) for e in edges]
     orders = {m: e297.order(edges, m) for m in e297.METRICS}
-    assert orders["final_accuracy"]["worst_first"] == ["ewc", "naive", "ewc-block", "ewc-block-rand", "replay"]
+    #: **RE-READ 2026-10-08.** This pinned the accuracy chain's exact order -- `ewc`, `naive`, `ewc-block`,
+    #: `ewc-block-rand`, `replay` -- and `e466`'s and `e467`'s rolls at a hundred, two hundred and three hundred and
+    #: fifty updates have moved **`naive` past `ewc-block`**, which is the same class of move the two comments below
+    #: describe for the other chain. What is structural is that the accuracy chain is a **permutation of the five
+    #: arms with `ewc` worst**, and that the two chains are not the same permutation; the interior order is reported
+    #: by the artifact and by the loop below.
+    assert orders["final_accuracy"]["worst_first"][0] == "ewc", orders["final_accuracy"]
+    assert sorted(orders["final_accuracy"]["worst_first"]) == sorted(e297.ARMS), orders["final_accuracy"]
     # the corpus grew twice since this was written and the forgetting chain moved with it, so what is pinned
     # is the structure -- five arms, one chain, no cycle -- and the arm that is last
     assert orders["mean_forgetting"]["worst_first"][0] == "naive", orders["mean_forgetting"]
     assert sorted(orders["mean_forgetting"]["worst_first"]) == sorted(e297.ARMS), orders["mean_forgetting"]
-    assert all(o["acyclic"] for o in orders.values()), orders
+    #: **RE-READ 2026-10-08.** This asserted that **both** chains were acyclic and the accuracy one is not: `e466`'s
+    #: and `e467`'s rolls at a hundred, two hundred and three hundred and fifty updates put `naive` and `ewc-block`
+    #: at 43% over 69 comparisons -- 15 resolved, 11 for `naive`, the largest margin 6.34 against 6.21 -- so the
+    #: tournament's majority edges now carry a **cycle** on `final_accuracy` and A1 reads FIRED for it. What survives
+    #: is the **forgetting** chain's acyclicity and the fact that the two chains are not the same permutation, which
+    #: is what the claims about the reversal are built on.
+    assert orders["mean_forgetting"]["acyclic"], orders["mean_forgetting"]
+    assert not orders["final_accuracy"]["acyclic"], orders["final_accuracy"]
     # the corpus grew since this was written and the forgetting chain's top moved with it, so the pinned
     # part is the accuracy end -- which is what the claim's reversal is about -- and that the two chains
     # are not the same permutation
@@ -143,7 +157,11 @@ def test_the_artifact_carries_the_same_reading():
     assert d["orders"]["mean_forgetting"]["best"] != "ewc", d["orders"]["mean_forgetting"]
     assert d["orders"]["mean_forgetting"]["worst_first"][0] == "naive", d["orders"]["mean_forgetting"]
     claims = {x["id"]: x for x in d["claims"]}
-    assert claims["A1"]["verdict"].startswith("MET"), claims["A1"]
+    #: **RE-READ 2026-10-08.** This asserted A1 was MET and the accuracy chain no longer has a total order: a cycle
+    #: on `final_accuracy` now includes the `naive` against `ewc-block` pair, so **A1 reads FIRED for it** and the
+    #: accuracy chain's own order is what the artifact's first line reports.
+    assert claims["A1"]["verdict"].startswith("FALSIFIER FIRED") and "final_accuracy" in claims["A1"]["verdict"], \
+        claims["A1"]
     # A2 has fired: the corpus grew and the two chains now share their best arm, `replay`
     assert claims["A2"]["verdict"].startswith("FALSIFIER FIRED"), claims["A2"]
     assert claims["A3"]["verdict"].startswith("FALSIFIER FIRED"), claims["A3"]

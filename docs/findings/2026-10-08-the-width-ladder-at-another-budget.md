@@ -84,3 +84,14 @@ the two anchors are far more distinguishable before that training than after it.
 - **And three of the four rungs**: **24** is left out so that the two points are compared on the same widths, so a
   difference at that rung is not measured, and the far point's finding that the pair parts between twenty-four and
   thirty-two columns is untouched here.
+
+## RE-READ 2026-10-08: the bullet this unit closed is closed
+
+The first bullet of *what it cannot do* says *two budgets are not a curve, and nothing here says where between them the
+sign would change*. `e467` walked the axis at the one rung the flip was seen on and the change of sign is **between
+350 and 500 updates**: the biological anchor's standing runs **-0.0483**, **-0.0378**, **-0.0243** then **+0.0017** at
+100, 200, 350 and 500, monotone, with its sigma falling **2.21** to **0.12**. So this unit's own sentence -- that the
+far point's null is the far point's -- is now a statement about the far end of a decay, and the two budgets it read are
+two points on a curve rather than a pair. Nothing in this unit's numbers moves: the six rolls it read are its own, and
+its four claims stand on them. Read with `e467`, the sentence *the basis does nothing to the diagonal* has both a
+budget and a direction (`docs/findings/2026-10-08-the-budget-curve-at-eight-columns.md`).

@@ -109,3 +109,12 @@ architecture and the task structure fixed, and each is one flag on the existing 
 - **The single-seed pairs (9 of 78 control rows, and `e96`'s three) can move the gain by 0.1250** with no
   resolution at all; they are reported as steps and never as findings, which is why the n ≥ 5 column is printed
   beside every maximum above.
+
+## RE-READ 2026-10-08: the level axis is no longer under a quarter of the rows
+
+The test above pins the shape of this unit's census -- the level is the scarce axis, and almost nothing resolves on
+both -- with a floor on the counts and a ceiling on the level's share. The ceiling was **a quarter**, and the share has
+crossed it from below: **93** of **349** rows, **26.6%**, because `e466`'s and `e467`'s rolls at a hundred, two hundred
+and three hundred and fifty updates add pairs whose levels resolve. The level is still the scarce axis and `both` is
+still bounded by `gain`; what has gone is the quarter, so the ceiling is a third and the value is what this note pins.
+Nothing else in the unit moves (`docs/findings/2026-10-08-the-budget-curve-at-eight-columns.md`).
