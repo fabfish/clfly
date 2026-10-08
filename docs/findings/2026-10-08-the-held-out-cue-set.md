@@ -86,3 +86,14 @@ hundred updates add **+0.0125** which `e471` reads at **0.89** sigma and cannot 
 unit's numbers moves -- the four rolls it read are its own and its four claims stand on them -- and what this adds is the
 axis the sentence *the sequence raises the unseen cue set's decodability* was missing
 (`docs/findings/2026-10-08-the-held-out-task-at-a-fifth-of-the-budget.md`).
+
+## RE-READ 2026-10-09: the bullet this line has been closing is closed
+
+The first bullet of *what it cannot do* says *one held-out draw*, and so do `e471`'s and `e472`'s -- all three findings
+end on the same sentence, since the fourth cue set is the flag's own draw and a redraw of it was not measured. `e473`
+measured it: the held-out cue set has a seed of its own, and at a **second draw** the initial body reads **0.5625**
+instead of **0.6875** and the trained body **0.6312** instead of **0.7594**, **0.1281** apart -- while the two draws'
+**changes** are **+0.0719** and **+0.0688**, **-0.0031** apart at **0.19** sigma. **So this unit's reading of 0.7719 is a
+draw's and its change of 0.0844 is the task's**, and the sentence this unit's claims stand on is the change. Nothing in
+this unit's numbers moves: the two rolls it read are its own and its four claims stand on them
+(`docs/findings/2026-10-09-the-held-out-task-at-a-second-draw.md`).

@@ -1112,6 +1112,11 @@ def main(argv=None) -> int:
     p.add_argument("--loop-holdout", action="store_true",
                    help="draw a FOURTH cue set in the same world, keep the sequence at three tasks, and read the "
                         "fourth with a probe on the frozen body at the end -- the benchmark's held-out task")
+    p.add_argument("--loop-holdout-seed", type=int, default=None,
+                   help="the held-out cue set's OWN draw: its examples and their cue noise come from this seed and "
+                        "from nothing else, so a second value is a second draw of the same held-out task in the same "
+                        "world. Defaults to the suite's own length, so every artifact written before the flag is "
+                        "bit-identical through it")
     #: `e339` measured that `--seed0` is three draws at once -- it seeds the training replicates, the read-out
     #: subset (`--readout-seed` defaults to it) and, through here, the environment's three populations. So no
     #: artifact in this corpus is a seed-stream comparison: the pair that would be one needs this flag and
@@ -1252,7 +1257,10 @@ def main(argv=None) -> int:
             symbols=range(n_blocks * args.loop_symbols, (n_blocks + 1) * args.loop_symbols),
             n_train=args.train, n_test=args.test,
             readout_neurons=rs if rs is not None else np.arange(circ.n_neurons),
-            class_offset=n_blocks * args.loop_symbols, seed=n_blocks)
+            class_offset=n_blocks * args.loop_symbols,
+            #: the held-out cue set's **own** draw, from a seed of its own: `3` is the suite's length and is what
+            #: every artifact written before the flag carries, so the flag's presence changes nothing by default
+            seed=n_blocks if getattr(args, "loop_holdout_seed", None) is None else args.loop_holdout_seed)
         if args.readout_from_world:
             holdout_task.readout_neurons = np.arange(args.loop_world_dims)
         suite_label += ", with a fourth cue set held out"

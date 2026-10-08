@@ -89,3 +89,12 @@ four configurations.
 The live assertion names all eight and stays exact. Nothing in the unit's argument moves: the vocabulary is a fact
 about the runner's flags, it grows with them, and a census that has to be updated when the engine gains a seed is a
 census that is reading the flags rather than a hand-written list -- which is what this unit was written to be.
+
+## RE-READ 2026-10-09: the ninth key, found by the census itself
+
+The census's own vocabulary has grown again, and the instrument named the new key by itself rather than being handed
+it: **`loop_holdout_seed`** is the held-out cue set's own draw, the flag `e473` added so that the held-out task can be
+redrawn. So `draw_fields` is **nine** where this finding read **eight**, and the set in the test is updated while the
+assertion stays exact -- the same treatment `e340`'s `loop_seed` and `e398`'s `cue_seed` had, and the same reason: the
+vocabulary is a fact about the runner's flags and grows with them, and the census is what notices
+(`docs/findings/2026-10-09-the-held-out-task-at-a-second-draw.md`).

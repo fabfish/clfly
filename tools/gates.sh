@@ -480,4 +480,6 @@ run e471 python -m experiments.e471_the_held_out_task_at_a_fifth_of_the_budget -
 
 run e472 python -m experiments.e472_the_held_out_reading_across_the_budget --json-out runs/e472_the_held_out_reading_across_the_budget.json
 
+run e473 python -m experiments.e473_the_held_out_task_at_a_second_draw --json-out runs/e473_the_held_out_task_at_a_second_draw.json
+
 echo "ALL DONE"

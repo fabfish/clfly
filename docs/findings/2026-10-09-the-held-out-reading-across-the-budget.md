@@ -70,3 +70,13 @@ for both anchors and that the probe is deterministic given a body.
 - **And four points are not a step function**: the largest increment is between two hundred and three hundred and fifty
   updates and it is under the bar, so *the remainder arrives there* is a statement about four points and not about a
   place between them.
+
+## RE-READ 2026-10-09: the bullet is closed, and the curve is one draw's levels
+
+The third bullet of *what it cannot do* says *one held-out draw*, so all four budgets this unit walked are one cue
+set's. `e473` drew that cue set again: the initial body reads **0.5625** against **0.6875** and the trained body
+**0.6312** against **0.7594**, **0.1281** apart, while the two draws' changes agree to **-0.0031** at **0.19** sigma.
+**So this unit's four-point curve is a curve of one draw's *levels*** -- and its shape, the three steps of **+0.0031**,
+**+0.0083** and **+0.0010** at **0.14**, **0.59** and **0.08** sigma, is the change's and not the level's. Nothing in
+this unit's numbers moves: the eight rolls it read are its own
+(`docs/findings/2026-10-09-the-held-out-task-at-a-second-draw.md`).

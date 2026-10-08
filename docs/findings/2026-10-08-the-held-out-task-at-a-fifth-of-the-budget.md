@@ -79,3 +79,13 @@ reading is bought early* is a share (85% by a hundred updates) and not a place**
 middle, between two hundred and three hundred and fifty, and it is under the bar too. Nothing in this unit's numbers
 moves: the four rolls it read are its own and its four claims stand on them
 (`docs/findings/2026-10-09-the-held-out-reading-across-the-budget.md`).
+
+## RE-READ 2026-10-09: the bullet is closed, and it is the level that moves
+
+The last bullet of *what it cannot do* says *one held-out draw*, since the fourth cue set is the flag's own draw.
+`e473` drew it again: at a second draw the initial body reads **0.5625** against **0.6875** and the trained body
+**0.6312** against **0.7594**, **0.1281** apart, while the two draws' **changes** are **+0.0719** and **+0.0688**,
+**-0.0031** apart at **0.19** sigma. **So this unit's *the reading is bought early* is a statement about the change and
+not about the level**, which is the draw's; and the 85% share it reports is measured at one draw of the cue set. The
+unit's own four points stand as what it measured at that draw
+(`docs/findings/2026-10-09-the-held-out-task-at-a-second-draw.md`).
