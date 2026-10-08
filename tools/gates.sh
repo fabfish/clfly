@@ -470,4 +470,6 @@ run e466 python -m experiments.e466_the_width_ladder_at_another_budget --json-ou
 
 run e467 python -m experiments.e467_the_budget_curve_at_eight_columns --json-out runs/e467_the_budget_curve_at_eight_columns.json
 
+run e468 python -m experiments.e468_the_budget_curve_at_thirty_two_columns --json-out runs/e468_the_budget_curve_at_thirty_two_columns.json
+
 echo "ALL DONE"

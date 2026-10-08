@@ -175,3 +175,16 @@ fired long before this -- it withdraws the **pooled three-rung statement**, whic
 read on a corpus the closed loop now dominates. The **position** still predicts the level; what has moved is which
 suites the prediction is a statement about
 (`docs/findings/2026-10-07-the-neuron-readout-at-twenty-four-columns.md`).
+
+## RE-READ 2026-10-08, eighth: the half is crossed too, and it was the last level left
+
+The seventh RE-READ said both faces of this unit assert the middle position being the lowest of the three and nothing
+else. There was one more level hiding behind the artifact-face assertion's own words -- *what is asserted here is the
+structural half, a majority of the powered arms carry the order, so growth cannot cross it in one step* -- and the
+corpus has crossed it in one step: the powered share reads **0.4982** on **281** artifacts, seven thousandths under the
+half, after `e466`'s, `e467`'s and `e468`'s ten closed-loop rolls arrived. So the level is dropped rather than re-based,
+exactly as its two predecessors in this file were, and what is asserted is that the counted pool is real
+(**281** artifacts) and that the share is a substantial minority of it. **W1 to W4 are unchanged and are read off the
+artifact**, where W2 and W3 still carry their own fired bars; what this removes is the last place in this unit where a
+number standing for the corpus was held in the gate
+(`docs/findings/2026-10-08-the-budget-curve-at-thirty-two-columns.md`).

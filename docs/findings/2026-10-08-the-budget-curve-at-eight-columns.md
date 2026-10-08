@@ -77,3 +77,14 @@ rather than a null.
   put under the bar, and the crossing's two neighbours are **1.55** and **0.12** sigma.
 - **And one partition draw**: the matched-random cells are one draw of the same group sizes, so the random anchor's
   curve is one sample of its family.
+
+## RE-READ 2026-10-08: the bullet this unit closed is closed
+
+The first bullet of *what it cannot do* says *one width: eight columns is the rung the flip was seen on, and nothing
+here says a curve at sixteen or thirty-two crosses in the same place*. `e468` walked the same four budgets at
+**thirty-two columns** and the sign sequence there is **-1, -1, -1, +1**, identical to this unit's: the crossing is
+between **350** and **500** updates on both rungs, so the place is the head's and not the rung's. What the wider rung
+does *not* share is the approach -- its standing runs **-0.0243**, **-0.0556**, **-0.0017** then **+0.0187**, deepening
+at two hundred updates where this rung decays -- so *the width does not move the crossing* holds and *the width does not
+move the curve* does not. Nothing in this unit's numbers moves: the four rolls it read are its own and its four claims
+stand on them (`docs/findings/2026-10-08-the-budget-curve-at-thirty-two-columns.md`).
