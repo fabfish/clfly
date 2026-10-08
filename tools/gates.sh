@@ -474,4 +474,6 @@ run e468 python -m experiments.e468_the_budget_curve_at_thirty_two_columns --jso
 
 run e469 python -m experiments.e469_the_held_out_cue_set --json-out runs/e469_the_held_out_cue_set.json
 
+run e470 python -m experiments.e470_the_game_card_revision_fourteen --json-out runs/e470_the_game_card_revision_fourteen.json
+
 echo "ALL DONE"
