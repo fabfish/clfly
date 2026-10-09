@@ -76,3 +76,20 @@ the cue is twelve neurons against a 952- or 1307-neuron circuit, and a wider or 
 the read-out it occupies. **And the environment is memoryless in the world and not in the agent**: the cue is
 random per example and the world has no state of its own, so the loop is the only thing that makes step ``t``
 depend on step ``t - 1``.
+
+## RE-READ 2026-10-09: the reward and the policy both exist, and the policy is trained
+
+Section 3 closes on *"What is missing is the thing that makes it a game rather than a loop: **a reward and a
+policy**. Nothing here trains on the loop, so all four claims are the frozen substrate's behaviour."* Both are now in
+the environment and the second is trained. `CueActionEnv` gained a **`policy`** field that replaces the world's drive
+with `tanh(gain * (x[:, action_neurons] @ policy))`, and `policy = I` reproduces this unit's own rule **bit for bit**
+(the worst absolute difference over eight worlds is exactly **0.0**); the loop gained a **reward** -- the world's final
+state driven to a cue-dependent target -- and `e477` trains a 64-number linear policy on it by backprop through the
+same loop this unit's gradient path was measured on. The trained policy is worth **+1.5254** at **9.77** sigma on cues
+it was not trained on, the reward's gradient agrees with a central finite difference to **1.12e-03** at all 64
+coordinates, and the decoder on the world's final state **does not move** (**+0.0137** at **0.99** sigma).
+
+**So this unit's four claims stand -- they remain the frozen substrate's behaviour -- and the sentence they close on is
+no longer a gap**: what is missing now is a policy the **runner** carries, which is a benchmark change this unit's
+finding names and does not make
+(`docs/findings/2026-10-09-the-game-gets-a-policy.md`).

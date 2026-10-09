@@ -98,6 +98,13 @@ class CueActionEnv:
     #: into"*). It applies only where a coupling does, so the endpoints stay exact: the uncoupled rule is the linear
     #: one and `K = I` with the saturation off is still the independent integrators.
     world_nonlinear: bool = False
+    #: **the agent's policy**, when one is set: a trainable map from the action population's activity to the world's
+    #: drive, of shape `(len(action_neurons), len(action_neurons))`, replacing the environment's own rule
+    #: `tanh(gain * x[:, action_neurons])` with `tanh(gain * (x[:, action_neurons] @ policy))`. `None` is every
+    #: artifact this repository holds, and it is also where a policy is **initialized**: `policy = I` is the rule
+    #: above exactly, so a unit that trains one starts from the loop the corpus already runs. Held as a tensor and
+    #: not drawn from the seed, because it is optimized rather than drawn.
+    policy: object = field(default=None, compare=False, repr=False)
     #: **where the world's drive is read.** False reads the action population, which is disjoint from the cue's by
     #: construction. True reads the **cue population itself**, so the neurons carrying the cue are the neurons the
     #: world listens to -- the manipulation that separates "the cue must cross the weights" from "the drive reads
@@ -165,7 +172,11 @@ class CueActionEnv:
                 #: fixed map. Everything the scalar world does at one dimension it does here at `world_dims = 1`
                 #: up to the maps, and every earlier artifact is untouched because the default is zero.
                 act = torch.as_tensor(np.asarray(self.action_neurons), dtype=torch.long)
-                drive = torch.tanh(self.gain * x[:, act])                     # (batch, n_action)
+                #: the agent's own map from its action population to the world's drive, when one is set. `policy = I`
+                #: is the line it replaces exactly, so a policy's first step is the loop this repository already runs.
+                act_state = x[:, act]
+                drive = torch.tanh(self.gain * (act_state if self.policy is None
+                                                else act_state @ self.policy))   # (batch, n_action)
                 if t == 0 or carried["w"] is None or carried["w"].shape[0] != drive.shape[0]:
                     carried["w"] = torch.zeros(drive.shape[0], self.world_dims, dtype=x.dtype)
                 if t == 0:

@@ -488,4 +488,6 @@ run e475 python -m experiments.e475_the_held_out_reading_in_a_second_world --jso
 
 run e476 python -m experiments.e476_the_ordering_on_another_substrate --json-out runs/e476_the_ordering_on_another_substrate.json
 
+run e477 python -m experiments.e477_the_game_gets_a_policy --json-out runs/e477_the_game_gets_a_policy.json
+
 echo "ALL DONE"
