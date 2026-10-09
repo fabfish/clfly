@@ -492,4 +492,6 @@ run e477 python -m experiments.e477_the_game_gets_a_policy --json-out runs/e477_
 
 run e478 python -m experiments.e478_the_policy_in_a_sequence --json-out runs/e478_the_policy_in_a_sequence.json
 
+run e479 python -m experiments.e479_the_methods_on_the_policys_sequence --json-out runs/e479_the_methods_on_the_policys_sequence.json
+
 echo "ALL DONE"
