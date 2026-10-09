@@ -490,4 +490,6 @@ run e476 python -m experiments.e476_the_ordering_on_another_substrate --json-out
 
 run e477 python -m experiments.e477_the_game_gets_a_policy --json-out runs/e477_the_game_gets_a_policy.json
 
+run e478 python -m experiments.e478_the_policy_in_a_sequence --json-out runs/e478_the_policy_in_a_sequence.json
+
 echo "ALL DONE"
