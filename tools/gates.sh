@@ -484,4 +484,6 @@ run e473 python -m experiments.e473_the_held_out_task_at_a_second_draw --json-ou
 
 run e474 python -m experiments.e474_the_held_out_level_across_four_draws --json-out runs/e474_the_held_out_level_across_four_draws.json
 
+run e475 python -m experiments.e475_the_held_out_reading_in_a_second_world --json-out runs/e475_the_held_out_reading_in_a_second_world.json
+
 echo "ALL DONE"

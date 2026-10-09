@@ -9,8 +9,8 @@
 | the draw | the baseline's initial body | its trained body | its change | sigma | the level's rank |
 |---|---|---|---|---|---|
 | **3** | 0.6875 | **0.7594** | **+0.0719** | **4.89** | highest |
-| **7** | 0.6875 | **0.6312** | **+0.0688** | **5.77** | lowest |
-| **11** | 0.6875 | **0.7073** | **+0.1031** | **9.08** | second |
+| **7** | 0.5625 | **0.6312** | **+0.0688** | **5.77** | lowest |
+| **11** | 0.6042 | **0.7073** | **+0.1031** | **9.08** | second |
 | **19** | 0.6875 | **0.6948** | **+0.0073** | **0.53** | third |
 
 | the pairs of draws | their changes differ by | sigma |
@@ -71,3 +71,23 @@ which is what makes the spread a measurement of that and not of the training.
 - **And one budget**: all four draws are at a hundred updates, so nothing here says whether the **changes**' spread is the
   budget's as well -- `e472`'s steps were measured on one draw only.
 - **And one world**: four cue sets inside one world, so a redraw of the world is a different axis.
+
+## RE-READ 2026-10-09: the fourth claim is one world's, and the table's initial body is corrected
+
+Two corrections ride with `e475`, which read the same eight rolls again.
+
+**The first is a defect in the table above.** Section 1 reports the baseline's **initial** body as **0.6875** at all
+four draws; this unit's own artifact, and `e475` reading the same four rolls, has **0.6875**, **0.5625**, **0.6042** and
+**0.6875** for draws **3**, **7**, **11** and **19**. Only the first and the last are consistent with the changes the
+same table prints (**+0.0719** and **+0.0073** against **0.6875**, while **0.6312** less **0.5625** is **+0.0688** and
+**0.7073** less **0.6042** is **+0.1031**). The two cells are corrected in place and no other number in this finding
+moves.
+
+**The second is a scope, and it closes this finding's last bullet.** *One world* was named above as the axis not
+measured; `e475` measured it, moving the environment's own seed and nothing else at the same four draws. The change is
+the world's too: at seed **11** the two worlds' changes differ by **+0.0698** at **5.15** sigma, and world 1 has its own
+null draw (seed **19**, **-0.0000** at **-0.00**). **And `AA4` does not reproduce there**: world 1's four levels spread
+**0.0594** against its changes' **0.0990**, the reverse of the **0.1281** against **0.0958** this unit measured, so *the
+level moves more between draws than the change does* is one world's. What survives is what `AA2` and `AA3` built: both
+the level and the change are the draw's -- and the world's
+(`docs/findings/2026-10-09-the-held-out-reading-in-a-second-world.md`).

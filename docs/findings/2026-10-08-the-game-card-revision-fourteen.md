@@ -83,3 +83,14 @@ of the decodability* is one draw's sentence: on the fourth cue set the sequence'
 carries the initial reading beside the trained one, which is what makes a reader able to see that the level is a draw's
 -- and what it now needs is a reader who knows the change is a draw's too
 (`docs/findings/2026-10-09-the-held-out-level-across-four-draws.md`).
+
+## RE-READ 2026-10-09: the clause carries one world's change as well
+
+The scope above is the **draw** of the held-out cue set. `e475` moved the other quantity the clause is silent about --
+the **environment** -- and redrew the world under the same four draws with `--loop-seed 1` against the default **0**.
+The change moves with the world too: at the held-out seed **11** the two worlds' changes are **+0.1031** and
+**+0.0333**, a difference of **+0.0698** at **5.15** sigma, while at the other three seeds they agree (**0.64**,
+**-1.60** and **0.47** sigma). **So the number this clause carries -- the sequence's contribution on a task outside
+it -- is one draw's change in one world's environment**, and a clause revision that reports it needs both beside it.
+The clause's **form** still stands, and this does not touch the card: it is a second scope on the same quantity
+(`docs/findings/2026-10-09-the-held-out-reading-in-a-second-world.md`).
