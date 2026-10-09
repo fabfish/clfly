@@ -498,4 +498,6 @@ run e480 python -m experiments.e480_the_penaltys_strength_on_the_policy --json-o
 
 run e481 python -m experiments.e481_the_benchmark_carries_a_policy --json-out runs/e481_the_benchmark_carries_a_policy.json
 
+run e482 python -m experiments.e482_the_game_card_revision_fifteen --json-out runs/e482_the_game_card_revision_fifteen.json
+
 echo "ALL DONE"
