@@ -105,6 +105,12 @@ class CueActionEnv:
     #: above exactly, so a unit that trains one starts from the loop the corpus already runs. Held as a tensor and
     #: not drawn from the seed, because it is optimized rather than drawn.
     policy: object = field(default=None, compare=False, repr=False)
+    #: **the world's payout.** A `(world_dims, n_cue)` map, drawn from the environment's seed when it is asked for,
+    #: against which the **cue itself** sets a target: `target = x[cue_neurons] @ P^T` read off the state one step
+    #: after the cue arrives, and the trial's reward is `-||w_final - target||^2`. `None` is every artifact written
+    #: before this field, so the flag draws the payout and nothing else -- and the target depends on the cue rather
+    #: than on the label, which is what lets the environment pay a reward the agent's own action decides.
+    reward_map: np.ndarray | None = None
     #: **where the world's drive is read.** False reads the action population, which is disjoint from the cue's by
     #: construction. True reads the **cue population itself**, so the neurons carrying the cue are the neurons the
     #: world listens to -- the manipulation that separates "the cue must cross the weights" from "the drive reads
@@ -179,9 +185,21 @@ class CueActionEnv:
                                                 else act_state @ self.policy))   # (batch, n_action)
                 if t == 0 or carried["w"] is None or carried["w"].shape[0] != drive.shape[0]:
                     carried["w"] = torch.zeros(drive.shape[0], self.world_dims, dtype=x.dtype)
+                    carried["target"] = None
                 if t == 0:
                     fn.last_world = carried["w"]
                     return add
+                #: **the world's payout, and the target the cue sets.** The target is the cue population's activity
+                #: one step after the cue arrives, through the drawn map -- so it is a property of what the agent is
+                #: carrying and not of a label, which is what the environment has. The reward is the negative squared
+                #: distance from the world's state to it, read at the last step and per example.
+                if self.reward_map is not None and carried.get("target") is None:
+                    cue = torch.as_tensor(np.asarray(self.cue_neurons), dtype=torch.long)
+                    m = torch.as_tensor(np.asarray(self.reward_map), dtype=x.dtype)
+                    carried["target"] = x[:, cue] @ m.T
+                if self.reward_map is not None and t == self.tau - 1 and carried.get("target") is not None:
+                    fn.last_target = carried["target"]
+                    fn.last_reward = -((carried["w"] - carried["target"]) ** 2).sum(dim=1)
                 p = torch.as_tensor(np.asarray(self.world_drive), dtype=x.dtype)
                 q = torch.as_tensor(np.asarray(self.world_read), dtype=x.dtype)
                 if self.world_coupled is None:
@@ -236,6 +254,8 @@ class CueActionEnv:
 
         fn.last_world = None
         fn.last_action = None
+        fn.last_reward = None
+        fn.last_target = None
         return fn
 
     def summary(self) -> dict:
@@ -253,7 +273,9 @@ class CueActionEnv:
                 "world_read_sha1": _fingerprint(self.world_read),
                 "world_coupled": self.world_coupled is not None, "world_nonlinear": self.world_nonlinear,
                 "drive_from_cue": self.drive_from_cue,
-                "world_coupling_sha1": _fingerprint(self.world_coupled)}
+                "world_coupling_sha1": _fingerprint(self.world_coupled),
+                #: recorded only where there is a payout, so every earlier artifact's draw is the one it always was
+                **({"reward_map_sha1": _fingerprint(self.reward_map)} if self.reward_map is not None else {})}
 
 
 def _coupling(rng, dims: int) -> np.ndarray:
@@ -371,7 +393,7 @@ def build(circ, readout_subset=None, n_symbols: int = 2, tau: int = 12, n_cue: i
           gain: float = 1.0, noise: float = 0.0, world_modes: int = 0,
           world_leak: float = 1.0, cue_at: int = 0, world_dims: int = 0,
           world_coupled: bool = False, world_nonlinear: bool = False,
-          drive_from_cue: bool = False, cue_seed: int | None = None) -> CueActionEnv:
+          drive_from_cue: bool = False, cue_seed: int | None = None, reward: bool = False) -> CueActionEnv:
     """Draw the three populations disjointly and the cue templates, all from ``seed``.
 
     ``readout_subset`` is the decoder's own draw and is **not** available to the environment: the action is read off
@@ -421,4 +443,7 @@ def build(circ, readout_subset=None, n_symbols: int = 2, tau: int = 12, n_cue: i
                         world_nonlinear=(world_nonlinear if (world_coupled and world_dims) else False),
                         drive_from_cue=bool(drive_from_cue),
                         world_templates=(rng.standard_normal((world_modes, n_feedback))
-                                         if world_modes else None))
+                                         if world_modes else None),
+                        #: **the payout's map**, drawn last so that every field above it is the same draw it has
+                        #: always been: a run that does not ask for a reward is bit-identical through this
+                        reward_map=(rng.standard_normal((world_dims, len(cue))) if (reward and world_dims) else None))

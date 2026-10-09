@@ -500,4 +500,6 @@ run e481 python -m experiments.e481_the_benchmark_carries_a_policy --json-out ru
 
 run e482 python -m experiments.e482_the_game_card_revision_fifteen --json-out runs/e482_the_game_card_revision_fifteen.json
 
+run e483 python -m experiments.e483_the_environment_pays_a_reward --json-out runs/e483_the_environment_pays_a_reward.json
+
 echo "ALL DONE"
