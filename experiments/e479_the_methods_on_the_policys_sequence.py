@@ -120,8 +120,12 @@ def _fingerprint(mat) -> str:
     return hashlib.sha1(np.asarray(mat, dtype=np.float64).tobytes()).hexdigest()[:12]
 
 
-def one_arm(circ, net, seed: int, arm: str) -> dict:
-    """One arm on one replicate: three separable tasks in sequence, and the retention matrix in reward."""
+def one_arm(circ, net, seed: int, arm: str, lam: float = LAM) -> dict:
+    """One arm on one replicate: three separable tasks in sequence, and the retention matrix in reward.
+
+    ``lam`` is the penalty's strength and is ``e479``'s own constant unless a caller moves it, which is what the
+    strength ladder beside this unit does; the default is the value every artifact of this arm carries.
+    """
     import torch
     from clfly.network import env as fly_env
 
@@ -201,7 +205,7 @@ def one_arm(circ, net, seed: int, arm: str) -> dict:
                 net(ub, feedback=fn)
                 loss = loss + ((fn.last_world - tb) ** 2).sum(dim=1).mean()
             if arm == "penalty" and fisher is not None:
-                loss = loss + 0.5 * LAM * torch.sum(fisher * (pol - anchor) ** 2)
+                loss = loss + 0.5 * lam * torch.sum(fisher * (pol - anchor) ** 2)
             loss.backward()
             opt.step()
         #: the penalty's inputs, taken at the policy this task ended on -- `e140`'s convention: a unit-mean

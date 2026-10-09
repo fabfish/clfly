@@ -494,4 +494,6 @@ run e478 python -m experiments.e478_the_policy_in_a_sequence --json-out runs/e47
 
 run e479 python -m experiments.e479_the_methods_on_the_policys_sequence --json-out runs/e479_the_methods_on_the_policys_sequence.json
 
+run e480 python -m experiments.e480_the_penaltys_strength_on_the_policy --json-out runs/e480_the_penaltys_strength_on_the_policy.json
+
 echo "ALL DONE"
