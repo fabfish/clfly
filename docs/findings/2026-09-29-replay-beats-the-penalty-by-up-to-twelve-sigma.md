@@ -57,3 +57,19 @@ construction. `frozen_bias` removes most of the training variance and so carries
 arm-order effect is not excluded. And **no run is made**: this is a read of runs the register already has, and the
 missing measurement is the one that would say whether the ordering survives a different substrate — which is a run, not
 a re-reading.
+
+## RE-READ 2026-10-09: the owed run is made, and the ordering is larger on the second substrate
+
+Section 4 closes on *"no run is made: this is a read of runs the register already has, and the missing measurement is
+the one that would say whether the ordering survives a different substrate -- which is a run, not a re-reading."*
+`e476` made that run: `e140`'s own command at circuit 800, five hundred updates, the 32-neuron shared head,
+`lam = 3e-3` and `seed0 = 0`, with the **assembly suite** in place of the overlap builder and forty replicates on
+`naive`, `ewc-block` and `replay`. `replay` minus `ewc-block` there is **+0.1214** at **13.41** sigma on the diagonal
+and **-0.1857** at **-14.06** on forgetting, against this unit's own **+0.0441** at **9.09** and **-0.0607** at
+**-8.42**; `ewc-block` minus `naive` is a null on both (**+0.80** here, **-1.33** there). **So the ordering travels
+and it widens, and the widening is the baseline's**: the buffer reads **0.9609** and **0.9540** on the two substrates,
+**0.0069** apart, while `naive` falls **0.067** and `ewc-block` **0.084**.
+
+**What this unit published stands** and its V1 to V4 are untouched; what changes is the scope its own section 4 named,
+which is now measured rather than owed
+(`docs/findings/2026-10-09-the-ordering-on-another-substrate.md`).

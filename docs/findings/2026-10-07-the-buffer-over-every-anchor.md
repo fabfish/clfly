@@ -71,3 +71,14 @@ the ten rolls therefore carry at most seven independent cells rather than ten.
 - **And two same-seed runs**: each contrast pairs replicate against replicate by the runner's `seed0 + 100 * r` schedule,
   which is a same-seed pairing and not the same run, so each of the ten carries whatever separates two runs beyond their
   seeds.
+
+## RE-READ 2026-10-09: `e276`'s other suites are now in the corpus
+
+This unit's *what it cannot settle* names two gaps at once -- *"ten rolls of one world (other worlds and `e276`'s
+other suites are not in it)"*. The second is now closed and the first is not. `e476` made the run `e276` owed: the
+`r32` line's own command with the **assembly suite** in place of the overlap builder, forty replicates on `naive`,
+`ewc-block` and `replay`, giving **+0.1214** at **13.41** sigma for the buffer over the penalty on the diagonal and
+**-0.1857** at **-14.06** on forgetting -- larger than the **+0.0441** at **9.09** this unit's own ten rolls carry.
+**So the contrast these ten rows measure is one world's and not one suite's**, and what this unit could not settle
+about other worlds stands unchanged
+(`docs/findings/2026-10-09-the-ordering-on-another-substrate.md`).
