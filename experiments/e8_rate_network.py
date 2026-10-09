@@ -61,7 +61,7 @@ def train_task(model, heads, suite, k: int, iters: int, lr: float, batch: int,
                seed: int, ewc=None, block_ewc=None, replay: list | None = None,
                replay_batch: int = 16, shared: bool = False,
                frozen_body: bool = False, frozen_bias: bool = False,
-               replay_probe: dict | None = None):
+               replay_probe: dict | None = None, policy=None):
     """Train on task ``k``; optionally with an EWC penalty or a replay buffer.
 
     ``heads`` is the list of decoders: one per task in the task-incremental default (the
@@ -97,6 +97,12 @@ def train_task(model, heads, suite, k: int, iters: int, lr: float, batch: int,
         params = [model.theta] + list(readout.parameters())
     else:
         params = [model.theta, model.bias] + list(readout.parameters())
+    #: **the agent's policy**, when the run carries one: trained by the same task loss through the same loop, and
+    #: covered by no penalty in this project -- the status the bias already has, and for the same reason, since no
+    #: Fisher here was ever accumulated for it. The field is set by `run_method`, which is where the environment it
+    #: belongs to is reached.
+    if policy is not None:
+        params = params + [policy]
     opt = torch.optim.Adam(params, lr=lr)
     U = torch.from_numpy(task.u_train).float()
     Y = torch.from_numpy(task.y_train).long()
@@ -562,7 +568,8 @@ def block_fisher(model, heads, suite, k: int, part, n_batches: int = 8,
 
 
 def run_method(conn_net, suite, method: str, args, seed: int,
-               partitions: dict | None = None, feedback=None, world_dims: int = 0, holdout=None) -> dict:
+               partitions: dict | None = None, feedback=None, world_dims: int = 0, holdout=None,
+               policy_env=None) -> dict:
     """Train sequentially and record the full retention matrix.
 
     ``R[k, j]`` = accuracy on task ``j`` after training through task ``k``, so the
@@ -589,6 +596,15 @@ def run_method(conn_net, suite, method: str, args, seed: int,
     #: retention effect changing sign between two seed streams, which means the redraw dominates every unpaired
     #: measurement of it -- and the way to remove the redraw is to ask the *same* body both questions.
     bare = model
+    #: **the agent's policy**, when the run carries one: created here, per replicate, at the environment's own
+    #: action rule -- the identity -- and handed both to the environment, which drives the world through it, and to
+    #: the training step, which optimizes it by the task loss. A **fresh one per replicate** is what keeps the
+    #: replicates independent: a shared map would carry a trained policy from one seed into the next.
+    pol = None
+    if policy_env is not None:
+        n_act = int(len(policy_env.action_neurons))
+        pol = torch.eye(n_act, dtype=torch.float32).clone().requires_grad_(True)
+        policy_env.policy = pol
     if feedback is not None:
         #: `ClosedLoop` passes everything but the forward call through, so the training loop, the Fisher blocks
         #: and the replay features below are all unedited and all see the same dynamical system.
@@ -697,7 +713,7 @@ def run_method(conn_net, suite, method: str, args, seed: int,
             replay=(replay if method == "replay" else None), shared=shared,
             replay_batch=args.replay_batch,
             frozen_body=args.frozen_body, frozen_bias=getattr(args, "frozen_bias", False),
-            replay_probe=probe))
+            policy=pol, replay_probe=probe))
         #: recorded for every method and empty for the ones with no replay buffer, so an artifact's shape does not
         #: depend on which arms it ran
         replay_losses.append({"first": probe.get("first"), "last": probe.get("last")})
@@ -890,6 +906,12 @@ def run_method(conn_net, suite, method: str, args, seed: int,
 
     return {
         "method": method,
+        #: **how far the agent's policy moved from the rule it was initialized at**, or none when the run carries no
+        #: policy. The identity is the environment's own action rule, so a zero here is a run whose freedom was not
+        #: used and a positive one is a run whose freedom was. Recorded on every replicate whether or not there is a
+        #: policy, so a run with the flag and one without it have the same shape.
+        "policy_move": (None if pol is None
+                        else float((pol.detach() - torch.eye(pol.shape[0], dtype=torch.float32)).norm())),
         "holdout": holdout_block,
         "retention": R.tolist(),
         "final_accuracy": float(np.nanmean(final)),
@@ -1117,6 +1139,15 @@ def main(argv=None) -> int:
                         "from nothing else, so a second value is a second draw of the same held-out task in the same "
                         "world. Defaults to the suite's own length, so every artifact written before the flag is "
                         "bit-identical through it")
+    #: **the agent's own policy**, the thing `e325` and `e361` both named as what a game has and this loop does not:
+    #: `CueActionEnv` gained the field in `e477`, and this flag is what lets the BENCHMARK carry one. The policy is
+    #: a `(len(action_neurons), len(action_neurons))` map from the action population to the world's drive, drawn as
+    #: the **identity** -- which is the environment's own rule exactly, so a run with the flag is the run beside it
+    #: plus a freedom the agent may use -- and it is trained by the task loss through the loop, in the same optimizer
+    #: as the body and the head. It is not covered by any penalty in this project, exactly as the bias is not.
+    p.add_argument("--loop-policy", action="store_true",
+                   help="give the loop's agent a trainable policy, initialized at the environment's own action rule "
+                        "and trained by the task loss through the loop")
     #: `e339` measured that `--seed0` is three draws at once -- it seeds the training replicates, the read-out
     #: subset (`--readout-seed` defaults to it) and, through here, the environment's three populations. So no
     #: artifact in this corpus is a seed-stream comparison: the pair that would be one needs this flag and
@@ -1248,6 +1279,8 @@ def main(argv=None) -> int:
     #: block of cue templates in it -- so a holdout run is a different *world* from the run beside it and is
     #: compared within itself and not against `e438`.
     holdout_task = None
+    if getattr(args, "loop_policy", False) and not args.closed_loop:
+        raise SystemExit("--loop-policy needs the closed loop, so not without --closed-loop")
     if getattr(args, "loop_holdout", False):
         if not args.closed_loop:
             raise SystemExit("--loop-holdout needs the closed loop, so not without --closed-loop")
@@ -1346,7 +1379,9 @@ def main(argv=None) -> int:
             reps.append(run_method(net, suite, method, args, seed=args.seed0 + 100 * r,
                                    partitions=partitions, feedback=feedback,
                                    world_dims=args.loop_world_dims if args.readout_from_world else 0,
-                                   holdout=holdout_task))
+                                   holdout=holdout_task,
+                                   policy_env=(loop_env if (args.closed_loop and
+                                                            getattr(args, "loop_policy", False)) else None)))
             done += 1
             elapsed = time.time() - t_start
             cpu = time.process_time() - t_cpu0
