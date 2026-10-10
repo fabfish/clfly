@@ -111,8 +111,13 @@ def _fingerprint(mat) -> str:
     return hashlib.sha1(np.asarray(mat, dtype=np.float64).tobytes()).hexdigest()[:12]
 
 
-def one_replicate(circ, net, seed: int) -> dict:
-    """One replicate: the payout's map, the cue's own target, the spread it makes, and a policy trained on it."""
+def one_replicate(circ, net, seed: int, noise: float = NOISE) -> dict:
+    """One replicate: the payout's map, the cue's own target, the spread it makes, and a policy trained on it.
+
+    ``noise`` is the cue's own noise and is this unit's constant unless a caller moves it, which is what the sweep
+    beside this unit does; the same value reaches every environment a replicate builds, and the cue's noise is drawn
+    from the same per-example generator whatever it is, so two levels differ in the amplitude of one realisation.
+    """
     import torch
     from clfly.network import env as fly_env
 
@@ -120,7 +125,7 @@ def one_replicate(circ, net, seed: int) -> dict:
 
     def build(reward: bool, cue_at: int = 0):
         return fly_env.build(circ, readout_subset=rs, seed=seed, n_symbols=N_SYMBOLS, tau=TAU, scale=SCALE,
-                             gain=GAIN, noise=NOISE, world_modes=0, world_leak=WORLD_LEAK, world_dims=WORLD_DIMS,
+                             gain=GAIN, noise=noise, world_modes=0, world_leak=WORLD_LEAK, world_dims=WORLD_DIMS,
                              world_coupled=True, cue_at=cue_at, reward=reward)
 
     e, bare = build(True), build(False)

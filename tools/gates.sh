@@ -502,4 +502,6 @@ run e482 python -m experiments.e482_the_game_card_revision_fifteen --json-out ru
 
 run e483 python -m experiments.e483_the_environment_pays_a_reward --json-out runs/e483_the_environment_pays_a_reward.json
 
+run e484 python -m experiments.e484_the_cues_noise_on_the_payouts_share --json-out runs/e484_the_cues_noise_on_the_payouts_share.json
+
 echo "ALL DONE"
