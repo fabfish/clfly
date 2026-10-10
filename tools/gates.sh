@@ -504,4 +504,6 @@ run e483 python -m experiments.e483_the_environment_pays_a_reward --json-out run
 
 run e484 python -m experiments.e484_the_cues_noise_on_the_payouts_share --json-out runs/e484_the_cues_noise_on_the_payouts_share.json
 
+run e485 python -m experiments.e485_the_benchmark_pays_a_reward --json-out runs/e485_the_benchmark_pays_a_reward.json
+
 echo "ALL DONE"

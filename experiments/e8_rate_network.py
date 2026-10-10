@@ -472,6 +472,23 @@ def evaluate(model, readout, task, shared: bool = False) -> float:
         return float((logits.argmax(dim=1) == Y).float().mean())
 
 
+def reward_of(model, task) -> float:
+    """The **payout** the world earns on this task's held-out cue set, at whatever body the call is made on.
+
+    The environment pays it (`CueActionEnv`'s `reward_map`), the closure exposes it as `last_reward` at the trial's
+    last step, and a run that asked for no payout gets `None` -- which is reported as `None` and never as a number.
+    """
+    import torch
+
+    fb = getattr(model, "feedback", None)
+    if fb is None:
+        return None
+    with torch.no_grad():
+        model(torch.from_numpy(task.u_test).float(), None)
+    r = getattr(fb, "last_reward", None)
+    return None if r is None else float(r.mean())
+
+
 def probe_readout(model, task, ridge: float = 1e-2) -> float:
     """A **held-out** task's linear decodability from a body, fitted after the sequence and the body frozen.
 
@@ -643,6 +660,10 @@ def run_method(conn_net, suite, method: str, args, seed: int,
     T = len(suite)
     R = np.full((T, T), np.nan)
     L = np.full((T, T), np.nan)                            # the retention matrix in LOSS, not accuracy
+    #: **the retention matrix in REWARD**, the game's own currency: what the world pays on task j after the body has
+    #: been trained through task k. `None` where there is no payout, so an artifact's shape does not depend on the
+    #: flag and a reader can tell "no reward" from "a reward of zero".
+    RW = [[None] * T for _ in range(T)]
     losses = []
     replay_losses: list = []
     directions: list = []
@@ -751,6 +772,9 @@ def run_method(conn_net, suite, method: str, args, seed: int,
             # rather than only on the last one. It is also the first loss-valued retention record in this
             # project; every retention figure before it is an accuracy.
             L[k, j] = full_split_loss(model, readout_j, suite[j], shared, "train")
+            #: and the same retention matrix in the game's own currency, which is the body's and not the head's --
+            #: the world's final state is what the payout scores, so `None` here is "this run asked for no payout"
+            RW[k][j] = reward_of(model, suite[j])
 
         if method == "ewc":
             anchor_bias = getattr(args, "anchor_bias", None)
@@ -912,6 +936,9 @@ def run_method(conn_net, suite, method: str, args, seed: int,
         #: policy, so a run with the flag and one without it have the same shape.
         "policy_move": (None if pol is None
                         else float((pol.detach() - torch.eye(pol.shape[0], dtype=torch.float32)).norm())),
+        #: **the game's own currency**, task by task: what the world paid on task j after the body was trained through
+        #: task k. `None` above the diagonal and `None` everywhere when the run asked for no payout.
+        "reward_retention": RW,
         "holdout": holdout_block,
         "retention": R.tolist(),
         "final_accuracy": float(np.nanmean(final)),
@@ -1148,6 +1175,13 @@ def main(argv=None) -> int:
     p.add_argument("--loop-policy", action="store_true",
                    help="give the loop's agent a trainable policy, initialized at the environment's own action rule "
                         "and trained by the task loss through the loop")
+    #: **the world's payout**, the other half of `e325`'s sentence: `CueActionEnv` gained `reward_map` in `e483` and
+    #: this flag is what lets the BENCHMARK carry one. The cue itself sets the target one step after it arrives and
+    #: the trial's reward is the negative squared distance from the world's final state to it, so what the world pays
+    #: depends on what the agent's action does and not on the label. Recorded per task as `reward_retention`.
+    p.add_argument("--loop-reward", action="store_true",
+                   help="let the world pay a reward, scored against the target the cue itself sets, and record the "
+                        "retention matrix in that currency")
     #: `e339` measured that `--seed0` is three draws at once -- it seeds the training replicates, the read-out
     #: subset (`--readout-seed` defaults to it) and, through here, the environment's three populations. So no
     #: artifact in this corpus is a seed-stream comparison: the pair that would be one needs this flag and
@@ -1247,7 +1281,12 @@ def main(argv=None) -> int:
                                  world_dims=args.loop_world_dims, world_coupled=args.loop_world_coupled,
                                  world_nonlinear=args.loop_world_nonlinear,
                                  drive_from_cue=args.loop_drive_from_cue,
-                                 cue_seed=args.cue_seed)
+                                 #: **the world's payout**, when the run asks for one: the cue itself sets a target
+                                 #: one step after it arrives and the reward is the negative squared distance from
+                                 #: the world's final state to it. Drawn last, so a run without it is bit-identical
+                                 #: through the flag.
+                                 cue_seed=args.cue_seed,
+                                 reward=getattr(args, "loop_reward", False))
         suite = [fly_env.make_env_task(loop_env, f"loop_{spec[0]}",
                                        symbols=range(i * args.loop_symbols, (i + 1) * args.loop_symbols),
                                        n_train=args.train, n_test=args.test,
