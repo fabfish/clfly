@@ -508,4 +508,6 @@ run e485 python -m experiments.e485_the_benchmark_pays_a_reward --json-out runs/
 
 run e486 python -m experiments.e486_the_game_card_revision_sixteen --json-out runs/e486_the_game_card_revision_sixteen.json
 
+run e487 python -m experiments.e487_the_reward_in_a_second_world --json-out runs/e487_the_reward_in_a_second_world.json
+
 echo "ALL DONE"
