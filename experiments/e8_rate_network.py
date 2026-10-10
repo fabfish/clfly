@@ -61,7 +61,7 @@ def train_task(model, heads, suite, k: int, iters: int, lr: float, batch: int,
                seed: int, ewc=None, block_ewc=None, replay: list | None = None,
                replay_batch: int = 16, shared: bool = False,
                frozen_body: bool = False, frozen_bias: bool = False,
-               replay_probe: dict | None = None, policy=None):
+               replay_probe: dict | None = None, policy=None, earn_lr: float | None = None):
     """Train on task ``k``; optionally with an EWC penalty or a replay buffer.
 
     ``heads`` is the list of decoders: one per task in the task-incremental default (the
@@ -101,9 +101,16 @@ def train_task(model, heads, suite, k: int, iters: int, lr: float, batch: int,
     #: covered by no penalty in this project -- the status the bias already has, and for the same reason, since no
     #: Fisher here was ever accumulated for it. The field is set by `run_method`, which is where the environment it
     #: belongs to is reached.
-    if policy is not None:
+    if policy is not None and earn_lr is None:
         params = params + [policy]
     opt = torch.optim.Adam(params, lr=lr)
+    #: **what trains the agent's map.** `earn_lr = None` is every run this corpus holds: the policy is one more
+    #: parameter set inside the body's optimizer and the **task loss** moves it. A number takes it out of that
+    #: optimizer, gives it one of its own at that rate, and ascends the world's **payout** into it instead -- which is
+    #: the half of `e325`'s sentence the corpus had not reached, `e487` having measured the payout as inert for the
+    #: training while nothing played for it.
+    earn_opt = (torch.optim.Adam([policy], lr=earn_lr)
+                if (policy is not None and earn_lr is not None) else None)
     U = torch.from_numpy(task.u_train).float()
     Y = torch.from_numpy(task.y_train).long()
     lossf = torch.nn.CrossEntropyLoss()
@@ -161,8 +168,20 @@ def train_task(model, heads, suite, k: int, iters: int, lr: float, batch: int,
                 replay_probe["last"] = float(rloss.item())
 
         opt.zero_grad()
-        loss.backward()
+        #: the graph is held open for the second backward pass only where the map is paid
+        loss.backward(retain_graph=earn_opt is not None)
         opt.step()
+        if earn_opt is not None:
+            #: **the payout's own backward pass.** The closure set `last_reward` on this step's forward pass, at the
+            #: trial's last step; ascending it moves the map alone, because `earn_opt` holds nothing else. The body's
+            #: parameters take a second accumulation of gradient on the way through and it is cleared at the top of
+            #: the next step, so nothing but the map moves.
+            paid = getattr(model, "feedback", None)
+            paid = None if paid is None else getattr(paid, "last_reward", None)
+            if paid is not None:
+                earn_opt.zero_grad()
+                (-paid.mean()).backward()
+                earn_opt.step()
     return float(loss.item())
 
 
@@ -734,7 +753,8 @@ def run_method(conn_net, suite, method: str, args, seed: int,
             replay=(replay if method == "replay" else None), shared=shared,
             replay_batch=args.replay_batch,
             frozen_body=args.frozen_body, frozen_bias=getattr(args, "frozen_bias", False),
-            policy=pol, replay_probe=probe))
+            policy=pol, replay_probe=probe,
+            earn_lr=(args.lr if getattr(args, "loop_earn", False) else None)))
         #: recorded for every method and empty for the ones with no replay buffer, so an artifact's shape does not
         #: depend on which arms it ran
         replay_losses.append({"first": probe.get("first"), "last": probe.get("last")})
@@ -1182,6 +1202,14 @@ def main(argv=None) -> int:
     p.add_argument("--loop-reward", action="store_true",
                    help="let the world pay a reward, scored against the target the cue itself sets, and record the "
                         "retention matrix in that currency")
+    #: **the payout's backward pass**, the half of `e325`'s sentence *"a reward and a policy"* that the corpus had
+    #: not reached: `e483` gave the environment a payout and `e485` gave the benchmark one, and until this flag the
+    #: payout was **recorded and never played for** -- the map `--loop-policy` adds was trained by the task loss, which
+    #: `e487`'s third claim measured as the payout being inert for the training. This flag gives the map its own
+    #: optimizer and ascends the world's payout into it, so the game's own currency is what moves the agent's map.
+    p.add_argument("--loop-earn", action="store_true",
+                   help="train the loop's policy by ascent on the world's payout in an optimizer of its own, instead of "
+                        "by the task loss through the loop; needs --loop-policy and --loop-reward")
     #: `e339` measured that `--seed0` is three draws at once -- it seeds the training replicates, the read-out
     #: subset (`--readout-seed` defaults to it) and, through here, the environment's three populations. So no
     #: artifact in this corpus is a seed-stream comparison: the pair that would be one needs this flag and
@@ -1320,6 +1348,10 @@ def main(argv=None) -> int:
     holdout_task = None
     if getattr(args, "loop_policy", False) and not args.closed_loop:
         raise SystemExit("--loop-policy needs the closed loop, so not without --closed-loop")
+    if getattr(args, "loop_earn", False) and not (getattr(args, "loop_policy", False)
+                                                  and getattr(args, "loop_reward", False)):
+        raise SystemExit("--loop-earn ascends the world's payout into the agent's map, so it needs --loop-policy for "
+                         "the map and --loop-reward for the payout")
     if getattr(args, "loop_holdout", False):
         if not args.closed_loop:
             raise SystemExit("--loop-holdout needs the closed loop, so not without --closed-loop")

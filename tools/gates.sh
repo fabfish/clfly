@@ -510,4 +510,6 @@ run e486 python -m experiments.e486_the_game_card_revision_sixteen --json-out ru
 
 run e487 python -m experiments.e487_the_reward_in_a_second_world --json-out runs/e487_the_reward_in_a_second_world.json
 
+run e488 python -m experiments.e488_the_reward_trains_the_agent --json-out runs/e488_the_reward_trains_the_agent.json
+
 echo "ALL DONE"

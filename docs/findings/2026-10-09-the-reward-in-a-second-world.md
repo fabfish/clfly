@@ -63,3 +63,7 @@ is what lets RA3 compare them and RA4 read one body's two currencies.
   firing is a statement about **-0.32** to **+0.04** in cells running about **-4.3**, which is a coarse instrument.
 - **And the head is never paid**: what the reward says is the body's, and the accuracy's is the head's and the body's.
 - **And nothing here optimizes the payout**: it is recorded and not played for, which is a different unit.
+
+## RE-READ 2026-10-10
+
+**The payout is not inert when the map is the one being paid.** This unit's third claim measured the payout as inert for the training on two runs one flag apart, both with the map trained by the **task loss**; `e488` gave the map an optimizer of its own and ascended the world's payout into it, and against that same ablation the world pays `naive`, `ewc-block` and `replay` **+3.6449**, **+3.5831** and **+2.7531** more at **40.01**, **35.63** and **21.16** sigma -- while the accuracy falls on every arm (**-0.0319**, **-0.0410**, **-0.0285**, resolving downward on `ewc-block` at **-3.30** sigma). So *the payout is a meter* is a statement about the signal the map was being trained by, and not about the payout: the same currency that moved nothing moves the agent when it is what the agent is paid by. In the paid run the reward's diagonal also sits **above** its last row on **two** of the three arms (**+0.4636** and **+0.4893**), where this unit's world-0 run and the loss run both found it below.
