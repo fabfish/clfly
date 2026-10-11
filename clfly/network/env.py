@@ -138,6 +138,13 @@ class CueActionEnv:
     #: from a world at rest and what the read step sees is the last trial alone. It changes the **rule** and draws
     #: nothing, so it is recorded in the draw only where it is on, on the same reasoning `episode_len` is.
     episode_reset: bool = False
+    #: **where the label is.** False is every artifact this corpus holds: the cue the task's label names is the
+    #: episode's **last** trial, so the label's drive has the pass's tail after it and nothing but the read beyond.
+    #: True puts that cue at the pass's **first** trial and fills the trials after it with the episode's other
+    #: symbols, so the label has the whole pass to reach the read through -- which is the corpus's own single-trial
+    #: window inside an episode -- while the label is the oldest cue in the pass rather than the newest. It changes
+    #: which step each symbol is written at and draws nothing, so it is recorded in the draw only where it is on.
+    label_first: bool = False
     #: **the episode's own boundary.** A set of neurons, disjoint from the three populations and drawn from the same
     #: seed, which carries ``boundary_gain`` at the first step of **every trial**: ``+gain`` at the trial that opens
     #: the episode and ``-gain`` at every trial that continues it. That is the signal the environment did not have --
@@ -211,15 +218,22 @@ class CueActionEnv:
         symbols = np.asarray(symbols, dtype=np.int64)
         u = np.zeros((len(symbols), self.tau, self.n_neurons))
         r = None if not self.noise else (np.random.default_rng(0) if rng is None else rng)
-        #: **the episode's cues**, one per trial, placed from the first trial on and then the one the label is
-        #: written on. The earlier pulses come first so that a single-trial call draws exactly the noise it always
-        #: has, and the episode only adds the draws before it.
+        #: **the episode's cues**, one per trial, and the one the label is written on. The pulses are placed in the
+        #: order the noise is drawn in, so a single-trial call draws exactly what it always has and the episode only
+        #: adds the draws beside it. `label_first` moves the label's pulse to the first trial and the episode's other
+        #: symbols to the trials after it, one column each; off, the label is the last trial.
         pulses = []
         if self.episode_len > 1 and episode_symbols is not None:
-            earlier = np.asarray(episode_symbols, dtype=np.int64)
-            for j in range(self.episode_len - 1):
-                pulses.append((j * self.trial_len + self.cue_at, earlier[:, j]))
-        pulses.append((self.last_cue_step, symbols))
+            other = np.asarray(episode_symbols, dtype=np.int64)
+            if self.label_first:
+                pulses.append((self.cue_at, symbols))
+                for j in range(1, self.episode_len):
+                    pulses.append((j * self.trial_len + self.cue_at, other[:, j - 1]))
+            else:
+                for j in range(self.episode_len - 1):
+                    pulses.append((j * self.trial_len + self.cue_at, other[:, j]))
+        if not self.label_first or self.episode_len <= 1 or episode_symbols is None:
+            pulses.append((self.last_cue_step, symbols))
         for step, sym in pulses:
             u[:, step, self.cue_neurons] = self.cue_templates[sym]
             if r is not None:
@@ -378,6 +392,8 @@ class CueActionEnv:
                 #: and the rule the boundary is, where it is one: `e491`'s flag, recorded on the same reasoning and
                 #: only where it is on
                 **({"episode_reset": True} if (self.episode_reset and self.episode_len > 1) else {}),
+                #: and where the label sits, where the episode has more than one trial to sit in
+                **({"label_first": True} if (self.label_first and self.episode_len > 1) else {}),
                 #: and the boundary's own population, on the same reasoning, and the field the flag adds
                 **({"boundary_sha1": _sha(self.boundary_neurons),
                     "n_boundary": int(len(self.boundary_neurons)),
@@ -512,7 +528,8 @@ def build(circ, readout_subset=None, n_symbols: int = 2, tau: int = 12, n_cue: i
           world_coupled: bool = False, world_nonlinear: bool = False,
           drive_from_cue: bool = False, cue_seed: int | None = None, reward: bool = False,
           episode: int = 1, boundary: bool = False, n_boundary: int = 8,
-          boundary_gain: float = 1.0, episode_reset: bool = False) -> CueActionEnv:
+          boundary_gain: float = 1.0, episode_reset: bool = False,
+          label_first: bool = False) -> CueActionEnv:
     """Draw the three populations disjointly and the cue templates, all from ``seed``.
 
     ``readout_subset`` is the decoder's own draw and is **not** available to the environment: the action is read off
@@ -579,6 +596,9 @@ def build(circ, readout_subset=None, n_symbols: int = 2, tau: int = 12, n_cue: i
                         #: rest. An episode of one trial has nothing to reset, so the flag is inert there and the
                         #: draw does not record it
                         episode_reset=bool(episode_reset) and episode > 1,
+                        #: and **where the label sits**, when the pass has more than one trial to sit in: `e495`'s
+                        #: flag, a rule and not a draw, recorded only where it is on
+                        label_first=bool(label_first) and episode > 1,
                         boundary_neurons=(np.sort(rng.choice(
                             np.setdiff1d(pool, np.concatenate([cue, action, feedback])),
                             size=n_boundary, replace=False)) if boundary else None),

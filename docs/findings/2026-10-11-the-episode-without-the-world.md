@@ -71,3 +71,7 @@ what the episode is paying.**
   the card's own world, budget and seed stream.
 - **And the pass's shape is not swept**: a label first and a distractor after, a third cue, a longer pass and a read
   at every trial are four different passes and none of them is here.
+
+## RE-READ 2026-10-12
+
+**The first of the four passes this unit named is measured, and it is learned.** This unit closed on *a label first and a distractor after, a third cue, a longer pass and a read at every trial are four different passes and none of them is here*. `e495` supplies the first: the label at the pass's first trial, with the same read, the same world, the same two trials and the same distractor, reads **0.8299**, **0.8139** and **0.8267** where this unit's own pass reads **0.3104**, **0.2944** and **0.3031** -- changes of **+0.5194**, **+0.5194** and **+0.5236** at **+62.79**, **+40.52** and **+48.18** sigma. So the pass's shape this unit left as the cost is the label's **position**, worth half the task, and a third cue, a longer pass and a read at every trial are the parts still unmeasured. This unit's numbers stand.

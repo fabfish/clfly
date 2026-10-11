@@ -1229,6 +1229,13 @@ def main(argv=None) -> int:
     p.add_argument("--loop-episode-reset", action="store_true",
                    help="drop the world's state at every trial's first step, so each trial starts from a world at "
                         "rest; needs an episode longer than one trial, where there is something to drop")
+    #: **where the label is.** Off, the cue the task's label names is the episode's last trial and the label's drive has
+    #: only the pass's tail after it. On, that cue is the pass's **first** trial and the episode's other symbols fill
+    #: the trials after it, so the label has the whole pass to reach the read through while it is the oldest cue in the
+    #: pass rather than the newest -- the corpus's own eleven-step window inside an episode.
+    p.add_argument("--loop-label-first", action="store_true",
+                   help="put the cue the label names at the episode's first trial and the episode's other symbols "
+                        "after it, so the label's window is the whole pass; needs an episode longer than one trial")
     #: `e339` measured that `--seed0` is three draws at once -- it seeds the training replicates, the read-out
     #: subset (`--readout-seed` defaults to it) and, through here, the environment's three populations. So no
     #: artifact in this corpus is a seed-stream comparison: the pair that would be one needs this flag and
@@ -1341,7 +1348,9 @@ def main(argv=None) -> int:
                                  episode=getattr(args, "loop_episode", 1),
                                  boundary=getattr(args, "loop_boundary", False),
                                  #: and the rule the boundary is, where the run asks the world to obey it
-                                 episode_reset=getattr(args, "loop_episode_reset", False))
+                                 episode_reset=getattr(args, "loop_episode_reset", False),
+                                 #: and **where the label sits**, where the run asks for a pass with more than one trial
+                                 label_first=getattr(args, "loop_label_first", False))
         suite = [fly_env.make_env_task(loop_env, f"loop_{spec[0]}",
                                        symbols=range(i * args.loop_symbols, (i + 1) * args.loop_symbols),
                                        n_train=args.train, n_test=args.test,
@@ -1386,6 +1395,12 @@ def main(argv=None) -> int:
     if getattr(args, "loop_episode_reset", False) and getattr(args, "loop_episode", 1) < 2:
         raise SystemExit("--loop-episode-reset drops the world's state between trials, so it needs --loop-episode 2 "
                          "or more; at one trial per pass the world already starts at rest")
+    if getattr(args, "loop_label_first", False) and getattr(args, "loop_episode", 1) < 2:
+        raise SystemExit("--loop-label-first moves the label into the first of the pass's trials, so it needs "
+                         "--loop-episode 2 or more; at one trial the label is the only cue")
+    if getattr(args, "loop_label_first", False) and getattr(args, "loop_reward", False):
+        raise SystemExit("--loop-label-first and --loop-reward together would pay a target read off the pass's last "
+                         "cue while the label is its first, so the payout is not this flag's")
     if getattr(args, "loop_holdout", False):
         if not args.closed_loop:
             raise SystemExit("--loop-holdout needs the closed loop, so not without --closed-loop")

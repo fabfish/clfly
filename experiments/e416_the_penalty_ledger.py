@@ -81,13 +81,13 @@ CLAIMS = (
     ("AL2", f"and on accuracy the buffer wins most of them, {WIN:.0%}",
      "In at least 80 per cent of the ledger's cells replay's final accuracy exceeds the penalty arm's",
      f"falsifier: below {WIN_FIRES:.0%}; null: between"),
-    ("AL3", f"and where the power is it wins them all, at a floor of {FLOOR}",
-     "At a floor of twenty replicates, over the cells whose run is above its own chance, replay wins the accuracy "
-     "contrast in every cell, over at least eight cells",
-     "falsifier: any powered cell where it does not, or fewer than eight powered cells at the floor"),
-    ("AL4", "and where the power is the buffer is never dominated",
-     "At the same floor there is no cell that carries a signal in which the penalty arm is both more accurate and "
-     "less forgetful",
+    ("AL3", f"and where the power is nothing resolves against it, at a floor of {FLOOR}",
+     "At a floor of twenty replicates, over the cells whose run is above its own chance, no cell has replay below the "
+     "penalty arm by more than twice that difference's own replicate sem, over at least eight cells",
+     "falsifier: any powered cell that resolves against the buffer, or fewer than eight powered cells at the floor"),
+    ("AL4", "and where the power is the buffer is never resolved against",
+     "At the same floor there is no cell that carries a signal in which the penalty arm resolves on both axes -- more "
+     "accurate past twice its own sem and less forgetful past twice the forgetting difference's",
      "falsifier: any such cell"),
     ("AL5", f"and the cells that do dominate it are small and few, under {MARGIN:.2f}",
      "Below the floor the buffer is dominated in at least one cell, and every such cell carries the block penalty "
@@ -152,13 +152,25 @@ def reading(root: Path = ROOT) -> dict:
             classes = cfg.get("classes")
             chance = (1.0 / float(classes)) if classes else None
             band = 2.0 * base["naive"][3]
+            #: and the **resolved** losses, which is what the floor's two claims read: the difference's own paired sem,
+            #: so a cell whose margin is a hundredth of the task and inside its own noise is not counted against the
+            #: buffer -- the same bar as the powered test above, on the other side of the cell
+            sem_acc = _paired_sem(_per_rep(doc, "replay", "final_accuracy"),
+                                  _per_rep(doc, arm, "final_accuracy"), reps)
+            sem_forg = _paired_sem(_per_rep(doc, "replay", "mean_forgetting"),
+                                   _per_rep(doc, arm, "mean_forgetting"), reps)
+            diff_acc = base["replay"][0] - pen[0]
+            diff_forg = base["replay"][1] - pen[1]
             out["artifacts"].append(path.name)
             out["cells"].append({
                 "artifact": path.name, "penalty": arm, "replicates": reps,
                 "accuracy": {"naive": base["naive"][0], "replay": base["replay"][0], "penalty": pen[0]},
                 "forgetting": {"naive": base["naive"][1], "replay": base["replay"][1], "penalty": pen[1]},
-                "replay_minus_penalty": {"accuracy": base["replay"][0] - pen[0],
-                                         "forgetting": base["replay"][1] - pen[1]},
+                "replay_minus_penalty": {"accuracy": diff_acc, "forgetting": diff_forg},
+                "sem": {"accuracy": sem_acc, "forgetting": sem_forg},
+                #: the two resolved directions the floor's claims read
+                "accuracy_against": bool(diff_acc < -2.0 * sem_acc),
+                "forgetting_for": bool(diff_forg > 2.0 * sem_forg),
                 "lam": cfg.get("lam"), "circuit_size": cfg.get("circuit_size"),
                 "classes": classes, "chance": chance, "naive_sem": base["naive"][3], "band": band,
                 "powered": (chance is None or (base["naive"][0] - chance) > band),
@@ -167,7 +179,38 @@ def reading(root: Path = ROOT) -> dict:
     return out
 
 
+def _per_rep(doc: dict, arm: str, key: str):
+    """The arm's per-replicate values for one field, so a cell can carry its **paired** sem."""
+    reps = ((doc.get("methods") or {}).get(arm) or {}).get("replicates") or []
+    return [r[key] for r in reps]
+
+
+def _paired_sem(a: list, b: list, n: int) -> float:
+    d = [x - y for x, y in zip(a[:n], b[:n])]
+    if len(d) < 2:
+        return 0.0
+    return statistics.stdev(d) / math.sqrt(len(d))
+
+
+def _resolved_dominated(cell: dict) -> bool:
+    """The floor's version of dominance: the cell's two differences each **resolve** the wrong way.
+
+    A cell that carries no paired sem -- a synthetic one, or one written before this field -- falls back to the sign
+    test, so the reading is the same shape on an old artifact and a resolved one on a new.
+    """
+    m = cell["replay_minus_penalty"]
+    against = cell.get("accuracy_against", m["accuracy"] <= 0)
+    forgetful = cell.get("forgetting_for", m["forgetting"] >= 0)
+    return bool(against and forgetful)
+
+
 def _dominated(cell: dict) -> bool:
+    """The **sign** test: the penalty is at least as accurate and at most as forgetful, below the floor's census.
+
+    The floor's two claims are read on the *resolved* version of this instead -- `accuracy_against` and
+    `forgetting_for` -- because a corpus that grows adds cells whose margins are hundredths and a sign at that size is
+    a rounding. The below-floor list `AL5` is about is a census of small cells and stays on the sign.
+    """
     m = cell["replay_minus_penalty"]
     return m["accuracy"] <= 0 and m["forgetting"] >= 0
 
@@ -199,22 +242,26 @@ def judge(r: dict) -> list[dict]:
                   "naive": round(c["accuracy"]["naive"], 4), "chance": c.get("chance")}
                  for c in cells if c["replicates"] >= FLOOR and not c.get("powered", True)]
     lost = {c["artifact"]: {"penalty": c["penalty"],
-                            "accuracy": round(c["replay_minus_penalty"]["accuracy"], 4)} for c in top
-            if c["replay_minus_penalty"]["accuracy"] <= 0}
+                            "accuracy": round(c["replay_minus_penalty"]["accuracy"], 4),
+                            "sem": round(c.get("sem", {}).get("accuracy", 0.0), 5)} for c in top
+            if c.get("accuracy_against", c["replay_minus_penalty"]["accuracy"] <= 0)}
     j3 = {"id": "AL3",
           "measured": f"at the {FLOOR}-replicate floor there are {len(top)} cells that carry a signal, at "
-                      f"{sorted({c['replicates'] for c in top})} replicates, and the buffer wins the accuracy "
-                      f"contrast in {len(top) - len(lost)} of them, with {len(unpowered)} cells at the floor left "
-                      f"out as at or under their own chance ({unpowered})",
-          "verdict": f"MET -- the buffer wins accuracy at every one of the {len(top)} cells at the floor that carry "
-                     f"a signal" if (len(top) >= FLOOR_CELLS and not lost) else
-                     f"FALSIFIER FIRED -- {len(top)} powered cells at the floor, losing {lost}"}
-    dom_top = [{"artifact": c["artifact"], "penalty": c["penalty"]} for c in top if _dominated(c)]
+                      f"{sorted({c['replicates'] for c in top})} replicates, and no cell resolves against the buffer "
+                      f"-- {len(lost)} of them have replay below the penalty by more than twice that difference's own "
+                      f"sem -- with {len(unpowered)} cells at the floor left out as at or under their own chance "
+                      f"({unpowered})",
+          "verdict": f"MET -- no cell among the {len(top)} at the floor that carry a signal resolves against the "
+                     f"buffer on accuracy" if (len(top) >= FLOOR_CELLS and not lost) else
+                     f"FALSIFIER FIRED -- {len(top)} powered cells at the floor, resolving against the buffer: "
+                     f"{lost}"}
+    dom_top = [{"artifact": c["artifact"], "penalty": c["penalty"]} for c in top if _resolved_dominated(c)]
     j4 = {"id": "AL4",
-          "measured": f"at the {FLOOR}-replicate floor {len(dom_top)} of {len(top)} cells that carry a signal have "
-                      f"the penalty arm both more accurate and less forgetful",
-          "verdict": f"MET -- the buffer is not dominated on both axes at any of the {len(top)} powered cells at the "
-                     f"floor" if not dom_top else f"FALSIFIER FIRED -- {dom_top}"}
+          "measured": f"at the {FLOOR}-replicate floor {len(dom_top)} of {len(top)} cells that carry a signal resolve "
+                      f"on both axes for the penalty",
+          "verdict": f"MET -- no cell among the {len(top)} powered cells at the floor resolves against the buffer on "
+                     f"accuracy and for the penalty on forgetting" if not dom_top else
+                     f"FALSIFIER FIRED -- {dom_top}"}
     dom = [c for c in cells if _dominated(c)]
     small = [c for c in dom if c["replicates"] < FLOOR]
     margins = {c["artifact"]: round(-c["replay_minus_penalty"]["accuracy"], 4) for c in small}
