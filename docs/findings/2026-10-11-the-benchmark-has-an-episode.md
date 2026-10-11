@@ -89,3 +89,7 @@ boundary is worth anything to an agent that has to *act* on it is a question thi
   dominate; a second leak, or a nonlinear world, is not in it.
 - **And the card still names an episode boundary**: a clause in the card is a revision and this unit is the
   environment, the runner and the reading, so the `absent` list is untouched.
+
+## RE-READ 2026-10-11
+
+**The card names an episode no longer.** This unit closed on what it left owed -- *the card still names an episode boundary*, a clause being a revision -- and `e490` wrote revision 17: an `episode` clause read from these two runs and from this unit's own two measurements recomputed rather than quoted (**0.7601** at **12.62** sigma over **64** episodes against a state scale of **0.7727**, the single-trial value **0.0e+00**, the boundary's eight neurons at gain **1.0** with marks `+1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0`), and **an episode boundary** removed from the card's `absent` list -- which is now **empty**, for the first time since `e392` wrote the card down. The clause carries this unit's fourth claim's firing with it: every arm within **0.05** of the four-class chance and no boundaried contrast resolving.
