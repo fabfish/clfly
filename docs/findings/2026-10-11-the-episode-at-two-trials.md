@@ -75,3 +75,7 @@ has: the trial's own time axis is where the label lives, and an episode takes it
   ranks the splits and does not say what a trained head can find in them -- and a trained arm's chance accuracy at a
   5.7% residue is a statement about the head as much as about the residue.
 - **And one budget, one world and one seed stream**: the card's own setting.
+
+## RE-READ 2026-10-11
+
+**The instrument's share ranks the pass's splits and not the reads.** This unit's *cannot settle* closed on the instrument being at an untrained body -- *it ranks the splits and does not say what a trained head can find in them* -- and `e493` measured the same quantity on the model's own thirty-two columns and found the accuracy going the other way. The world's read carries the larger **share** at both lengths (**0.0571** against **0.0386** at two trials, **1.4673** against **1.0494** at one), and the head that reads the model gains **+0.0670**, **+0.0521** and **+0.0698** at **+7.00**, **+4.07** and **+7.29** sigma over the same episode's world read. So the share is a scale-free quantity and not a dimension-free one, and what it ranks is the pass's splits at one width: the collapse from **0.9144** to **0.0377** stands as this unit's reading, and the between-read ranking is the instrument's and not the head's.

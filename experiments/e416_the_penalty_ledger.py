@@ -53,6 +53,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import statistics
 import sys
 from pathlib import Path
@@ -104,11 +105,14 @@ def load(path) -> dict | None:
 
 
 def _stats(doc: dict, arm: str):
+    """The arm's two means, its replicate count, and the **sem** of the accuracy -- which the powered test needs."""
     reps = ((doc.get("methods") or {}).get(arm) or {}).get("replicates") or []
     if not reps:
         return None
-    return (statistics.fmean([r["final_accuracy"] for r in reps]),
-            statistics.fmean([r["mean_forgetting"] for r in reps]), len(reps))
+    acc = [r["final_accuracy"] for r in reps]
+    sem = (statistics.stdev(acc) / math.sqrt(len(acc))) if len(acc) > 1 else 0.0
+    return (statistics.fmean(acc),
+            statistics.fmean([r["mean_forgetting"] for r in reps]), len(reps), sem)
 
 
 def reading(root: Path = ROOT) -> dict:
@@ -136,15 +140,18 @@ def reading(root: Path = ROOT) -> dict:
                 continue
             reps = min(base["naive"][2], base["replay"][2], pen[2])
             cfg = doc.get("config") or {}
-            #: **whether the cell is a comparison at all.** `e489` put two runs in the corpus whose pass is an
-            #: episode of three trials, and whose arms all sit at the four-class chance: there the contrast between
-            #: `replay` and a penalty is a contrast of noise, and this ledger's powered claims are about cells that
-            #: carry a signal. So each cell records its run's own chance (`1 / classes`, from the configuration) and
-            #: its `naive` arm's final accuracy, and the floor claims are read over the cells whose `naive` is above
-            #: it. The criterion is a comparison to a number the run itself declares and not a tuned threshold, and
-            #: a configuration with no `classes` is powered rather than dropped.
+            #: **whether the cell is a comparison at all.** `e489` put runs in the corpus whose pass is an episode of
+            #: trials and whose arms all sit at the four-class chance: there the contrast between `replay` and a
+            #: penalty is a contrast of noise, and this ledger's powered claims are about cells that carry a signal.
+            #: So each cell records its run's own chance (`1 / classes`, from the configuration) and its `naive` arm's
+            #: final accuracy with that arm's own sem, and the floor claims are read over the cells whose `naive`
+            #: beats its chance by **more than twice its own replicate noise** -- `e492`'s run is the cell that made
+            #: the band necessary, its baseline sitting **0.0007** above chance across twenty replicates. The
+            #: criterion is a significance test at the bar this project uses everywhere and not a tuned threshold,
+            #: and a configuration with no `classes` is powered rather than dropped.
             classes = cfg.get("classes")
             chance = (1.0 / float(classes)) if classes else None
+            band = 2.0 * base["naive"][3]
             out["artifacts"].append(path.name)
             out["cells"].append({
                 "artifact": path.name, "penalty": arm, "replicates": reps,
@@ -153,8 +160,8 @@ def reading(root: Path = ROOT) -> dict:
                 "replay_minus_penalty": {"accuracy": base["replay"][0] - pen[0],
                                          "forgetting": base["replay"][1] - pen[1]},
                 "lam": cfg.get("lam"), "circuit_size": cfg.get("circuit_size"),
-                "classes": classes, "chance": chance,
-                "powered": (chance is None or base["naive"][0] > chance),
+                "classes": classes, "chance": chance, "naive_sem": base["naive"][3], "band": band,
+                "powered": (chance is None or (base["naive"][0] - chance) > band),
             })
     out["artifacts"] = sorted(set(out["artifacts"]))
     return out

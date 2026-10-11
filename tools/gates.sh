@@ -520,4 +520,6 @@ run e491 python -m experiments.e491_the_boundary_the_world_obeys --json-out runs
 
 run e492 python -m experiments.e492_the_episode_at_two_trials --json-out runs/e492_the_episode_at_two_trials.json
 
+run e493 python -m experiments.e493_the_read_the_world_loses --json-out runs/e493_the_read_the_world_loses.json
+
 echo "ALL DONE"
