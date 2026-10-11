@@ -1222,6 +1222,13 @@ def main(argv=None) -> int:
     p.add_argument("--loop-boundary", action="store_true",
                    help="give the episode a boundary channel: +gain at the step the episode opens and -gain at every "
                         "later trial's first step, so the agent is told whether the state it carries is at rest")
+    #: **the boundary the world obeys**, the other half of the channel: the flag above tells the agent where the
+    #: episode opens, and this one makes the world's state actually **start there**, so what the read step sees is the
+    #: last trial and not the episode. Off is every artifact in the corpus, where the channel is a signal over a
+    #: carry that runs the whole pass.
+    p.add_argument("--loop-episode-reset", action="store_true",
+                   help="drop the world's state at every trial's first step, so each trial starts from a world at "
+                        "rest; needs an episode longer than one trial, where there is something to drop")
     #: `e339` measured that `--seed0` is three draws at once -- it seeds the training replicates, the read-out
     #: subset (`--readout-seed` defaults to it) and, through here, the environment's three populations. So no
     #: artifact in this corpus is a seed-stream comparison: the pair that would be one needs this flag and
@@ -1332,7 +1339,9 @@ def main(argv=None) -> int:
                                  #: Both are drawn after everything else, so a run that asks for neither is
                                  #: bit-identical through them
                                  episode=getattr(args, "loop_episode", 1),
-                                 boundary=getattr(args, "loop_boundary", False))
+                                 boundary=getattr(args, "loop_boundary", False),
+                                 #: and the rule the boundary is, where the run asks the world to obey it
+                                 episode_reset=getattr(args, "loop_episode_reset", False))
         suite = [fly_env.make_env_task(loop_env, f"loop_{spec[0]}",
                                        symbols=range(i * args.loop_symbols, (i + 1) * args.loop_symbols),
                                        n_train=args.train, n_test=args.test,
@@ -1374,6 +1383,9 @@ def main(argv=None) -> int:
         raise SystemExit("--loop-episode and --loop-boundary are the loop environment's, so not without --closed-loop")
     if getattr(args, "loop_episode", 1) < 1 or 12 % getattr(args, "loop_episode", 1):
         raise SystemExit("--loop-episode must divide the loop's twelve-step pass exactly, so one of 1, 2, 3, 4, 6, 12")
+    if getattr(args, "loop_episode_reset", False) and getattr(args, "loop_episode", 1) < 2:
+        raise SystemExit("--loop-episode-reset drops the world's state between trials, so it needs --loop-episode 2 "
+                         "or more; at one trial per pass the world already starts at rest")
     if getattr(args, "loop_holdout", False):
         if not args.closed_loop:
             raise SystemExit("--loop-holdout needs the closed loop, so not without --closed-loop")

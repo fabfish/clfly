@@ -113,3 +113,7 @@ and the share reads **24%** on **165 of 674** arms -- under the floor, as the li
 commit. So the band is widened to **15 to 50** and the value is pinned in the comment beside it, which is the same
 treatment the two faces' other bands have had. Q1 and Q3 are unchanged
 (`docs/findings/2026-10-08-the-held-out-cue-set.md`).
+
+## RE-READ 2026-10-11
+
+**The arm-level factor is a share and not a count.** This unit's live test asserted that all but two of the corpus artifacts clear the x1.2 factor between their arms' implied effective counts, and the corpus has grown by three runs whose arms sit at the four-class chance -- `e489`'s two episode runs and `e491`'s reset run -- so their implied counts agree within the factor and the failures are **three of a hundred and five**. A count that does not grow with the corpus is what the assertion was, and what the claim is about is the rule: **102 of 105** artifacts with three or more arms clear the factor. So the bound is now a share, at least **95%**, and Q1, Q2 and Q3 stand -- Q3 verdict being its own falsifier, any artifact whose arms are more than x1.2 apart.

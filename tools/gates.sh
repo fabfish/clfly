@@ -516,4 +516,6 @@ run e489 python -m experiments.e489_the_benchmark_has_an_episode --json-out runs
 
 run e490 python -m experiments.e490_the_game_card_revision_seventeen --json-out runs/e490_the_game_card_revision_seventeen.json
 
+run e491 python -m experiments.e491_the_boundary_the_world_obeys --json-out runs/e491_the_boundary_the_world_obeys.json
+
 echo "ALL DONE"

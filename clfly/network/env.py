@@ -131,6 +131,13 @@ class CueActionEnv:
     #: The trial's length divides ``tau`` exactly, because a partial last trial would be a different episode at
     #: every length; the runner refuses a value that does not divide.
     episode_len: int = 1
+    #: **what the boundary does.** False is every artifact this corpus holds: the boundary is a **signal** and the
+    #: world carries its state across the whole episode, so the read step sees the episode and not the last trial --
+    #: which `e489` measured, the earlier trials moving the state by **0.7601** at **12.62** sigma. True makes the
+    #: boundary the thing it marks: at every trial's first step the carried state is **dropped**, so each trial starts
+    #: from a world at rest and what the read step sees is the last trial alone. It changes the **rule** and draws
+    #: nothing, so it is recorded in the draw only where it is on, on the same reasoning `episode_len` is.
+    episode_reset: bool = False
     #: **the episode's own boundary.** A set of neurons, disjoint from the three populations and drawn from the same
     #: seed, which carries ``boundary_gain`` at the first step of **every trial**: ``+gain`` at the trial that opens
     #: the episode and ``-gain`` at every trial that continues it. That is the signal the environment did not have --
@@ -286,6 +293,13 @@ class CueActionEnv:
                     fn.last_reward = -((carried["w"] - carried["target"]) ** 2).sum(dim=1)
                 p = torch.as_tensor(np.asarray(self.world_drive), dtype=x.dtype)
                 q = torch.as_tensor(np.asarray(self.world_read), dtype=x.dtype)
+                #: **the world obeys the boundary.** With the episode's reset on, a trial's first step starts from a
+                #: world at rest: the state carried out of the previous trial is dropped here, which cuts the
+                #: gradient through it exactly as it cuts the state. Off, this is a no-op and the recursion below is
+                #: the recursion every artifact holds.
+                if (self.episode_reset and self.episode_len > 1 and t > 0
+                        and (t - self.cue_at) % self.trial_len == 0):
+                    carried["w"] = torch.zeros_like(carried["w"])
                 if self.world_coupled is None:
                     carried["w"] = ((1.0 - self.world_leak) * carried["w"]
                                     + self.world_leak * (drive @ p.T))
@@ -361,6 +375,9 @@ class CueActionEnv:
                 #: recorded only where there is an episode longer than a trial, so every earlier artifact's draw is
                 #: the one it always was
                 **({"episode_len": self.episode_len} if self.episode_len > 1 else {}),
+                #: and the rule the boundary is, where it is one: `e491`'s flag, recorded on the same reasoning and
+                #: only where it is on
+                **({"episode_reset": True} if (self.episode_reset and self.episode_len > 1) else {}),
                 #: and the boundary's own population, on the same reasoning, and the field the flag adds
                 **({"boundary_sha1": _sha(self.boundary_neurons),
                     "n_boundary": int(len(self.boundary_neurons)),
@@ -495,7 +512,7 @@ def build(circ, readout_subset=None, n_symbols: int = 2, tau: int = 12, n_cue: i
           world_coupled: bool = False, world_nonlinear: bool = False,
           drive_from_cue: bool = False, cue_seed: int | None = None, reward: bool = False,
           episode: int = 1, boundary: bool = False, n_boundary: int = 8,
-          boundary_gain: float = 1.0) -> CueActionEnv:
+          boundary_gain: float = 1.0, episode_reset: bool = False) -> CueActionEnv:
     """Draw the three populations disjointly and the cue templates, all from ``seed``.
 
     ``readout_subset`` is the decoder's own draw and is **not** available to the environment: the action is read off
@@ -558,6 +575,10 @@ def build(circ, readout_subset=None, n_symbols: int = 2, tau: int = 12, n_cue: i
                         #: everything else and out of the pool minus the three populations, so a run that asks for
                         #: no boundary is bit-identical through the flag and a channel cannot read another's neurons
                         episode_len=episode,
+                        #: **the boundary the world obeys**, when a run asks for the reset: the trials' world at
+                        #: rest. An episode of one trial has nothing to reset, so the flag is inert there and the
+                        #: draw does not record it
+                        episode_reset=bool(episode_reset) and episode > 1,
                         boundary_neurons=(np.sort(rng.choice(
                             np.setdiff1d(pool, np.concatenate([cue, action, feedback])),
                             size=n_boundary, replace=False)) if boundary else None),
