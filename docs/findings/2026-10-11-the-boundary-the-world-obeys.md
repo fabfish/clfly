@@ -71,3 +71,7 @@ card's own episode length. **So what moved is the world's rule and not the game.
   about small ones.
 - **And the boundary channel is unedited**: what this unit changes is the world's rule, and what a **policy** would
   make of a boundary it can act on is `e488`'s question and not this one.
+
+## RE-READ 2026-10-11
+
+**The first rung of the sweep this unit named is measured, and it is flat.** This unit closed on *a sweep of two, three, four and six -- which is the window this unit's firing points at -- is not in the unit*. `e492` supplies its first rung: the episode at **two trials**, the pass's other split of the same twelve, the label's cue at step **6** instead of **8** and the read at the same step **11**, so the label gets **five** drive steps instead of three and the episode carries one distractor trial instead of two. Every arm is still at the four-class chance -- **0.2434**, **0.2424** and **0.2333** against **0.25**, each *below* this unit's two-trial counterpart run by **0.0042**, **0.0073** and **0.0191** -- while the label's own part of the read step's state rises from **0.0001** to **0.0377** against **0.9144** at one trial. So the window is not the cost either, and what this unit left as a candidate is what is left: the model's recurrent state, untouched, and the read itself.

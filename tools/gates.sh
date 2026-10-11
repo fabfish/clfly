@@ -518,4 +518,6 @@ run e490 python -m experiments.e490_the_game_card_revision_seventeen --json-out 
 
 run e491 python -m experiments.e491_the_boundary_the_world_obeys --json-out runs/e491_the_boundary_the_world_obeys.json
 
+run e492 python -m experiments.e492_the_episode_at_two_trials --json-out runs/e492_the_episode_at_two_trials.json
+
 echo "ALL DONE"
