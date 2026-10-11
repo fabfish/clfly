@@ -67,3 +67,7 @@ made the card's account of its arms a claim the reward's own currency contradict
   **0.35** in a currency whose cells run about **-6.9**.
 - **And the card still cannot say what an episode is**: the `absent` list's one remaining entry is **an episode
   boundary**, and nothing in the corpus has one.
+
+## RE-READ 2026-10-11
+
+**The corpus has an episode now, and this unit's clause is what is owed.** Revision 16 removed a reward from the `absent` list and left **an episode boundary** in it, and its own *cannot settle* closed on *nothing in the corpus has an episode boundary*. `e489` gave `CueActionEnv` the episode -- `episode_len` trials to a pass, one cue each and the world's state the episode's rather than the last trial's -- and the runner `--loop-episode` and `--loop-boundary`, and measured it: the earlier trials move the world's state at the read step by **0.7601** at **12.62** sigma over **64** episodes against a state scale of **0.7727**, while at one trial the same manipulation moves it by **exactly zero**, and a boundary channel of eight neurons carries `+1` at the episode's opening, `-1` at every continuing trial and zero elsewhere. **And at three trials the benchmark's own read-out puts every arm at chance** (**0.2476**, **0.2451**, **0.2413** against **0.25**), which is what the read step being the pass's last one costs. So the list's one entry is owed by a card revision and not by the environment, and this row's numbers stand.

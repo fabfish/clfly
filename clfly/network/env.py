@@ -121,20 +121,62 @@ class CueActionEnv:
     #: label readable from the drive at the moment it is read, which is the control the latch hypothesis needs --
     #: a task that does not have to hold anything.
     cue_at: int = 0
+    #: **the episode.** One is every artifact this repository holds: a pass is **one trial**, a cue at step ``cue_at``
+    #: and the loop after it, and the world's state is the trial's. Above one the pass holds this many trials, one
+    #: every ``tau // episode_len`` steps, each with the cue at its own first step -- so what the world carries at the
+    #: read step is the **episode's** state and not the last trial's, and the trials before the last are the episode's
+    #: own history rather than other examples. This is the structure `e322` and `e333` named as missing (*"the trial
+    #: has no time axis"*): the smallest object above the trial that the environment can hold.
+    #:
+    #: The trial's length divides ``tau`` exactly, because a partial last trial would be a different episode at
+    #: every length; the runner refuses a value that does not divide.
+    episode_len: int = 1
+    #: **the episode's own boundary.** A set of neurons, disjoint from the three populations and drawn from the same
+    #: seed, which carries ``boundary_gain`` at the first step of **every trial**: ``+gain`` at the trial that opens
+    #: the episode and ``-gain`` at every trial that continues it. That is the signal the environment did not have --
+    #: the agent is told whether the world's state it is carrying is at rest -- and it is **not** deducible from the
+    #: cue, since the cue pulses at every trial's first step whatever the trial's position. ``None`` is every artifact
+    #: this repository holds, so a run that does not ask for a boundary is bit-identical through it.
+    boundary_neurons: np.ndarray | None = None
+    boundary_gain: float = 0.0
+
+    @property
+    def trial_len(self) -> int:
+        """The steps one trial of the episode gets: ``tau`` split evenly, which the builder enforces."""
+        return max(1, self.tau // max(1, self.episode_len))
+
+    @property
+    def last_cue_step(self) -> int:
+        """The step the episode's **last** cue arrives at: the step the payout's target is read one step after."""
+        return (max(1, self.episode_len) - 1) * self.trial_len + self.cue_at
+
+    @property
+    def target_step(self) -> int:
+        """The step the payout's target is read at: **one step after the last cue arrives**, where the pass is an
+        episode, and step **1** where it is a single trial.
+
+        The single-trial rule is the rule this corpus has always run and not a special case of the episode's: at
+        ``cue_at = 0`` the two agree, and at ``cue_at = tau - 1`` the corpus's reads the target at step **1**, before
+        the cue is in the input at all -- which is the late-cue control `e483` measured, and whose number ("exactly
+        zero at the read step") its artifact and its card clause carry. So the episode's rule is used only where
+        there is an episode, and a single-trial environment is the one it always was, target step included.
+        """
+        if self.episode_len <= 1:
+            return 1
+        return min(self.last_cue_step + 1, self.tau - 1)
 
     @property
     def n_symbols(self) -> int:
         return int(self.cue_templates.shape[0])
 
-    def cue_input(self, symbols: np.ndarray, rng=None) -> np.ndarray:
-        """The trial's input array: the cue at step ``0``, **nothing after it**.
+    def cue_pulse(self, symbols: np.ndarray, rng=None) -> np.ndarray:
+        """**The single-trial input**: one cue at ``cue_at`` and nothing after it, written the way the corpus has
+        always written it.
 
-        The zeros from step ``1`` on are what make the loop load-bearing rather than decorative -- with the cue held
-        for the whole trial a decoder that ignored the state could read it off the drive, which is the sustained
-        suite's situation and not this one.
-
-        ``rng`` seeds the cue's noise; passing none uses a fixed seed, so a call without one is reproducible, and
-        with ``noise = 0`` this is bit-identical to the version that had no noise at all.
+        This is what a pass was before the episode existed, and it is kept as its own method so that the episode's
+        own path can be **checked against it** rather than against a reconstruction: :meth:`cue_input` at
+        ``episode_len = 1`` has to return this array bit for bit, and `e489`, which added the episode, registers that
+        as the endpoint its claims are read from. A caller that wants a single trial should use this one.
         """
         symbols = np.asarray(symbols, dtype=np.int64)
         u = np.zeros((len(symbols), self.tau, self.n_neurons))
@@ -143,6 +185,39 @@ class CueActionEnv:
             r = np.random.default_rng(0) if rng is None else rng
             u[:, self.cue_at, self.cue_neurons] += self.noise * r.standard_normal(
                 (len(symbols), len(self.cue_neurons)))
+        return u
+
+    def cue_input(self, symbols: np.ndarray, rng=None, episode_symbols=None) -> np.ndarray:
+        """The episode's input array: one cue per trial, at each trial's first step, and **nothing after it**.
+
+        The zeros from step ``1`` on are what make the loop load-bearing rather than decorative -- with the cue held
+        for the whole trial a decoder that ignored the state could read it off the drive, which is the sustained
+        suite's situation and not this one.
+
+        With ``episode_len > 1`` every trial gets its own pulse and ``episode_symbols`` carries the earlier trials'
+        symbols, one column per trial, with ``symbols`` the last of them -- so ``u`` holds the episode and the label
+        is its final trial. A single-trial call is the array this method has always returned.
+
+        ``rng`` seeds the cue's noise; passing none uses a fixed seed, so a call without one is reproducible, and
+        with ``noise = 0`` this is bit-identical to the version that had no noise at all.
+        """
+        symbols = np.asarray(symbols, dtype=np.int64)
+        u = np.zeros((len(symbols), self.tau, self.n_neurons))
+        r = None if not self.noise else (np.random.default_rng(0) if rng is None else rng)
+        #: **the episode's cues**, one per trial, placed from the first trial on and then the one the label is
+        #: written on. The earlier pulses come first so that a single-trial call draws exactly the noise it always
+        #: has, and the episode only adds the draws before it.
+        pulses = []
+        if self.episode_len > 1 and episode_symbols is not None:
+            earlier = np.asarray(episode_symbols, dtype=np.int64)
+            for j in range(self.episode_len - 1):
+                pulses.append((j * self.trial_len + self.cue_at, earlier[:, j]))
+        pulses.append((self.last_cue_step, symbols))
+        for step, sym in pulses:
+            u[:, step, self.cue_neurons] = self.cue_templates[sym]
+            if r is not None:
+                u[:, step, self.cue_neurons] += self.noise * r.standard_normal(
+                    (len(symbols), len(self.cue_neurons)))
         return u
 
     def action(self, x) -> "object":
@@ -163,6 +238,15 @@ class CueActionEnv:
 
         def fn(x, t):
             add = torch.zeros_like(x)
+            #: **the episode's boundary.** The marker is written at every trial's first step, `+gain` where the
+            #: episode opens and `-gain` where a trial continues it, so the agent is told what the cue cannot tell
+            #: it: whether the world's state it carries is at rest. It is added to the step's input like every other
+            #: channel, and it is the environment's own signal rather than a read of the model's state.
+            if self.boundary_neurons is not None and self.boundary_gain:
+                if (t - self.cue_at) % self.trial_len == 0 and 0 <= t - self.cue_at < self.tau:
+                    opens = (t == self.cue_at)
+                    idx = torch.as_tensor(np.asarray(self.boundary_neurons), dtype=torch.long)
+                    add[:, idx] = self.boundary_gain if opens else -self.boundary_gain
             action = self.action(x)
             #: **the world's own state, readable after the pass.** A read-out that is the environment rather than the
             #: model needs the world's final state, and until this attribute existed the recursion's state was
@@ -193,7 +277,7 @@ class CueActionEnv:
                 #: one step after the cue arrives, through the drawn map -- so it is a property of what the agent is
                 #: carrying and not of a label, which is what the environment has. The reward is the negative squared
                 #: distance from the world's state to it, read at the last step and per example.
-                if self.reward_map is not None and carried.get("target") is None:
+                if self.reward_map is not None and t == self.target_step and carried.get("target") is None:
                     cue = torch.as_tensor(np.asarray(self.cue_neurons), dtype=torch.long)
                     m = torch.as_tensor(np.asarray(self.reward_map), dtype=x.dtype)
                     carried["target"] = x[:, cue] @ m.T
@@ -274,6 +358,13 @@ class CueActionEnv:
                 "world_coupled": self.world_coupled is not None, "world_nonlinear": self.world_nonlinear,
                 "drive_from_cue": self.drive_from_cue,
                 "world_coupling_sha1": _fingerprint(self.world_coupled),
+                #: recorded only where there is an episode longer than a trial, so every earlier artifact's draw is
+                #: the one it always was
+                **({"episode_len": self.episode_len} if self.episode_len > 1 else {}),
+                #: and the boundary's own population, on the same reasoning, and the field the flag adds
+                **({"boundary_sha1": _sha(self.boundary_neurons),
+                    "n_boundary": int(len(self.boundary_neurons)),
+                    "boundary_gain": self.boundary_gain} if self.boundary_neurons is not None else {}),
                 #: recorded only where there is a payout, so every earlier artifact's draw is the one it always was
                 **({"reward_map_sha1": _fingerprint(self.reward_map)} if self.reward_map is not None else {})}
 
@@ -319,12 +410,21 @@ def make_env_task(env: CueActionEnv, name: str, symbols, n_train: int, n_test: i
     y_te = rng.choice(symbols, size=n_test)
     #: the cue's noise is drawn from the task's own seed, once per example, and independently for the two splits
     cue_rng = np.random.default_rng(seed + 5000)
+    #: **the episode's earlier trials**, from a second generator: a single-trial task consumes nothing from it, so
+    #: the label's own draw is the one it always was, and the episode only adds the pulses before the label.
+    ep_rng = np.random.default_rng(seed + 7000)
+    ep_tr = ep_te = None
+    if env.episode_len > 1:
+        ep_tr = ep_rng.choice(symbols, size=(n_train, env.episode_len - 1))
+        ep_te = ep_rng.choice(symbols, size=(n_test, env.episode_len - 1))
     return RateTask(name=name,
-                    input_neurons=np.sort(np.concatenate([env.cue_neurons, env.feedback_neurons])),
+                    input_neurons=np.sort(np.concatenate(
+                        [env.cue_neurons, env.feedback_neurons]
+                        + ([env.boundary_neurons] if env.boundary_neurons is not None else []))),
                     readout_neurons=np.asarray(readout_neurons), n_classes=len(symbols),
                     n_neurons=env.n_neurons, tau=env.tau,
-                    u_train=env.cue_input(y_tr, cue_rng), y_train=y_tr - class_offset,
-                    u_test=env.cue_input(y_te, cue_rng), y_test=y_te - class_offset,
+                    u_train=env.cue_input(y_tr, cue_rng, episode_symbols=ep_tr), y_train=y_tr - class_offset,
+                    u_test=env.cue_input(y_te, cue_rng, episode_symbols=ep_te), y_test=y_te - class_offset,
                     class_offset=class_offset)
 
 
@@ -393,7 +493,9 @@ def build(circ, readout_subset=None, n_symbols: int = 2, tau: int = 12, n_cue: i
           gain: float = 1.0, noise: float = 0.0, world_modes: int = 0,
           world_leak: float = 1.0, cue_at: int = 0, world_dims: int = 0,
           world_coupled: bool = False, world_nonlinear: bool = False,
-          drive_from_cue: bool = False, cue_seed: int | None = None, reward: bool = False) -> CueActionEnv:
+          drive_from_cue: bool = False, cue_seed: int | None = None, reward: bool = False,
+          episode: int = 1, boundary: bool = False, n_boundary: int = 8,
+          boundary_gain: float = 1.0) -> CueActionEnv:
     """Draw the three populations disjointly and the cue templates, all from ``seed``.
 
     ``readout_subset`` is the decoder's own draw and is **not** available to the environment: the action is read off
@@ -404,6 +506,10 @@ def build(circ, readout_subset=None, n_symbols: int = 2, tau: int = 12, n_cue: i
     answer map ``(world_dims, n_feedback)``, both from this same seed, and the scalar templates are not drawn at all.
     """
     rng = np.random.default_rng(seed)
+    #: a partial last trial would be a different episode at every length, so the split is exact or refused here as
+    #: well as in the runner
+    if episode < 1 or tau % episode:
+        raise ValueError(f"episode {episode} does not split the {tau}-step pass exactly")
     pool = np.arange(circ.n_neurons)
     if readout_subset is not None:
         pool = np.setdiff1d(pool, np.asarray(readout_subset))
@@ -446,4 +552,13 @@ def build(circ, readout_subset=None, n_symbols: int = 2, tau: int = 12, n_cue: i
                                          if world_modes else None),
                         #: **the payout's map**, drawn last so that every field above it is the same draw it has
                         #: always been: a run that does not ask for a reward is bit-identical through this
-                        reward_map=(rng.standard_normal((world_dims, len(cue))) if (reward and world_dims) else None))
+                        reward_map=(rng.standard_normal((world_dims, len(cue))) if (reward and world_dims) else None),
+                        #: **the episode.** One is the single-trial pass every artifact here holds; above one the
+                        #: pass is an episode of that many trials. And the boundary's own population, drawn after
+                        #: everything else and out of the pool minus the three populations, so a run that asks for
+                        #: no boundary is bit-identical through the flag and a channel cannot read another's neurons
+                        episode_len=episode,
+                        boundary_neurons=(np.sort(rng.choice(
+                            np.setdiff1d(pool, np.concatenate([cue, action, feedback])),
+                            size=n_boundary, replace=False)) if boundary else None),
+                        boundary_gain=(boundary_gain if boundary else 0.0))

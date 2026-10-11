@@ -512,4 +512,6 @@ run e487 python -m experiments.e487_the_reward_in_a_second_world --json-out runs
 
 run e488 python -m experiments.e488_the_reward_trains_the_agent --json-out runs/e488_the_reward_trains_the_agent.json
 
+run e489 python -m experiments.e489_the_benchmark_has_an_episode --json-out runs/e489_the_benchmark_has_an_episode.json
+
 echo "ALL DONE"

@@ -60,3 +60,7 @@ accuracy advantage, and its forgetting advantage appears where the penalty is st
 - **And the metric is the corpus's**: `mean_forgetting` is the retention matrix's diagonal minus its last row, which
   `e305` showed cannot see the part an arm never learned.
 - *And a ledger is not a mechanism.*
+
+## RE-READ 2026-10-11
+
+**The floor claims are scoped to the cells that carry a signal.** `e489` added two runs to the corpus whose pass is an **episode of three trials**, and in them every arm sits at the four-class chance (**0.2476**, **0.2451**, **0.2413** against **0.25**): the world carries the episode, so the last trial's label is a small part of the state the head reads and no arm learns it. On those cells this unit's AL3 and AL4 falsifiers fired -- `replay` does not win an accuracy contrast there (by **0.0118** and **0.0014**) and `ewc-block` is both more accurate and less forgetful. A cell whose arms are at chance is not a comparison of arms, so every cell now records its run's own chance (`1 / classes`, read off the configuration it carries) and its `naive` arm's final accuracy, and the two floor claims are read over the cells whose `naive` is above it: **46 of 46** powered cells at the floor with the buffer winning the accuracy contrast in all of them, and **0 of 46** where the penalty arm is both more accurate and less forgetful. The two episode cells are named in the artifact as the cells left out. AL1, AL2 and AL5 are unedited and stand over all **97** cells.

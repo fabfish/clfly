@@ -1210,6 +1210,18 @@ def main(argv=None) -> int:
     p.add_argument("--loop-earn", action="store_true",
                    help="train the loop's policy by ascent on the world's payout in an optimizer of its own, instead of "
                         "by the task loss through the loop; needs --loop-policy and --loop-reward")
+    #: **the episode**, the last of `env.py`'s three absences (*"no reward, no episode boundary and no policy"*): the
+    #: pass holds this many trials, the world's state is the episode's, and the trials before the last are the
+    #: episode's own history. One is every artifact this corpus holds, and the split must be exact.
+    p.add_argument("--loop-episode", type=int, default=1, metavar="N",
+                   help="give the pass an episode of N trials (the pass's tau split evenly), so the world's state at "
+                        "the read step is the episode's and not the last trial's; N must divide tau, which is 12")
+    #: **the episode's boundary**, the second half: a channel drawn from the environment's own seed that carries
+    #: `+gain` at the trial that opens the episode and `-gain` at every trial that continues it -- the signal the
+    #: cue cannot carry, since the cue pulses at every trial's first step whatever the trial's position.
+    p.add_argument("--loop-boundary", action="store_true",
+                   help="give the episode a boundary channel: +gain at the step the episode opens and -gain at every "
+                        "later trial's first step, so the agent is told whether the state it carries is at rest")
     #: `e339` measured that `--seed0` is three draws at once -- it seeds the training replicates, the read-out
     #: subset (`--readout-seed` defaults to it) and, through here, the environment's three populations. So no
     #: artifact in this corpus is a seed-stream comparison: the pair that would be one needs this flag and
@@ -1314,7 +1326,13 @@ def main(argv=None) -> int:
                                  #: the world's final state to it. Drawn last, so a run without it is bit-identical
                                  #: through the flag.
                                  cue_seed=args.cue_seed,
-                                 reward=getattr(args, "loop_reward", False))
+                                 reward=getattr(args, "loop_reward", False),
+                                 #: **the episode**, when the run asks for one: the pass is an episode of this many
+                                 #: trials, and with the boundary flag the environment draws its own channel for it.
+                                 #: Both are drawn after everything else, so a run that asks for neither is
+                                 #: bit-identical through them
+                                 episode=getattr(args, "loop_episode", 1),
+                                 boundary=getattr(args, "loop_boundary", False))
         suite = [fly_env.make_env_task(loop_env, f"loop_{spec[0]}",
                                        symbols=range(i * args.loop_symbols, (i + 1) * args.loop_symbols),
                                        n_train=args.train, n_test=args.test,
@@ -1352,6 +1370,10 @@ def main(argv=None) -> int:
                                                   and getattr(args, "loop_reward", False)):
         raise SystemExit("--loop-earn ascends the world's payout into the agent's map, so it needs --loop-policy for "
                          "the map and --loop-reward for the payout")
+    if (getattr(args, "loop_episode", 1) > 1 or getattr(args, "loop_boundary", False)) and not args.closed_loop:
+        raise SystemExit("--loop-episode and --loop-boundary are the loop environment's, so not without --closed-loop")
+    if getattr(args, "loop_episode", 1) < 1 or 12 % getattr(args, "loop_episode", 1):
+        raise SystemExit("--loop-episode must divide the loop's twelve-step pass exactly, so one of 1, 2, 3, 4, 6, 12")
     if getattr(args, "loop_holdout", False):
         if not args.closed_loop:
             raise SystemExit("--loop-holdout needs the closed loop, so not without --closed-loop")

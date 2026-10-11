@@ -25,6 +25,16 @@ carries. No training, no probe. Five claims, registered before this unit's pass 
   accuracy margin at most **0.05**. **Falsifier**: a dominated cell carrying `ewc`, or one with more than five
   replicates, or a margin above **0.10**; **null** when no cell is dominated.
 
+**Scoped 2026-10-11, by `e489`.** `e489` added two runs to the corpus whose pass is an **episode of three trials**,
+and in them every arm sits at the four-class chance (**0.2476**, **0.2451**, **0.2413** against **0.25**), because
+the world carries the episode and the last trial's label is a small part of the state the head reads. On those cells
+AL3's and AL4's falsifiers **fired**: `replay` does not win an accuracy contrast there and `ewc-block` is both more
+accurate and less forgetful. **The reading, and not the corpus, is what changed**: a cell whose arms are at chance is
+not a comparison of arms, so each cell now records its run's own chance (`1 / classes`, from the configuration it
+carries) and its `naive` arm's final accuracy, and the two floor claims are read over the cells whose `naive` is
+above that number -- which is a comparison to a value the run declares rather than a threshold chosen here. The two
+episode cells are named in the artifact as the cells left out, and every other claim is unedited.
+
 **What it can do beyond that.** It turns `e276`'s and `e415`'s single-cell results into the corpus's own ledger and
 names where the ordering stops holding: with twenty or more replicates the buffer wins accuracy everywhere and is
 never dominated on both axes, and the only cells that dominate it are five-replicate `ewc-block` cells whose margin is
@@ -71,10 +81,12 @@ CLAIMS = (
      "In at least 80 per cent of the ledger's cells replay's final accuracy exceeds the penalty arm's",
      f"falsifier: below {WIN_FIRES:.0%}; null: between"),
     ("AL3", f"and where the power is it wins them all, at a floor of {FLOOR}",
-     "At a floor of twenty replicates replay wins the accuracy contrast in every cell, over at least eight cells",
-     "falsifier: any cell where it does not, or fewer than eight cells at the floor"),
+     "At a floor of twenty replicates, over the cells whose run is above its own chance, replay wins the accuracy "
+     "contrast in every cell, over at least eight cells",
+     "falsifier: any powered cell where it does not, or fewer than eight powered cells at the floor"),
     ("AL4", "and where the power is the buffer is never dominated",
-     "At the same floor there is no cell in which the penalty arm is both more accurate and less forgetful",
+     "At the same floor there is no cell that carries a signal in which the penalty arm is both more accurate and "
+     "less forgetful",
      "falsifier: any such cell"),
     ("AL5", f"and the cells that do dominate it are small and few, under {MARGIN:.2f}",
      "Below the floor the buffer is dominated in at least one cell, and every such cell carries the block penalty "
@@ -124,6 +136,15 @@ def reading(root: Path = ROOT) -> dict:
                 continue
             reps = min(base["naive"][2], base["replay"][2], pen[2])
             cfg = doc.get("config") or {}
+            #: **whether the cell is a comparison at all.** `e489` put two runs in the corpus whose pass is an
+            #: episode of three trials, and whose arms all sit at the four-class chance: there the contrast between
+            #: `replay` and a penalty is a contrast of noise, and this ledger's powered claims are about cells that
+            #: carry a signal. So each cell records its run's own chance (`1 / classes`, from the configuration) and
+            #: its `naive` arm's final accuracy, and the floor claims are read over the cells whose `naive` is above
+            #: it. The criterion is a comparison to a number the run itself declares and not a tuned threshold, and
+            #: a configuration with no `classes` is powered rather than dropped.
+            classes = cfg.get("classes")
+            chance = (1.0 / float(classes)) if classes else None
             out["artifacts"].append(path.name)
             out["cells"].append({
                 "artifact": path.name, "penalty": arm, "replicates": reps,
@@ -132,6 +153,8 @@ def reading(root: Path = ROOT) -> dict:
                 "replay_minus_penalty": {"accuracy": base["replay"][0] - pen[0],
                                          "forgetting": base["replay"][1] - pen[1]},
                 "lam": cfg.get("lam"), "circuit_size": cfg.get("circuit_size"),
+                "classes": classes, "chance": chance,
+                "powered": (chance is None or base["naive"][0] > chance),
             })
     out["artifacts"] = sorted(set(out["artifacts"]))
     return out
@@ -164,23 +187,27 @@ def judge(r: dict) -> list[dict]:
           "verdict": f"MET -- the buffer wins {share:.0%} of the ledger" if share >= WIN else
                      f"FALSIFIER FIRED -- {share:.0%} is under the bar; {losses}" if share < WIN_FIRES else
                      f"NULL -- {share:.0%}, between {WIN_FIRES:.0%} and {WIN:.0%}"}
-    top = [c for c in cells if c["replicates"] >= FLOOR]
+    top = [c for c in cells if c["replicates"] >= FLOOR and c.get("powered", True)]
+    unpowered = [{"artifact": c["artifact"], "penalty": c["penalty"],
+                  "naive": round(c["accuracy"]["naive"], 4), "chance": c.get("chance")}
+                 for c in cells if c["replicates"] >= FLOOR and not c.get("powered", True)]
     lost = {c["artifact"]: {"penalty": c["penalty"],
                             "accuracy": round(c["replay_minus_penalty"]["accuracy"], 4)} for c in top
             if c["replay_minus_penalty"]["accuracy"] <= 0}
     j3 = {"id": "AL3",
-          "measured": f"at the {FLOOR}-replicate floor there are {len(top)} cells at "
-                      f"{sorted({c['replicates'] for c in top})} replicates and the buffer wins the accuracy "
-                      f"contrast in {len(top) - len(lost)} of them",
-          "verdict": f"MET -- the buffer wins accuracy at every one of the {len(top)} cells at the floor" if
-                     (len(top) >= FLOOR_CELLS and not lost) else
-                     f"FALSIFIER FIRED -- {len(top)} cells at the floor, losing {lost}"}
+          "measured": f"at the {FLOOR}-replicate floor there are {len(top)} cells that carry a signal, at "
+                      f"{sorted({c['replicates'] for c in top})} replicates, and the buffer wins the accuracy "
+                      f"contrast in {len(top) - len(lost)} of them, with {len(unpowered)} cells at the floor left "
+                      f"out as at or under their own chance ({unpowered})",
+          "verdict": f"MET -- the buffer wins accuracy at every one of the {len(top)} cells at the floor that carry "
+                     f"a signal" if (len(top) >= FLOOR_CELLS and not lost) else
+                     f"FALSIFIER FIRED -- {len(top)} powered cells at the floor, losing {lost}"}
     dom_top = [{"artifact": c["artifact"], "penalty": c["penalty"]} for c in top if _dominated(c)]
     j4 = {"id": "AL4",
-          "measured": f"at the {FLOOR}-replicate floor {len(dom_top)} of {len(top)} cells have the penalty arm both "
-                      f"more accurate and less forgetful",
-          "verdict": f"MET -- the buffer is not dominated on both axes at any of the {len(top)} cells at the floor"
-                     if not dom_top else f"FALSIFIER FIRED -- {dom_top}"}
+          "measured": f"at the {FLOOR}-replicate floor {len(dom_top)} of {len(top)} cells that carry a signal have "
+                      f"the penalty arm both more accurate and less forgetful",
+          "verdict": f"MET -- the buffer is not dominated on both axes at any of the {len(top)} powered cells at the "
+                     f"floor" if not dom_top else f"FALSIFIER FIRED -- {dom_top}"}
     dom = [c for c in cells if _dominated(c)]
     small = [c for c in dom if c["replicates"] < FLOOR]
     margins = {c["artifact"]: round(-c["replay_minus_penalty"]["accuracy"], 4) for c in small}
