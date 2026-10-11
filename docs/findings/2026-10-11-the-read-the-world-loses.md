@@ -78,3 +78,7 @@ own shape, a label that reaches the read through three to five steps of recurren
   configuration's.
 - **And the bar was registered in advance**: every arm is **0.0521** to **0.0698** short of learning the task, and what
   a longer budget, a wider head or a read taken at every trial would buy is a different unit.
+
+## RE-READ 2026-10-11
+
+**The read is a bottleneck the loop is not.** This unit closed on *what is left is the pass's own shape, a label that reaches the read through three to five steps of recurrence however wide the read is*, and `e494` sharpened it by taking the loop out entirely: the label's own part of the read **doubles** without the world (**0.0386** to **0.0895**, in absolute spread **0.1648** to **0.3600**) and every arm **loses** -- **-0.0306**, **-0.0208** and **-0.0292** at **-3.03**, **-1.85** and **-2.87** sigma. So the read this unit moved is worth **+0.0521** to **+0.0698** and the loop this unit left wired is worth **+0.0208** to **+0.0306** against its own removal, which makes the closed loop a small asset and the pass the cost. This unit's numbers stand.

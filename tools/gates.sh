@@ -522,4 +522,6 @@ run e492 python -m experiments.e492_the_episode_at_two_trials --json-out runs/e4
 
 run e493 python -m experiments.e493_the_read_the_world_loses --json-out runs/e493_the_read_the_world_loses.json
 
+run e494 python -m experiments.e494_the_episode_without_the_world --json-out runs/e494_the_episode_without_the_world.json
+
 echo "ALL DONE"
