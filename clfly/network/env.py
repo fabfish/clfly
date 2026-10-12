@@ -166,18 +166,23 @@ class CueActionEnv:
 
     @property
     def target_step(self) -> int:
-        """The step the payout's target is read at: **one step after the last cue arrives**, where the pass is an
-        episode, and step **1** where it is a single trial.
+        """The step the payout's target is read at: **one step after the cue the label names**, and step **1** where
+        the pass is a single trial.
 
         The single-trial rule is the rule this corpus has always run and not a special case of the episode's: at
         ``cue_at = 0`` the two agree, and at ``cue_at = tau - 1`` the corpus's reads the target at step **1**, before
         the cue is in the input at all -- which is the late-cue control `e483` measured, and whose number ("exactly
         zero at the read step") its artifact and its card clause carry. So the episode's rule is used only where
         there is an episode, and a single-trial environment is the one it always was, target step included.
+
+        **And the cue the label names is where the target is read**, which is the last trial where the label is the
+        episode's last cue and the **first** trial where `label_first` puts it there: `e498`, which let the payout run
+        with the label first, is the unit that made the two placements one rule instead of a refusal.
         """
         if self.episode_len <= 1:
             return 1
-        return min(self.last_cue_step + 1, self.tau - 1)
+        anchor = self.cue_at if self.label_first else self.last_cue_step
+        return min(anchor + 1, self.tau - 1)
 
     @property
     def n_symbols(self) -> int:
@@ -584,13 +589,21 @@ def build(circ, readout_subset=None, n_symbols: int = 2, tau: int = 12, n_cue: i
                         drive_from_cue=bool(drive_from_cue),
                         world_templates=(rng.standard_normal((world_modes, n_feedback))
                                          if world_modes else None),
-                        #: **the payout's map**, drawn last so that every field above it is the same draw it has
-                        #: always been: a run that does not ask for a reward is bit-identical through this
+                        #: **the boundary's own population**, drawn before the payout so that the payout's flag moves
+                        #: no field but its own, out of the pool minus the three populations so a channel cannot read
+                        #: another's neurons, and only where it is asked for
+                        boundary_neurons=(np.sort(rng.choice(
+                            np.setdiff1d(pool, np.concatenate([cue, action, feedback])),
+                            size=n_boundary, replace=False)) if boundary else None),
+                        boundary_gain=(boundary_gain if boundary else 0.0),
+                        #: **the payout's map**, drawn after everything above it: a run that does not ask for a reward
+                        #: is bit-identical through this, and what the payout's presence must not move is the
+                        #: **boundary channel** above -- which it did until `e498` found the two sides of its own flag
+                        #: drawing different boundary neurons, a field drawn last being a field the next one shifts
                         reward_map=(rng.standard_normal((world_dims, len(cue))) if (reward and world_dims) else None),
                         #: **the episode.** One is the single-trial pass every artifact here holds; above one the
-                        #: pass is an episode of that many trials. And the boundary's own population, drawn after
-                        #: everything else and out of the pool minus the three populations, so a run that asks for
-                        #: no boundary is bit-identical through the flag and a channel cannot read another's neurons
+                        #: pass is an episode of that many trials. Drawn after the boundary and not before it, so
+                        #: that every artifact written before this field is bit-identical through it
                         episode_len=episode,
                         #: **the boundary the world obeys**, when a run asks for the reset: the trials' world at
                         #: rest. An episode of one trial has nothing to reset, so the flag is inert there and the
@@ -598,8 +611,4 @@ def build(circ, readout_subset=None, n_symbols: int = 2, tau: int = 12, n_cue: i
                         episode_reset=bool(episode_reset) and episode > 1,
                         #: and **where the label sits**, when the pass has more than one trial to sit in: `e495`'s
                         #: flag, a rule and not a draw, recorded only where it is on
-                        label_first=bool(label_first) and episode > 1,
-                        boundary_neurons=(np.sort(rng.choice(
-                            np.setdiff1d(pool, np.concatenate([cue, action, feedback])),
-                            size=n_boundary, replace=False)) if boundary else None),
-                        boundary_gain=(boundary_gain if boundary else 0.0))
+                        label_first=bool(label_first) and episode > 1)

@@ -1398,9 +1398,6 @@ def main(argv=None) -> int:
     if getattr(args, "loop_label_first", False) and getattr(args, "loop_episode", 1) < 2:
         raise SystemExit("--loop-label-first moves the label into the first of the pass's trials, so it needs "
                          "--loop-episode 2 or more; at one trial the label is the only cue")
-    if getattr(args, "loop_label_first", False) and getattr(args, "loop_reward", False):
-        raise SystemExit("--loop-label-first and --loop-reward together would pay a target read off the pass's last "
-                         "cue while the label is its first, so the payout is not this flag's")
     if getattr(args, "loop_holdout", False):
         if not args.closed_loop:
             raise SystemExit("--loop-holdout needs the closed loop, so not without --closed-loop")

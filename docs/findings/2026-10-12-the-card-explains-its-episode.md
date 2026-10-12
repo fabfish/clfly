@@ -70,3 +70,7 @@ findings' brother phrase is the one NA4 caught.
 ## RE-READ 2026-10-12
 
 **The three-cue pass is measured, and the clause holds there.** This unit's *cannot do* closed on *what a three-cue pass, a longer pass or a payout does with the placement is a different unit*. `e497` supplies the first: the same read, the same placement and the same world at three trials of four steps read **0.8538**, **0.8392** and **0.8580** -- **+0.0240**, **+0.0253** and **+0.0312** at **+3.78**, **+3.38** and **+5.93** sigma over the two-trial run this clause carries -- with the label's own part of the read unchanged at a factor of **1.0019**. So the clause is a **family** and not a point, and the revision that carries the second rung into the card is a different unit. This unit's numbers stand.
+
+## RE-READ 2026-10-12
+
+**The payout the placement was owed is measured.** This unit's *cannot do* closed on *what a three-cue pass, a longer pass or a payout does with the placement is a different unit*. `e498` supplies the payout: the environment's target now follows the cue the label names, so the label-first pass can be paid, and the rewarded run reads **0.8299**, **0.8139** and **0.8267** -- this unit's clause carries exactly those diagonals, and the two runs agree **record for record** -- with the reward's contrasts **+0.0104**, **-0.0123** and **+0.0547** at **+0.27**, **-0.31** and **+1.78** sigma. So the currency inside the episodic pass is flat, and the clause now has a paid pass to point at. This unit's numbers stand.
