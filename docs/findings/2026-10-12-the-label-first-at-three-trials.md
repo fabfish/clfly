@@ -75,3 +75,14 @@ next unit and not this one.
 ## RE-READ 2026-10-12
 
 **The rung is in the card.** This unit closed on *the revision that carries the second rung is the next unit and not this one*, and `e499` is that unit: the card's `label_first` clause keeps all **11** fields revision 18 gave it and gains a **`three_trials`** rung carrying this unit's own numbers -- **0.8538**, **0.8392** and **0.8580** beside the two-trial **0.8299**, **0.8139** and **0.8267**, the changes **+0.0240**, **+0.0253** and **+0.0312** at **+3.78**, **+3.38** and **+5.93** sigma, and the label's own part of the read **1.0571** beside **1.0551** with the spreads **4.3099** and **4.2967** -- with the card now revision **19**. So the clause is the pass's family from two trials up, and this unit's numbers stand.
+
+## RE-READ 2026-10-13 (second)
+
+**The pass this unit measured is one an agent can play for.** This unit read the label-first pass at three trials,
+and its own *cannot do* left *the four- and six-trial splits and the passes whose label is at an interior trial* not
+in it; `e501` pays **this unit's own three-trial rung** -- the same pass with `--loop-policy --loop-earn` -- and the
+world pays **+1.0131**, **+1.3586** and **+1.4562** more than its own meter run at **+19.68**, **+36.39** and
+**+22.92** sigma, with the map above the identity on **60 of 60** replicates and the accuracy standing to
+**0.0038**. The meter run's diagonals are this unit's own three-trial **0.8538**, **0.8392** and **0.8580**, so the
+earning is measured against exactly the pass this unit recorded. This unit's numbers stand, and the four- and
+six-trial splits remain the rungs above.

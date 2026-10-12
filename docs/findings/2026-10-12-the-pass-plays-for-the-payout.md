@@ -98,3 +98,15 @@ map** -- the task loss -- over one world, one pass, one read, one placement and 
   measurement of the two currencies on one run and not of the paid agent's own quality.
 - **And a claim over arms is not a claim about the world**: three arms is a small population to read a currency's
   shape from, and the two arms that carry the diagonal over the last row here are the same two `e488` found.
+
+## RE-READ 2026-10-13
+
+**The pass's second rung is paid, and the earning survives it.** This unit's *cannot do* closed on *one episode
+length and one placement ... the three- and four-trial splits and the passes with the label at an interior trial
+are not in it*; `e501` takes the three-trial rung: this unit's own command with `--loop-episode 3` and
+`--loop-policy --loop-earn`, read against its own meter run. The map ends **4.1854** to **6.6939** from the identity
+on **60 of 60** replicates and the world pays **+1.0131**, **+1.3586** and **+1.4562** more at **+19.68**,
+**+36.39** and **+22.92** sigma -- the same two flags, the same world and the same payout at a longer pass -- with
+the accuracy unchanged to **0.0038**. So the **+1.07** to **+1.51** this unit measured at two trials are a property
+of the pair and not of the pass's length, and the four-trial split remains the rung above. This unit's numbers
+stand.

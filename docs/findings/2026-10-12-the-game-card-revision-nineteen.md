@@ -76,3 +76,12 @@ and not a gap being closed.
 ## RE-READ 2026-10-12
 
 **The clause's payout is measured at the pass's two-trial rung, and it is played for.** This unit's *cannot do* closed on *a meter and not a game ... the payout is read as a meter rather than played for*; `e500` takes `e498`'s paid, label-first, two-trial pass -- the half of the family this clause carries -- and plays for its payout: the world pays **+1.07** to **+1.51** more at **15.5** to **22.7** sigma while the accuracy stands to **0.0021**, so the clause's pass has a payout an agent can play for. The three-trial rung's own paid run is open, and this unit's numbers stand.
+
+## RE-READ 2026-10-13 (second)
+
+**The three-trial rung's own paid run is measured.** This unit's own *RE-READ 2026-10-12* closed on *the three-trial
+rung's own paid run is open*; `e501` is that run: `e500`'s paid, label-first pass with `--loop-episode 3` reads the
+world paying **+1.0131**, **+1.3586** and **+1.4562** more than its meter run at **+19.68**, **+36.39** and
+**+22.92** sigma, with the map above the identity on **60 of 60** replicates and the accuracy standing to
+**0.0038** of the meter run's -- whose diagonals are the `three_trials` rung's own **0.8538**, **0.8392** and
+**0.8580**. **So the clause's three-trial rung has a payout an agent can play for**, and this unit's numbers stand.
