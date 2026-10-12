@@ -526,4 +526,6 @@ run e494 python -m experiments.e494_the_episode_without_the_world --json-out run
 
 run e495 python -m experiments.e495_the_label_first --json-out runs/e495_the_label_first.json
 
+run e496 python -m experiments.e496_the_game_card_revision_eighteen --json-out runs/e496_the_game_card_revision_eighteen.json
+
 echo "ALL DONE"
