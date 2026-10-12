@@ -80,3 +80,7 @@ artifacts are bit-identical; what this unit adds is that a field drawn last is s
   the flag is off there, and the corpus's own rule was the last cue's -- so an artifact that asks for the payout
   **and** the label-first placement is this unit's and not the corpus's.
 - **And one budget, one world and one seed stream**: the card's own setting, so the flat currency is one draw's.
+
+## RE-READ 2026-10-12
+
+**The pass this unit paid is played for.** This unit's *cannot do* closed on *the payout is a meter here*, and `e500` runs this unit's own paid command with `--loop-policy --loop-earn` added: the map the agent acts through ends **3.9475** to **8.0630** from the identity on **60 of 60** replicates, and the world pays **+1.5086**, **+1.4123** and **+1.0722** more than this unit's meter run at **+22.74**, **+22.57** and **+15.54** sigma. **So this unit's flat currency is what a meter pays**: with the map paid the diagonal sits above its last row on two arms (**+0.7061** at **+18.68** and **+0.7794** at **+23.09** sigma) where this unit's contrasts were **+0.0104**, **-0.0123** and **+0.0547** at **+0.27**, **-0.31** and **+1.78**, and the accuracy this unit and `e495` measured stands to **0.0021**. **And this unit's draw-order fix is what makes the pair one world**: the draw is **28** fields field for field across the two flags, the payout's own map equal between them. This unit's numbers stand.

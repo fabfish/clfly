@@ -72,3 +72,7 @@ and not a gap being closed.
   right, and the rung's own numbers are `e497`'s reading rather than an independent draw.
 - **And one world**: two runs at one budget, one episode length and one seed stream, so a clause that grows is still a
   record of one configuration and a redraw would have to beat the corpus's own arm spread.
+
+## RE-READ 2026-10-12
+
+**The clause's payout is measured at the pass's two-trial rung, and it is played for.** This unit's *cannot do* closed on *a meter and not a game ... the payout is read as a meter rather than played for*; `e500` takes `e498`'s paid, label-first, two-trial pass -- the half of the family this clause carries -- and plays for its payout: the world pays **+1.07** to **+1.51** more at **15.5** to **22.7** sigma while the accuracy stands to **0.0021**, so the clause's pass has a payout an agent can play for. The three-trial rung's own paid run is open, and this unit's numbers stand.

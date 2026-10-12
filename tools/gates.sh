@@ -534,4 +534,6 @@ run e498 python -m experiments.e498_the_episodic_game_pays --json-out runs/e498_
 
 run e499 python -m experiments.e499_the_game_card_revision_nineteen --json-out runs/e499_the_game_card_revision_nineteen.json
 
+run e500 python -m experiments.e500_the_pass_plays_for_the_payout --json-out runs/e500_the_pass_plays_for_the_payout.json
+
 echo "ALL DONE"

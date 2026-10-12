@@ -85,3 +85,7 @@ own map. So the earning is measured against one ablation of what trains the map 
   of the loop -- so what is paid is one parameter set and not the agent.
 - **And nothing here says what an episode is**: the card's `absent` list still carries **an episode boundary**, and
   this unit does not touch it.
+
+## RE-READ 2026-10-12
+
+**The earning replicates inside the pass, and its price there is zero.** This unit closed on *one configuration: the card's neutral roll at one world, one budget and one seed stream*, and on *being paid is paid for in the task* -- its paid map lost **0.0285** to **0.0410** of accuracy on every arm, with `ewc-block` resolving at **-3.30** sigma. `e500` runs the same ascent at a second pass -- `e498`'s paid, label-first, two-trial episode -- and both sentences move there: the payout moves the map on **60 of 60** replicates (the smallest movement **3.9475**) and lifts what the world pays by **+1.0722**, **+1.4123** and **+1.5086** over that pass's own meter run at **+15.54**, **+22.57** and **+22.74** sigma, while no arm's accuracy moves (**-0.0017**, **+0.0014** and **-0.0021** at **-0.25**, **+0.17** and **-0.36** sigma). **So the earning is not the one-trial pass's**, and the price this unit measured is that pass's; this unit's own numbers stand.
