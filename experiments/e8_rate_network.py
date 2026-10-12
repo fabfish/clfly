@@ -1202,6 +1202,15 @@ def main(argv=None) -> int:
     p.add_argument("--loop-reward", action="store_true",
                    help="let the world pay a reward, scored against the target the cue itself sets, and record the "
                         "retention matrix in that currency")
+    #: **what the payout is read on.** Off is every artifact this corpus holds: the reward is the negative squared
+    #: distance from the world's **carried** state -- the leaky integral of the whole action history -- to the target.
+    #: On reads the world's **one-step response to the action** against the same target at the same step, so the
+    #: currency scores what the agent's own action did rather than what the world has carried. A **rule and not a
+    #: draw**: it selects between two quantities already in the payout's closure and consumes nothing from the seed,
+    #: so a run without it is bit-identical through the flag. Needs the payout to have a reward to read.
+    p.add_argument("--loop-reward-on-action", action="store_true",
+                   help="read the world's payout on its one-step response to the action instead of on its carried "
+                        "state; needs --loop-reward")
     #: **the payout's backward pass**, the half of `e325`'s sentence *"a reward and a policy"* that the corpus had
     #: not reached: `e483` gave the environment a payout and `e485` gave the benchmark one, and until this flag the
     #: payout was **recorded and never played for** -- the map `--loop-policy` adds was trained by the task loss, which
@@ -1341,6 +1350,9 @@ def main(argv=None) -> int:
                                  #: through the flag.
                                  cue_seed=args.cue_seed,
                                  reward=getattr(args, "loop_reward", False),
+                                 #: and **what the payout is read on**, when the run asks for it: a rule and not a
+                                 #: draw, so the flag draws nothing and a run without it is bit-identical through it
+                                 reward_on_action=getattr(args, "loop_reward_on_action", False),
                                  #: **the episode**, when the run asks for one: the pass is an episode of this many
                                  #: trials, and with the boundary flag the environment draws its own channel for it.
                                  #: Both are drawn after everything else, so a run that asks for neither is

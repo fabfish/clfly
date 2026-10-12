@@ -538,4 +538,6 @@ run e500 python -m experiments.e500_the_pass_plays_for_the_payout --json-out run
 
 run e501 python -m experiments.e501_the_pass_plays_at_three_trials --json-out runs/e501_the_pass_plays_at_three_trials.json
 
+run e502 python -m experiments.e502_the_world_pays_the_action --json-out runs/e502_the_world_pays_the_action.json
+
 echo "ALL DONE"

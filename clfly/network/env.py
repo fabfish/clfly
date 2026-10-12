@@ -111,6 +111,14 @@ class CueActionEnv:
     #: before this field, so the flag draws the payout and nothing else -- and the target depends on the cue rather
     #: than on the label, which is what lets the environment pay a reward the agent's own action decides.
     reward_map: np.ndarray | None = None
+    #: **what the payout is read on.** False is every artifact this repository holds: the reward is the negative
+    #: squared distance from the world's **carried** state -- the leaky integral of the whole action history -- to the
+    #: target, so the currency scores what the world has become rather than what the action did. True reads the
+    #: world's **one-step response to the action**, the `drive` the step already hands the world before the carry, at
+    #: the same step against the same target. It is a **rule and not a draw**: both quantities are already in the
+    #: closure and this selects between them, so it consumes nothing from the environment's seed and a run that does
+    #: not ask for it is bit-identical through the flag.
+    reward_on_action: bool = False
     #: **where the world's drive is read.** False reads the action population, which is disjoint from the cue's by
     #: construction. True reads the **cue population itself**, so the neurons carrying the cue are the neurons the
     #: world listens to -- the manipulation that separates "the cue must cross the weights" from "the drive reads
@@ -309,7 +317,12 @@ class CueActionEnv:
                     carried["target"] = x[:, cue] @ m.T
                 if self.reward_map is not None and t == self.tau - 1 and carried.get("target") is not None:
                     fn.last_target = carried["target"]
-                    fn.last_reward = -((carried["w"] - carried["target"]) ** 2).sum(dim=1)
+                    #: **what is scored.** The reward is the negative squared distance from the world's state to the
+                    #: target, and the state is the one the run asks for: the carry above, or -- where the run sets
+                    #: `reward_on_action` -- the world's one-step response to the action, the `drive` this step hands
+                    #: the world, so the currency reads what the action did rather than what the world has carried
+                    scored = drive if self.reward_on_action else carried["w"]
+                    fn.last_reward = -((scored - carried["target"]) ** 2).sum(dim=1)
                 p = torch.as_tensor(np.asarray(self.world_drive), dtype=x.dtype)
                 q = torch.as_tensor(np.asarray(self.world_read), dtype=x.dtype)
                 #: **the world obeys the boundary.** With the episode's reset on, a trial's first step starts from a
@@ -534,7 +547,7 @@ def build(circ, readout_subset=None, n_symbols: int = 2, tau: int = 12, n_cue: i
           drive_from_cue: bool = False, cue_seed: int | None = None, reward: bool = False,
           episode: int = 1, boundary: bool = False, n_boundary: int = 8,
           boundary_gain: float = 1.0, episode_reset: bool = False,
-          label_first: bool = False) -> CueActionEnv:
+          label_first: bool = False, reward_on_action: bool = False) -> CueActionEnv:
     """Draw the three populations disjointly and the cue templates, all from ``seed``.
 
     ``readout_subset`` is the decoder's own draw and is **not** available to the environment: the action is read off
@@ -543,6 +556,10 @@ def build(circ, readout_subset=None, n_symbols: int = 2, tau: int = 12, n_cue: i
 
     ``world_dims`` above zero draws a **vector** world instead: its drive map is ``(world_dims, n_action)`` and its
     answer map ``(world_dims, n_feedback)``, both from this same seed, and the scalar templates are not drawn at all.
+
+    ``reward_on_action`` is a **rule and not a draw**: it selects which of the two quantities already in the payout's
+    closure the reward is read on -- the world's carry or its one-step response to the action -- and consumes nothing
+    from ``seed``, so a run that does not ask for it is bit-identical through the flag.
     """
     rng = np.random.default_rng(seed)
     #: a partial last trial would be a different episode at every length, so the split is exact or refused here as
@@ -611,4 +628,8 @@ def build(circ, readout_subset=None, n_symbols: int = 2, tau: int = 12, n_cue: i
                         episode_reset=bool(episode_reset) and episode > 1,
                         #: and **where the label sits**, when the pass has more than one trial to sit in: `e495`'s
                         #: flag, a rule and not a draw, recorded only where it is on
-                        label_first=bool(label_first) and episode > 1)
+                        label_first=bool(label_first) and episode > 1,
+                        #: and **what the payout is read on**, a rule and not a draw, so it is passed straight
+                        #: through and draws nothing: the carry where it is off, the action's one-step response where
+                        #: it is on
+                        reward_on_action=bool(reward_on_action))

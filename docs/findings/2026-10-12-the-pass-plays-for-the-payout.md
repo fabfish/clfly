@@ -110,3 +110,14 @@ on **60 of 60** replicates and the world pays **+1.0131**, **+1.3586** and **+1.
 the accuracy unchanged to **0.0038**. So the **+1.07** to **+1.51** this unit measured at two trials are a property
 of the pair and not of the pass's length, and the four-trial split remains the rung above. This unit's numbers
 stand.
+
+## RE-READ 2026-10-13 (second)
+
+**The payout the map plays for is read on the world's carry, and it can be read on the action instead.** This unit's
+*cannot do* closed on *the payout is read on the map and not on the action ... A reward on the action, or one sparse
+in time, is a different unit*; `e502` reads the world's payout on its own **one-step response to the action** --
+`CueActionEnv`'s `reward_on_action`, one flag past this unit's own earned command -- and the world pays **+4.0860**,
+**+4.1356** and **+3.0381** more on every arm at **+21.68**, **+23.62** and **+15.12** sigma, with the map above the
+identity on **60 of 60** replicates and the accuracy unchanged to **0.0101**. So this unit's **-4.5457**, **-4.5947**
+and **-5.0295** are the carry's level and not the payout's, and the same pass paid on the action sits at **-3.8024**,
+**-3.8560** and **-4.8238**. This unit's numbers stand.

@@ -89,3 +89,13 @@ placement and one payout.
   at the run's own `--lr`, so how hard it is paid is not swept and the **+1.01** to **+1.46** are one configuration's.
 - **And three arms is a small population**: a claim over arms is not a claim about the world, and the two arms that
   carry the diagonal over the last row here are the same two `e488` and `e500` found.
+
+## RE-READ 2026-10-13
+
+**The payout this pass is paid for is read on the world's carry, and the reader can be the action instead.** This
+unit's *cannot do* closed on *the payout is on the map and not on the world's carry*; `e502` takes `e500`'s own
+two-trial pass with a new `--loop-reward-on-action`, so the same target at the same step is scored against the
+world's **one-step response to the action** rather than against its carried state. The world pays **+4.0860**,
+**+4.1356** and **+3.0381** more on every arm at **+21.68**, **+23.62** and **+15.12** sigma, the map above the
+identity on **60 of 60** replicates, and the accuracy unchanged to **0.0101** -- the same pair this unit read, with
+the reader moved from the carry to the action. This unit's numbers stand.
