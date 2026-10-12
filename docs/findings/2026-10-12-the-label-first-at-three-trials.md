@@ -71,3 +71,7 @@ next unit and not this one.
   the world's eight numbers at three trials not measured.
 - **And one budget, one world and one seed stream**: the card's own setting, so the two to three hundredths are one
   configuration's and a redraw would have to beat the corpus's own arm spread.
+
+## RE-READ 2026-10-12
+
+**The rung is in the card.** This unit closed on *the revision that carries the second rung is the next unit and not this one*, and `e499` is that unit: the card's `label_first` clause keeps all **11** fields revision 18 gave it and gains a **`three_trials`** rung carrying this unit's own numbers -- **0.8538**, **0.8392** and **0.8580** beside the two-trial **0.8299**, **0.8139** and **0.8267**, the changes **+0.0240**, **+0.0253** and **+0.0312** at **+3.78**, **+3.38** and **+5.93** sigma, and the label's own part of the read **1.0571** beside **1.0551** with the spreads **4.3099** and **4.2967** -- with the card now revision **19**. So the clause is the pass's family from two trials up, and this unit's numbers stand.

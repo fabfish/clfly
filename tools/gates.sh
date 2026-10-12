@@ -532,4 +532,6 @@ run e497 python -m experiments.e497_the_label_first_at_three_trials --json-out r
 
 run e498 python -m experiments.e498_the_episodic_game_pays --json-out runs/e498_the_episodic_game_pays.json
 
+run e499 python -m experiments.e499_the_game_card_revision_nineteen --json-out runs/e499_the_game_card_revision_nineteen.json
+
 echo "ALL DONE"
