@@ -78,3 +78,7 @@ half of it**, and the one that is worth half is the one no unit in this line had
 - **And one budget, one world and one seed stream**: the card's own setting, so **0.82** is one configuration's --
   and the corpus's single-trial runs span **0.76** to **0.86** across their arms, which is the width a redraw would
   have to beat.
+
+## RE-READ 2026-10-12
+
+**The pass's length is a free parameter at least to three trials.** This unit's *cannot do* closed on *the placement and the window are the same flag, so a window of three or four trials is a different pass and not a separable axis here*. `e497` takes that different pass -- three trials of four steps, the label at step **0** and its distractors at steps **4** and **8** -- with the same read, the same placement, the same world and the same boundary channel, and every arm reads **higher**: **0.8538**, **0.8392** and **0.8580** against this unit's **0.8299**, **0.8139** and **0.8267**, changes of **+0.0240**, **+0.0253** and **+0.0312** at **+3.78**, **+3.38** and **+5.93** sigma, while the label's own part of the read is unchanged (**1.0551** against **1.0571**, a factor of **1.0019**). So the placement is not a property of the smallest pass, and the four- and six-trial splits are the rungs above it. This unit's numbers stand.

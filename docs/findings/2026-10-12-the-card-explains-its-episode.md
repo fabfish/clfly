@@ -66,3 +66,7 @@ findings' brother phrase is the one NA4 caught.
   what a three-cue pass, a longer pass or a payout does with the placement is a different unit.
 - **And an empty `absent` list is still not completeness**: the list has named nothing since `e490`, so what this
   revision adds is a reading and not a gap being closed.
+
+## RE-READ 2026-10-12
+
+**The three-cue pass is measured, and the clause holds there.** This unit's *cannot do* closed on *what a three-cue pass, a longer pass or a payout does with the placement is a different unit*. `e497` supplies the first: the same read, the same placement and the same world at three trials of four steps read **0.8538**, **0.8392** and **0.8580** -- **+0.0240**, **+0.0253** and **+0.0312** at **+3.78**, **+3.38** and **+5.93** sigma over the two-trial run this clause carries -- with the label's own part of the read unchanged at a factor of **1.0019**. So the clause is a **family** and not a point, and the revision that carries the second rung into the card is a different unit. This unit's numbers stand.
