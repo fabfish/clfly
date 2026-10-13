@@ -86,3 +86,7 @@ world pays **+1.0131**, **+1.3586** and **+1.4562** more than its own meter run 
 **0.0038**. The meter run's diagonals are this unit's own three-trial **0.8538**, **0.8392** and **0.8580**, so the
 earning is measured against exactly the pass this unit recorded. This unit's numbers stand, and the four- and
 six-trial splits remain the rungs above.
+
+## RE-READ 2026-10-13 (third)
+
+**The interior placements this unit left are measured.** This unit's *cannot do* closed on *the four- and six-trial splits and the passes whose label is at an interior trial*. `e505` reads the placement with the pass's length held at this unit's own three trials and moves the placement alone: the same read, world and boundary channel with the label at trial **0**, **1** and **2** gives **0.8538**, **0.8392** and **0.8580** at trial **0**, **0.3257**, **0.3069** and **0.3274** at trial **1** and **0.2566**, **0.2576** and **0.2542** at trial **2**, the end-to-end move **+0.5972**, **+0.5816** and **+0.6038** at **+74.23**, **+66.33** and **+88.97** sigma, and the label's own part of the read **1.0571**, **0.0489** and **0.0314**. So the label this unit placed first is the only working placement at three trials -- the drop from trial **0** to trial **1** is **+0.5281** to **+0.5323** at **42.50** to **48.61** sigma against **+0.0493** to **+0.0733** at **4.98** to **6.68** from trial **1** to trial **2** -- and the four- and six-trial splits remain the rungs above. This unit's numbers stand.

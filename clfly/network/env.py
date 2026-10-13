@@ -161,6 +161,14 @@ class CueActionEnv:
     #: this repository holds, so a run that does not ask for a boundary is bit-identical through it.
     boundary_neurons: np.ndarray | None = None
     boundary_gain: float = 0.0
+    #: **which trial the label's cue is written at.** None is every artifact this corpus holds: the label is the
+    #: episode's **last** cue, or its **first** where `label_first` puts it there, so this field's default is exactly
+    #: the two placements the corpus has ever run and every artifact written before it is bit-identical through it. An
+    #: index puts the label at that trial instead and fills the trials around it with the episode's other symbols in
+    #: order -- the axis `e495` and `e497` each closed on as a different unit, the same pass with the label at an
+    #: interior trial. It changes which step each symbol is written at and draws nothing, so it is recorded in the
+    #: draw only where it is set, and it is kept last so no drawn field above it can shift it.
+    label_at: int | None = None
 
     @property
     def trial_len(self) -> int:
@@ -171,6 +179,19 @@ class CueActionEnv:
     def last_cue_step(self) -> int:
         """The step the episode's **last** cue arrives at: the step the payout's target is read one step after."""
         return (max(1, self.episode_len) - 1) * self.trial_len + self.cue_at
+
+    @property
+    def label_trial(self) -> int:
+        """The trial whose cue is the label's: ``label_at`` where it is set, the pass's **first** where
+        ``label_first`` puts it there, and the **last** otherwise.
+
+        The last two are the two placements every artifact in this corpus carries, so an environment built without
+        ``label_at`` resolves to exactly the trial it always did; an index names a trial of the pass directly, which
+        is the general form of the two flags and the axis `e505` measures.
+        """
+        if self.label_at is not None:
+            return int(self.label_at)
+        return 0 if self.label_first else max(1, self.episode_len) - 1
 
     @property
     def target_step(self) -> int:
@@ -233,19 +254,18 @@ class CueActionEnv:
         r = None if not self.noise else (np.random.default_rng(0) if rng is None else rng)
         #: **the episode's cues**, one per trial, and the one the label is written on. The pulses are placed in the
         #: order the noise is drawn in, so a single-trial call draws exactly what it always has and the episode only
-        #: adds the draws beside it. `label_first` moves the label's pulse to the first trial and the episode's other
-        #: symbols to the trials after it, one column each; off, the label is the last trial.
+        #: adds the draws beside it. `label_trial` gives the one trial the label's pulse goes to -- the first with
+        #: `label_first`, the last without it, and any named index directly -- and the episode's other symbols fill
+        #: every other trial in order, one column each. The loop walks the trials left to right, so the label first and
+        #: the label last come out in exactly the pulse order the two flags always gave them.
         pulses = []
         if self.episode_len > 1 and episode_symbols is not None:
             other = np.asarray(episode_symbols, dtype=np.int64)
-            if self.label_first:
-                pulses.append((self.cue_at, symbols))
-                for j in range(1, self.episode_len):
-                    pulses.append((j * self.trial_len + self.cue_at, other[:, j - 1]))
-            else:
-                for j in range(self.episode_len - 1):
-                    pulses.append((j * self.trial_len + self.cue_at, other[:, j]))
-        if not self.label_first or self.episode_len <= 1 or episode_symbols is None:
+            at = self.label_trial
+            for j in range(self.episode_len):
+                pulses.append((j * self.trial_len + self.cue_at,
+                               symbols if j == at else other[:, j if j < at else j - 1]))
+        else:
             pulses.append((self.last_cue_step, symbols))
         for step, sym in pulses:
             u[:, step, self.cue_neurons] = self.cue_templates[sym]
@@ -417,7 +437,13 @@ class CueActionEnv:
                     "n_boundary": int(len(self.boundary_neurons)),
                     "boundary_gain": self.boundary_gain} if self.boundary_neurons is not None else {}),
                 #: recorded only where there is a payout, so every earlier artifact's draw is the one it always was
-                **({"reward_map_sha1": _fingerprint(self.reward_map)} if self.reward_map is not None else {})}
+                **({"reward_map_sha1": _fingerprint(self.reward_map)} if self.reward_map is not None else {}),
+                #: **which trial the label sits at**, where the run names one rather than the two flags the corpus has
+                #: run. A rule and not a draw, recorded only where it is set -- so `label_first` and the label-last
+                #: default keep the draw they always had -- and kept last, after every drawn field, so a field that
+                #: followed it could not shift it: `e498` found what a field drawn last suffers when the next one is
+                #: added.
+                **({"label_at": int(self.label_at)} if (self.label_at is not None and self.episode_len > 1) else {})}
 
 
 def _coupling(rng, dims: int) -> np.ndarray:
@@ -547,7 +573,8 @@ def build(circ, readout_subset=None, n_symbols: int = 2, tau: int = 12, n_cue: i
           drive_from_cue: bool = False, cue_seed: int | None = None, reward: bool = False,
           episode: int = 1, boundary: bool = False, n_boundary: int = 8,
           boundary_gain: float = 1.0, episode_reset: bool = False,
-          label_first: bool = False, reward_on_action: bool = False) -> CueActionEnv:
+          label_first: bool = False, reward_on_action: bool = False,
+          label_at: int | None = None) -> CueActionEnv:
     """Draw the three populations disjointly and the cue templates, all from ``seed``.
 
     ``readout_subset`` is the decoder's own draw and is **not** available to the environment: the action is read off
@@ -566,6 +593,10 @@ def build(circ, readout_subset=None, n_symbols: int = 2, tau: int = 12, n_cue: i
     #: well as in the runner
     if episode < 1 or tau % episode:
         raise ValueError(f"episode {episode} does not split the {tau}-step pass exactly")
+    #: the label's trial has to be one of the pass's trials: an index outside them would write the label nowhere, so
+    #: it is refused here rather than becoming a pass with no label
+    if label_at is not None and episode > 1 and not 0 <= label_at < episode:
+        raise ValueError(f"label_at {label_at} is not a trial of the {episode}-trial pass")
     pool = np.arange(circ.n_neurons)
     if readout_subset is not None:
         pool = np.setdiff1d(pool, np.asarray(readout_subset))
@@ -632,4 +663,9 @@ def build(circ, readout_subset=None, n_symbols: int = 2, tau: int = 12, n_cue: i
                         #: and **what the payout is read on**, a rule and not a draw, so it is passed straight
                         #: through and draws nothing: the carry where it is off, the action's one-step response where
                         #: it is on
-                        reward_on_action=bool(reward_on_action))
+                        reward_on_action=bool(reward_on_action),
+                        #: and **which trial the label sits at**, where the run names one rather than the two flags:
+                        #: the general form of `label_first`, a rule and not a draw, passed straight through and
+                        #: passed **last** so that it can shift no field drawn above it -- and inert at one trial,
+                        #: where there is no other trial to place the label at
+                        label_at=(label_at if episode > 1 else None))

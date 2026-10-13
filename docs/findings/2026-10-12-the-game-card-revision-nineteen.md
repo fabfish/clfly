@@ -98,3 +98,7 @@ at the pass's two rungs and the payout read on the action's own one-step respons
 **+4.1356** and **+3.0381** at **+21.68**, **+23.62** and **+15.12** sigma from `e502` -- with every one of this unit's
 `label_first` fields and the card's other fields carried equal. **So the card now says what the pass is worth to an
 agent that acts and not only that the pass is learned**, and this unit's numbers stand.
+
+## RE-READ 2026-10-13 (fourth)
+
+**The interior placements this unit left are measured.** This unit's *cannot do* closed on *one placement pair, the interior placements being a different unit*. `e505` reads the placement at this unit's own three trials: the same pass with the label's cue at trial **0**, **1** and **2** reads **0.8538**, **0.8392** and **0.8580**, then **0.3257**, **0.3069** and **0.3274**, then **0.2566**, **0.2576** and **0.2542**, with the label's own part of the read **1.0571**, **0.0489** and **0.0314**. So the clause's `three_trials` rung is the placement axis's working end, the interior at three trials is at the four-class chance of **0.25** on every arm, and the card carries a step's usable end. This unit's numbers stand.

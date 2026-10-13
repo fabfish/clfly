@@ -118,3 +118,7 @@ byte as their artifacts carry them.
   between two worlds.
 - **And three arms is a small population**: a claim over arms is not a claim about the world, and the two arms whose
   accuracy dips at the default rate here are the two that carry the payout gain at the high one.
+
+## RE-READ 2026-10-13
+
+**The interior placements this unit left are measured.** This unit's *cannot do* closed on *one episode length and one placement ... the three- and four-trial splits and the passes with the label at an interior trial are not in it*. `e505` reads the placement with the pass's length held at three trials and no payout: the pass falls **0.8538**, **0.8392** and **0.8580** to **0.3257**, **0.3069** and **0.3274** to **0.2566**, **0.2576** and **0.2542**, the end-to-end move **+0.5972**, **+0.5816** and **+0.6038** at **+74.23**, **+66.33** and **+88.97** sigma, and the label's own part of the read **1.0571**, **0.0489** and **0.0314**. So the rate this unit swept is swept at the placement axis's working end, and the earning at an interior placement is a different unit. This unit's numbers stand.

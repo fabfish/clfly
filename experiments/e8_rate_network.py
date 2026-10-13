@@ -1255,6 +1255,14 @@ def main(argv=None) -> int:
     p.add_argument("--loop-label-first", action="store_true",
                    help="put the cue the label names at the episode's first trial and the episode's other symbols "
                         "after it, so the label's window is the whole pass; needs an episode longer than one trial")
+    #: **where the label sits, as a trial.** `--loop-label-first` is the placement every artifact in this corpus runs
+    #: -- the label's cue at the pass's first trial -- and the last trial without it; this is the general form of
+    #: both: the 0-based index of the pass's trial whose cue is the label's, with the episode's other symbols filling
+    #: the trials around it in order. None is exactly today's behaviour -- the first trial with `--loop-label-first`
+    #: and the last without it -- so every existing artifact keeps its field-for-field draw and config.
+    p.add_argument("--loop-label-at", type=int, default=None, metavar="N",
+                   help="put the cue the label names at the 0-based trial N of the pass, the episode's other symbols "
+                        "filling the trials around it in order; needs an episode with more than one trial")
     #: `e339` measured that `--seed0` is three draws at once -- it seeds the training replicates, the read-out
     #: subset (`--readout-seed` defaults to it) and, through here, the environment's three populations. So no
     #: artifact in this corpus is a seed-stream comparison: the pair that would be one needs this flag and
@@ -1371,8 +1379,11 @@ def main(argv=None) -> int:
                                  boundary=getattr(args, "loop_boundary", False),
                                  #: and the rule the boundary is, where the run asks the world to obey it
                                  episode_reset=getattr(args, "loop_episode_reset", False),
-                                 #: and **where the label sits**, where the run asks for a pass with more than one trial
-                                 label_first=getattr(args, "loop_label_first", False))
+                                 #: and **where the label sits**, where the run asks for a pass with more than one trial:
+                                 #: the flag puts it at the first trial, and the trial index overrides both flags',
+                                 #: so `--loop-label-at` is the general form and None is the placement unchanged
+                                 label_first=getattr(args, "loop_label_first", False),
+                                 label_at=getattr(args, "loop_label_at", None))
         suite = [fly_env.make_env_task(loop_env, f"loop_{spec[0]}",
                                        symbols=range(i * args.loop_symbols, (i + 1) * args.loop_symbols),
                                        n_train=args.train, n_test=args.test,
@@ -1417,9 +1428,17 @@ def main(argv=None) -> int:
     if getattr(args, "loop_episode_reset", False) and getattr(args, "loop_episode", 1) < 2:
         raise SystemExit("--loop-episode-reset drops the world's state between trials, so it needs --loop-episode 2 "
                          "or more; at one trial per pass the world already starts at rest")
-    if getattr(args, "loop_label_first", False) and getattr(args, "loop_episode", 1) < 2:
-        raise SystemExit("--loop-label-first moves the label into the first of the pass's trials, so it needs "
-                         "--loop-episode 2 or more; at one trial the label is the only cue")
+    #: **where the label sits.** `--loop-label-first` and `--loop-label-at` both place the label's cue at one of the
+    #: pass's trials, so both need a pass with more than one trial to place it in; and naming both is allowed only
+    #: where they agree, which is the first trial, index 0, since a run that says "first" and "trial 2" names two
+    #: different placements. One refusal covers both, because the two flags are one axis.
+    _label_at = getattr(args, "loop_label_at", None)
+    _label_first = getattr(args, "loop_label_first", False)
+    if (((_label_first or _label_at is not None) and getattr(args, "loop_episode", 1) < 2)
+            or (_label_first and _label_at not in (None, 0))):
+        raise SystemExit("--loop-label-first and --loop-label-at place the label's cue at one of the pass's trials, "
+                         "so they need --loop-episode 2 or more; and naming both is allowed only where they agree, "
+                         "which is the first trial, index 0")
     if getattr(args, "loop_holdout", False):
         if not args.closed_loop:
             raise SystemExit("--loop-holdout needs the closed loop, so not without --closed-loop")
