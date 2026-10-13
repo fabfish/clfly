@@ -121,3 +121,14 @@ in time, is a different unit*; `e502` reads the world's payout on its own **one-
 identity on **60 of 60** replicates and the accuracy unchanged to **0.0101**. So this unit's **-4.5457**, **-4.5947**
 and **-5.0295** are the carry's level and not the payout's, and the same pass paid on the action sits at **-3.8024**,
 **-3.8560** and **-4.8238**. This unit's numbers stand.
+
+## RE-READ 2026-10-13 (third)
+
+**The earning this unit measured is written into the card as a clause.** This unit's *cannot do* named *the payout is
+read on the map and not on the action ... A reward on the action, or one sparse in time, is a different unit* and left
+its own **+1.5086**, **+1.4123** and **+1.0722** as one run's reading; `e503` writes the card's revision 20 with a
+**`payout`** clause carrying this unit's own two-trial gains **+1.5086**, **+1.4123** and **+1.0722** at **+22.74**,
+**+22.57** and **+15.54** sigma beside `e501`'s three-trial **+1.4562**, **+1.3586** and **+1.0131** at **+22.92**,
+**+36.39** and **+19.68** sigma and `e502`'s action-currency **+4.0860**, **+4.1356** and **+3.0381** at **+21.68**,
+**+23.62** and **+15.12** sigma, with the map's distance from the identity and each arm's accuracy change along with
+them. **So the earning is no longer one run's reading left out of the card**, and this unit's numbers stand.

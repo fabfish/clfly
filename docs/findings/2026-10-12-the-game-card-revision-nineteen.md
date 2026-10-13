@@ -85,3 +85,16 @@ world paying **+1.0131**, **+1.3586** and **+1.4562** more than its meter run at
 **+22.92** sigma, with the map above the identity on **60 of 60** replicates and the accuracy standing to
 **0.0038** of the meter run's -- whose diagonals are the `three_trials` rung's own **0.8538**, **0.8392** and
 **0.8580**. **So the clause's three-trial rung has a payout an agent can play for**, and this unit's numbers stand.
+
+## RE-READ 2026-10-13 (third)
+
+**The clause this unit's own *cannot do* left ahead of the card is written.** This unit's *cannot do* closed on *a meter
+and not a game: the runs the clause is read from carry no reward on the action, and the payout `e498` measured is read
+as a meter rather than played for, so a clause about what the pass is worth to an agent that acts is still ahead of this
+card*. `e503` writes revision 20: a **`payout`** clause carrying the earned-vs-meter reward contrasts with their sigmas
+at the pass's two rungs and the payout read on the action's own one-step response -- the two-trial gains **+1.5086**,
+**+1.4123** and **+1.0722** at **+22.74**, **+22.57** and **+15.54** sigma from `e500`, the three-trial **+1.4562**,
+**+1.3586** and **+1.0131** at **+22.92**, **+36.39** and **+19.68** sigma from `e501`, and the action's **+4.0860**,
+**+4.1356** and **+3.0381** at **+21.68**, **+23.62** and **+15.12** sigma from `e502` -- with every one of this unit's
+`label_first` fields and the card's other fields carried equal. **So the card now says what the pass is worth to an
+agent that acts and not only that the pass is learned**, and this unit's numbers stand.

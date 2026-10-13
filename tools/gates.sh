@@ -540,4 +540,6 @@ run e501 python -m experiments.e501_the_pass_plays_at_three_trials --json-out ru
 
 run e502 python -m experiments.e502_the_world_pays_the_action --json-out runs/e502_the_world_pays_the_action.json
 
+run e503 python -m experiments.e503_the_game_card_revision_twenty --json-out runs/e503_the_game_card_revision_twenty.json
+
 echo "ALL DONE"
