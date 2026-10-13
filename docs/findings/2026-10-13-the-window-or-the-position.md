@@ -139,3 +139,14 @@ those steps are named at a given split.
   measurement.
 - **And one world, budget and seed stream**: the card's own setting with `--seed0 0`, so a second world and a second
   stream are not in it.
+
+## RE-READ 2026-10-13
+
+**The payout is put on the placement this unit left at chance, and the window's own read is what is paid.** This
+unit's *cannot do* closed on *the payout is not on these runs*; `e507` takes the three-trial pass with the label at
+trial **1** -- this unit's own window **7** -- and runs `e500`'s paid command there. The meter run reads this unit's
+**0.3257**, **0.3069** and **0.3274** exactly, and the earned run lifts the reward's diagonal by **+7.6020**,
+**+9.0113** and **+5.9397** at **+3.66**, **+5.77** and **+2.45** sigma, with the map above the identity on **60 of
+60** replicates at a mean distance of **10.4934**, **10.5437** and **10.6945** and the accuracy unchanged to
+**0.0281**. So the window this unit reads as the pass's cost is where the world pays, and the earning there is larger
+than on the learned label-first pass, where `e500`'s own gain was **+1.07** to **+1.51**. This unit's numbers stand.

@@ -548,4 +548,6 @@ run e505 python -m experiments.e505_where_in_the_pass_the_label_sits --json-out 
 
 run e506 python -m experiments.e506_the_window_or_the_position --json-out runs/e506_the_window_or_the_position.json
 
+run e507 python -m experiments.e507_the_world_pays_at_a_chance_pass --json-out runs/e507_the_world_pays_at_a_chance_pass.json
+
 echo "ALL DONE"

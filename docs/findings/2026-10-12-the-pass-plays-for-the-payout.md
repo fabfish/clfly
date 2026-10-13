@@ -140,3 +140,15 @@ them. **So the earning is no longer one run's reading left out of the card**, an
 ## RE-READ 2026-10-13 (fifth)
 
 **The interior placements this unit left are measured.** This unit's *cannot do* closed on *one episode length and one placement ... the three- and four-trial splits and the passes with the label at an interior trial are not in it*. `e505` reads the placement with the pass's length held at three trials and no payout: the pass falls **0.8538**, **0.8392** and **0.8580** to **0.3257**, **0.3069** and **0.3274** to **0.2566**, **0.2576** and **0.2542**, the end-to-end move **+0.5972**, **+0.5816** and **+0.6038** at **+74.23**, **+66.33** and **+88.97** sigma, and the label's own part of the read **1.0571**, **0.0489** and **0.0314**. So the pass this unit paid is the placement axis's working end, and the earning at an interior placement is a different unit. This unit's numbers stand.
+
+## RE-READ 2026-10-13 (sixth)
+
+**The payout reaches the map on a pass the head cannot learn, and the earning there is larger.** This unit's *cannot
+do* closed on *one episode length and one placement ... the three- and four-trial splits and the passes with the label
+at an interior trial are not in it*; `e507` moves this unit's own paid command onto the three-trial pass with the label
+at trial **1** -- the window-**7** placement, at chance, reading **0.3264**, **0.2993** and **0.2993** -- and the world
+pays **+7.6020**, **+9.0113** and **+5.9397** more at **+3.66**, **+5.77** and **+2.45** sigma, with the map above the
+identity on **60 of 60** replicates at a mean distance of **10.4934**, **10.5437** and **10.6945** against this unit's
+own **5.8133**, **5.2579** and **6.7272**, and the accuracy unchanged to **0.0281**. The meter run reads this unit's
+own pass at about **-42.3** where the learned pass read about **-6.05**, so the chance pass leaves the world further
+from its target and the same two flags buy more. This unit's numbers stand.
