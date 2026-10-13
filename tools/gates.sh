@@ -542,4 +542,6 @@ run e502 python -m experiments.e502_the_world_pays_the_action --json-out runs/e5
 
 run e503 python -m experiments.e503_the_game_card_revision_twenty --json-out runs/e503_the_game_card_revision_twenty.json
 
+run e504 python -m experiments.e504_how_hard_the_map_is_paid --json-out runs/e504_how_hard_the_map_is_paid.json
+
 echo "ALL DONE"

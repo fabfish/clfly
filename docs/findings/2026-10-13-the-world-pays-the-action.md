@@ -105,3 +105,7 @@ rule the agent started from while the world pays more.
   rather than its drive is a different unit. So the reward is read on the agent's own action vector, which is what
   the unit is named for, and the coincidence of widths is a property of the card's configuration rather than of the
   currency.
+
+## RE-READ 2026-10-13
+
+**The rate this unit's earning ran at is swept for the currency the two readers share.** This unit's *cannot do* closed on *one world, one budget, one learning rate and one seed stream, with the map's ascent at the run's own `--lr`, so how hard it is paid is not swept*. `e504` gives the map its own ascent rate through the runner's new `--loop-earn-lr` and reads `e500`'s own two-trial, label-first, **carried-state** pass at **0.001**, **0.003** and **0.01**: the world pays **-4.6798**, **-4.5457** and **-4.4616** on `naive`, **-4.7025**, **-4.5947** and **-4.4738** on `ewc-block` and **-5.0680**, **-5.0295** and **-4.9611** on `replay`, the map travels **3.0280** to **12.6430** from the identity, and every arm's accuracy is within **0.0094** of the meter run's. So the rate the carried-state currency was paid at is a real axis, and the action's own currency at another rate is still a different unit. This unit's numbers stand.

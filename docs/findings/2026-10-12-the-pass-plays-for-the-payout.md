@@ -132,3 +132,7 @@ its own **+1.5086**, **+1.4123** and **+1.0722** as one run's reading; `e503` wr
 **+36.39** and **+19.68** sigma and `e502`'s action-currency **+4.0860**, **+4.1356** and **+3.0381** at **+21.68**,
 **+23.62** and **+15.12** sigma, with the map's distance from the identity and each arm's accuracy change along with
 them. **So the earning is no longer one run's reading left out of the card**, and this unit's numbers stand.
+
+## RE-READ 2026-10-13 (fourth)
+
+**The rate this unit's earning ran at is swept, and this unit's point is its middle.** This unit's *cannot do* closed on *one world, one budget and one seed stream at the run's own learning rate, so how hard it is paid is not swept*; `e504` gives the map its own ascent rate and reads this unit's own earned command at **0.001**, **0.003** -- this unit's own `--lr` -- and **0.01**. This unit's **-4.5457**, **-4.5947** and **-5.0295** are the middle point of a rising curve: the world pays **-4.6798**, **-4.7025** and **-5.0680** at **0.001** and **-4.4616**, **-4.4738** and **-4.9611** at **0.01**, the map's distance from the identity is **3.0280**, **2.9221** and **3.7398** against this unit's **5.8133**, **5.2579** and **6.7272** and **10.5167**, **9.8379** and **12.6430**, and every arm's accuracy is within **0.0094** of the meter run's at every point. So this unit's **+1.07** to **+1.51** is one rate's share of the earning and not the earning, and this unit's numbers stand.

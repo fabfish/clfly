@@ -94,3 +94,7 @@ of one run.
 - **And the pass's length is carried to three trials and no further**: the clause's rungs are the two- and three-trial
   splits, so the **four- and six-trial splits** and the passes with the label at an **interior trial** are not in it,
   and how far the earning's family extends is open.
+
+## RE-READ 2026-10-13
+
+**The rate the card's clause left at the run's own setting is swept.** This unit's *cannot do* closed on *one budget and one seed stream, the card's own setting at the run's own `--lr`*, and the **`payout`** clause it writes carries the carried currency's earning at that one rate. `e504` gives the map its own ascent rate through the runner's new `--loop-earn-lr` and reads `e500`'s own two-trial, label-first earned command at **0.001**, **0.003** (the card's own `--lr`) and **0.01**: the world pays **-4.6798**, **-4.5457** and **-4.4616** on `naive`, **-4.7025**, **-4.5947** and **-4.4738** on `ewc-block` and **-5.0680**, **-5.0295** and **-4.9611** on `replay`, the map travels **3.0280** to **12.6430** from the identity, and every arm's accuracy is within **0.0094** of the meter run's. So the two-trial gain the clause carries is the middle of a rising curve and the clause is not revised to carry the other two; the card's own numbers stand.

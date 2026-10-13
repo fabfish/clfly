@@ -742,6 +742,10 @@ def run_method(conn_net, suite, method: str, args, seed: int,
         bias_before = model.bias.detach().cpu().numpy().copy()
         basis = direction_basis(theta_before.size)
         probe: dict = {}
+        #: the map's own ascent rate, when the run was asked for one: `--loop-earn-lr` if it is given and the run's
+        #: own `--lr` if it is not, so a run without the flag is the run beside it bit for bit
+        earn_lr = ((args.loop_earn_lr if getattr(args, "loop_earn_lr", None) is not None else args.lr)
+                   if getattr(args, "loop_earn", False) else None)
         losses.append(train_task(
             model, heads, suite, k, iters=args.iters, lr=args.lr,
             batch=args.batch, seed=seed + k,
@@ -754,7 +758,7 @@ def run_method(conn_net, suite, method: str, args, seed: int,
             replay_batch=args.replay_batch,
             frozen_body=args.frozen_body, frozen_bias=getattr(args, "frozen_bias", False),
             policy=pol, replay_probe=probe,
-            earn_lr=(args.lr if getattr(args, "loop_earn", False) else None)))
+            earn_lr=earn_lr))
         #: recorded for every method and empty for the ones with no replay buffer, so an artifact's shape does not
         #: depend on which arms it ran
         replay_losses.append({"first": probe.get("first"), "last": probe.get("last")})
@@ -1219,6 +1223,12 @@ def main(argv=None) -> int:
     p.add_argument("--loop-earn", action="store_true",
                    help="train the loop's policy by ascent on the world's payout in an optimizer of its own, instead of "
                         "by the task loss through the loop; needs --loop-policy and --loop-reward")
+    #: **how hard the map is paid.** `--loop-earn` gives the map an optimizer and ascends the payout into it at the
+    #: run's own `--lr`, which every earned run in this corpus does; this flag gives the map an ascent rate of its
+    #: own, and its default is the run's `--lr` exactly, so a run without it is bit-identical through it.
+    p.add_argument("--loop-earn-lr", type=float, default=None, metavar="RATE",
+                   help="the map's own ascent rate on the world's payout, when it is to differ from the run's --lr; "
+                        "None means the run's own --lr, and needs --loop-earn")
     #: **the episode**, the last of `env.py`'s three absences (*"no reward, no episode boundary and no policy"*): the
     #: pass holds this many trials, the world's state is the episode's, and the trials before the last are the
     #: episode's own history. One is every artifact this corpus holds, and the split must be exact.
@@ -1396,8 +1406,8 @@ def main(argv=None) -> int:
     holdout_task = None
     if getattr(args, "loop_policy", False) and not args.closed_loop:
         raise SystemExit("--loop-policy needs the closed loop, so not without --closed-loop")
-    if getattr(args, "loop_earn", False) and not (getattr(args, "loop_policy", False)
-                                                  and getattr(args, "loop_reward", False)):
+    if (getattr(args, "loop_earn", False) or getattr(args, "loop_earn_lr", None) is not None) and not (
+            getattr(args, "loop_policy", False) and getattr(args, "loop_reward", False)):
         raise SystemExit("--loop-earn ascends the world's payout into the agent's map, so it needs --loop-policy for "
                          "the map and --loop-reward for the payout")
     if (getattr(args, "loop_episode", 1) > 1 or getattr(args, "loop_boundary", False)) and not args.closed_loop:

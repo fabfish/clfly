@@ -99,3 +99,7 @@ world's **one-step response to the action** rather than against its carried stat
 **+4.1356** and **+3.0381** more on every arm at **+21.68**, **+23.62** and **+15.12** sigma, the map above the
 identity on **60 of 60** replicates, and the accuracy unchanged to **0.0101** -- the same pair this unit read, with
 the reader moved from the carry to the action. This unit's numbers stand.
+
+## RE-READ 2026-10-13 (second)
+
+**The rate the earning runs at is a real axis, measured at the pass's other rung.** This unit's *cannot do* closed on *one world, one budget, one learning rate and one seed stream*; `e504` sweeps the map's own ascent rate through the runner's new `--loop-earn-lr` at `e500`'s two-trial, label-first pass -- **0.001**, **0.003** and **0.01** -- and the world pays **-4.6798**, **-4.5457** and **-4.4616** on `naive`, **-4.7025**, **-4.5947** and **-4.4738** on `ewc-block` and **-5.0680**, **-5.0295** and **-4.9611** on `replay`, with the map travelling **3.0280** to **12.6430** from the identity and the accuracy standing within **0.0094** of the meter run's. So the rate this unit held at the run's own `--lr` is a curve at the rung below it, and the three-trial rung's own curve is a different unit. This unit's numbers stand.
