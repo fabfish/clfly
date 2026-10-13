@@ -106,3 +106,17 @@ agent that acts and not only that the pass is learned**, and this unit's numbers
 ## RE-READ 2026-10-13 (fifth)
 
 **The placement and the window are separated, and the clause's clause is the window.** This unit's *cannot do* closed on the passes with the label at an interior trial being *a different unit, whose placement and window cannot be separated by moving the one flag*, and on the *four- and six-trial splits* not being in the card. `e506` adds the **four-trial** split and holds the window while both the pass's length and the label's trial move: window **11** is carried by three pass lengths (two, three and four, reading **0.8299** to **0.8580**) and window **5** by two, and the two window-**5** placements read **0.3104**, **0.2944** and **0.3031** against **0.3031**, **0.2986** and **0.2903**, differing by at most **0.0128** against the window-eleven family's own spread of **0.0312**. **So the `label_first` clause's clause is the drive steps the label leaves, `11 - i * 12/N`, and not the trial index the card names them by.** The four-trial rung is measured and not carried into this card, so the card stands at revision **20** and this unit's numbers stand.
+
+## RE-READ 2026-10-14 (sixth)
+
+**The window this unit's own *RE-READ 2026-10-13 (fifth)* left measured and outside the card is carried into it.**
+That re-read closed on *the four-trial rung is measured and not carried into this card, so the card stands at
+revision 20*. `e508` writes revision 21: the `label_first` clause gains a **`windows`** field naming the eight
+placements the corpus holds -- two, three and four trials at trial **0**, **1** and **2**, so windows **11**, **8**,
+**7**, **5** and **3** -- each with its pass length, its trial index, its window in drive steps, the three arms'
+accuracy diagonals and the label's own share of the read, read from `e495`'s, `e497`'s, `e505`'s and `e506`'s
+artifacts and from their readings recomputed, beside the two comparisons that decide the variable: the same-window
+families **0.0128** (window **5** across two pass lengths) and **0.0312** (window **11**'s own, the bound), and the
+same-position pair **+0.0379** to **+0.0511**. Every one of this unit's **12** `label_first` fields and the card's
+**32** other fields is carried equal, and the `absent` list is still **`[]`**. **So the clause now says its own
+clause is the drive steps and not the trial index**, and this unit's numbers stand.

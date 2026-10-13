@@ -550,4 +550,6 @@ run e506 python -m experiments.e506_the_window_or_the_position --json-out runs/e
 
 run e507 python -m experiments.e507_the_world_pays_at_a_chance_pass --json-out runs/e507_the_world_pays_at_a_chance_pass.json
 
+run e508 python -m experiments.e508_the_card_carries_the_window --json-out runs/e508_the_card_carries_the_window.json
+
 echo "ALL DONE"
