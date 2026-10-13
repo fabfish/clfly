@@ -546,4 +546,6 @@ run e504 python -m experiments.e504_how_hard_the_map_is_paid --json-out runs/e50
 
 run e505 python -m experiments.e505_where_in_the_pass_the_label_sits --json-out runs/e505_where_in_the_pass_the_label_sits.json
 
+run e506 python -m experiments.e506_the_window_or_the_position --json-out runs/e506_the_window_or_the_position.json
+
 echo "ALL DONE"

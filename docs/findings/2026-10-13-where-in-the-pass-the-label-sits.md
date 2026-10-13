@@ -99,3 +99,18 @@ before every other cue*.
   against the world's currency.
 - **And one world, budget and seed stream**: the card's own setting with `--seed0 0`, so a second world and a second
   stream are not in it.
+
+## RE-READ 2026-10-13
+
+**The window and the position are separated, and it is the window that orders the pass.** This unit's *cannot do*
+closed on *three placements is not a curve's shape* and *the placement and the pass's length still move together*.
+`e506` adds the **four-trial** pass -- trials of three steps, the label at trial **0**, **1** and **2** with windows
+**11**, **8** and **5** -- so this unit's window **7** and window **3** are joined by window **11** on a third pass
+length and window **5** on a second. The two window-**5** placements, the corpus's two-trial label-last and a
+four-trial pass with the label at trial **2**, read **0.3104**, **0.2944** and **0.3031** against **0.3031**,
+**0.2986** and **0.2903**, differing by at most **0.0128** and inside the window-eleven family's own spread of
+**0.0312**; the four-trial window-**8** point reads **0.3667**, **0.3580** and **0.3653** against this unit's own
+window-**7** **0.3257**, **0.3069** and **0.3274**, and the label's own part of the read follows the window down
+**1.0424** at **11** to **0.0878** at **8**, **0.0489** at **7**, **0.0374** at **5** and **0.0314** at **3**. **So
+the axis this unit named as one is the window** -- the label's trial index is only how those drive steps are counted
+at a given split -- and this unit's three placements stand.
