@@ -179,3 +179,19 @@ placement (window **5**), so the nearer of the two is the **same-position** poin
 **three** cues after it where the three-trial label-at-1 leaves **one**. So the window-5 conclusion stands unchanged
 (**0.0132** across three pass lengths, inside the bound) while the window-7 point is where the two accounts part, and
 a unit that separated a step's worth of window from a trial's would be needed to settle it.
+
+## RE-READ 2026-10-14 (second)
+
+**The knee this unit found at window 11 is measured over the whole ladder, and it carries three fifths of the fall
+from window 11 to window 3.** This unit's own RE-READ 2026-10-14 records what `e509` added to its window table; the
+reading this note adds is the *shape* of the curve, which `e510` takes over every window the corpus holds -- **six**
+windows, **11**, **9**, **8**, **7**, **5** and **3**, behind **eleven placements over four pass lengths**. The
+ladder is non-increasing on **3 of 3** arms (**0.8384** to **0.2566** on `naive`, **0.8272** to **0.2576** on
+`ewc-block` and **0.8376** to **0.2542** on `replay`), the floor windows **7**, **5** and **3** pool within **0.10**
+of the four-class chance of **0.25** on every arm, and the three families this unit's window-**5** and window-**11**
+readings belong to are inside the registered **0.0312**. **And this unit's knee is where the shape is decided**: the
+step from window **11** to window **9** carries **0.599**, **0.620** and **0.582** of the whole fall from **11** to
+**3**, so the largest single step carries more than half and the four steps below it share the rest -- a knee with a
+graded slope, which is the shape this unit named from the four-trial pass. *What this unit left open and `e510`
+repeats*: at window **7** the nearest placement to the six-trial label-at-2 is still a same-position one, so the
+window is not separated from the position on the whole ladder either.

@@ -114,3 +114,19 @@ window-**7** **0.3257**, **0.3069** and **0.3274**, and the label's own part of 
 **1.0424** at **11** to **0.0878** at **8**, **0.0489** at **7**, **0.0374** at **5** and **0.0314** at **3**. **So
 the axis this unit named as one is the window** -- the label's trial index is only how those drive steps are counted
 at a given split -- and this unit's three placements stand.
+
+## RE-READ 2026-10-14
+
+**The curve this unit saw three points of is now read whole, and its own phrase was half right -- a step at the top
+and a slope below it.** This unit's *cannot do* closed on *three placements is not a curve's shape*, `e506` added a
+fourth pass length and found a knee at window **11**, and `e509` added the six-trial pass, so `e510` pools every
+placement on disk and reads the ladder over **six** windows -- **11**, **9**, **8**, **7**, **5** and **3** -- with
+eleven placements behind them. Read whole, the ladder is non-increasing on **3 of 3** arms (**0.8384** to **0.2566**
+on `naive`, **0.8272** to **0.2576** on `ewc-block` and **0.8376** to **0.2542** on `replay`), and the floor windows
+this unit's own window **3** belongs to -- **7**, **5** and **3** -- all sit within **0.10** of the four-class chance
+of **0.25**. **And the fall is not one graded collapse**: the step from window **11** to window **9** carries
+**0.599**, **0.620** and **0.582** of the whole fall from **11** to **3**, so the largest single step carries three
+fifths of it while four of the five steps resolve. **So this unit's phrase "a step and not a slope" names the top
+step and misses the slope**: the curve is a step into window **9** and a graded slope from **9** down to **3**, which
+is what the three points this unit held (**11**, **7** and **3**) could not tell apart -- it saw the two ends and one
+rung between them, and the rung it called the slope is the knee. This unit's own numbers stand.

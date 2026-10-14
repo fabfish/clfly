@@ -554,4 +554,6 @@ run e508 python -m experiments.e508_the_card_carries_the_window --json-out runs/
 
 run e509 python -m experiments.e509_the_window_at_six_trials --json-out runs/e509_the_window_at_six_trials.json
 
+run e510 python -m experiments.e510_the_shape_of_the_window_curve --json-out runs/e510_the_shape_of_the_window_curve.json
+
 echo "ALL DONE"
