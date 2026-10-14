@@ -100,3 +100,26 @@ clause carries both.
 - **And one world, budget and seed stream**: every run behind the table is the card's own setting with `--seed0 0`
   and the run's own budget, so a second world and a second stream are not in it, and the table is a record of one
   configuration rather than a curve over any of its settings.
+
+## RE-READ 2026-10-14
+
+**The window table gains the six-trial placements, and the card would hold eleven rather than eight.** `e509` runs the
+**six-trial** split -- trials of **two** steps, the label at trial **1**, **2** and **3** -- and its three placements
+read **0.4899**, **0.4743** and **0.4979** at window **9**, **0.3122**, **0.3073** and **0.3045** at window **7** and
+**0.3000**, **0.2920** and **0.3035** at window **5**, with the label's own share of the read **0.1935**, **0.0446**
+and **0.0398**.
+
+**So this row's clause would gain three rows and two of its families would gain members.** The `windows` field names
+the eight placements the corpus held when revision 21 was written; the corpus now holds eleven, so the field would
+name the six-trial three beside them. The same-window comparison would gain window **7** as a family of **two** pass
+lengths -- three trials at trial 1 against six at trial 2, spread **0.0135**, **0.0003** and **0.0229** -- and a third
+member at window **5** -- two trials at trial 1, four at trial 2 and six at trial 3, spread **0.0104**, **0.0066** and
+**0.0132** -- both inside the registered bound of **0.0312** this row's clause carries. And the new window **9** reads
+**0.49**, between window **8**'s **0.36** and the window-**11** family's **0.81** to **0.86**, so the ladder the
+clause's `placements` table records now has a fifth rung.
+
+**And what the clause would still not carry.** Its comparison holds the same-window placements alike and the
+same-position pair apart; at window **7** the six-trial trial-**2** point's nearest neighbour is the four-trial
+trial-**2** point at **0.0142**, nearer than its own window's **0.0229**, so the placement the clause's window table
+would gain is one where a same-position account reads at least as well as the window's. Revision 21's own numbers and
+the two comparisons it carries are unchanged by this unit; what changes is the corpus the table is drawn from.

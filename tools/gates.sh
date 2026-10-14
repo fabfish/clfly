@@ -552,4 +552,6 @@ run e507 python -m experiments.e507_the_world_pays_at_a_chance_pass --json-out r
 
 run e508 python -m experiments.e508_the_card_carries_the_window --json-out runs/e508_the_card_carries_the_window.json
 
+run e509 python -m experiments.e509_the_window_at_six_trials --json-out runs/e509_the_window_at_six_trials.json
+
 echo "ALL DONE"

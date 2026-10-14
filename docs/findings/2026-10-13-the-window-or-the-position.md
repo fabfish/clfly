@@ -150,3 +150,32 @@ trial **1** -- this unit's own window **7** -- and runs `e500`'s paid command th
 60** replicates at a mean distance of **10.4934**, **10.5437** and **10.6945** and the accuracy unchanged to
 **0.0281**. So the window this unit reads as the pass's cost is where the world pays, and the earning there is larger
 than on the learned label-first pass, where `e500`'s own gain was **+1.07** to **+1.51**. This unit's numbers stand.
+
+## RE-READ 2026-10-14
+
+**The six-trial pass is a fourth pass length, and it puts a second pass length on two of this unit's windows -- and at
+window 7 the nearest placement is still the same position.** This unit's *cannot do* closed on *four pass lengths at
+most, three of them sharing one window*, with window **8**, window **7** and window **3** each a single pass length;
+`e509` runs the **six-trial** split -- trials of **two** steps, the label at trial **1**, **2** and **3**, windows
+**9**, **7** and **5** -- and reads it beside every placement this unit's window table holds.
+
+**And the two windows that were a single pass length are now families.** Window **7**: this unit's three-trial
+label-at-1 reads **0.3257**, **0.3069** and **0.3274** and the six-trial label-at-2 reads **0.3122**, **0.3073** and
+**0.3045**, gaps of **0.0135**, **0.0003** and **0.0229** inside this unit's registered bound of **0.0312**. Window
+**5**: this unit's two-trial label-last **0.3104**, **0.2944** and **0.3031** and four-trial label-at-2 **0.3031**,
+**0.2986** and **0.2903**, within **0.0132** of the six-trial label-at-3's **0.3000**, **0.2920** and **0.3035**. So
+this unit's window-7 and window-5 readings stand and are carried by a fourth pass length.
+
+**And the new window 9 is a rung between the windows this unit could not separate.** The six-trial label-at-1 reads
+**0.4899**, **0.4743** and **0.4979** -- above this unit's window-**8** point's **0.3667**, **0.3580** and **0.3653**
+and below the window-**11** family's **0.8139** to **0.8580** on every arm -- so window **9** reads **0.49** where
+window **8** reads **0.36** and window **7** reads **0.31** to **0.33**, and the label's own share at window **9** is
+**0.1935** against **0.0878** at window **8** and **0.0489** at window **7**.
+
+**What moved.** This unit's **WA2** carried the strong form -- *the read is a function of the window and not of the
+position* -- and the six-trial pass does not shut the position out. The six-trial trial-**2** placement reads
+**0.0229** from this unit's three-trial window-**7** placement and **0.0142** from its four-trial trial-**2**
+placement (window **5**), so the nearer of the two is the **same-position** point, and the six-trial label-at-2 leaves
+**three** cues after it where the three-trial label-at-1 leaves **one**. So the window-5 conclusion stands unchanged
+(**0.0132** across three pass lengths, inside the bound) while the window-7 point is where the two accounts part, and
+a unit that separated a step's worth of window from a trial's would be needed to settle it.
