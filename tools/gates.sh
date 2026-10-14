@@ -558,4 +558,6 @@ run e510 python -m experiments.e510_the_shape_of_the_window_curve --json-out run
 
 run e511 python -m experiments.e511_the_earning_at_the_knee --json-out runs/e511_the_earning_at_the_knee.json
 
+run e512 python -m experiments.e512_the_earning_ledger --json-out runs/e512_the_earning_ledger.json
+
 echo "ALL DONE"

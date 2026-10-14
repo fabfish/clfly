@@ -139,3 +139,38 @@ satisfy on the payout's shape.
 `runs/e498_earned_label_episode2_labelfirst_reward_20reps.json`, `runs/e507_label_at1_episode3_reward_20reps.json`,
 `runs/e507_label_at1_episode3_reward_earn_20reps.json` and, as the map's neighbours,
 `runs/e501_earned_label_episode3_labelfirst_reward_earn_20reps.json`.
+
+## RE-READ 2026-10-14
+
+**This document's three points are the ledger's first three, and the ordering it read them at is the corpus's own
+ordering.** `e512` globs `runs/`, pairs every **meter** run with every run on its own pass that carries
+`--loop-policy --loop-earn`, and pools **8** cells over **14** artifacts, this document's three among them: `e500`'s
+learned window-**11** pass, this document's knee at window **9** and `e507`'s chance pass at window **7**. Ordering
+all eight by the meter's own level, from the closest to the target to the furthest -- **-5.9440**, **-6.0542** (three
+cells on one meter run), **-6.8857**, **-7.8884**, **-42.4450** and **-47.0848** on `naive` with the gains
+**+1.4562**, **+1.3744** to **+1.5926**, **+1.9741**, **+4.0860**, **+7.6020** and **+10.1920** -- the gain is
+non-decreasing with **0** inversions past the registered tolerance of **0.25** on all **3** arms. **So the ordering
+this document read at three points is the ordering of the whole ledger**, and the five cells it could not see -- the
+one-trial pass, `e501`'s three-trial pass at the same window, `e502`'s action currency and `e504`'s two swept ascent
+rates -- sit where the ordering puts them.
+
+**And the accuracy orders nothing across the ledger either.** Ordering the same eight cells by the `naive` arm's
+accuracy diagonal, highest first, the gain is inverted on **3 of 3** arms, by **+2.5774** (`e502` against `e500`),
+**+2.1119** (`e502` against `e488`) and **+2.5900** (this document's knee against `e507`'s chance pass) on the
+`naive` arm. **So this document's *the accuracy runs 0.83, 0.49 and 0.30 across the same three points and orders the
+earning on no arm* is what the whole corpus shows**: five of the eight cells lie inside **0.0282** of each other on
+that arm, and the one this document read as the middle of the accuracy's own ladder is the second of the three
+inversions.
+
+**And the pass's own accuracies this document reported are the ledger's, and one of them is the ledger's exception.**
+The ledger's fourth claim -- that no arm's accuracy contrast between the earned and the meter run resolves at two
+sigma -- **fired**, on exactly one of its **24** cell-arms: `e507`'s `replay` arm at **-0.0281** and **-2.56** sigma,
+which is the number this document's own table carries in the row above. This document's own arms stand as it read
+them (**-0.0042**, **-0.0118** and **-0.0028**, none resolving, the largest **-0.87**), and the ledger puts the
+corpus's one resolved accuracy loss at the chance pass's buffer arm and nowhere else.
+
+**What this does not change.** This document's **BA3** registered an **interval** -- the meter's level and the gain
+between `e500`'s and `e507`'s -- and it fired, because the knee's meter sits past the chance pass's and not between
+the other two; the ledger reads the **ordering** and not the interval, so the two are not in conflict and the fired
+falsifier this document reported is not re-read here. Its numbers, its pair and its three points stand as what it
+measured.
