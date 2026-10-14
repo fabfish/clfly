@@ -556,4 +556,6 @@ run e509 python -m experiments.e509_the_window_at_six_trials --json-out runs/e50
 
 run e510 python -m experiments.e510_the_shape_of_the_window_curve --json-out runs/e510_the_shape_of_the_window_curve.json
 
+run e511 python -m experiments.e511_the_earning_at_the_knee --json-out runs/e511_the_earning_at_the_knee.json
+
 echo "ALL DONE"

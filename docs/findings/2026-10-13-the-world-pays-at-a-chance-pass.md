@@ -116,3 +116,24 @@ ablation and not the accuracy.
 - **And one world, one budget, one learning rate and one seed stream**: the card's own setting with `--lr 0.003` and
   `--seed0 0`, so a second world, a second budget, the swept ascent rate of `e504` and a second seed stream are not in
   it.
+
+## RE-READ 2026-10-14
+
+**The meter's distance this document named is not the largest the corpus holds, and the earning there is larger than
+this document's.** This document put the payout on the pass it reads at chance -- three trials, the label at trial
+**1**, window **7** -- and read its larger gain than `e500`'s as the meter sitting further from the target. `e511`
+puts the payout at the curve's knee, the six-trial label-at-1 pass at window **9**, and reads the meter at
+**-47.0848**, **-48.8477** and **-45.3876** where this document read **-42.4450**, **-43.4675** and **-40.9544**,
+with the gain **+10.1920**, **+12.9132** and **+9.0252** where this document read **+7.6020**, **+9.0113** and
+**+5.9397**. **So the knee's meter sits further from the target than the chance pass's and the same two flags buy
+more there**, while the knee's accuracy (**0.4858**, **0.4625** and **0.4951**) is between this document's **0.3264**
+and `e500`'s **0.8281** and neither the meter's level nor the gain is.
+
+**What this document's reading now sits inside.** The three points order the earning by the meter's own distance from
+the target on all three arms: sorted from the closest to the target to the furthest, `e500`'s **-6.05** with a gain
+of **+1.51**, this document's **-42.45** with **+7.60** and the knee's **-47.08** with **+10.19**, and the gain rises
+with every step (the same ordering holds on `ewc-block` and on `replay`). The accuracy runs **0.83**, **0.49** and
+**0.30** across the same three points and orders the earning on no arm. **So this document's reading -- the meter
+further from the target buys more -- holds and is one of three points on a line the accuracy does not draw**, and
+what this document could not see is that a pass reading **0.49** sits further from the target still. This document's
+numbers stand as what it measured.

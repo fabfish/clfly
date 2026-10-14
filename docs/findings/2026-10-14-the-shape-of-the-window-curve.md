@@ -118,3 +118,22 @@ inside the chance band by **1.3** to **2.2**, which is where a graded curve's ow
 `runs/e506_label_at1_episode4_20reps.json`, `runs/e506_label_at2_episode4_20reps.json`,
 `runs/e509_label_at1_episode6_20reps.json`, `runs/e509_label_at2_episode6_20reps.json` and
 `runs/e509_label_at3_episode6_20reps.json`.
+
+## RE-READ 2026-10-14
+
+**The payout is now on this document's knee, and the middle rung of the ladder is where the world pays most.** This
+document pooled the six-trial label-at-1 placement as window **9** and found the fall from window **11** to window
+**9** carrying three fifths of the whole ladder. `e511` runs `e500`'s own paid command at that placement -- the meter
+run reads this document's **0.4899**, **0.4743** and **0.4979** exactly -- and the earned run lifts the reward's
+diagonal by **+10.1920**, **+12.9132** and **+9.0252** at **+7.35**, **+6.75** and **+5.13** sigma, with the map
+above the identity on **60 of 60** replicates and the meter's cells at the knee running **-47.0848**, **-48.8477**
+and **-45.3876**. **So the rung this document read as the top of the fall is where the world pays most of the three
+passes the payout has been read at**: **+1.07** to **+1.51** on the learned window **11** pass, **+5.94** to
+**+9.01** on the chance window **7** pass and **+9.03** to **+12.91** here at window **9**, with the meter's own
+cells further from the target at the knee than at either of those.
+
+**What this does not change.** This document's curve is the accuracy's, read on runs that carry no payout, and it
+stands as what it measured: the ladder falls, the floor windows **7**, **5** and **3** sit within **0.10** of the
+four-class chance of **0.25**, and the step from window **11** to window **9** carries more than half the fall. What
+it could not see is that the rung whose accuracy is the second-highest of the three is the rung the world pays most
+on -- and that the place the curve's accuracy falls most steeply is therefore not the place the earning is smallest.
